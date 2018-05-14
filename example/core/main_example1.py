@@ -76,7 +76,7 @@ def print_report_rich(rx_data):
 
 def connect_485(port):
     arm_port = SerialPort(port, x2_config.CTSER_COM_BAUD, x2_config.UXBUS_RXQUE_MAX, x2_config.UX2_HEX_PROTOCOL)
-    if 0 != arm_port.is_ok():
+    if not arm_port.connected:
         print(DB_FLG + "error: serial not connect")
         return -1
     arm_cmd = UX2HexCmd(arm_port)
@@ -85,8 +85,8 @@ def connect_485(port):
 
 
 def connect_tcp(ip):
-    arm_port = SocketPort(ip, x2_config.SERVER_PORT, x2_config.TCP_RX_QUE_MAX, 1)
-    if 0 != arm_port.is_ok():
+    arm_port = SocketPort(ip, x2_config.SERVER_PORT, x2_config.TCP_RX_QUE_MAX, 1, buffer_size=x2_config.TX2_BUF_SIZE)
+    if not arm_port.connected:
         print(DB_FLG + "error: tcp not connect")
         return -1
     arm_cmd = TX2HexCmd(arm_port)
@@ -96,8 +96,8 @@ def connect_tcp(ip):
 
 def connect_report_norm(ip):
     rxcnt = 0
-    arm_report = SocketPort(ip, x2_config.SERVER_REPORT_NORM, x2_config.TCP_RX_QUE_MAX)
-    if 0 != arm_report.is_ok():
+    arm_report = SocketPort(ip, x2_config.SERVER_REPORT_NORM, x2_config.TCP_RX_QUE_MAX, buffer_size=x2_config.TX2_REPORT_NORMAL_BUF_SIZE)
+    if not arm_report.connected:
         print(DB_FLG + "error: tcp report norm not connect")
         return -1
     print(DB_FLG + "tcp report norm connect")
@@ -113,12 +113,12 @@ def connect_report_norm(ip):
 
 def connect_report_rich(ip):
     rxcnt = 0
-    arm_report = SocketPort(ip, x2_config.SERVER_REPORT_RICH, x2_config.TCP_RX_QUE_MAX)
-    if 0 != arm_report.is_ok():
+    arm_report = SocketPort(ip, x2_config.SERVER_REPORT_RICH, x2_config.TCP_RX_QUE_MAX, buffer_size=x2_config.TX2_REPORT_RICH_BUF_SIZE)
+    if not arm_report.connected:
         print(DB_FLG + "error: tcp report rich not connect")
         return -1
     print(DB_FLG + "tcp report rich connect")
-    while (1):
+    while True:
         rx_data = arm_report.read()
         if rx_data != -1 and len(rx_data) > 5:
             rxcnt += 1
@@ -130,12 +130,12 @@ def connect_report_rich(ip):
 
 def connect_report_realt(ip):
     rxcnt = 0
-    arm_report = SocketPort(ip, x2_config.SERVER_REPORT_REALT, x2_config.TCP_RX_QUE_MAX)
-    if 0 != arm_report.is_ok():
+    arm_report = SocketPort(ip, x2_config.SERVER_REPORT_REALT, x2_config.TCP_RX_QUE_MAX, buffer_size=x2_config.TX2_REPORT_NORMAL_BUF_SIZE)
+    if not arm_report.connected:
         print(DB_FLG + "error: tcp report real not connect")
         return -1
     print(DB_FLG + "tcp report realt connect")
-    while (1):
+    while True:
         rx_data = arm_report.read()
         if rx_data != -1 and len(rx_data) > 5:
             rxcnt += 1

@@ -60,8 +60,9 @@ class TX2HexCmd(X2HexCmd):
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 7:
                 ret[0] = self.check_xbus_proc(rx_data, funcode)
-                for i in range(n):
-                    ret[i + 1] = rx_data[i + 8]
+                if ret[0] == 0:
+                    for i in range(n):
+                        ret[i + 1] = rx_data[i + 8]
                 return ret
             time.sleep(0.001)
         return ret

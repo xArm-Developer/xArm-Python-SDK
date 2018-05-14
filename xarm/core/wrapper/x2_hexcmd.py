@@ -8,9 +8,19 @@
 #                       <jimy92@163.com>
 #
 
+import threading
+import functools
 from ..utils import convert
 from ..config import x2_config
 from ..config import x2_cmd_config
+
+
+def lock_require(func):
+    @functools.wraps(func)
+    def decorator(*args, **kwargs):
+        with args[0].lock:
+            return func(*args, **kwargs)
+    return decorator
 
 
 class X2HexCmd(object):
@@ -21,6 +31,7 @@ class X2HexCmd(object):
         self._error_code = 0
         self._warn_code = 0
         self._cmd_num = 0
+        self.lock = threading.Lock()
 
     def check_xbus_proc(self, data, funcode):
         raise NotImplementedError
@@ -31,18 +42,21 @@ class X2HexCmd(object):
     def send_xbus(self, funcode, txdata, num):
         raise NotImplementedError
 
+    @lock_require
     def set_nu8(self, funcode, datas, n):
         ret = self.send_xbus(funcode, datas, n)
         if 0 != ret:
             return [x2_config.UX2_ERR_NOTTCP]
         return self.send_pend(funcode, 0, x2_config.UX2_SET_TIMEOUT)
 
+    @lock_require
     def get_nu8(self, funcode, n):
         ret = self.send_xbus(funcode, 0, 0)
         if 0 != ret:
             return [x2_config.UX2_ERR_NOTTCP] * (n + 1)
         return self.send_pend(funcode, n, x2_config.UX2_GET_TIMEOUT)
 
+    @lock_require
     def set_nfp32(self, funcode, datas, n):
         hexdata = convert.fp32s_to_bytes(datas, n)
         ret = self.send_xbus(funcode, hexdata, n * 4)
@@ -50,6 +64,7 @@ class X2HexCmd(object):
             return [x2_config.UX2_ERR_NOTTCP]
         return self.send_pend(funcode, 0, x2_config.UX2_SET_TIMEOUT)
 
+    @lock_require
     def get_nfp32(self, funcode, n):
         ret = self.send_xbus(funcode, 0, 0)
         if 0 != ret:
@@ -60,6 +75,7 @@ class X2HexCmd(object):
         data[1:n] = convert.bytes_to_fp32s(ret[1:n * 4 + 1], n)
         return data
 
+    @lock_require
     def swop_nfp32(self, funcode, datas, txn, rxn):
         hexdata = convert.fp32s_to_bytes(datas, txn)
         ret = self.send_xbus(funcode, hexdata, txn * 4)
@@ -71,6 +87,7 @@ class X2HexCmd(object):
         data[1:rxn] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
         return data
 
+    @lock_require
     def is_nfp32(self, funcode, datas, txn):
         hexdata = convert.fp32s_to_bytes(datas, txn)
         ret = self.send_xbus(funcode, hexdata, txn * 4)
@@ -78,6 +95,7 @@ class X2HexCmd(object):
             return [x2_config.UX2_ERR_NOTTCP] * 2
         return self.send_pend(funcode, 1, x2_config.UX2_GET_TIMEOUT)
 
+    @lock_require
     def get_nu16(self, funcode, n):
         ret = self.send_xbus(funcode, 0, 0)
         if 0 != ret:
@@ -186,6 +204,7 @@ class X2HexCmd(object):
 
     def gripper_en(self, enable):
         txdata = [int(enable)]
+        print(txdata)
         return self.set_nu8(x2_cmd_config.BU2RG_GPSET_MOTION, txdata, 1)
 
     def gripper_mode(self, value):

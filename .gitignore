@@ -1,0 +1,4 @@
+files__pycache__/
+.idea
+*.py[cod]
+*$py.class

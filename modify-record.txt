@@ -1,0 +1,15 @@
+
+注意：
+    1. 这个是直接对外的Python SDK
+    1. 基础通信接口都在xarm/core目录下
+
+2018-05-14:
+    1. 修改了目录结构，基础通信接口都在core里面
+        xarm/core/comm: 串口和TCP两种通信方式
+        xarm/core/config: 配置相关
+        xarm/core/protocol: 数据处理协议
+        xarm/core/utils: 工具
+        xarm/core/wrapper: 接口
+        example/core: 测试用例
+    2. 把所有的tab转换为4个空格
+    3. 修改了一些代码结构

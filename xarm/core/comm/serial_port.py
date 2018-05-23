@@ -18,21 +18,21 @@ from .base import _Port
 
 
 class SerialPort(_Port):
-    def __init__(self, port, buad=x2_config.CTSER_COM_BAUD,
+    def __init__(self, port, baud=x2_config.CTSER_COM_BAUD,
                  rxque_max=x2_config.UXBUS_RXQUE_MAX, protocol=x2_config.UX2_HEX_PROTOCOL):
         super(SerialPort, self).__init__(rxque_max)
+        self.port_type = 'main-serial'
         try:
-            self.com = serial.Serial(port=port, baudrate=buad)
+            self.com = serial.Serial(port=port, baudrate=baud)
             if not self.com.isOpen():
                 self._connected = False
-                return
+                raise Exception('serial is not open')
+            logger.info('{} connect {}:{} success'.format(self.port_type, port, baud))
 
             self._connected = True
-            self.DB_FLG = '[ser proc] '
 
             self.buffer_size = 1
 
-            self.port_type = 'serial'
             if x2_config.UX2_HEX_PROTOCOL == protocol:
                 self.rx_parse = UX2HexProtocol(self.rx_que, x2_config.UXBUS_DEF_FROMID, x2_config.UXBUS_DEF_TOID)
             else:
@@ -41,6 +41,6 @@ class SerialPort(_Port):
             self.com_write = self.com.write
             self.start()
         except Exception as e:
-            logger.error(e)
+            logger.info('{} connect {}:{} failed, {}'.format(self.port_type, port, baud, e))
             self._connected = False
 

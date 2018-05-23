@@ -24,43 +24,43 @@ class HeartBeat(threading.Thread):
         self.daemon = True
 
     def run(self):
-        logger.debug('heart beat thread start')
+        logger.info('{} heartbeat thread start'.format(self.sock_class.port_type))
         heat_data = bytes([0, 0, 0, 1, 0, 2, 0, 0])
 
-        while True:
+        while self.sock_class.connected:
             if self.sock_class.write(heat_data) == -1:
                 break
             time.sleep(1)
-        logger.debug('heart beat thread exit')
+        logger.info('{} heartbeat thread had stopped'.format(self.sock_class.port_type))
 
 
 class SocketPort(_Port):
     def __init__(self, server_ip, server_port, rxque_max=x2_config.TCP_RX_QUE_MAX, heartbeat=False, buffer_size=1024):
         super(SocketPort, self).__init__(rxque_max)
+        if server_port == x2_config.SERVER_PORT:
+            self.port_type = 'main-socket'
+            # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, 5)
+        else:
+            self.port_type = 'report-socket'
         try:
             socket.setdefaulttimeout(1)
             self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.com.setblocking(True)
             self.com.connect((server_ip, server_port))
+            logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
 
-            self.DB_FLG = '[tcp proc] '
             self._connected = True
             self.buffer_size = buffer_size
 
-            if server_port == x2_config.SERVER_PORT:
-                self.port_type = 'cmd_socket'
-                # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, 5)
-            else:
-                self.port_type = 'report_socket'
             self.rx_parse = -1
             self.com_read = self.com.recv
             self.com_write = self.com.send
             self.write_lock = threading.Lock()
             self.start()
             if heartbeat:
-                heat_proc = HeartBeat(self)
-                heat_proc.start()
+                self.heartbeat_thread = HeartBeat(self)
+                self.heartbeat_thread.start()
         except Exception as e:
-            logger.error(e)
+            logger.info('{} connect {}:{} failed, {}'.format(self.port_type, server_ip, server_port, e))
             self._connected = False
 

@@ -204,7 +204,6 @@ class X2HexCmd(object):
 
     def gripper_en(self, enable):
         txdata = [int(enable)]
-        print(txdata)
         return self.set_nu8(x2_cmd_config.BU2RG_GPSET_MOTION, txdata, 1)
 
     def gripper_mode(self, value):
@@ -227,3 +226,60 @@ class X2HexCmd(object):
 
     def gripper_clean_err(self):
         return self.set_nu8(x2_cmd_config.BU2RG_GPCLE_ERR, 0, 0)
+
+    def servo_set_zero(self, axis):
+        txdata = [int(axis)]
+        ret = self.set_nu8(x2_cmd_config.BU2RG_SERVO_ZERO, txdata, 1)
+        return ret
+
+    def servo_get_dbmsg(self):
+        ret = self.get_nu8(x2_cmd_config.BU2RG_SERVO_DBMSG, 16)
+        return ret
+
+    def servo_addr_w16(self, axis, addr, value):
+        txdata = bytes([axis])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.fp32_to_bytes(value)
+        ret = self.send_xbus(x2_cmd_config.BU2RG_SERVO_W16B, txdata, 7)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.BU2RG_SERVO_W16B, 0, x2_config.UX2_GET_TIMEOUT)
+        return ret
+
+    def servo_addr_r16(self, axis, addr):
+        txdata = bytes([axis])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(x2_cmd_config.BU2RG_SERVO_R16B, txdata, 3)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.BU2RG_SERVO_R16B, 4, x2_config.UX2_GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = convert.bytes_to_long_big(ret[1:5])[0]
+        return ret1
+
+    def servo_addr_w32(self, axis, addr, value):
+        txdata = bytes([axis])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.fp32_to_bytes(value)
+        ret = self.send_xbus(x2_cmd_config.BU2RG_SERVO_W32B, txdata, 7)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.BU2RG_SERVO_W32B, 0, x2_config.UX2_GET_TIMEOUT)
+        return ret
+
+    def servo_addr_r32(self, axis, addr):
+        txdata = bytes([axis])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(x2_cmd_config.BU2RG_SERVO_R32B, txdata, 3)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.BU2RG_SERVO_R32B, 4, x2_config.UX2_GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = convert.bytes_to_long_big(ret[1:5])[0]
+        return ret1

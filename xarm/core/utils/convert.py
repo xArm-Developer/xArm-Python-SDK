@@ -54,3 +54,16 @@ def bytes_to_u16s(data, n):
     for i in range(n):
         ret[i] = bytes_to_u16(data[i * 2: i * 2 + 2])
     return ret
+
+
+def bytes_to_u32(data):
+    data_u32 = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]
+    return data_u32
+
+
+def bytes_to_long_big(data):
+    byte = bytes([data[0]])
+    byte += bytes([data[1]])
+    byte += bytes([data[2]])
+    byte += bytes([data[3]])
+    return struct.unpack(">l", byte)

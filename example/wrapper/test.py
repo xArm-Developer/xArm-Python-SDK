@@ -9,14 +9,34 @@
 import os
 import sys
 import time
+import functools
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI('192.168.1.174', enable_report=True)
-# # xarm = XArmAPI('COM5')
+# while True:
+#     xarm = XArmAPI('192.168.1.174', report_type='rich')
+#     # time.sleep(0.1)
+#     xarm.disconnect()
+#     # time.sleep(1)
 
-time.sleep(3)
+
+# xarm = XArmAPI('192.168.1.174', enable_report=True, report_type='normal')
+
+# print(xarm.get_servo_debug_msg())
+# xarm = XArmAPI()
+
+# xarm.set_sleep_time(2)
+
+
+# def test_report_callback(ret, type=None):
+#     if type is not None:
+#         print('{}: {}, {}'.format(type, ret, time.time()))
+#
+# xarm.register_report_position_callback(functools.partial(test_report_callback, type='position'))
+# xarm.register_report_angles_callback(functools.partial(test_report_callback, type='angles'))
+
+# time.sleep(3)
 
 # print('gripper_enable:', xarm.gripper_enable(True))
 # print('gripper_enable:', xarm.gripper_enable(False))
@@ -27,15 +47,41 @@ time.sleep(3)
 # print('clean_gripper_error:', xarm.clean_gripper_error())
 
 
+# xarm.motion_enable(servo_id=None, enable=True)
+# xarm.set_servo_detach(servo_id=None)
 
-# xarm.motion_enable()
-# xarm.set_state(0)
+# print(xarm.motion_enable())
+# print(xarm.set_state(0))
 
-# xarm.motion_enable(servo_id=1, enable=False)
-# xarm.motion_enable(servo_id=1, enable=True)
+# xarm.motion_enable(enable=True)
+# xarm.motion_enable(servo_id=None, enable=True)
+# time.sleep(5)
+
+# xarm.motion_enable(enable=True)
+# xarm.set_servo_attach()
+# time.sleep(10)
+# time.sleep(10)
+#
+# print('enable:', xarm.motion_enable(enable=True))
+# time.sleep(2)
+# print('detach:', xarm.set_servo_detach(servo_id=0))
+# time.sleep(5)
+# print('attach:', xarm.set_servo_attach(servo_id=0))
+# # time.sleep(2)
+# print('motion enable:', xarm.motion_enable(servo_id=1, enable=True))
+# time.sleep(2)
+
+# print('set state:', xarm.set_state(0))
+# time.sleep(10)
+# print('detach')
 # xarm.set_servo_detach(servo_id=1)
-# time.sleep(20)
+# time.sleep(10)
+# print('attach')
 # xarm.set_servo_attach(servo_id=1)
+# print('wait')
+# time.sleep(10)
+# print('set state')
+# xarm.set_state(0)
 
 # xarm.motion_enable(servo_id=None, enable=True)
 # xarm.motion_enable(servo_id=1, enable=True)
@@ -47,13 +93,14 @@ time.sleep(3)
 
 # xarm.reset()
 
-# print('set_servo_detach', xarm.set_servo_detach())
-# print('set_servo_attach', xarm.set_servo_attach())
-# print('set_state:', xarm.set_state(0))
-# print('get_state:', xarm.get_state())
-print('get_version:', xarm.get_version())
-# print('get_position:', xarm.get_position())
-# print('get_servo_angle:', xarm.get_servo_angle())
+# time.sleep(2)
+# print('set_servo_detach', xarm.set_servo_detach(), time.time())
+# print('set_servo_attach', xarm.set_servo_attach(), time.time())
+# print('set_state:', xarm.set_state(0), time.time())
+# print('get_state:', xarm.get_state(), time.time())
+# print('get_version:', xarm.get_version(), time.time())
+# print('get_position:', xarm.get_position(), time.time())
+# print('get_servo_angle:', xarm.get_servo_angle(is_radian=False), time.time())
 
 # print('get_cmdnum:', xarm.get_cmdnum())
 # print('get_err_warn_code:', xarm.get_err_warn_code())
@@ -117,7 +164,24 @@ print('get_version:', xarm.get_version())
 # print('stop move', time.time())
 # sys.exit(0)
 
-
-while True:
-    time.sleep(1)
+# moving = not (xarm.get_state() != 1 and xarm.get_cmdnum() == 0)
+# print('moving:', moving)
+#
+#
+# def xarm_is_moving():
+#     global moving
+#     if xarm.get_state() == 1:
+#         moving = True
+#         time.sleep(0.1)
+#     else:
+#         time.sleep(0.5)
+#         if xarm.get_state() != 1 and xarm.get_cmdnum() == 0:
+#             if moving:
+#                 print('xarm is not moving')
+#                 moving = False
+#
+#
+# while True:
+#     xarm_is_moving()
+#     # time.sleep(1)
 

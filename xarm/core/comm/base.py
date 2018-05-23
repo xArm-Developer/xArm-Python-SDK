@@ -24,9 +24,9 @@ class _Port(threading.Thread):
         self.rx_parse = -1
         self.com_read = None
         self.com_write = None
-        self.DB_FLG = 'port'
         self.port_type = ''
         self.buffer_size = 1
+        self.heartbeat_thread = None
 
     @property
     def connected(self):
@@ -59,7 +59,8 @@ class _Port(threading.Thread):
             return 0
         except Exception as e:
             self._connected = False
-            logger.error(self.DB_FLG + "{} send: {}".format(self.port_type, e))
+            logger.error("{} send: {}".format(self.port_type, e))
+            return -1
 
     def read(self, timeout=None):
         if not self.connected:
@@ -71,20 +72,20 @@ class _Port(threading.Thread):
             return -1
 
     def recv_proc(self):
-        logger.debug(self.DB_FLG + 'arm {} thread start'.format(self.port_type))
+        logger.info('{} recv thread start'.format(self.port_type))
         try:
             while self.connected:
-                if self.port_type == 'cmd_socket':
+                if self.port_type == 'main-socket':
                     rx_data = self.com_read(self.buffer_size)
                     if len(rx_data) == 0:
                         self._connected = False
                         break
-                elif self.port_type == 'report_socket':
+                elif self.port_type == 'report-socket':
                     rx_data = self.com_read(self.buffer_size)
                     if len(rx_data) == 0:
                         self._connected = False
                         break
-                elif self.port_type == 'serial':
+                elif self.port_type == 'main-serial':
                     rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
                 else:
                     break
@@ -95,11 +96,15 @@ class _Port(threading.Thread):
                 else:
                     self.rx_parse.put(rx_data)
         except Exception as e:
-            logger.error(e)
             if self.connected:
                 self._connected = False
-                self.com.close()
-            logger.debug('disconnect')
-        logger.debug(self.DB_FLG + '{} thread stop'.format(self.port_type))
+                try:
+                    self.com.close()
+                except:
+                    pass
+            logger.error('{}: {}'.format(self.port_type, e))
+        logger.info('{} recv thread had stopped'.format(self.port_type))
+        if self.heartbeat_thread:
+            self.heartbeat_thread.join()
 
 

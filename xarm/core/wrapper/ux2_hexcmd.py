@@ -23,17 +23,21 @@ class UX2HexCmd(X2HexCmd):
         self.fromid = fromid
         self.toid = toid
         arm_port.flush(fromid, toid)
+        self._has_err_warn = False
+
+    @property
+    def has_err_warn(self):
+        return self._has_err_warn
 
     def check_xbus_proc(self, data, funcode=0):
         if data[3] & 0x40:
-            # self._has_error = True
+            self._has_err_warn = True
             return x2_config.UX2_ERR_CODE
         elif data[3] & 0x20:
-            # self._has_warn = True
+            self._has_err_warn = True
             return x2_config.UX2_WAR_CODE
         else:
-            # self._has_error = False
-            # self._has_warn = False
+            self._has_err_warn = False
             return 0
 
     def send_pend(self, funcode, n, timeout):

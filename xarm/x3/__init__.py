@@ -17,6 +17,7 @@ from ..core.utils import convert
 from ..core.utils.log import logger
 from .gripper import Gripper
 from . import parse
+from .utils import xarm_is_connected, xarm_is_ready
 
 RAD_DEGREE = 57.295779513082320876798154814105
 LIMIT_VELO = [0, 10000]
@@ -67,6 +68,8 @@ class XArm(Gripper):
         self._arm_mttid = 0
         self._arm_mtfid = 0
 
+        self._is_ready = False
+
         self.start_time = time.time()
 
         if not do_not_open:
@@ -75,6 +78,10 @@ class XArm(Gripper):
     @property
     def connected(self):
         return self.stream and self.stream.connected
+
+    @property
+    def ready(self):
+        return self._is_ready
 
     @property
     def version(self):
@@ -231,11 +238,13 @@ class XArm(Gripper):
                     pose[i] = float('{:.6f}'.format(pose[i][0]))
                     if abs(pose[i] - self._position[i]) < 0.000005:
                         pose[i] = self._position[i]
-                    if abs(pose[i]) == abs(self._position[i]) == 3.14:
+                    if abs(float('{:.5f}'.format(pose[i]))) == abs(float('{:.5f}'.format(self._position[i]))) == 3.14159:
                         pose[i] = self._position[i]
             for i in range(len(angles)):
                 angles[i] = float('{:.6f}'.format(angles[i][0]))
                 if abs(angles[i] - self._angles[i]) < 0.000005:
+                    angles[i] = self._angles[i]
+                if abs(float('{:.5f}'.format(angles[i]))) == abs(float('{:.5f}'.format(self._angles[i]))) == 3.14159:
                     angles[i] = self._angles[i]
             for i in range(len(pose_offset)):
                 if i < 3:
@@ -333,7 +342,9 @@ class XArm(Gripper):
         self.stream.close()
         if self.stream_report:
             self.stream_report.close()
+        self._is_ready = False
 
+    @xarm_is_connected
     def get_position(self, is_radian=True):
         ret = self.arm_cmd.get_tcp_pose()
         if ret[0] == 0:
@@ -343,6 +354,7 @@ class XArm(Gripper):
         else:
             return [self.position[i] * RAD_DEGREE if 2 < i < 6 else self.position[i] for i in range(len(self.position))]
 
+    @xarm_is_ready
     def set_position(self, x=None, y=None, z=None, pitch=None, yaw=None, roll=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True):
         tcp_pos = [x, y, z, pitch, yaw, roll, radius]
@@ -393,6 +405,7 @@ class XArm(Gripper):
             ret = self.arm_cmd.move_line(self._last_position[:6], self._mvvelo, self._mvacc, self._mvtime)
         return ret[0]
 
+    @xarm_is_connected
     def get_servo_angle(self, servo_id=None, is_radian=True):
         """
         :param servo_id: 1-7, None(0)
@@ -413,6 +426,7 @@ class XArm(Gripper):
             else:
                 return self._angles[servo_id-1] * RAD_DEGREE
 
+    @xarm_is_ready
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True):
         """
         :param servo_id: 1-7, None(0)
@@ -474,6 +488,7 @@ class XArm(Gripper):
         ret = self.arm_cmd.move_joint(self._last_angles, self._mvvelo / RAD_DEGREE / 2, self._mvacc / RAD_DEGREE / 2, self._mvtime)
         return ret[0]
 
+    @xarm_is_ready
     def move_gohome(self, speed=None, mvacc=None, mvtime=None):
         if speed is not None:
             self._mvvelo = min(max(speed, self._min_velo), self._max_velo)
@@ -484,6 +499,7 @@ class XArm(Gripper):
         ret = self.arm_cmd.move_gohome(self._mvvelo / RAD_DEGREE / 2, self._mvacc / RAD_DEGREE / 2, self._mvtime)
         return ret[0]
 
+    @xarm_is_connected
     def set_servo_attach(self, servo_id=None):
         """
         :param servo_id: 1-7, None(0)
@@ -495,6 +511,7 @@ class XArm(Gripper):
             ret = self.arm_cmd.set_brake(servo_id, 0)
         return ret[0]
 
+    @xarm_is_connected
     def set_servo_detach(self, servo_id=None):
         """
         :param servo_id: 1-7, None(0)
@@ -506,6 +523,7 @@ class XArm(Gripper):
             ret = self.arm_cmd.set_brake(servo_id, 1)
         return ret[0]
 
+    @xarm_is_connected
     def get_version(self):
         ret = self.arm_cmd.get_version()
         if ret[0] == 0:
@@ -519,12 +537,14 @@ class XArm(Gripper):
         else:
             return self._version
 
+    @xarm_is_connected
     def get_state(self):
         ret = self.arm_cmd.get_state()
         if ret[0] == 0:
             self._state = ret[1]
         return self._state
 
+    @xarm_is_connected
     def set_state(self, state=0):
         ret = self.arm_cmd.set_state(state)
         if state == 4:
@@ -532,26 +552,31 @@ class XArm(Gripper):
             self._last_angles = self.angles
         return ret[0]
 
+    @xarm_is_connected
     def get_cmdnum(self):
         ret = self.arm_cmd.get_cmdnum()
         if ret[0] == 0:
             self._cmd_num = ret[1]
         return self.cmd_num
 
+    @xarm_is_connected
     def get_err_warn_code(self):
         ret = self.arm_cmd.get_err_code()
         if ret[0] == 0:
             self._error_code, self._warn_code = ret[1:3]
         return [self._error_code, self._warn_code]
 
+    @xarm_is_connected
     def clean_error(self):
         ret = self.arm_cmd.clean_err()
         return ret[0]
 
+    @xarm_is_connected
     def clean_warn(self):
         ret = self.arm_cmd.clean_war()
         return ret[0]
 
+    @xarm_is_connected
     def motion_enable(self, servo_id=None, enable=True):
         """
         :param servo_id: 1-7, None(0)
@@ -562,6 +587,8 @@ class XArm(Gripper):
             ret = self.arm_cmd.motion_en(8, int(enable))
         else:
             ret = self.arm_cmd.motion_en(servo_id, int(enable))
+        if ret[0] == 0:
+            self._is_ready = bool(enable)
         return ret[0]
 
     def reset(self, speed=None):
@@ -573,38 +600,47 @@ class XArm(Gripper):
     def pause(self):
         pass
 
+    @xarm_is_connected
     def set_sleep_time(self, sltime):
         ret = self.arm_cmd.sleep_instruction(sltime)
         return ret[0]
 
+    @xarm_is_connected
     def set_tcp_offset(self, offset):
         ret = self.arm_cmd.set_tcp_offset(offset)
         return ret[0]
 
+    @xarm_is_connected
     def set_tcp_jerk(self, jerk):
         ret = self.arm_cmd.set_tcp_jerk(jerk)
         return ret[0]
 
+    @xarm_is_connected
     def set_tcp_maxacc(self, acc):
         ret = self.arm_cmd.set_tcp_maxacc(acc)
         return ret[0]
 
+    @xarm_is_connected
     def set_joint_jerk(self, jerk):
         ret = self.arm_cmd.set_joint_jerk(jerk)
         return ret[0]
 
+    @xarm_is_connected
     def set_joint_maxacc(self, acc):
         ret = self.arm_cmd.set_joint_maxacc(acc)
         return ret[0]
 
+    @xarm_is_connected
     def clean_conf(self):
         ret = self.arm_cmd.clean_conf()
         return ret[0]
 
+    @xarm_is_connected
     def save_conf(self):
         ret = self.arm_cmd.save_conf()
         return ret[0]
 
+    @xarm_is_connected
     def get_ik(self, pose, is_radian=True):
         if not is_radian:
             pose = [pose[i] if i < 3 else pose[i] / RAD_DEGREE for i in range(len(pose))]
@@ -613,6 +649,7 @@ class XArm(Gripper):
             angles = [ret[i][0] for i in range(1, 8)]
             return angles
 
+    @xarm_is_connected
     def get_fk(self, angles, is_radian=True):
         if not is_radian:
             angles = [angles[i] / RAD_DEGREE for i in range(len(angles))]
@@ -621,6 +658,7 @@ class XArm(Gripper):
             pose = [ret[i][0] for i in range(1, 7)]
             return pose
 
+    @xarm_is_connected
     def is_tcp_limit(self, pose, is_radian=True):
         assert len(pose) >= 6
         for i in range(6):
@@ -632,6 +670,7 @@ class XArm(Gripper):
         if ret[0] == 0:
             return bool(ret[1])
 
+    @xarm_is_connected
     def is_joint_limit(self, joint, is_radian=True):
         assert len(joint) >= 7
         for i in range(7):

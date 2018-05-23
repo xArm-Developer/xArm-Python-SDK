@@ -16,7 +16,6 @@ from xarm.wrapper import XArmAPI
 xarm = XArmAPI('192.168.1.174', enable_report=True)
 # # xarm = XArmAPI('COM5')
 
-
 time.sleep(3)
 
 # print('gripper_enable:', xarm.gripper_enable(True))

@@ -13,6 +13,7 @@ import functools
 from ..utils import convert
 from ..config import x2_config
 from ..config import x2_cmd_config
+from ..config import servo_config
 
 
 def lock_require(func):
@@ -202,31 +203,109 @@ class X2HexCmd(object):
     def is_tcp_limit(self, pose):
         return self.is_nfp32(x2_cmd_config.BU2RG_IS_TCP_LIMIT, pose, 6)
 
-    def gripper_en(self, enable):
-        txdata = [int(enable)]
-        return self.set_nu8(x2_cmd_config.BU2RG_GPSET_MOTION, txdata, 1)
+    # def gripper_en(self, enable):
+    #     txdata = [int(enable)]
+    #     return self.set_nu8(x2_cmd_config.BU2RG_GPSET_MOTION, txdata, 1)
+    #
+    # def gripper_mode(self, value):
+    #     txdata = [value]
+    #     return self.set_nu8(x2_cmd_config.BU2RG_GPSET_MODE, txdata, 1)
+    #
+    # def gripper_get_pos(self):
+    #     return self.get_nfp32(x2_cmd_config.BU2RG_GPGET_POS, 1)
+    #
+    # def gripper_set_pos(self, pulse):
+    #     txdata = [pulse]
+    #     return self.set_nfp32(x2_cmd_config.BU2RG_GPSET_POS, txdata, 1)
+    #
+    # def gripper_set_posspd(self, speed):
+    #     txdata = [speed]
+    #     return self.set_nfp32(x2_cmd_config.BU2RG_GPSET_POSSP, txdata, 1)
+    #
+    # def gripper_get_errcode(self):
+    #     return self.get_nu8(x2_cmd_config.BU2RG_GPGET_ERR, 1)
+    #
+    # def gripper_clean_err(self):
+    #     return self.set_nu8(x2_cmd_config.BU2RG_GPCLE_ERR, 0, 0)
 
-    def gripper_mode(self, value):
-        txdata = [value]
-        return self.set_nu8(x2_cmd_config.BU2RG_GPSET_MODE, txdata, 1)
+    def gripper_addr_w16(self, addr, value):
+        id_num = x2_config.GRIPPER_ID
+        txdata = bytes([id_num])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.fp32_to_bytes(value)
+        ret = self.send_xbus(x2_cmd_config.GRIPP_W16B, txdata, 7)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.GRIPP_W16B, 0, x2_config.UX2_GET_TIMEOUT)
+        return ret
+
+    def gripper_addr_r16(self, addr):
+        id_num = x2_config.GRIPPER_ID
+        txdata = bytes([id_num])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(x2_cmd_config.GRIPP_R16B, txdata, 3)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.GRIPP_R16B, 4, x2_config.UX2_GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = convert.bytes_to_long_big(ret[1:5])
+        return ret1
+
+    def gripper_addr_w32(self, addr, value):
+        id_num = x2_config.GRIPPER_ID
+        txdata = bytes([id_num])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.fp32_to_bytes(value)
+        ret = self.send_xbus(x2_cmd_config.GRIPP_W32B, txdata, 7)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.GRIPP_W32B, 0, x2_config.UX2_GET_TIMEOUT)
+        return ret
+
+    def gripper_addr_r32(self, addr):
+        id_num = x2_config.GRIPPER_ID
+        txdata = bytes([id_num])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(x2_cmd_config.GRIPP_R32B, txdata, 3)
+        if ret != 0:
+            return [x2_config.UX2_ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(x2_cmd_config.GRIPP_R32B, 4, x2_config.UX2_GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = convert.bytes_to_long_big(ret[1:5])
+        return ret1
+
+    def gripper_set_en(self, value):
+        return self.gripper_addr_w16(servo_config.CON_EN, value)
+
+    def gripper_set_mode(self, value):
+        return self.gripper_addr_w16(servo_config.CON_MODE, value)
+
+    def gripper_set_zero(self):
+        return self.gripper_addr_w16(servo_config.MT_ZERO, 1)
 
     def gripper_get_pos(self):
-        return self.get_nfp32(x2_cmd_config.BU2RG_GPGET_POS, 1)
+        return self.gripper_addr_r32(servo_config.CURR_POS)
 
     def gripper_set_pos(self, pulse):
-        txdata = [pulse]
-        return self.set_nfp32(x2_cmd_config.BU2RG_GPSET_POS, txdata, 1)
+        return self.gripper_addr_w32(servo_config.TAGET_POS, pulse)
 
     def gripper_set_posspd(self, speed):
-        txdata = [speed]
-        return self.set_nfp32(x2_cmd_config.BU2RG_GPSET_POSSP, txdata, 1)
+        return self.gripper_addr_w16(servo_config.POS_SPD, speed)
 
     def gripper_get_errcode(self):
-        return self.get_nu8(x2_cmd_config.BU2RG_GPGET_ERR, 1)
+        ret = self.get_nu8(x2_cmd_config.GPGET_ERR, 2)
+        return ret
 
     def gripper_clean_err(self):
-        return self.set_nu8(x2_cmd_config.BU2RG_GPCLE_ERR, 0, 0)
+        return self.gripper_addr_w16(servo_config.RESET_ERR, 1)
 
+    ###############################################
     def servo_set_zero(self, axis):
         txdata = [int(axis)]
         ret = self.set_nu8(x2_cmd_config.BU2RG_SERVO_ZERO, txdata, 1)

@@ -322,8 +322,11 @@ class XArmAPI(object):
     def urgent_stop(self):
         return self._arm.urgent_stop()
 
-    def gripper_enable(self, enable):
+    def set_gripper_enable(self, enable):
         return self._arm.gripper_enable(enable)
+
+    def set_gripper_mode(self, mode):
+        return self._arm.set_gripper_mode(mode)
 
     def get_gripper_position(self):
         return self._arm.get_gripper_position()
@@ -339,6 +342,9 @@ class XArmAPI(object):
 
     def clean_gripper_error(self):
         return self._arm.clean_gripper_error()
+
+    def set_gripper_zero(self):
+        return self._arm.set_gripper_zero()
 
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
                                  report_state=True, report_error_code=True, report_warn_code=True,

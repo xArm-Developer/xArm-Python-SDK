@@ -855,7 +855,7 @@ class XArm(Gripper):
         ret = self.arm_cmd.get_err_code()
         if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
             self._error_code, self._warn_code = ret[1:3]
-        return [self._error_code, self._warn_code]
+        return ret[0], [self._error_code, self._warn_code]
 
     @xarm_is_connected
     def clean_error(self):
@@ -1142,10 +1142,10 @@ class XArm(Gripper):
     def _register_report_callback(self, report_id, callback):
         if report_id not in self._report_callbacks.keys():
             self._report_callbacks[report_id] = []
-        if callable(callback) and callback not in self._report_callbacks[report_id]:
+        if (callable(callback) or isinstance(callback, dict)) and callback not in self._report_callbacks[report_id]:
             self._report_callbacks[report_id].append(callback)
             return True
-        elif not callable(callback):
+        elif not (callable(callback) or isinstance(callback, dict)):
             return False
         else:
             return True
@@ -1166,11 +1166,12 @@ class XArm(Gripper):
         })
 
     def register_report_location_callback(self, callback=None, report_cartesian=True, report_joints=False):
-        return self._register_report_callback(REPORT_LOCATION_ID, {
+        ret = self._register_report_callback(REPORT_LOCATION_ID, {
             'callback': callback,
             'cartesian': report_cartesian,
             'joints': report_joints,
         })
+        return ret
 
     def register_connect_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_CONNECT_CHANGED_ID, callback)

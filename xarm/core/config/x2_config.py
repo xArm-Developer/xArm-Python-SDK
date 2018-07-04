@@ -18,8 +18,10 @@ SERVER_REPORT_RICH  = 30002
 SERVER_REPORT_REALT = 30003
 TCP_RX_QUE_MAX      = 1024
 
-UX2_SET_TIMEOUT     = 500       # ms
-UX2_GET_TIMEOUT     = 500       # ms
+GRIPPER_ID = 8
+
+UX2_SET_TIMEOUT     = 1000       # ms
+UX2_GET_TIMEOUT     = 1000       # ms
 
 UX2_ERR_CODE        = 1
 UX2_WAR_CODE        = 2

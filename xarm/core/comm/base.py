@@ -9,6 +9,7 @@
 
 import threading
 import queue
+import socket
 import time
 from ..utils.log import logger
 
@@ -76,12 +77,18 @@ class _Port(threading.Thread):
         try:
             while self.connected:
                 if self.port_type == 'main-socket':
-                    rx_data = self.com_read(self.buffer_size)
+                    try:
+                        rx_data = self.com_read(self.buffer_size)
+                    except socket.timeout:
+                        continue
                     if len(rx_data) == 0:
                         self._connected = False
                         break
                 elif self.port_type == 'report-socket':
-                    rx_data = self.com_read(self.buffer_size)
+                    try:
+                        rx_data = self.com_read(self.buffer_size)
+                    except socket.timeout:
+                        continue
                     if len(rx_data) == 0:
                         self._connected = False
                         break

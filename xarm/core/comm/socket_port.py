@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2018, UFACTORY, Inc.
+# All rights reserved.
+#
+# Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-#
-#  ./communat_port/socket_port.py
-#  Copyright (C) 2018.4 -  UFactory.
-#  Author: Jimy Zhang   <jimy.zhang@ufactory.cc>
-#                       <jimy92@163.com>
-#
 
 import queue
 import socket
 import threading
 import time
 from ..utils.log import logger
-from ..config import x2_config
-from .base import _Port
+from .base import Port
+from ..config.x_config import XCONF
 
 
-class HeartBeat(threading.Thread):
+class HeartBeatThread(threading.Thread):
     def __init__(self, sock_class):
         threading.Thread.__init__(self)
         self.sock_class = sock_class
@@ -34,10 +33,11 @@ class HeartBeat(threading.Thread):
         logger.info('{} heartbeat thread had stopped'.format(self.sock_class.port_type))
 
 
-class SocketPort(_Port):
-    def __init__(self, server_ip, server_port, rxque_max=x2_config.TCP_RX_QUE_MAX, heartbeat=False, buffer_size=1024):
+class SocketPort(Port):
+    def __init__(self, server_ip, server_port, rxque_max=XCONF.SocketConf.TCP_RX_QUE_MAX, heartbeat=False,
+                 buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE):
         super(SocketPort, self).__init__(rxque_max)
-        if server_port == x2_config.SERVER_PORT:
+        if server_port == XCONF.SocketConf.TCP_CONTROL_PORT:
             self.port_type = 'main-socket'
             # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, 5)
         else:
@@ -59,7 +59,7 @@ class SocketPort(_Port):
             self.write_lock = threading.Lock()
             self.start()
             if heartbeat:
-                self.heartbeat_thread = HeartBeat(self)
+                self.heartbeat_thread = HeartBeatThread(self)
                 self.heartbeat_thread.start()
         except Exception as e:
             logger.info('{} connect {}:{} failed, {}'.format(self.port_type, server_ip, server_port, e))

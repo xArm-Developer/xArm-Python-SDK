@@ -11,12 +11,14 @@ import time
 import copy
 import threading
 from ..core.comm import SerialPort, SocketPort
-from ..core.config import x2_config
-from ..core.wrapper import UX2HexCmd, TX2HexCmd
+from ..core.config.x_config import XCONF
+from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils import convert
 from ..core.utils.log import logger
+from ..core.config.x_code import ControllerWarn, ControllerError, ServoError
 from .gripper import Gripper
 from . import parse
+from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready
 
 RAD_DEGREE = 57.295779513082320876798154814105
@@ -31,8 +33,6 @@ REPORT_STATE_CHANGED_ID = 'REPORT_STATE_CHANGED'
 REPORT_MAABLE_MTBRAKE_CHANGED_ID = 'REPORT_MAABLE_MTBRAKE_CHANGED'
 REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
 REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
-
-TCP_OR_JOINT_LIMIT = -6
 
 
 class XArm(Gripper):
@@ -179,17 +179,18 @@ class XArm(Gripper):
         self._baudrate = baudrate if baudrate is not None else self._baudrate
         self._timeout = timeout if timeout is not None else self._timeout
         if isinstance(self._port, (str, bytes)):
-            if self._port == 'localhost' or re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
-                        self._port):
-                self.stream = SocketPort(self._port, x2_config.SERVER_PORT,
+            if self._port == 'localhost' or re.match(
+                    r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+                    self._port):
+                self.stream = SocketPort(self._port, XCONF.SocketConf.TCP_CONTROL_PORT,
                                          heartbeat=self._enable_heartbeat,
-                                         buffer_size=x2_config.TX2_BUF_SIZE)
+                                         buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE)
                 if not self.connected:
                     raise Exception('connect socket failed')
 
                 self._report_error_warn_changed_callback()
 
-                self.arm_cmd = TX2HexCmd(self.stream)
+                self.arm_cmd = UxbusCmdTcp(self.stream)
                 self._com_type = 'socket'
 
                 try:
@@ -208,7 +209,7 @@ class XArm(Gripper):
 
                 self._report_error_warn_changed_callback()
 
-                self.arm_cmd = UX2HexCmd(self.stream)
+                self.arm_cmd = UxbusCmdSer(self.stream)
                 self._com_type = 'serial'
                 if self._enable_report:
                     self._report_thread = threading.Thread(target=self.auto_get_report_thread, daemon=True)
@@ -229,20 +230,20 @@ class XArm(Gripper):
     def connect_report_normal(self):
         if self._com_type == 'socket':
             self.stream_report = SocketPort(self._port,
-                                            x2_config.SERVER_REPORT_NORM,
-                                            buffer_size=x2_config.TX2_REPORT_NORMAL_BUF_SIZE)
+                                            XCONF.SocketConf.TCP_REPORT_NORM_PORT,
+                                            buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE)
 
     def connect_report_rich(self):
         if self._com_type == 'socket':
             self.stream_report = SocketPort(self._port,
-                                            x2_config.SERVER_REPORT_RICH,
-                                            buffer_size=x2_config.TX2_REPORT_RICH_BUF_SIZE)
+                                            XCONF.SocketConf.TCP_REPORT_RICH_PORT,
+                                            buffer_size=XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE)
 
     def connect_report_real(self):
         if self._com_type == 'socket':
             self.stream_report = SocketPort(self._port,
-                                            x2_config.SERVER_REPORT_REALT,
-                                            buffer_size=x2_config.TX2_REPORT_NORMAL_BUF_SIZE)
+                                            XCONF.SocketConf.TCP_REPORT_REAL_PORT,
+                                            buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE)
 
     def _report_connect_changed_callback(self, main_connected=None, report_connected=None):
         if REPORT_CONNECT_CHANGED_ID in self._report_callbacks.keys():
@@ -350,30 +351,35 @@ class XArm(Gripper):
             cmd_num = convert.bytes_to_u16(rx_data[61:63])
             pose_offset = convert.bytes_to_fp32s(rx_data[63:6 * 4 + 63], 6)
 
-            if error_code != self._error_code or warn_code != self._warn_code:
-                if error_code != self._error_code:
-                    if error_code != 0:
-                        print('error code: {}'.format(error_code))
-                        # tmp = self.get_servo_debug_msg()
-                    else:
-                        print('error is clean: {}'.format(error_code))
-                    # if 10 <= self._error_code <= 17:
-                    #     self.motion_enable(enable=True)
-                if warn_code != self._warn_code:
-                    if warn_code != 0:
-                        print('warn code: {}'.format(warn_code))
-                    else:
-                        print('warn is clean: {}'.format(warn_code))
+            if error_code != self.error_code or warn_code != self.warn_code:
+                # if error_code != self.error_code:
+                #     if error_code != 0:
+                #         print('[ControllerError: {}] [{}]'.format(error_code, ControllerError(error_code).description))
+                #         if 10 <= error_code <= 17:
+                #             self.get_servo_debug_msg()
+                #     else:
+                #         print('error is clean: {}'.format(error_code))
+                #     # if 10 <= self._error_code <= 17:
+                #     #     self.motion_enable(enable=True)
+                # if warn_code != self.warn_code:
+                #     if warn_code != 0:
+                #         print('[ControllerWarn: {}] [{}]'.format(warn_code, ControllerWarn(warn_code).description))
+                #     else:
+                #         print('warn is clean: {}'.format(warn_code))
                 self._warn_code = warn_code
                 self._error_code = error_code
-                self._report_error_warn_changed_callback()
+            self._report_error_warn_changed_callback()
 
             if cmd_num != self.cmd_num:
                 self._cmd_num = cmd_num
                 self._report_cmdnum_changed_callback()
 
             if state != self._state:
-                print('state: {}'.format(state))
+                # if state == 4 and self._state != 4:
+                #     print('运动状态 ————>  停止状态')
+                # elif state != 4 and self._state == 4:
+                #     print('停止状态 ————>  运动状态')
+                # print('state: {}'.format(state))
                 self._state = state
                 self._report_state_changed_callback()
 
@@ -383,8 +389,8 @@ class XArm(Gripper):
                       maable >> 4 & 0x01, maable >> 5 & 0x01, maable >> 6 & 0x01, maable >> 7 & 0x01]
 
             if mtbrake != self._mtbrake or maable != self._maable:
-                print('maable: {}'.format(maable))
-                print('mtbrake: {}'.format(mtbrake))
+                # print('maable: {}'.format(maable))
+                # print('mtbrake: {}'.format(mtbrake))
                 self._maable = maable
                 self._mtbrake = mtbrake
                 self._report_maable_mtbrake_changed_callback()
@@ -515,10 +521,10 @@ class XArm(Gripper):
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                 rx_data = self.stream_report.read()
-                if rx_data != -1 and len(rx_data) >= x2_config.TX2_REPORT_NORMAL_BUF_SIZE:
-                    if len(rx_data) == x2_config.TX2_REPORT_NORMAL_BUF_SIZE:
+                if rx_data != -1 and len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                    if len(rx_data) == XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
                         _handle_report_normal(rx_data)
-                    elif len(rx_data) >= x2_config.TX2_REPORT_RICH_BUF_SIZE:
+                    elif len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
                         _handle_report_rich(rx_data)
             except Exception as e:
                 logger.error(e)
@@ -575,7 +581,7 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_position(self, is_radian=True):
         ret = self.arm_cmd.get_tcp_pose()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE] and len(ret) > 6:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
             self._position = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 7)]
         if is_radian:
             return self.position
@@ -642,18 +648,28 @@ class XArm(Gripper):
         #     print('set state', self.set_state(0))
         if kwargs.get('check', False):
             ret = self.arm_cmd.is_tcp_limit(self._last_position[:6])
-            if ret[0] not in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE] or bool(ret[1]) is not False:
-                return TCP_OR_JOINT_LIMIT
+            if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
+                return APIState.TCP_LIMIT
         if radius is not None:
-            logger.debug('move arc line: {}'.format(self._last_position))
             ret = self.arm_cmd.move_lineb(self._last_position[:6], self._mvvelo, self._mvacc, self._mvtime, self._last_position[6])
             if ret[0] != 0:
-                print('exception: move arc line {}, ret: {}'.format(self._last_position, ret[0]))
+                logger.debug('exception({}): move arc line: pos={}, mvvelo={}, mvacc={}, mvtime={}'.format(
+                    ret[0], self._last_position, self._mvvelo, self._mvacc, self._mvtime
+                ))
+            else:
+                logger.debug('move arc line: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
+                    self._last_position, self._mvvelo, self._mvacc, self._mvtime
+                ))
         else:
-            logger.debug('move line: {}'.format(self._last_position))
             ret = self.arm_cmd.move_line(self._last_position[:6], self._mvvelo, self._mvacc, self._mvtime)
             if ret[0] != 0:
-                print('exception: move line {}, ret: {}'.format(self._last_position, ret[0]))
+                logger.debug('exception({}): move line: pos={}, mvvelo={}, mvacc={}, mvtime={}'.format(
+                    ret[0], self._last_position, self._mvvelo, self._mvacc, self._mvtime
+                ))
+            else:
+                logger.debug('move line: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
+                    self._last_position, self._mvvelo, self._mvacc, self._mvtime
+                ))
         return ret[0]
 
     @xarm_is_connected
@@ -664,7 +680,7 @@ class XArm(Gripper):
         :return: 
         """
         ret = self.arm_cmd.get_joint_pos()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE] and len(ret) > 7:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 7:
             self._angles = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 8)]
         if servo_id is None or servo_id == 0 or len(self._angles) < servo_id:
             if is_radian:
@@ -752,14 +768,20 @@ class XArm(Gripper):
 
         if kwargs.get('check', False):
             ret = self.arm_cmd.is_joint_limit(self._last_angles)
-            if ret[0] not in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE] or bool(ret[1]) is not False:
-                return TCP_OR_JOINT_LIMIT
+            if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
+                return APIState.JOINT_LIMIT
         # if self.state == 4:
         #     print('set state', self.set_state(0))
         logger.debug('move joint: {}'.format(self._last_angles))
         ret = self.arm_cmd.move_joint(self._last_angles, self._mvvelo / RAD_DEGREE / 4, self._mvacc / RAD_DEGREE / 4, self._mvtime)
         if ret[0] != 0:
-            print('exception: move joint {}, ret: {}'.format(self._last_angles, ret[0]))
+            logger.debug('exception({}): move joint: joint={}, mvvelo={}, mvacc={}, mvtime={}'.format(
+                ret[0], self._last_angles, self._mvvelo / RAD_DEGREE / 4, self._mvacc / RAD_DEGREE / 4, self._mvtime
+            ))
+        else:
+            logger.debug('move joint: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
+                self._last_angles, self._mvvelo / RAD_DEGREE / 4, self._mvacc / RAD_DEGREE / 4, self._mvtime
+            ))
         return ret[0]
 
     @xarm_is_ready
@@ -786,7 +808,13 @@ class XArm(Gripper):
         #     print('set state', self.set_state(0))
         ret = self.arm_cmd.move_gohome(self._mvvelo / RAD_DEGREE / 4, self._mvacc / RAD_DEGREE / 4, self._mvtime)
         if ret[0] != 0:
-            print('exception: move gohome , ret: {}'.format(ret[0]))
+            logger.debug('exception({}): move gohome: mvvelo={}, mvacc={}, mvtime={}'.format(
+                ret[0], self._mvvelo / RAD_DEGREE / 4, self._mvacc / RAD_DEGREE / 4, self._mvtime
+            ))
+        else:
+            logger.debug('move gohome: mvvelo={}, mvacc={}, mvtime={}'.format(
+                self._mvvelo / RAD_DEGREE / 4, self._mvacc / RAD_DEGREE / 4, self._mvtime
+            ))
         return ret[0]
 
     @xarm_is_connected
@@ -817,7 +845,7 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_version(self):
         ret = self.arm_cmd.get_version()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             version = ''.join(list(map(chr, ret[1:])))
             self._version = version[:version.find('\0')]
             return self._version
@@ -831,14 +859,14 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_state(self):
         ret = self.arm_cmd.get_state()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._state = ret[1]
         return self._state
 
     @xarm_is_connected
     def set_state(self, state=0):
         ret = self.arm_cmd.set_state(state)
-        if state == 4 and ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._last_position[:6] = self.position
             self._last_angles = self.angles
         return ret[0]
@@ -846,14 +874,14 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_cmdnum(self):
         ret = self.arm_cmd.get_cmdnum()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._cmd_num = ret[1]
         return self.cmd_num
 
     @xarm_is_connected
     def get_err_warn_code(self):
         ret = self.arm_cmd.get_err_code()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._error_code, self._warn_code = ret[1:3]
         return ret[0], [self._error_code, self._warn_code]
 
@@ -878,13 +906,13 @@ class XArm(Gripper):
             ret = self.arm_cmd.motion_en(8, int(enable))
         else:
             ret = self.arm_cmd.motion_en(servo_id, int(enable))
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._is_ready = bool(enable)
         return ret[0]
 
     def reset(self, speed=None):
         self.motion_enable(enable=True)
-        self.set_servo_attach()
+        # self.set_servo_attach()
         self.set_state(0)
         self.move_gohome(speed=speed)
 
@@ -930,19 +958,21 @@ class XArm(Gripper):
 
     @xarm_is_connected
     def get_ik(self, pose, is_radian=True):
+        assert len(pose) >= 6
         if not is_radian:
-            pose = [pose[i] if i < 3 else pose[i] / RAD_DEGREE for i in range(len(pose))]
+            pose = [pose[i] if i < 3 else pose[i] / RAD_DEGREE for i in range(6)]
         ret = self.arm_cmd.get_ik(pose)
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             angles = [ret[i][0] for i in range(1, 8)]
             return angles
 
     @xarm_is_connected
     def get_fk(self, angles, is_radian=True):
+        assert len(angles) >= 7
         if not is_radian:
-            angles = [angles[i] / RAD_DEGREE for i in range(len(angles))]
+            angles = [angles[i] / RAD_DEGREE for i in range(7)]
         ret = self.arm_cmd.get_fk(angles)
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             pose = [ret[i][0] for i in range(1, 7)]
             return pose
 
@@ -957,7 +987,7 @@ class XArm(Gripper):
             elif i > 2 and not is_radian:
                 pose[i] = pose[i] / RAD_DEGREE
         ret = self.arm_cmd.is_tcp_limit(pose)
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             return bool(ret[1])
 
     @xarm_is_connected
@@ -971,7 +1001,7 @@ class XArm(Gripper):
             elif not is_radian:
                 joint[i] = joint[i] / RAD_DEGREE
         ret = self.arm_cmd.is_joint_limit(joint)
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             return bool(ret[1])
 
     def set_params(self, **kwargs):
@@ -1136,7 +1166,7 @@ class XArm(Gripper):
                 ret = self.is_tcp_limit(pose, is_radian=False)
             else:
                 print('command {} is not exist'.format(command))
-                ret = -1
+                ret = APIState.CMD_NOT_EXIST
         return ret
 
     def _register_report_callback(self, report_id, callback):
@@ -1198,10 +1228,20 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_servo_debug_msg(self):
         ret = self.arm_cmd.servo_get_dbmsg()
-        # if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
+        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        #     print('=' * 50)
         #     for i in range(1, 8):
-        #         print('axis-{}: state: {}, error: {}'.format(i, ret[i * 2 - 1], ret[i * 2]))
-        #     print('gripper: state: {}, error: {}'.format(ret[15], ret[16]))
+        #         if ret[i * 2 - 1] != 0:
+        #             servo_error = ServoError(ret[i * 2])
+        #             print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
+        #                 i, ret[i * 2 - 1], ret[i * 2], servo_error.description))
+        #             print('处理方法: {}'.format(servo_error.handle))
+        #     if ret[15] != 0:
+        #         servo_error = ServoError(ret[16])
+        #         print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
+        #             ret[15], ret[16], servo_error.description))
+        #         print('处理方法: {}'.format(servo_error.handle))
+        #     print('=' * 50)
         return ret
 
     @xarm_is_connected
@@ -1229,5 +1269,9 @@ class XArm(Gripper):
         assert servo_id is not None
         assert addr is not None
         return self.arm_cmd.servo_addr_r32(servo_id, addr)
+
+    @xarm_is_connected
+    def clean_servo_error(self, servo_id=None):
+        return self.set_servo_addr_16(servo_id, 0x0109, 1)
 
 

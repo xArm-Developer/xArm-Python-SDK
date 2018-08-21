@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
-
+# Software License Agreement (BSD License)
 #
-#  ./instruction_function/ux2_hexcmd.py
-#  Copyright (C) 2018.4 -  UFactory.
-#  Author: Jimy Zhang   <jimy.zhang@ufactory.cc>
-#                       <jimy92@163.com>
+# Copyright (c) 2018, UFACTORY, Inc.
+# All rights reserved.
 #
+# Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 
 import time
-from .x2_hexcmd import X2HexCmd
-from ..config import x2_config
 from ..utils import crc16
+from .uxbus_cmd import UxbusCmd
+from ..config.x_config import XCONF
 
 
-class UX2HexCmd(X2HexCmd):
-    def __init__(self, arm_port, fromid=x2_config.UXBUS_DEF_FROMID, toid=x2_config.UXBUS_DEF_TOID):
-        super(UX2HexCmd, self).__init__()
-        self.DB_FLG = '[ux2 hcmd] '
+class UxbusCmdSer(UxbusCmd):
+    def __init__(self, arm_port, fromid=XCONF.SerialConf.UXBUS_DEF_FROMID, toid=XCONF.SerialConf.UXBUS_DEF_TOID):
+        super(UxbusCmdSer, self).__init__()
         self.arm_port = arm_port
         self.fromid = fromid
         self.toid = toid
@@ -29,27 +26,27 @@ class UX2HexCmd(X2HexCmd):
     def has_err_warn(self):
         return self._has_err_warn
 
-    def check_xbus_proc(self, data, funcode=0):
+    def check_xbus_prot(self, data, funcode=0):
         if data[3] & 0x40:
             self._has_err_warn = True
-            return x2_config.UX2_ERR_CODE
+            return XCONF.UxbusState.ERR_CODE
         elif data[3] & 0x20:
             self._has_err_warn = True
-            return x2_config.UX2_WAR_CODE
+            return XCONF.UxbusState.WAR_CODE
         else:
             self._has_err_warn = False
             return 0
 
-    def send_pend(self, funcode, n, timeout):
-        ret = [0] * (n + 1)
+    def send_pend(self, funcode, num, timeout):
+        ret = [0] * (num + 1)
         times = int(timeout)
-        ret[0] = x2_config.UX2_ERR_TOUT
+        ret[0] = XCONF.UxbusState.ERR_TOUT
         while times > 0:
             times -= 1
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 5:
-                ret[0] = self.check_xbus_proc(rx_data)
-                for i in range(n):
+                ret[0] = self.check_xbus_prot(rx_data)
+                for i in range(num):
                     ret[i + 1] = rx_data[i + 4]
                 return ret
             time.sleep(0.001)

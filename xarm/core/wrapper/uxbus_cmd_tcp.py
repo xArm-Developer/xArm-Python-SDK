@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2018, UFACTORY, Inc.
+# All rights reserved.
+#
+# Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-#
-#  ./instruction_function/tx2_hexcmd.py
-#  Copyright (C) 2018.4 -  UFactory.
-#  Author: Jimy Zhang   <jimy.zhang@ufactory.cc>
-#                       <jimy92@163.com>
-#
 
 import time
-from .x2_hexcmd import X2HexCmd
 from ..utils import convert
-from ..config import x2_config
-
-TX2_PROT_CON     = 2    # tcp cmd prot
-TX2_PROT_HEAT    = 1    # tcp heat prot
-TX2_BUS_FLAG_MIN = 1    # cmd序号 起始值
-TX2_BUS_FLAG_MAX = 5000 # cmd序号 最大值
+from .uxbus_cmd import UxbusCmd
+from ..config.x_config import XCONF
 
 
-class TX2HexCmd(X2HexCmd):
+TX2_PROT_CON = 2  # tcp cmd prot
+TX2_PROT_HEAT = 1  # tcp heat prot
+TX2_BUS_FLAG_MIN = 1  # cmd序号 起始值
+TX2_BUS_FLAG_MAX = 5000  # cmd序号 最大值
+
+
+class UxbusCmdTcp(UxbusCmd):
     def __init__(self, arm_port):
-        super(TX2HexCmd, self).__init__()
-        self.DB_FLG = '[ux2 hcmd] '
+        super(UxbusCmdTcp, self).__init__()
         self.arm_port = arm_port
         self.bus_flag = TX2_BUS_FLAG_MIN
         self.prot_flag = TX2_PROT_CON
@@ -32,10 +31,10 @@ class TX2HexCmd(X2HexCmd):
     def has_err_warn(self):
         return self._has_err_warn
 
-    def check_xbus_proc(self, data, funcode):
+    def check_xbus_prot(self, data, funcode):
         num = convert.bytes_to_u16(data[0:2])
         prot = convert.bytes_to_u16(data[2:4])
-        # leng = convert.bytes_to_u16(data[4:6])
+        length = convert.bytes_to_u16(data[4:6])
         fun = data[6]
         state = data[7]
 
@@ -45,47 +44,49 @@ class TX2HexCmd(X2HexCmd):
         else:
             bus_flag -= 1
         if num != bus_flag:
-            return x2_config.UX2_ERR_NUM
+            return XCONF.UxbusState.ERR_NUM
         if prot != TX2_PROT_CON:
-            return x2_config.UX2_ERR_PROT
+            return XCONF.UxbusState.ERR_PROT
         if fun != funcode:
-            return x2_config.UX2_ERR_FUN
+            return XCONF.UxbusState.ERR_FUN
         if state & 0x40:
             self._has_err_warn = True
-            return x2_config.UX2_ERR_CODE
-        elif state & 0x20:
+            return XCONF.UxbusState.ERR_CODE
+        if state & 0x20:
             self._has_err_warn = True
-            return x2_config.UX2_WAR_CODE
+            return XCONF.UxbusState.WAR_CODE
+        if len(data) != length + 6:
+            return XCONF.UxbusState.ERR_LENG
         self._has_err_warn = False
         return 0
 
-    def send_pend(self, funcode, n, timeout):
-        ret = [0] * (n + 1)
+    def send_pend(self, funcode, num, timeout):
+        ret = [0] * (num + 1)
         times = int(timeout)
-        ret[0] = x2_config.UX2_ERR_TOUT
+        ret[0] = XCONF.UxbusState.ERR_TOUT
         while times > 0:
             times -= 1
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 7:
-                ret[0] = self.check_xbus_proc(rx_data, funcode)
-                if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE]:
-                    for i in range(n):
+                ret[0] = self.check_xbus_prot(rx_data, funcode)
+                if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+                    for i in range(num):
                         ret[i + 1] = rx_data[i + 8]
                 return ret
             time.sleep(0.001)
         return ret
 
-    def send_xbus(self, funcode, datas, n):
+    def send_xbus(self, funcode, datas, num):
         send_data = convert.u16_to_bytes(self.bus_flag)
         send_data += convert.u16_to_bytes(self.prot_flag)
-        send_data += convert.u16_to_bytes(n + 1)
+        send_data += convert.u16_to_bytes(num + 1)
         send_data += bytes([funcode])
-        for i in range(n):
+        for i in range(num):
             send_data += bytes([datas[i]])
 
         self.arm_port.flush()
         ret = self.arm_port.write(send_data)
-        if 0 != ret:
+        if ret != 0:
             return -1
         self.bus_flag += 1
         if self.bus_flag > TX2_BUS_FLAG_MAX:

@@ -14,9 +14,9 @@ import time
 from ..utils.log import logger
 
 
-class _Port(threading.Thread):
+class Port(threading.Thread):
     def __init__(self, rxque_max):
-        super(_Port, self).__init__()
+        super(Port, self).__init__()
         self.daemon = True
         self.rx_que = queue.Queue(rxque_max)
         self.write_lock = threading.Lock()

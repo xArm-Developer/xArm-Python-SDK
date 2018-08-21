@@ -331,8 +331,8 @@ class XArmAPI(object):
     def get_gripper_position(self):
         return self._arm.get_gripper_position()
 
-    def set_gripper_position(self, pos):
-        return self._arm.set_gripper_position(pos)
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False):
+        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable)
 
     def set_gripper_speed(self, speed):
         return self._arm.set_gripper_speed(speed)
@@ -485,4 +485,7 @@ class XArmAPI(object):
 
     def get_servo_addr_32(self, servo_id=None, addr=None):
         return self._arm.get_servo_addr_32(servo_id=servo_id, addr=addr)
+
+    def clean_servo_error(self, servo_id=None):
+        return self._arm.clean_servo_error(servo_id)
 

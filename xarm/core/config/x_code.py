@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 
-servo_error_dict = {
+ServoCodeMap = {
     0x01: {
         'description': '通讯地址无效或参数写入只读地址',
         'handle': ['检查通讯地址', '检查通讯地址对应的属性']
@@ -90,7 +90,7 @@ servo_error_dict = {
     },
 }
 
-control_error_dict = {
+ControllerErrorCodeMap = {
     10: {
         'description': '伺服电机报错',
     },
@@ -144,7 +144,7 @@ control_error_dict = {
     }
 }
 
-control_warn_dict = {
+ControllerWarnCodeMap = {
     11: {
         'description': '当前控制器缓存已满(Uxbus que is full)',
     },
@@ -159,66 +159,45 @@ control_warn_dict = {
     }
 }
 
-class ServoError(Exception):
-    def __init__(self, errno):
-        self._errno = errno
-        self.error = servo_error_dict.get(errno, {
-            'description': '',
-            'handle': []
-        })
+
+class BaseCode(object):
+    def __init__(self, code):
+        self._code = code
+        self._description = None
 
     @property
-    def errno(self):
-        return self._errno
+    def code(self):
+        return self._code
 
     @property
     def description(self):
-        return self.error['description']
+        if self._description is None:
+            self._description = self._code_map.get(self.code, {}).get('description', None)
+        return self._description
+
+    @description.setter
+    def description(self, desc):
+        self._description = desc
 
     @property
     def handle(self):
-        return self.error['handle']
+        return self._code_map.get(self.code, {}).get('handle', None)
 
 
-class ControlError(Exception):
-    def __init__(self, errno):
-        self._errno = errno
-        self.error = control_error_dict.get(errno, {
-            'description': '',
-            # 'handle': []
-        })
-
-    @property
-    def errno(self):
-        return self._errno
-
-    @property
-    def description(self):
-        return self.error['description']
-
-    # @property
-    # def handle(self):
-    #     return self.error['handle']
+class ControllerError(BaseCode):
+    def __init__(self, code):
+        self._code_map = ControllerErrorCodeMap
+        super(ControllerError, self).__init__(code)
 
 
-class ControlWarn(Exception):
-    def __init__(self, errno):
-        self._errno = errno
-        self.error = control_warn_dict.get(errno, {
-            'description': '',
-            # 'handle': []
-        })
+class ControllerWarn(BaseCode):
+    def __init__(self, code):
+        self._code_map = ControllerWarnCodeMap
+        super(ControllerWarn, self).__init__(code)
 
-    @property
-    def errno(self):
-        return self._errno
 
-    @property
-    def description(self):
-        return self.error['description']
-
-    # @property
-    # def handle(self):
-    #     return self.error['handle']
-
+class ServoError(BaseCode):
+    def __init__(self, code):
+        self._code_map = ServoCodeMap
+        super(ServoError, self).__init__(code)
 

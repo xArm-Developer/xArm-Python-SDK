@@ -6,8 +6,9 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import time
 from .utils import xarm_is_connected
-from ..core.config import x2_config
+from ..core.config.x_config import XCONF
 
 
 class Gripper(object):
@@ -28,14 +29,28 @@ class Gripper(object):
     @xarm_is_connected
     def get_gripper_position(self):
         ret = self.arm_cmd.gripper_get_pos()
-        if ret[0] in [0, x2_config.UX2_ERR_CODE, x2_config.UX2_WAR_CODE] and len(ret) > 1:
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 1:
             ret[1] = float('{:.2f}'.format(ret[1][0]))
         return ret
 
     @xarm_is_connected
-    def set_gripper_position(self, pos):
-        ret = self.arm_cmd.gripper_set_pos(pos)
-        return ret
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False):
+        if auto_enable:
+            self.arm_cmd.gripper_set_en(True)
+        if speed is not None:
+            self.arm_cmd.gripper_set_posspd(speed)
+        code = self.arm_cmd.gripper_set_pos(pos)
+        if wait:
+            while self.error_code != 28:
+                ret = self.arm_cmd.gripper_get_pos()
+                if ret[0] != 0:
+                    self.get_err_warn_code()
+                if self.error_code != 28:
+                    cur_pos = int(ret[1])
+                    if abs(pos - cur_pos) < 1:
+                        break
+                time.sleep(0.02)
+        return code
 
     @xarm_is_connected
     def set_gripper_speed(self, speed):

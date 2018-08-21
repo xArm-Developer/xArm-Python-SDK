@@ -8,6 +8,7 @@
 
 import functools
 from ..core.utils.log import logger
+from .code import APIState
 
 
 def xarm_is_connected(func):
@@ -18,10 +19,10 @@ def xarm_is_connected(func):
                 return func(*args, **kwargs)
             else:
                 logger.error('xArm is not connect')
-                return [-1]
+                return [APIState.NOT_CONNECTED]
         except Exception as e:
             logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-            return [-2]
+            return [APIState.API_EXCEPTION]
     return decorator
 
 
@@ -33,11 +34,11 @@ def xarm_is_ready(func):
                 return func(*args, **kwargs)
             elif not args[0].connected:
                 logger.error('xArm is not connect')
-                return [-1]
+                return [APIState.NOT_CONNECTED]
             else:
                 logger.error('xArm is not ready')
-                return [-1]
+                return [APIState.NOT_READY]
         except Exception as e:
             logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-            return [-2]
+            return [APIState.API_EXCEPTION]
     return decorator

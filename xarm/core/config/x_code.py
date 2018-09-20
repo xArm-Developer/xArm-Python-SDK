@@ -92,28 +92,52 @@ ServoCodeMap = {
 
 ControllerErrorCodeMap = {
     10: {
-        'description': '伺服电机报错',
+        'description': {
+            'cn': '伺服电机报错',
+            'en': 'Servo motor error'
+        }
     },
     11: {
-        'description': '伺服电机1报错',
+        'description': {
+            'cn': '伺服电机1报错',
+            'en': 'Servo motor 1 error'
+        }
     },
     12: {
-        'description': '伺服电机2报错',
+        'description': {
+            'cn': '伺服电机2报错',
+            'en': 'Servo motor 2 error'
+        }
     },
     13: {
-        'description': '伺服电机3报错',
+        'description': {
+            'cn': '伺服电机3报错',
+            'en': 'Servo motor 3 error'
+        }
     },
     14: {
-        'description': '伺服电机4报错',
+        'description': {
+            'cn': '伺服电机4报错',
+            'en': 'Servo motor 4 error'
+        }
     },
     15: {
-        'description': '伺服电机5报错',
+        'description': {
+            'cn': '伺服电机5报错',
+            'en': 'Servo motor 5 error'
+        }
     },
     16: {
-        'description': '伺服电机6报错',
+        'description': {
+            'cn': '伺服电机6报错',
+            'en': 'Servo motor 6 error'
+        }
     },
     17: {
-        'description': '伺服电机7报错',
+        'description': {
+            'cn': '伺服电机7报错',
+            'en': 'Servo motor 7 error'
+        }
     },
     21: {
         'description': '逆解错误(Inverse kinematics)',

@@ -14,7 +14,7 @@ from .. import x3
 class XArmAPI(object):
     def __init__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=False,
                  enable_report=False, report_type='normal', do_not_open=False,
-                 limit_velo=None, limit_acc=None):
+                 limit_velo=None, limit_acc=None, limit_angle_velo=None, limit_angle_acc=None):
         """
         The API wrapper of xArm
         :param port: port name or ip-address
@@ -27,6 +27,8 @@ class XArmAPI(object):
         :param do_not_open: do not open, default is False
         :param limit_velo: limit velo, default is [0, 10000]
         :param limit_acc: limit acc, default is [0, 1000000]
+        :param limit_angle_velo: limit angle velo
+        :param limit_angle_acc: limit angle acc
         """
         self._arm = XArm(port=port,
                          baudrate=baudrate,
@@ -37,7 +39,9 @@ class XArmAPI(object):
                          report_type=report_type,
                          do_not_open=do_not_open,
                          limit_velo=limit_velo,
-                         limit_acc=limit_acc)
+                         limit_acc=limit_acc,
+                         limit_angle_velo=limit_angle_velo,
+                         limit_angle_acc=limit_angle_acc)
 
     @property
     def connected(self):
@@ -119,8 +123,9 @@ class XArmAPI(object):
         """
         return self._arm.get_position(is_radian=is_radian)
 
-    def set_position(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None, speed=None, mvacc=None,
-                     mvtime=None, relative=False, is_radian=True, **kwargs):
+    def set_position(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None,
+                     speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True,
+                     wait=False, timeout=None, **kwargs):
         """
         Set position
         :param x:
@@ -135,11 +140,14 @@ class XArmAPI(object):
         :param mvtime: 0
         :param relative: relative move or not
         :param is_radian: roll/yaw/pitch value is radian or not 
+        :param wait: if True will wait the robot stop
+        :param timeout: second，default is 10s
         :param kwargs: 
         :return: 
         """
         return self._arm.set_position(x=x, y=y, z=z, pitch=pitch, yaw=yaw, roll=roll, radius=radius,
-                                      speed=speed, mvacc=mvacc, mvtime=mvtime, relative=relative, is_radian=is_radian, **kwargs)
+                                      speed=speed, mvacc=mvacc, mvtime=mvtime, relative=relative,
+                                      is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
 
     def get_servo_angle(self, servo_id=None, is_radian=True):
         """
@@ -150,7 +158,8 @@ class XArmAPI(object):
         """
         return self._arm.get_servo_angle(servo_id=servo_id, is_radian=is_radian)
 
-    def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True, **kwargs):
+    def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
+                        relative=False, is_radian=True, wait=False, timeout=None, **kwargs):
         """
         Set the servo angle
         :param servo_id: 1-7, None(0)
@@ -160,21 +169,26 @@ class XArmAPI(object):
         :param mvtime: 0
         :param relative: relative move or not
         :param is_radian: angle value is radian or not
+        :param wait: if True will wait the robot stop
+        :param timeout: second，default is 10s
         :param kwargs: 
         :return: 
         """
         return self._arm.set_servo_angle(servo_id=servo_id, angle=angle, speed=speed, mvacc=mvacc, mvtime=mvtime,
-                                         relative=relative, is_radian=is_radian, **kwargs)
+                                         relative=relative, is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
 
-    def move_gohome(self, speed=None, mvacc=None, mvtime=None):
+    def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None):
         """
         Move to go home
         :param speed: 
         :param mvacc: 
         :param mvtime: 
+        :param is_radian:
+        :param wait: if True will wait the robot stop
+        :param timeout: second，default is 10s
         :return: 
         """
-        return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime)
+        return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
 
     def set_servo_attach(self, servo_id=None):
         """
@@ -257,16 +271,17 @@ class XArmAPI(object):
         """
         return self._arm.motion_enable(servo_id=servo_id, enable=enable)
 
-    def reset(self):
-        return self._arm.reset()
+    def reset(self, speed=None, is_radian=False):
+        return self._arm.reset(speed=speed, is_radian=is_radian)
 
-    def set_sleep_time(self, sltime):
+    def set_sleep_time(self, sltime, wait=False):
         """
         Set sleep time, xArm will sleep sltime second
-        :param sltime: 
+        :param sltime:
+        :param wait:
         :return: 
         """
-        return self._arm.set_sleep_time(sltime)
+        return self._arm.set_sleep_time(sltime, wait=wait)
 
     def set_tcp_offset(self, offset):
         return self._arm.set_tcp_offset(offset)
@@ -331,8 +346,8 @@ class XArmAPI(object):
     def get_gripper_position(self):
         return self._arm.get_gripper_position()
 
-    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False):
-        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable)
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)
 
     def set_gripper_speed(self, speed):
         return self._arm.set_gripper_speed(speed)

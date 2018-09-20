@@ -112,6 +112,8 @@ class Port(threading.Thread):
             logger.error('{}: {}'.format(self.port_type, e))
         logger.info('{} recv thread had stopped'.format(self.port_type))
         if self.heartbeat_thread:
-            self.heartbeat_thread.join()
-
+            try:
+                self.heartbeat_thread.join()
+            except:
+                pass
 

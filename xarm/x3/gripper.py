@@ -34,22 +34,53 @@ class Gripper(object):
         return ret
 
     @xarm_is_connected
-    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False):
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
         if auto_enable:
             self.arm_cmd.gripper_set_en(True)
         if speed is not None:
             self.arm_cmd.gripper_set_posspd(speed)
+        is_add = True
+        last_pos = 0
+        ret = self.arm_cmd.gripper_get_pos()
+        if ret[0] != 0:
+            self.get_err_warn_code()
+        if self.error_code != 28:
+            last_pos = int(ret[1][0])
+            if last_pos == pos:
+                return 0
+            is_add = True if pos > last_pos else False
         code = self.arm_cmd.gripper_set_pos(pos)
         if wait:
-            while self.error_code != 28:
+            count = 0
+            start_time = time.time()
+            if not timeout or not isinstance(timeout, (int, float)):
+                timeout = 10
+            while self.error_code != 28 and time.time() - start_time < timeout:
                 ret = self.arm_cmd.gripper_get_pos()
                 if ret[0] != 0:
                     self.get_err_warn_code()
                 if self.error_code != 28:
-                    cur_pos = int(ret[1])
+                    cur_pos = int(ret[1][0])
+                    # print(cur_pos, last_pos)
                     if abs(pos - cur_pos) < 1:
                         break
+                    if is_add:
+                        if cur_pos <= last_pos:
+                            count += 1
+                        else:
+                            last_pos = cur_pos
+                            count = 0
+                    else:
+                        if cur_pos >= last_pos:
+                            count += 1
+                        else:
+                            last_pos = cur_pos
+                            count = 0
+                    if count >= 25:
+                        print('gripper target: {}, current: {}'.format(pos, cur_pos))
+                        break
                 time.sleep(0.02)
+            print('gripper, pos: {}, cur: {}, last: {}'.format(pos, last_pos))
         return code
 
     @xarm_is_connected

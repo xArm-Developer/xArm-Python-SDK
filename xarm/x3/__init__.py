@@ -38,8 +38,8 @@ REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 
 
 class XArm(Gripper):
-    def __init__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=False,
-                 enable_report=False, report_type='normal', do_not_open=False,
+    def __init__(self, port=None, baudrate=921600, timeout=None, filters=None,
+                 enable_heartbeat=True, enable_report=True, report_type='normal', do_not_open=False,
                  limit_velo=None, limit_acc=None, limit_angle_velo=None, limit_angle_acc=None):
         super(XArm, self).__init__()
         self._port = port
@@ -56,7 +56,7 @@ class XArm(Gripper):
         self._min_angle_velo, self._max_angle_velo = limit_angle_velo if limit_angle_velo is not None and len(limit_angle_velo) >= 2 else LIMIT_ANGLE_VELO
         self._min_angle_acc, self._max_angle_acc = limit_angle_acc if limit_angle_acc is not None and len(limit_angle_acc) >= 2 else LIMIT_ANGLE_ACC
 
-        self._com_type = 'serial'
+        self._stream_type = 'serial'
         self.stream = None
         self.arm_cmd = None
         self.stream_report = None
@@ -116,14 +116,20 @@ class XArm(Gripper):
 
     @property
     def version(self):
+        if not self._version:
+            self.get_version()
         return self._version
 
     @property
     def position(self):
+        if not self._enable_report:
+            self.get_position()
         return self._position
 
     @property
     def angles(self):
+        if not self._enable_report:
+            self.get_servo_angle()
         return self._angles
 
     @property
@@ -132,6 +138,8 @@ class XArm(Gripper):
 
     @property
     def state(self):
+        if not self._enable_report:
+            self.get_state()
         return self._state
 
     @property
@@ -144,14 +152,20 @@ class XArm(Gripper):
 
     @property
     def error_code(self):
+        if not self._enable_report:
+            self.get_err_warn_code()
         return self._error_code
 
     @property
     def warn_code(self):
+        if not self._enable_report:
+            self.get_err_warn_code()
         return self._warn_code
 
     @property
     def cmd_num(self):
+        if not self._enable_report:
+            self.get_cmdnum()
         return self._cmd_num
 
     @property
@@ -199,7 +213,7 @@ class XArm(Gripper):
                 self._report_error_warn_changed_callback()
 
                 self.arm_cmd = UxbusCmdTcp(self.stream)
-                self._com_type = 'socket'
+                self._stream_type = 'socket'
 
                 try:
                     self.connect_report()
@@ -218,7 +232,7 @@ class XArm(Gripper):
                 self._report_error_warn_changed_callback()
 
                 self.arm_cmd = UxbusCmdSer(self.stream)
-                self._com_type = 'serial'
+                self._stream_type = 'serial'
                 if self._enable_report:
                     self._report_thread = threading.Thread(target=self.auto_get_report_thread, daemon=True)
                     self._report_thread.start()
@@ -233,6 +247,7 @@ class XArm(Gripper):
                     self.stream_report.close()
                 except:
                     pass
+                time.sleep(3)
             if self._report_type == 'real':
                 self.connect_report_real()
             elif self._report_type == 'rich':
@@ -241,19 +256,19 @@ class XArm(Gripper):
                 self.connect_report_normal()
 
     def connect_report_normal(self):
-        if self._com_type == 'socket':
+        if self._stream_type == 'socket':
             self.stream_report = SocketPort(self._port,
                                             XCONF.SocketConf.TCP_REPORT_NORM_PORT,
                                             buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE)
 
     def connect_report_rich(self):
-        if self._com_type == 'socket':
+        if self._stream_type == 'socket':
             self.stream_report = SocketPort(self._port,
                                             XCONF.SocketConf.TCP_REPORT_RICH_PORT,
                                             buffer_size=XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE)
 
     def connect_report_real(self):
-        if self._com_type == 'socket':
+        if self._stream_type == 'socket':
             self.stream_report = SocketPort(self._port,
                                             XCONF.SocketConf.TCP_REPORT_REAL_PORT,
                                             buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE)
@@ -263,8 +278,10 @@ class XArm(Gripper):
             for callback in self._report_callbacks[REPORT_CONNECT_CHANGED_ID]:
                 try:
                     callback({
-                        'mainConnected': self.stream and self.stream.connected if main_connected is None else main_connected,
-                        'reportConnected': self.stream_report and self.stream_report.connected if report_connected is None else report_connected,
+                        # 'mainConnected': self.stream and self.stream.connected if main_connected is None else main_connected,
+                        # 'reportConnected': self.stream_report and self.stream_report.connected if report_connected is None else report_connected,
+                        'connected': self.stream and self.stream.connected if main_connected is None else main_connected,
+                        'reported': self.stream_report and self.stream_report.connected if report_connected is None else report_connected,
                     })
                 except:
                     pass
@@ -297,8 +314,10 @@ class XArm(Gripper):
             for callback in self._report_callbacks[REPORT_ERROR_WARN_CHANGED_ID]:
                 try:
                     callback({
-                        'warnCode': self.warn_code,
-                        'errorCode': self.error_code,
+                        # 'warnCode': self.warn_code,
+                        # 'errorCode': self.error_code,
+                        'warn_code': self.warn_code,
+                        'error_code': self.error_code,
                     })
                 except:
                     pass
@@ -336,10 +355,10 @@ class XArm(Gripper):
                     ret['cartesian'] = self.position.copy()
                 if item['joints']:
                     ret['joints'] = self.angles.copy()
-                if item['errorCode']:
-                    ret['errorCode'] = self.error_code
-                if item['warnCode']:
-                    ret['warnCode'] = self.warn_code
+                if item['error_code']:
+                    ret['error_code'] = self.error_code
+                if item['warn_code']:
+                    ret['warn_code'] = self.warn_code
                 if item['state']:
                     ret['state'] = self.state
                 if item['maable']:
@@ -527,7 +546,6 @@ class XArm(Gripper):
                     if report_socket_connected:
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                    time.sleep(3)
                     self.connect_report()
                     continue
                 if not report_socket_connected:
@@ -542,6 +560,7 @@ class XArm(Gripper):
             except Exception as e:
                 logger.error(e)
             time.sleep(0.001)
+        self.disconnect()
         self._report_connect_changed_callback(False, False)
 
     def auto_get_report_thread(self):
@@ -901,6 +920,8 @@ class XArm(Gripper):
     @xarm_is_connected
     def set_servo_attach(self, servo_id=None):
         """
+        类型标注语法: version >= python3.5
+        https://www.python.org/dev/peps/pep-0484/#type-aliases
         :param servo_id: 1-7, None(0)
         :return: 
         """
@@ -1281,8 +1302,8 @@ class XArm(Gripper):
             'callback': callback,
             'cartesian': report_cartesian,
             'joints': report_joints,
-            'errorCode': report_error_code,
-            'warnCode': report_warn_code,
+            'error_code': report_error_code,
+            'warn_code': report_warn_code,
             'state': report_state,
             'maable': report_maable,
             'mtbrake': report_mtbrake,

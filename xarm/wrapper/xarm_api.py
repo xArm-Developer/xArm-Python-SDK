@@ -12,8 +12,8 @@ from .. import x3
 
 
 class XArmAPI(object):
-    def __init__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=False,
-                 enable_report=False, report_type='normal', do_not_open=False,
+    def __init__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=True,
+                 enable_report=True, report_type='normal', do_not_open=False,
                  limit_velo=None, limit_acc=None, limit_angle_velo=None, limit_angle_acc=None):
         """
         The API wrapper of xArm
@@ -21,14 +21,14 @@ class XArmAPI(object):
         :param baudrate: baudrate, only available in serial way
         :param timeout: timeout, only available in serial way
         :param filters: filters, no use
-        :param enable_heartbeat: default is False, only available in socket way
-        :param enable_report: default is False
+        :param enable_heartbeat: default is True, only available in socket way
+        :param enable_report: default is True
         :param report_type: 'normal' or 'real' or 'rich', only available in socket way
         :param do_not_open: do not open, default is False
-        :param limit_velo: limit velo, default is [0, 10000]
-        :param limit_acc: limit acc, default is [0, 1000000]
-        :param limit_angle_velo: limit angle velo
-        :param limit_angle_acc: limit angle acc
+        :param limit_velo: limit velo, default is [0, 1000] mm/s
+        :param limit_acc: limit acc, default is [0, 100000] mm/s^2
+        :param limit_angle_velo: limit angle velo, default is [1, 180] °/s
+        :param limit_angle_acc: limit angle acc, default is [1, 100000] °/s^2
         """
         self._arm = XArm(port=port,
                          baudrate=baudrate,

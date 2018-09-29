@@ -75,6 +75,7 @@ class Port(threading.Thread):
     def recv_proc(self):
         logger.info('{} recv thread start'.format(self.port_type))
         try:
+            failed_read_count = 0
             while self.connected:
                 if self.port_type == 'main-socket':
                     try:
@@ -82,20 +83,29 @@ class Port(threading.Thread):
                     except socket.timeout:
                         continue
                     if len(rx_data) == 0:
-                        self._connected = False
-                        break
+                        failed_read_count += 1
+                        if failed_read_count > 30:
+                            self._connected = False
+                            break
+                        time.sleep(0.1)
+                        continue
                 elif self.port_type == 'report-socket':
                     try:
                         rx_data = self.com_read(self.buffer_size)
                     except socket.timeout:
                         continue
                     if len(rx_data) == 0:
-                        self._connected = False
-                        break
+                        failed_read_count += 1
+                        if failed_read_count > 30:
+                            self._connected = False
+                            break
+                        time.sleep(0.1)
+                        continue
                 elif self.port_type == 'main-serial':
                     rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
                 else:
                     break
+                failed_read_count = 0
                 if -1 == self.rx_parse:
                     if self.rx_que.full():
                         self.rx_que.get()

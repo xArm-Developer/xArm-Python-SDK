@@ -485,8 +485,8 @@ class XArm(Gripper):
 
             if self.state != 1:
                 if time.time() - self.start_time > 3:
-                    self._last_position[:6] = self.position
-                    self._last_angles = angles
+                    # self._last_position[:6] = self.position
+                    # self._last_angles = angles
                     self.start_time = time.time()
             else:
                 self.start_time = time.time()
@@ -696,17 +696,17 @@ class XArm(Gripper):
                 mvtime = float(mvtime)
             self._mvtime = mvtime
 
-        for i in range(6):
-            if i < 3:
-                if self._last_position[i] > 700:
-                    self._last_position[i] = 700
-                elif self._last_position[i] < -700:
-                    self._last_position[i] = -700
-            else:
-                if self._last_position[i] > 3.1415926:
-                    self._last_position[i] = 3.1415926
-                elif self._last_position[i] < -3.1415926:
-                    self._last_position[i] = -3.1415926
+        # for i in range(6):
+        #     if i < 3:
+        #         if self._last_position[i] > 700:
+        #             self._last_position[i] = 700
+        #         elif self._last_position[i] < -700:
+        #             self._last_position[i] = -700
+        #     else:
+        #         if self._last_position[i] > 3.1415926:
+        #             self._last_position[i] = 3.1415926
+        #         elif self._last_position[i] < -3.1415926:
+        #             self._last_position[i] = -3.1415926
 
         # if self.state == 4:
         #     print('set state', self.set_state(0))

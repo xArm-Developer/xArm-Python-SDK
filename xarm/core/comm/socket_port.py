@@ -23,14 +23,14 @@ class HeartBeatThread(threading.Thread):
         self.daemon = True
 
     def run(self):
-        logger.info('{} heartbeat thread start'.format(self.sock_class.port_type))
+        logger.debug('{} heartbeat thread start'.format(self.sock_class.port_type))
         heat_data = bytes([0, 0, 0, 1, 0, 2, 0, 0])
 
         while self.sock_class.connected:
             if self.sock_class.write(heat_data) == -1:
                 break
             time.sleep(1)
-        logger.info('{} heartbeat thread had stopped'.format(self.sock_class.port_type))
+        logger.debug('{} heartbeat thread had stopped'.format(self.sock_class.port_type))
 
 
 class SocketPort(Port):
@@ -48,7 +48,8 @@ class SocketPort(Port):
             self.com.setblocking(True)
             self.com.settimeout(1)
             self.com.connect((server_ip, server_port))
-            logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
+            logger.info('{} connect {} success'.format(self.port_type, server_ip))
+            # logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
 
             self._connected = True
             self.buffer_size = buffer_size
@@ -63,6 +64,7 @@ class SocketPort(Port):
                 self.heartbeat_thread = HeartBeatThread(self)
                 self.heartbeat_thread.start()
         except Exception as e:
-            logger.info('{} connect {}:{} failed, {}'.format(self.port_type, server_ip, server_port, e))
+            logger.error('{} connect {} failed, {}'.format(self.port_type, server_ip, e))
+            # logger.error('{} connect {}:{} failed, {}'.format(self.port_type, server_ip, server_port, e))
             self._connected = False
 

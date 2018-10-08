@@ -14,23 +14,32 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI('192.168.1.185', enable_report=True, report_type='normal')
-# xarm.clean_warn()
-ret = xarm.set_gripper_enable(True)
-print('gripper enable ret:', ret)
-ret = xarm.set_gripper_speed(5000)
-print('gripper speed ret:', ret)
-ret = xarm.get_gripper_position()
-print('gripper get pos:', ret)
-ret = xarm.set_gripper_position(600)
-print('gripper set pos:', ret)
-time.sleep(3)
-ret = xarm.set_gripper_position(0)
-print('gripper set pos:', ret)
+xarm = XArmAPI('192.168.1.185', enable_report=False, report_type='normal')
+# xarm.set_state(0)
+
+# print(xarm.set_servo_zero(6))
+print(xarm.set_servo_zero(7))
+xarm.motion_enable(False)
+xarm.motion_enable(True)
+xarm.set_state(0)
 
 
-while True:
-    time.sleep(1)
+# xarm.clean_error()
+# ret = xarm.set_gripper_enable(True)
+# print('gripper enable ret:', ret)
+# ret = xarm.set_gripper_speed(5000)
+# print('gripper speed ret:', ret)
+# ret = xarm.get_gripper_position()
+# print('gripper get pos:', ret)
+# ret = xarm.set_gripper_position(600)
+# print('gripper set pos:', ret)
+# time.sleep(3)
+# ret = xarm.set_gripper_position(0)
+# print('gripper set pos:', ret)
+
+
+# while True:
+#     time.sleep(1)
 
 
 

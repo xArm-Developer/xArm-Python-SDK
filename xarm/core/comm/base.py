@@ -73,7 +73,7 @@ class Port(threading.Thread):
             return -1
 
     def recv_proc(self):
-        logger.info('{} recv thread start'.format(self.port_type))
+        logger.debug('{} recv thread start'.format(self.port_type))
         try:
             failed_read_count = 0
             while self.connected:
@@ -120,10 +120,10 @@ class Port(threading.Thread):
                 except:
                     pass
             logger.error('{}: {}'.format(self.port_type, e))
-        logger.info('{} recv thread had stopped'.format(self.port_type))
-        if self.heartbeat_thread:
-            try:
-                self.heartbeat_thread.join()
-            except:
-                pass
+        logger.debug('{} recv thread had stopped'.format(self.port_type))
+        # if self.heartbeat_thread:
+        #     try:
+        #         self.heartbeat_thread.join()
+        #     except:
+        #         pass
 

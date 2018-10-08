@@ -1,0 +1,647 @@
+<!DOCTYPE html><html><head>
+      <title>xarm_api</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+      /**
+ * prism.js Github theme based on GitHub's theme.
+ * @author Sam Clarke
+ */
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #333;
+  background: none;
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  text-align: left;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+  line-height: 1.4;
+
+  -moz-tab-size: 8;
+  -o-tab-size: 8;
+  tab-size: 8;
+
+  -webkit-hyphens: none;
+  -moz-hyphens: none;
+  -ms-hyphens: none;
+  hyphens: none;
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+  padding: .8em;
+  overflow: auto;
+  /* border: 1px solid #ddd; */
+  border-radius: 3px;
+  /* background: #fff; */
+  background: #f5f5f5;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+  padding: .1em;
+  border-radius: .3em;
+  white-space: normal;
+  background: #f5f5f5;
+}
+
+.token.comment,
+.token.blockquote {
+  color: #969896;
+}
+
+.token.cdata {
+  color: #183691;
+}
+
+.token.doctype,
+.token.punctuation,
+.token.variable,
+.token.macro.property {
+  color: #333;
+}
+
+.token.operator,
+.token.important,
+.token.keyword,
+.token.rule,
+.token.builtin {
+  color: #a71d5d;
+}
+
+.token.string,
+.token.url,
+.token.regex,
+.token.attr-value {
+  color: #183691;
+}
+
+.token.property,
+.token.number,
+.token.boolean,
+.token.entity,
+.token.atrule,
+.token.constant,
+.token.symbol,
+.token.command,
+.token.code {
+  color: #0086b3;
+}
+
+.token.tag,
+.token.selector,
+.token.prolog {
+  color: #63a35c;
+}
+
+.token.function,
+.token.namespace,
+.token.pseudo-element,
+.token.class,
+.token.class-name,
+.token.pseudo-class,
+.token.id,
+.token.url-reference .token.variable,
+.token.attr-name {
+  color: #795da3;
+}
+
+.token.entity {
+  cursor: help;
+}
+
+.token.title,
+.token.title .token.punctuation {
+  font-weight: bold;
+  color: #1d3e81;
+}
+
+.token.list {
+  color: #ed6a43;
+}
+
+.token.inserted {
+  background-color: #eaffea;
+  color: #55a532;
+}
+
+.token.deleted {
+  background-color: #ffecec;
+  color: #bd2c00;
+}
+
+.token.bold {
+  font-weight: bold;
+}
+
+.token.italic {
+  font-style: italic;
+}
+
+
+/* JSON */
+.language-json .token.property {
+  color: #183691;
+}
+
+.language-markup .token.tag .token.punctuation {
+  color: #333;
+}
+
+/* CSS */
+code.language-css,
+.language-css .token.function {
+  color: #0086b3;
+}
+
+/* YAML */
+.language-yaml .token.atrule {
+  color: #63a35c;
+}
+
+code.language-yaml {
+  color: #183691;
+}
+
+/* Ruby */
+.language-ruby .token.function {
+  color: #333;
+}
+
+/* Markdown */
+.language-markdown .token.url {
+  color: #795da3;
+}
+
+/* Makefile */
+.language-makefile .token.symbol {
+  color: #795da3;
+}
+
+.language-makefile .token.variable {
+  color: #183691;
+}
+
+.language-makefile .token.builtin {
+  color: #0086b3;
+}
+
+/* Bash */
+.language-bash .token.keyword {
+  color: #0086b3;
+}html body{font-family:"Helvetica Neue",Helvetica,"Segoe UI",Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ul,html body>ol{margin-bottom:16px}html body ul,html body ol{padding-left:2em}html body ul.no-list,html body ol.no-list{padding:0;list-style-type:none}html body ul ul,html body ul ol,html body ol ol,html body ol ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:bold;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:bold}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em !important;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::before,html body code::after{letter-spacing:-0.2em;content:"\00a0"}html body pre>code{padding:0;margin:0;font-size:.85em !important;word-break:normal;white-space:pre;background:transparent;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;font-size:.85em !important;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:before,html body pre tt:before,html body pre code:after,html body pre tt:after{content:normal}html body p,html body blockquote,html body ul,html body ol,html body dl,html body pre{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body pre,html body code{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview .pagebreak,.markdown-preview .newpage{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center !important}.markdown-preview:not([for="preview"]) .code-chunk .btn-group{display:none}.markdown-preview:not([for="preview"]) .code-chunk .status{display:none}.markdown-preview:not([for="preview"]) .code-chunk .output-div{margin-bottom:16px}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,0.66);border:4px solid rgba(150,150,150,0.66);background-clip:content-box}html body[for="html-export"]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0}@media screen and (min-width:914px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px)}}@media screen and (max-width:914px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for="html-export"]:not([data-presentation-mode]) .markdown-preview{font-size:14px !important;padding:1em}}@media print{html body[for="html-export"]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for="html-export"]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,0.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,0.66);border:4px solid rgba(150,150,150,0.66);background-clip:content-box}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc ul{padding:0 1.6em;margin-top:.8em}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc li{margin-bottom:.8em}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc ul{list-style-type:none}html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% -  300px);padding:2em calc(50% - 457px -  150px);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for="html-export"]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for="html-export"]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for="html-export"]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+    </head>
+    <body for="html-export">
+      <div class="mume markdown-preview   ">
+      <p>xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api</p>
+<h2 class="mume-header" id="class-__xarmapi__">class <strong>XArmAPI</strong></h2>
+
+<hr>
+<h3 class="mume-header" id="__descriptors__"><strong>descriptors</strong></h3>
+
+<hr>
+<h4 class="mume-header" id="__angles__"><strong>angles</strong></h4>
+
+<p>Servo angles<br>
+:return: [angle1(radian), angle2(radian), angle3(radian), angle4(radian), angle5(radian), angle6(radian), angle7(radian)]</p>
+<h4 class="mume-header" id="__axis__"><strong>axis</strong></h4>
+
+<p>Axis number, only available in socket way and enable_report is True and report_type is &apos;rich&apos;</p>
+<h4 class="mume-header" id="__cmd_num__"><strong>cmd_num</strong></h4>
+
+<p>Number of command caches</p>
+<h4 class="mume-header" id="__connected__"><strong>connected</strong></h4>
+
+<p>Connection status</p>
+<h4 class="mume-header" id="__device_type__"><strong>device_type</strong></h4>
+
+<p>Device type, only available in socket way and  enable_report is True and report_type is &apos;rich&apos;</p>
+<h4 class="mume-header" id="__error_code__"><strong>error_code</strong></h4>
+
+<p>Error code</p>
+<h4 class="mume-header" id="__maable__"><strong>maable</strong></h4>
+
+<p>Servo enable state, only available in socket way and enable_report is True<br>
+:return: [servo-1, servo-2, servo-3, servo-4, servo-5, servo-6, servo-7, reserved]</p>
+<h4 class="mume-header" id="__master_id__"><strong>master_id</strong></h4>
+
+<p>Master id, only available in socket way and enable_report is True and report_type is &apos;rich&apos;</p>
+<h4 class="mume-header" id="__mtbrake__"><strong>mtbrake</strong></h4>
+
+<p>Servo brake state, only available in socket way and enable_report is True<br>
+:return: [servo-1, servo-2, servo-3, servo-4, servo-5, servo-6, servo-7, reserved]</p>
+<h4 class="mume-header" id="__position__"><strong>position</strong></h4>
+
+<p>Cartesion position<br>
+return: [x(mm), y(mm), z(mm), roll(radian), yaw(radian), pitch(radian)]</p>
+<h4 class="mume-header" id="__position_offset__"><strong>position_offset</strong></h4>
+
+<p>Cartesion position offset, only available in socket way and enable_report is True<br>
+:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(radian), yaw_offset(radian), pitch_offset(radian)]</p>
+<h4 class="mume-header" id="__slave_id__"><strong>slave_id</strong></h4>
+
+<p>Slave id, only available in socket way and enable_report is True and report_type is &apos;rich&apos;</p>
+<h4 class="mume-header" id="__state__"><strong>state</strong></h4>
+
+<p>xArm state<br>
+:return: 0: in motion, 1: sleeping, 2: suspended, 3: stopping</p>
+<h4 class="mume-header" id="__version__"><strong>version</strong></h4>
+
+<p>xArm version</p>
+<h4 class="mume-header" id="__warn_code__"><strong>warn_code</strong></h4>
+
+<p>Warn code</p>
+<hr>
+<h3 class="mume-header" id="__methods__"><strong>methods</strong></h3>
+
+<hr>
+<h4 class="mume-header" id="def-____init____self-portnone-baudrate921600-timeoutnone-filtersnone-enable_heartbeattrue-enable_reporttrue-report_typenormal-do_not_openfalse-limit_velonone-limit_accnone-limit_angle_velonone-limit_angle_accnone">def _<em>_<em>init</em></em>__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=True, enable_report=True, report_type=&apos;normal&apos;, do_not_open=False, limit_velo=None, limit_acc=None, limit_angle_velo=None, limit_angle_acc=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>The API wrapper of xArm
+:param port: port name(such as &apos;COM5&apos;/&apos;/dev/ttyUSB0&apos;) or ip-address(such as &apos;192.168.1.185&apos;)
+:param baudrate: baudrate, only available in serial way
+:param timeout: timeout, only available in serial way
+:param filters: filters, reserved.
+:param enable_heartbeat: whether to enable heartbeat, default is True, only available in socket way
+:param enable_report: whether to enable report, default is True
+:param report_type: report type(&apos;normal&apos;/&apos;real&apos;/&apos;rich&apos;), only available in socket way
+:param do_not_open: do not open, default is False
+:param limit_velo: limit velo, default is [0, 1000] mm/s
+:param limit_acc: limit acc, default is [0, 100000] mm/s^2
+:param limit_angle_velo: limit angle velo, default is [1, 180] &#xB0;/s
+:param limit_angle_acc: limit angle acc, default is [1, 100000] &#xB0;/s^2
+</code></pre><h4 class="mume-header" id="def-__clean_conf__self">def <strong>clean_conf</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Clean config
+:return: code
+</code></pre><h4 class="mume-header" id="def-__clean_error__self">def <strong>clean_error</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Clean the error, need to be manually enabled motion and set state after clean error
+:return: code
+</code></pre><h4 class="mume-header" id="def-__clean_gripper_error__self">def <strong>clean_gripper_error</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Clean the gripper error
+:return: code
+</code></pre><h4 class="mume-header" id="def-__clean_warn__self">def <strong>clean_warn</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Clean the warn
+:return: code
+</code></pre><h4 class="mume-header" id="def-__connect__self-portnone-baudratenone-timeoutnone">def <strong>connect</strong>(self, port=None, baudrate=None, timeout=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Connect to xArm
+:param port: port name or the ip address
+:param baudrate: baudrate, only available in serial way
+:param timeout: timeout, only available in serial way
+</code></pre><h4 class="mume-header" id="def-__disconnect__self">def <strong>disconnect</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Disconnect
+</code></pre><h4 class="mume-header" id="def-__emergency_stop__self">def <strong>emergency_stop</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Emergency stop
+</code></pre><h4 class="mume-header" id="def-__get_cmdnum__self">def <strong>get_cmdnum</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the cmd count in cache
+:return: cmd num
+</code></pre><h4 class="mume-header" id="def-__get_err_warn_code__self">def <strong>get_err_warn_code</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the error and warn code
+:return: [error_code, warn_code]
+</code></pre><h4 class="mume-header" id="def-__get_fk__self-angles-is_radiantrue">def <strong>get_fk</strong>(self, angles, is_radian=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Positive kinematics, do not use, just for debugging
+:param angles:
+:param is_radian:
+:return:
+</code></pre><h4 class="mume-header" id="def-__get_gripper_err_code__self">def <strong>get_gripper_err_code</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the gripper error code
+:return: gripper err code
+</code></pre><h4 class="mume-header" id="def-__get_gripper_position__self">def <strong>get_gripper_position</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the gripper position
+:return: gripper pos
+</code></pre><h4 class="mume-header" id="def-__get_ik__self-pose-is_radiantrue">def <strong>get_ik</strong>(self, pose, is_radian=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Inverse kinematics, do not use, just for debugging
+:param pose:
+:param is_radian:
+:return:
+</code></pre><h4 class="mume-header" id="def-__get_is_moving__self">def <strong>get_is_moving</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Check xArm is moving or not
+:return:
+</code></pre><h4 class="mume-header" id="def-__get_params__self">def <strong>get_params</strong>(self):</h4>
+
+<h4 class="mume-header" id="def-__get_position__self-is_radiantrue">def <strong>get_position</strong>(self, is_radian=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the cartesian position
+:param is_radian: roll/yaw/pitch value is radian or not
+:return: pos list, [x, y, z, roll, yaw, pitch]
+</code></pre><h4 class="mume-header" id="def-__get_servo_angle__self-servo_idnone-is_radiantrue">def <strong>get_servo_angle</strong>(self, servo_id=None, is_radian=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the servo angle
+:param servo_id: 1-7, None(8), default is None
+:param is_radian: return radian or not
+:return: angle list if servo_id is None or 8 else angle
+</code></pre><h4 class="mume-header" id="def-__get_state__self">def <strong>get_state</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get state
+:return:
+    1: moving
+    2: sleeping
+    3: suspended
+    4: stopping
+</code></pre><h4 class="mume-header" id="def-__get_version__self">def <strong>get_version</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Get the xArm version
+:return: version
+</code></pre><h4 class="mume-header" id="def-__is_joint_limit__self-joint-is_radiantrue">def <strong>is_joint_limit</strong>(self, joint, is_radian=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Check the joint is in limit
+:param joint: angle list
+:param is_radian: angle value is radian or not
+:return: True/False/None
+</code></pre><h4 class="mume-header" id="def-__is_tcp_limit__self-pose-is_radiantrue">def <strong>is_tcp_limit</strong>(self, pose, is_radian=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Check the tcp pose is in limit
+:param pose: [x, y, z, roll, yaw, pitch]
+:param is_radian: roll/yaw/pitch value is radian or not
+:return: True/False/None
+</code></pre><h4 class="mume-header" id="def-__motion_enable__self-enabletrue-servo_idnone">def <strong>motion_enable</strong>(self, enable=True, servo_id=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Motion enable
+:param enable:
+:param servo_id: 1-7, None(8)
+:return: code
+</code></pre><h4 class="mume-header" id="def-__move_gohome__self-speednone-mvaccnone-mvtimenone-is_radiantrue-waitfalse-timeoutnone">def <strong>move_gohome</strong>(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Move to go home (Back to zero)
+:param speed: reserved
+:param mvacc: reserved
+:param mvtime: reserved
+:param is_radian: reserved
+:param wait: if True will wait the robot stop
+:param timeout: second&#xFF0C;default is 10s
+:return: code
+</code></pre><h4 class="mume-header" id="def-__register_cmdnum_changed_callback__self-callbacknone">def <strong>register_cmdnum_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the cmdnum changed callback, only available if enable_report is True
+:param callback:
+    callback data:
+    {
+        &quot;cmdnum&quot;: cmdnum
+    }
+:return:
+</code></pre><h4 class="mume-header" id="def-__register_connect_changed_callback__self-callbacknone">def <strong>register_connect_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the connect status changed callback
+:param callback:
+    callback data:
+    {
+        &quot;connected&quot;: connected,
+        &quot;reported&quot;: reported,
+    }
+:return:
+</code></pre><h4 class="mume-header" id="def-__register_error_warn_changed_callback__self-callbacknone">def <strong>register_error_warn_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the error code or warn code changed callback, only available if enable_report is True
+:param callback:
+    callback data:
+    {
+        &quot;error_code&quot;: error_code,
+        &quot;warn_code&quot;: warn_code,
+    }
+:return:
+</code></pre><h4 class="mume-header" id="def-__register_maable_mtbrake_changed_callback__self-callbacknone">def <strong>register_maable_mtbrake_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the maable or mtbrake status changed callback, only available if enable_report is True and the connect way is socket
+:param callback:
+    callback data:
+    {
+        &quot;maable&quot;: [axis-1-motion-enable, axis-2-motion-enable, ...],
+        &quot;mtbrake&quot;: [axis-1-brake-enable, axis-1-brake-enable,...],
+    }
+:return:
+</code></pre><h4 class="mume-header" id="def-__register_report_callback__self-callbacknone-report_cartesiantrue-report_jointstrue-report_statetrue-report_error_codetrue-report_warn_codetrue-report_maabletrue-report_mtbraketrue-report_cmd_numtrue">def <strong>register_report_callback</strong>(self, callback=None, report_cartesian=True, report_joints=True, report_state=True, report_error_code=True, report_warn_code=True, report_maable=True, report_mtbrake=True, report_cmd_num=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the report callback, only available if enable_report is True
+:param callback:
+    callback data:
+    {
+        &apos;cartesian&apos;: [], # if report_cartesian is True
+        &apos;joints&apos;: [], # if report_joints is True
+        &apos;error_code&apos;: 0, # if report_error_code is True
+        &apos;warn_code&apos;: 0, # if report_warn_code is True
+        &apos;state&apos;: state, # if report_state is True
+        &apos;mtbrake&apos;: mtbrake, # if report_mtbrake is True, and available if enable_report is True and the connect way is socket
+        &apos;maable&apos;: maable, # if report_maable is True, and available if enable_report is True and the connect way is socket
+        &apos;cmdnum&apos;: cmdnum, # if report_cmd_num is True
+    }
+:param report_cartesian: report cartesian or not, default is True
+:param report_joints: report joints or not, default is True
+:param report_state: report state or not, default is True
+:param report_error_code: report error or not, default is True
+:param report_warn_code: report warn or not, default is True
+:param report_maable: report maable or not, default is True
+:param report_mtbrake: report mtbrake or not, default is True
+:param report_cmd_num: report cmdnum or not, default is True
+:return:
+</code></pre><h4 class="mume-header" id="def-__register_report_location_callback__self-callbacknone-report_cartesiantrue-report_jointstrue">def <strong>register_report_location_callback</strong>(self, callback=None, report_cartesian=True, report_joints=True):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the report location callback, only available if enable_report is True
+:param callback:
+    callback data:
+    {
+        &quot;cartesian&quot;: [x, y, z, roll, yaw, pitch], ## if report_cartesian is True
+        &quot;joints&quot;: [angle-1, angle-2, angle-3, angle-4, angle-5, angle-6, angle-7], ## if report_joints is True
+    }
+:param report_cartesian: report or not, True/False, default is True
+:param report_joints: report or not, True/False, default is True
+:return:
+</code></pre><h4 class="mume-header" id="def-__register_state_changed_callback__self-callbacknone">def <strong>register_state_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Register the state status changed callback, only available if enable_report is True
+:param callback:
+    callback data:
+    {
+        &quot;state&quot;: state,
+    }
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_cmdnum_changed_callback__self-callbacknone">def <strong>release_cmdnum_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the cmdnum changed callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_connect_changed_callback__self-callbacknone">def <strong>release_connect_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the connect changed callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_error_warn_changed_callback__self-callbacknone">def <strong>release_error_warn_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the error warn changed callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_maable_mtbrake_changed_callback__self-callbacknone">def <strong>release_maable_mtbrake_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the maable or mtbrake changed callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_report_callback__self-callbacknone">def <strong>release_report_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the report callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_report_location_callback__self-callbacknone">def <strong>release_report_location_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the location report callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__release_state_changed_callback__self-callbacknone">def <strong>release_state_changed_callback</strong>(self, callback=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Release the state changed callback
+:param callback:
+:return:
+</code></pre><h4 class="mume-header" id="def-__reset__self-speednone-is_radianfalse-waitfalse-timeoutnone">def <strong>reset</strong>(self, speed=None, is_radian=False, wait=False, timeout=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Reset the xArm (motion enable -&gt; set state -&gt; back to zero)
+:param speed: reserved
+:param is_radian: reserved
+:param wait: if True will wait the robot stop
+:param timeout: second&#xFF0C;default is 10s
+</code></pre><h4 class="mume-header" id="def-__save_conf__self">def <strong>save_conf</strong>(self):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Save config
+:return: code
+</code></pre><h4 class="mume-header" id="def-__send_cmd_sync__self-commandnone">def <strong>send_cmd_sync</strong>(self, command=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Send cmd and wait (only waiting the cmd response, not waiting for the movement)
+:param command:
+</code></pre><h4 class="mume-header" id="def-__set_gripper_enable__self-enable">def <strong>set_gripper_enable</strong>(self, enable):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the gripper enable
+:param enable:
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_gripper_mode__self-mode">def <strong>set_gripper_mode</strong>(self, mode):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the gripper mode
+:param mode: 1: location mode, 2: speed mode (no use), 3: torque mode (no use)
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_gripper_position__self-pos-waitfalse-speednone-auto_enablefalse-timeoutnone">def <strong>set_gripper_position</strong>(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the gripper position
+:param pos: pos
+:param wait: wait or not
+:param speed: speed
+:param auto_enable: auto enable or not
+:param timeout: timeout
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_gripper_speed__self-speed">def <strong>set_gripper_speed</strong>(self, speed):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the gripper speed
+:param speed:
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_joint_jerk__self-jerk">def <strong>set_joint_jerk</strong>(self, jerk):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set joint jerk, do not use, just for debugging
+:param jerk:
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_joint_maxacc__self-acc">def <strong>set_joint_maxacc</strong>(self, acc):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set joint maxacc, do not use, just for debugging
+:param acc:
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_params__self-kwargs">def <strong>set_params</strong>(self, **kwargs):</h4>
+
+<h4 class="mume-header" id="def-__set_position__self-xnone-ynone-znone-rollnone-yawnone-pitchnone-radiusnone-speednone-mvaccnone-mvtimenone-relativefalse-is_radiantrue-waitfalse-timeoutnone-kwargs">def <strong>set_position</strong>(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True, wait=False, timeout=None, **kwargs):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the cartesian position
+:param x: cartesian position x, (unit: mm)
+:param y: cartesian position y, (unit: mm)
+:param z: cartesian position z, (unit: mm)
+:param roll: cartesian roll, (unit: radian if is_radian is True else &#xB0;)
+:param yaw: cartesian yaw, (unit: radian if is_radian is True else &#xB0;)
+:param pitch: cartesian pitch, (unit: radian if is_radian is True else &#xB0;)
+:param radius: move radius, if radius is None, will move line, else move arc line
+:param speed: move speed (mm/s, radian/s)
+:param mvacc: move acc (mm/s^2, radian/s^2)
+:param mvtime: 0, reserved
+:param relative: relative move or not
+:param is_radian: roll/yaw/pitch value is radian or not
+:param wait: if True will wait the robot stop
+:param timeout: second&#xFF0C;default is 10s
+:param kwargs: reserved
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_servo_angle__self-servo_idnone-anglenone-speednone-mvaccnone-mvtimenone-relativefalse-is_radiantrue-waitfalse-timeoutnone-kwargs">def <strong>set_servo_angle</strong>(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True, wait=False, timeout=None, **kwargs):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the servo angle
+:param servo_id: 1-7, None(8)
+:param angle: angle or angle list, (unit: radian if is_radian is True else &#xB0;)
+:param speed: move speed (unit: radian/s if is_radian is True else &#xB0;/s)
+:param mvacc: move acc (unit: radian/s^2 if is_radian is True else &#xB0;/s^2)
+:param mvtime: 0, reserved
+:param relative: relative move or not
+:param is_radian: angle value is radian or not
+:param wait: if True will wait the robot stop
+:param timeout: second&#xFF0C;default is 10s
+:param kwargs: reserved
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_servo_attach__self-servo_idnone">def <strong>set_servo_attach</strong>(self, servo_id=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Attach the servo
+:param servo_id: 1-7, None(8), if servo_id is None or 8, will attach all servo
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_servo_detach__self-servo_idnone">def <strong>set_servo_detach</strong>(self, servo_id=None):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Detach the servo
+:param servo_id: 1-7, None(8), if servo_id is None or 8, will detach all servo
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_sleep_time__self-sltime-waitfalse">def <strong>set_sleep_time</strong>(self, sltime, wait=False):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the sleep time, xArm will sleep sltime second
+:param sltime: sleep second
+:param wait: wait or not
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_state__self-state0">def <strong>set_state</strong>(self, state=0):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set the xArm state
+:param state: default is 0
+    0: sport state
+    3: pause state
+    4: stop state
+:return:
+</code></pre><h4 class="mume-header" id="def-__set_tcp_jerk__self-jerk">def <strong>set_tcp_jerk</strong>(self, jerk):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set tcp jerk, do not use, just for debugging
+:param jerk:
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_tcp_maxacc__self-acc">def <strong>set_tcp_maxacc</strong>(self, acc):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set tcp maxacc, do not use, just for debugging
+:param acc:
+:return: code
+</code></pre><h4 class="mume-header" id="def-__set_tcp_offset__self-offset">def <strong>set_tcp_offset</strong>(self, offset):</h4>
+
+<pre data-role="codeBlock" data-info="" class="language-"><code>Set tcp offset, do not use, just for debugging
+:param offset:
+:return: code
+</code></pre>
+      </div>
+
+
+
+
+
+
+
+
+
+
+
+    </body></html>

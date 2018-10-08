@@ -61,6 +61,7 @@ class XArm(Gripper):
         self.arm_cmd = None
         self.stream_report = None
         self._report_thread = None
+        self._only_report_err_warn_changed = True
 
         # self._last_position = [172, 0, 132, -3.14, 0, 0, 0]
         self._last_position = [201.5, 0, 140.5, -3.14, 0, 0, 0]  # [x, y, z, roll, yaw, pitch, radius]
@@ -90,6 +91,7 @@ class XArm(Gripper):
 
         self._is_ready = False
         self.is_stop = False
+        self._is_sync = False
 
         self.start_time = time.time()
 
@@ -400,7 +402,10 @@ class XArm(Gripper):
                 #         print('warn is clean: {}'.format(warn_code))
                 self._warn_code = warn_code
                 self._error_code = error_code
-            self._report_error_warn_changed_callback()
+                if self._only_report_err_warn_changed:
+                    self._report_error_warn_changed_callback()
+            if not self._only_report_err_warn_changed:
+                self._report_error_warn_changed_callback()
 
             if cmd_num != self.cmd_num:
                 self._cmd_num = cmd_num
@@ -498,6 +503,9 @@ class XArm(Gripper):
             # print('position: {}'.format(self.position))
             # print('position offset: {}'.format(self.position_offset))
             self._report_callback()
+            if not self._is_sync:
+                self.sync()
+                self._is_sync = True
 
         def _handle_report_rich(rx_data):
             _handle_report_normal(rx_data)
@@ -746,14 +754,14 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_servo_angle(self, servo_id=None, is_radian=True):
         """
-        :param servo_id: 1-7, None(0)
+        :param servo_id: 1-7, None(8)
         :param is_radian: if True return radian else return degree
         :return: 
         """
         ret = self.arm_cmd.get_joint_pos()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 7:
             self._angles = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 8)]
-        if servo_id is None or servo_id == 0 or len(self._angles) < servo_id:
+        if servo_id is None or servo_id == 8 or len(self._angles) < servo_id:
             if is_radian:
                 return self._angles
             else:
@@ -768,7 +776,7 @@ class XArm(Gripper):
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
                         relative=False, is_radian=True, wait=False, timeout=None, **kwargs):
         """
-        :param servo_id: 1-7, None(0)
+        :param servo_id: 1-7, None(8)
         :param angle: 
         :param speed: 
         :param mvacc: 
@@ -779,7 +787,7 @@ class XArm(Gripper):
         :param timeout:
         :return: 
         """
-        if servo_id is None or servo_id == 0:
+        if servo_id is None or servo_id == 8:
             if not isinstance(angle, (tuple, list)):
                 return
             else:
@@ -925,17 +933,24 @@ class XArm(Gripper):
         :param servo_id: 1-7, None(0)
         :return: 
         """
+        # if servo_id is None or servo_id == 8:
+        #     ret = self.arm_cmd.set_brake(8, 0)
+        # else:
+        #     ret = self.arm_cmd.set_brake(servo_id, 0)
+        # # self.arm_cmd.set_state(0)
+        # return ret[0]
+
         if servo_id is None or servo_id == 8:
-            ret = self.arm_cmd.set_brake(8, 0)
+            ret = self.motion_enable(True)
         else:
-            ret = self.arm_cmd.set_brake(servo_id, 0)
+            ret = self.motion_enable(servo_id=servo_id, enable=True)
         # self.arm_cmd.set_state(0)
-        return ret[0]
+        return ret
 
     @xarm_is_connected
     def set_servo_detach(self, servo_id=None):
         """
-        :param servo_id: 1-7, None(0)
+        :param servo_id: 1-7, None(8)
         :return: 
         """
         if servo_id is None or servo_id == 8:
@@ -1001,7 +1016,7 @@ class XArm(Gripper):
     def motion_enable(self, enable=True, servo_id=None):
         """
         :param enable: 
-        :param servo_id: 1-7, None(0)
+        :param servo_id: 1-7, None(8)
         :return: 
         """
         if servo_id is None or servo_id == 8:
@@ -1012,11 +1027,11 @@ class XArm(Gripper):
             self._is_ready = bool(enable)
         return ret[0]
 
-    def reset(self, speed=None, is_radian=False):
+    def reset(self, speed=None, is_radian=False, wait=False, timeout=None):
         self.motion_enable(enable=True)
         # self.set_servo_attach()
         self.set_state(0)
-        self.move_gohome(speed=speed, is_radian=is_radian)
+        self.move_gohome(speed=speed, is_radian=is_radian, wait=wait, timeout=timeout)
 
     @xarm_is_connected
     def set_sleep_time(self, sltime, wait=False):
@@ -1179,7 +1194,7 @@ class XArm(Gripper):
             'LIMIT_ANGLE_ACC': [self._min_angle_acc, self._max_angle_acc],
         }
 
-    def urgent_stop(self):
+    def emergency_stop(self):
         start_time = time.time()
         while self.state != 4 and time.time() - start_time < 3:
             self.set_state(4)
@@ -1199,7 +1214,7 @@ class XArm(Gripper):
             mvacc = parse.gcode_get_mvacc(command)
             mvtime = parse.gcode_get_mvtime(command)
             mvpose = parse.gcode_get_mvcarts(command)
-            ret = self.set_position(*mvpose, radius=0, speed=mvvelo, mvacc=mvacc, mvtime=mvtime, is_radian=False)
+            ret = self.set_position(*mvpose, radius=None, speed=mvvelo, mvacc=mvacc, mvtime=mvtime, is_radian=False)
         elif num == 4:  # G4 xarm_sleep_cmd ex: G4 V1
             sltime = parse.gcode_get_mvtime(command)
             ret = self.set_sleep_time(sltime)
@@ -1295,6 +1310,16 @@ class XArm(Gripper):
         else:
             return True
 
+    def _release_report_callback(self, report_id, callback):
+        if report_id in self._report_callbacks.keys() and callback:
+            if callback is None:
+                self._report_callbacks[report_id].clear()
+                return True
+            elif callback in self._report_callbacks[report_id]:
+                self._report_callbacks[report_id].remove(callback)
+                return True
+        return False
+
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
                                  report_state=True, report_error_code=True, report_warn_code=True,
                                  report_maable=True, report_mtbrake=True, report_cmd_num=True):
@@ -1332,6 +1357,27 @@ class XArm(Gripper):
 
     def register_cmdnum_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
+
+    def release_report_callback(self, callback=None):
+        return self._release_report_callback(REPORT_ID, callback)
+
+    def release_report_location_callback(self, callback=None):
+        return self._release_report_callback(REPORT_LOCATION_ID, callback)
+
+    def release_connect_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_CONNECT_CHANGED_ID, callback)
+
+    def release_state_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_STATE_CHANGED_ID, callback)
+
+    def release_maable_mtbrake_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_MAABLE_MTBRAKE_CHANGED_ID, callback)
+
+    def release_error_warn_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_ERROR_WARN_CHANGED_ID, callback)
+
+    def release_cmdnum_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
 
     @xarm_is_connected
     def set_servo_zero(self, servo_id=None):

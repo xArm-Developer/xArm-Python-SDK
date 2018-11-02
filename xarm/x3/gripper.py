@@ -24,7 +24,7 @@ class Gripper(object):
     @xarm_is_connected
     def set_gripper_mode(self, mode):
         ret = self.arm_cmd.gripper_set_mode(mode)
-        return ret
+        return ret[0]
 
     @xarm_is_connected
     def get_gripper_position(self):
@@ -81,24 +81,28 @@ class Gripper(object):
                         break
                 time.sleep(0.02)
             print('gripper, pos: {}, cur: {}, last: {}'.format(pos, last_pos))
-        return code
+        return code[0]
 
     @xarm_is_connected
     def set_gripper_speed(self, speed):
         ret = self.arm_cmd.gripper_set_posspd(speed)
-        return ret
+        return ret[0]
 
     @xarm_is_connected
     def get_gripper_err_code(self):
         ret = self.arm_cmd.gripper_get_errcode()
-        return ret
+        return ret[0]
 
     @xarm_is_connected
     def clean_gripper_error(self):
         ret = self.arm_cmd.gripper_clean_err()
-        return ret
+        return ret[0]
 
     @xarm_is_connected
     def set_gripper_zero(self):
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :return: 
+        """
         ret = self.arm_cmd.gripper_set_zero()
-        return ret
+        return ret[0]

@@ -16,7 +16,7 @@ class APIState(object):
     API_EXCEPTION = -3  # 接口异常，可能是参数错误
     CMD_NOT_EXIST = -4  # 命令不存在
     TCP_LIMIT = -6  # 笛卡尔限位
-    JOINT_LIMIT = -6  # 关节角度限位
+    JOINT_LIMIT = -7  # 关节角度限位
     HAS_ERROR = XCONF.UxbusState.ERR_CODE  # 有错误
     HAS_WARN = XCONF.UxbusState.WAR_CODE  # 有警告
     RES_TIMEOUT = XCONF.UxbusState.ERR_TOUT  # 命令回复超时

@@ -19,10 +19,10 @@ def xarm_is_connected(func):
                 return func(*args, **kwargs)
             else:
                 logger.error('xArm is not connect')
-                return [APIState.NOT_CONNECTED]
+                return [APIState.NOT_CONNECTED, 'xArm is not connect']
         except Exception as e:
             logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-            return [APIState.API_EXCEPTION]
+            return [APIState.API_EXCEPTION, str(e)]
     return decorator
 
 
@@ -34,11 +34,11 @@ def xarm_is_ready(func):
                 return func(*args, **kwargs)
             elif not args[0].connected:
                 logger.error('xArm is not connect')
-                return [APIState.NOT_CONNECTED]
+                return [APIState.NOT_CONNECTED, 'xArm is not connect']
             else:
                 logger.error('xArm is not ready')
-                return [APIState.NOT_READY]
+                return [APIState.NOT_READY, 'xArm is not ready']
         except Exception as e:
             logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-            return [APIState.API_EXCEPTION]
+            return [APIState.API_EXCEPTION, str(e)]
     return decorator

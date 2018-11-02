@@ -8,8 +8,8 @@
 
 import re
 import time
-import copy
 import threading
+from collections import Iterable
 from ..core.comm import SerialPort, SocketPort
 from ..core.config.x_config import XCONF
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
@@ -64,7 +64,7 @@ class XArm(Gripper):
         self._only_report_err_warn_changed = True
 
         # self._last_position = [172, 0, 132, -3.14, 0, 0, 0]
-        self._last_position = [201.5, 0, 140.5, -3.14, 0, 0, 0]  # [x, y, z, roll, yaw, pitch, radius]
+        self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0, 0]  # [x, y, z, roll, yaw, pitch, radius]
         self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # [Axis-I, Axis-J, Axis-K, Axis-L, Axis-M, Axis-N, Axis-O]
         self._mvvelo = 100
         self._mvacc = 5000
@@ -412,13 +412,12 @@ class XArm(Gripper):
                 self._report_cmdnum_changed_callback()
 
             if state != self._state:
-                # if state == 4 and self._state != 4:
-                #     print('运动状态 ————>  停止状态')
-                # elif state != 4 and self._state == 4:
-                #     print('停止状态 ————>  运动状态')
-                # print('state: {}'.format(state))
                 self._state = state
                 self._report_state_changed_callback()
+            if state == 4:
+                self._is_ready = False
+            else:
+                self._is_ready = True
 
             mtbrake = [mtbrake & 0x01, mtbrake >> 1 & 0x01, mtbrake >> 2 & 0x01, mtbrake >> 3 & 0x01,
                        mtbrake >> 4 & 0x01, mtbrake >> 5 & 0x01, mtbrake >> 6 & 0x01, mtbrake >> 7 & 0x01]
@@ -426,8 +425,6 @@ class XArm(Gripper):
                       maable >> 4 & 0x01, maable >> 5 & 0x01, maable >> 6 & 0x01, maable >> 7 & 0x01]
 
             if mtbrake != self._mtbrake or maable != self._maable:
-                # print('maable: {}'.format(maable))
-                # print('mtbrake: {}'.format(mtbrake))
                 self._maable = maable
                 self._mtbrake = mtbrake
                 self._report_maable_mtbrake_changed_callback()
@@ -442,34 +439,29 @@ class XArm(Gripper):
             for i in range(len(pose)):
                 if i < 3:
                     pose[i] = float('{:.3f}'.format(pose[i][0]))
-                    if abs(pose[i] - self._position[i]) < 0.005:
-                        pose[i] = self._position[i]
+                    # if abs(pose[i] - self._position[i]) < 0.005:
+                    #     pose[i] = self._position[i]
                 else:
                     pose[i] = float('{:.6f}'.format(pose[i][0]))
-                    if abs(pose[i] - self._position[i]) < 0.000005 or abs(pose[i] - self._position[i]) > 6.2:
-                        pose[i] = self._position[i]
-                    if abs(float('{:.5f}'.format(pose[i]))) == abs(float('{:.5f}'.format(self._position[i]))) == 3.14159:
-                        pose[i] = self._position[i]
+                    # if abs(pose[i] - self._position[i]) < 0.000005 or abs(pose[i] - self._position[i]) > 6.2:
+                    #     pose[i] = self._position[i]
+                    # if abs(float('{:.5f}'.format(pose[i]))) == abs(float('{:.5f}'.format(self._position[i]))) == 3.14159:
+                    #     pose[i] = self._position[i]
             for i in range(len(angles)):
                 angles[i] = float('{:.6f}'.format(angles[i][0]))
-                if abs(angles[i] - self._angles[i]) < 0.000005 or abs(angles[i] - self._angles[i]) > 6.2:
-                    angles[i] = self._angles[i]
-                if abs(float('{:.5f}'.format(angles[i]))) == abs(float('{:.5f}'.format(self._angles[i]))) == 3.14159:
-                    angles[i] = self._angles[i]
+                # if abs(angles[i] - self._angles[i]) < 0.000005 or abs(angles[i] - self._angles[i]) > 6.2:
+                #     angles[i] = self._angles[i]
+                # if abs(float('{:.5f}'.format(angles[i]))) == abs(float('{:.5f}'.format(self._angles[i]))) == 3.14159:
+                #     angles[i] = self._angles[i]
             for i in range(len(pose_offset)):
                 if i < 3:
                     pose_offset[i] = float('{:.3f}'.format(pose_offset[i][0]))
-                    if abs(pose_offset[i] - self._position_offset[i]) < 0.005:
-                        pose_offset[i] = self._position_offset[i]
+                    # if abs(pose_offset[i] - self._position_offset[i]) < 0.005:
+                    #     pose_offset[i] = self._position_offset[i]
                 else:
                     pose_offset[i] = float('{:.6f}'.format(pose_offset[i][0]))
-                    if abs(pose_offset[i] - self._position_offset[i]) < 0.000005:
-                        pose_offset[i] = self._position_offset[i]
-
-            # if self._position != pose:
-            #     print('position: {}'.format(self.position))
-            # if self._angles != angles:
-            #     print('angles: {}'.format(self.angles))
+                    # if abs(pose_offset[i] - self._position_offset[i]) < 0.000005:
+                    #     pose_offset[i] = self._position_offset[i]
 
             self._position = pose
             self._angles = angles
@@ -572,7 +564,7 @@ class XArm(Gripper):
         self._report_connect_changed_callback(False, False)
 
     def auto_get_report_thread(self):
-        logger.info('get report thread start')
+        logger.debug('get report thread start')
         while self.connected:
             try:
                 self.get_position()
@@ -591,15 +583,10 @@ class XArm(Gripper):
                     self._report_error_warn_changed_callback()
                 self._report_callback()
                 time.sleep(0.02)
-                # self.get_state()
-                # self.get_cmdnum()
-                # self.get_err_warn_code()
-                # print('position:', self._position, time.time())
-                # print('angles:', self._angles)
             except:
                 pass
         self._report_connect_changed_callback(False, False)
-        logger.info('get report thread stopped')
+        logger.debug('get report thread stopped')
 
     def disconnect(self):
         self.stream.close()
@@ -788,10 +775,13 @@ class XArm(Gripper):
         :return: 
         """
         if servo_id is None or servo_id == 8:
-            if not isinstance(angle, (tuple, list)):
+            if not isinstance(angle, Iterable):
+                logger.error('If servo_id is None or 8, the argument angle must be an iterable object')
                 return
             else:
                 for i in range(min(len(angle), len(self._last_angles))):
+                    if angle[i] is None:
+                        continue
                     if relative:
                         try:
                             if is_radian:
@@ -810,19 +800,20 @@ class XArm(Gripper):
                             pass
         else:
             if angle is None:
+                logger.error('The argument angle must be an number')
                 return 0
             elif isinstance(angle, str):
                 angle = float(angle)
             if relative:
                 if is_radian:
-                    self._last_angles[servo_id-1] += angle
+                    self._last_angles[servo_id - 1] += angle
                 else:
-                    self._last_angles[servo_id-1] += angle / RAD_DEGREE
+                    self._last_angles[servo_id - 1] += angle / RAD_DEGREE
             else:
                 if is_radian:
-                    self._last_angles[servo_id-1] = angle
+                    self._last_angles[servo_id - 1] = angle
                 else:
-                    self._last_angles[servo_id-1] = angle / RAD_DEGREE
+                    self._last_angles[servo_id - 1] = angle / RAD_DEGREE
 
         if speed is not None:
             if isinstance(speed, str):
@@ -906,8 +897,8 @@ class XArm(Gripper):
 
         # if self.state == 4:
         #     print('set state', self.set_state(0))
-        ret = self.arm_cmd.move_gohome(50 / RAD_DEGREE, 5000 / RAD_DEGREE, self._mvtime)
-        # ret = self.arm_cmd.move_gohome(self._angle_mvvelo / RAD_DEGREE, self._angle_mvacc / RAD_DEGREE, self._mvtime)
+        # ret = self.arm_cmd.move_gohome(50 / RAD_DEGREE, 5000 / RAD_DEGREE, self._mvtime)
+        ret = self.arm_cmd.move_gohome(self._angle_mvvelo / RAD_DEGREE, self._angle_mvacc / RAD_DEGREE, self._mvtime)
         if ret[0] != 0:
             logger.debug('exception({}): move gohome: mvvelo={}, mvacc={}, mvtime={}'.format(
                 ret[0], self._angle_mvvelo / RAD_DEGREE, self._angle_mvacc / RAD_DEGREE, self._mvtime
@@ -1208,8 +1199,41 @@ class XArm(Gripper):
     def send_cmd_sync(self, command=None):
         if command is None:
             return 0
+        if command.lower() == 'help':
+            return {
+                'G1': 'move tcp, G1 X300 Y0 Z100 A-180 B0 C0 F100 Q5000',
+                'G4': 'sleep, G4 V3',
+                'G7': 'move joint, G7 I0 J0 K0 L0 M0 N0 O0 F30 Q5000',
+                'G8': 'move home, G8 F50 Q5000',
+                'G9': 'move tcp with blend, G9 X300 Y0 Z100 A-180 B0 C0 R10 F100 Q5000',
+                'H1': 'get version',
+                'H11': 'enable/disable motor, H11 V{1: enable, 0: disable} S{servo_id}',
+                'H12': 'set state, H12 V{0: normal, 3: pause, 4: stop}',
+                'H13': 'get state',
+                'H14': 'get cmd num',
+                'H15': 'get error warn code',
+                'H16': 'clean error',
+                'H17': 'clean warning',
+                'H18': 'enable/disable brake, H18 V{1: enable(detach), 0: disable(attach)} S{servo_id}',
+                'H31': 'set tcp jerk, H31 V{jerk}',
+                'H32': 'set tcp maxacc, H32 V{maxacc}',
+                'H33': 'set joint jerk, H33 V{jerk}',
+                'H34': 'set joint maxacc, H34 V{maxacc}',
+                'H41': 'get tcp pose, H41 V{0: is_radian, 1: not_radian}',
+                'H42': 'get joint pose, H42 V{0: is_radian, 1: not_radian}',
+                'H43': 'get ik, H43 X100 Y0 Z100 A90 B90 C100',
+                'H44': 'get fk, H44 I11 J22 K33 L44 M-56 N67 O45',
+                'H45': 'is joint limit, H45 I11 J22 K33 L44 M-56 N67 O45',
+                'H46': 'is tcp limit, H46 X100 Y0 Z100 A90 B90 C100',
+                'H101': 'warning, set servo addr w16, H101 S{servo_id} A{addr} V{value}',
+                'H102': 'warning, get servo addr r16, H102 S{servo_id} A{addr}',
+                'H103': 'warning, ser servo addr w32, H103 S{servo_id} A{addr} V{value}',
+                'H104': 'warning, get servo addr r32, H104 S{servo_id} A{addr}',
+                'H105': 'warning, set servo zero, H105 S{servo_id}',
+                'H106': 'get servo debug msg',
+            }
         num = parse.gcode_get_chint(command, 'G')
-        if num == 0 or num == 1:  # G0 G1 xarm_move_arc_line ex: G1 X300 Y0 Z100 A-180 B0 C0 F100 Q50 T0
+        if num == 1:  # G1 xarm_move_line ex: G1 X300 Y0 Z100 A-180 B0 C0 F100 Q50 T0
             mvvelo = parse.gcode_get_mvvelo(command)
             mvacc = parse.gcode_get_mvacc(command)
             mvtime = parse.gcode_get_mvtime(command)
@@ -1229,20 +1253,23 @@ class XArm(Gripper):
             mvacc = parse.gcode_get_mvacc(command)
             mvtime = parse.gcode_get_mvtime(command)
             ret = self.move_gohome(speed=mvvelo, mvacc=mvacc, mvtime=mvtime, is_radian=False)
-        elif num == 9:  # G9 xarm_move_arc_line ex: G0 X300 Y0 Z100 A-180 B0 C0 R10 F100 Q50 T0
+        elif num == 9:  # G9 xarm_move_arc_line ex: G9 X300 Y0 Z100 A-180 B0 C0 R10 F100 Q50 T0
             mvvelo = parse.gcode_get_mvvelo(command)
             mvacc = parse.gcode_get_mvacc(command)
             mvtime = parse.gcode_get_mvtime(command)
             mvpose = parse.gcode_get_mvcarts(command)
             mvradii = parse.gcode_get_mvradii(command)
+            if mvradii is None:
+                mvradii = 0
             ret = self.set_position(*mvpose, speed=mvvelo, mvacc=mvacc, mvtime=mvtime, radius=mvradii, is_radian=False)
         else:
             num = parse.gcode_get_chint(command, 'H')
-            if num == 0 or num == 1:  # H0 H1 get_version ex: H0
+            if num == 1:  # H0 H1 get_version ex: H0
                 ret = self.get_version()
             elif num == 11:  # H11 motion_enable ex: H11 V1
                 value = parse.gcode_get_chint(command, 'V')
-                ret = self.motion_enable(enable=value)
+                servo_id = parse.gcode_get_chint(command, 'A')
+                ret = self.motion_enable(enable=value, servo_id=servo_id)
             elif num == 12:  # H12 set_state ex: H12 V0
                 value = parse.gcode_get_chint(command, 'V')
                 ret = self.set_state(value)
@@ -1256,12 +1283,13 @@ class XArm(Gripper):
                 ret = self.clean_error()
             elif num == 17:  # H17 clean_warn ex: H17
                 ret = self.clean_warn()
-            elif num == 18:  # H18 set_brake ex: H18 V0
+            elif num == 18:  # H18 set_brake ex: H18 V0 S{servo_id}
                 value = parse.gcode_get_chint(command, 'V')
+                servo_id = parse.gcode_get_chint(command, 'S')
                 if value == 0:
-                    ret = self.set_servo_attach()
+                    ret = self.set_servo_attach(servo_id=servo_id)
                 else:
-                    ret = self.set_servo_detach()
+                    ret = self.set_servo_detach(servo_id=servo_id)
             elif num == 31:  # H31 set_tcp_jerk ex: H31 V30
                 value = parse.gcode_get_value(command)
                 ret = self.set_tcp_jerk(value)
@@ -1278,10 +1306,16 @@ class XArm(Gripper):
                 ret = self.clean_conf()
             elif num == 40:  # H40 save_conf ex: H40
                 ret = self.save_conf()
-            elif num == 41:  # H41 get_position ex: H41
-                ret = self.get_position()
-            elif num == 42:  # H42 get_servo_angle ex: H42
-                ret = self.get_servo_angle()
+            elif num == 41:  # H41 get_position ex: H41 V0
+                value = parse.gcode_get_value(command)
+                if value is None:
+                    value = 0
+                ret = self.get_position(is_radian=value == 0)
+            elif num == 42:  # H42 get_servo_angle ex: H42 V0
+                value = parse.gcode_get_value(command)
+                if value is None:
+                    value = 0
+                ret = self.get_servo_angle(is_radian=value == 0)
             elif num == 43:  # H43 get_ik ex: H43 X100 Y0 Z100 A90 B90 C100
                 pose = parse.gcode_get_mvcarts(command)
                 ret = self.get_ik(pose, is_radian=False)
@@ -1294,8 +1328,31 @@ class XArm(Gripper):
             elif num == 46:  # H46 is_tcp_limit ex: H46 X100 Y0 Z100 A90 B90 C100
                 pose = parse.gcode_get_mvcarts(command)
                 ret = self.is_tcp_limit(pose, is_radian=False)
+            elif num == 101:
+                servo_id = parse.gcode_get_chint(command, 'S')
+                addr = parse.gcode_get_chint(command, 'A')
+                value = parse.gcode_get_chint(command, 'V')
+                ret = self.set_servo_addr_16(servo_id=servo_id, addr=addr, value=value)
+            elif num == 102:
+                servo_id = parse.gcode_get_chint(command, 'S')
+                addr = parse.gcode_get_chint(command, 'A')
+                ret = self.get_servo_addr_16(servo_id=servo_id, addr=addr)
+            elif num == 103:
+                servo_id = parse.gcode_get_chint(command, 'S')
+                addr = parse.gcode_get_chint(command, 'A')
+                value = parse.gcode_get_chint(command, 'V')
+                ret = self.set_servo_addr_32(servo_id=servo_id, addr=addr, value=value)
+            elif num == 104:
+                servo_id = parse.gcode_get_chint(command, 'S')
+                addr = parse.gcode_get_chint(command, 'A')
+                ret = self.get_servo_addr_32(servo_id=servo_id, addr=addr)
+            elif num == 105:
+                servo_id = parse.gcode_get_chint(command, 'S')
+                ret = self.set_servo_zero(servo_id=servo_id)
+            elif num == 106:
+                ret = self.get_servo_debug_msg()
             else:
-                print('command {} is not exist'.format(command))
+                logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST
         return ret
 
@@ -1381,58 +1438,96 @@ class XArm(Gripper):
 
     @xarm_is_connected
     def set_servo_zero(self, servo_id=None):
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :param servo_id: 
+        :return: 
+        """
         assert servo_id is not None
         # if servo_id is None:
         #     servo_id = 8
         return self.arm_cmd.servo_set_zero(servo_id)
 
     @xarm_is_connected
-    def get_servo_debug_msg(self):
+    def get_servo_debug_msg(self, show=False):
         ret = self.arm_cmd.servo_get_dbmsg()
-        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #     print('=' * 50)
-        #     for i in range(1, 8):
-        #         if ret[i * 2 - 1] != 0:
-        #             servo_error = ServoError(ret[i * 2])
-        #             print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-        #                 i, ret[i * 2 - 1], ret[i * 2], servo_error.description))
-        #             print('处理方法: {}'.format(servo_error.handle))
-        #     if ret[15] != 0:
-        #         servo_error = ServoError(ret[16])
-        #         print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-        #             ret[15], ret[16], servo_error.description))
-        #         print('处理方法: {}'.format(servo_error.handle))
-        #     print('=' * 50)
+        if show:
+            if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+                print('=' * 50)
+                for i in range(1, 8):
+                    if ret[i * 2 - 1] != 0:
+                        servo_error = ServoError(ret[i * 2])
+                        if ret[i * 2 - 1] == 3:
+                            servo_error.description = '通信错误'
+                        err_code = '{} ({})'.format(hex(ret[i * 2]), ret[i * 2])
+                        print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
+                            i, ret[i * 2 - 1], err_code, servo_error.description))
+                        print('处理方法: {}'.format(servo_error.handle))
+                if ret[15] != 0:
+                    servo_error = ServoError(ret[16])
+                    if ret[15] == 3:
+                        servo_error.description = '通信错误'
+                    err_code = '{} ({})'.format(hex(ret[16]), ret[16])
+                    print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
+                        ret[15], err_code, servo_error.description))
+                    print('处理方法: {}'.format(servo_error.handle))
+                print('=' * 50)
         return ret
 
     @xarm_is_connected
     def set_servo_addr_16(self, servo_id=None, addr=None, value=None):
-        assert servo_id is not None
-        assert addr is not None
-        assert value is not None
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :param servo_id: 
+        :param addr: 
+        :param value: 
+        :return: 
+        """
+        assert servo_id is not None and addr is not None and value is not None
         return self.arm_cmd.servo_addr_w16(servo_id, addr, value)
 
     @xarm_is_connected
     def get_servo_addr_16(self, servo_id=None, addr=None):
-        assert servo_id is not None
-        assert addr is not None
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :param servo_id: 
+        :param addr: 
+        :return: 
+        """
+        assert servo_id is not None and addr is not None
         return self.arm_cmd.servo_addr_r16(servo_id, addr)
 
     @xarm_is_connected
     def set_servo_addr_32(self, servo_id=None, addr=None, value=None):
-        assert servo_id is not None
-        assert addr is not None
-        assert value is not None
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :param servo_id: 
+        :param addr: 
+        :param value: 
+        :return: 
+        """
+        assert servo_id is not None and addr is not None and value is not None
         return self.arm_cmd.servo_addr_w32(servo_id, addr, value)
 
     @xarm_is_connected
     def get_servo_addr_32(self, servo_id=None, addr=None):
-        assert servo_id is not None
-        assert addr is not None
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :param servo_id: 
+        :param addr: 
+        :return: 
+        """
+        assert servo_id is not None and addr is not None
         return self.arm_cmd.servo_addr_r32(servo_id, addr)
 
     @xarm_is_connected
     def clean_servo_error(self, servo_id=None):
+        """
+        Warnning, do not use, may cause the arm to be abnormal,  just for debugging
+        :param servo_id: 
+        :return: 
+        """
+        assert servo_id is not None
         return self.set_servo_addr_16(servo_id, 0x0109, 1)
 
 

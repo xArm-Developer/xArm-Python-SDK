@@ -690,12 +690,13 @@ class XArmAPI(object):
         """
         return self._arm.release_cmdnum_changed_callback(callback)
 
-    # def get_servo_debug_msg(self):
+    # def get_servo_debug_msg(self, show=False):
     #     """
     #     Get the servo debug msg, just for debugging
+    #     :param show: show the detail info if True
     #     :return:
     #     """
-    #     return self._arm.get_servo_debug_msg()
+    #     return self._arm.get_servo_debug_msg(show=show)
     #
     # def clean_servo_error(self, servo_id=None):
     #     """

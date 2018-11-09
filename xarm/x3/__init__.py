@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import re
+import math
 import time
 import threading
 from collections import Iterable
@@ -463,9 +464,19 @@ class XArm(Gripper):
                     # if abs(pose_offset[i] - self._position_offset[i]) < 0.000005:
                     #     pose_offset[i] = self._position_offset[i]
 
-            self._position = pose
-            self._angles = angles
-            self._position_offset = pose_offset
+            # if math.inf not in pose:
+            #     pose[pose.index(math.inf)] = 0
+            # if math.inf in angles:
+            #     angles[angles.index(math.inf)] = 0
+            # if math.inf in pose_offset:
+            #     pose_offset[pose_offset.index(math.inf)] = 0
+
+            if math.inf not in pose:
+                self._position = pose
+            if math.inf not in angles:
+                self._angles = angles
+            if math.inf not in pose_offset:
+                self._position_offset = pose_offset
 
             if REPORT_LOCATION_ID in self._report_callbacks.keys():
                 for callback in self._report_callbacks[REPORT_LOCATION_ID]:

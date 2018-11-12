@@ -578,10 +578,15 @@ class XArm(Gripper):
         logger.debug('get report thread start')
         while self.connected:
             try:
+                if self.cmd_num > 300:
+                    time.sleep(0.02)
                 self.get_position()
+                time.sleep(0.02)
                 self.get_servo_angle()
+                time.sleep(0.02)
                 state = self.state
                 self.get_state()
+                time.sleep(0.02)
                 cmd_num = self.cmd_num
                 self.get_cmdnum()
                 self._report_location_callback()
@@ -1279,7 +1284,11 @@ class XArm(Gripper):
                 ret = self.get_version()
             elif num == 11:  # H11 motion_enable ex: H11 V1
                 value = parse.gcode_get_chint(command, 'V')
-                servo_id = parse.gcode_get_chint(command, 'A')
+                servo_id = parse.gcode_get_chint(command, 'S')
+                if value == -1:
+                    value = True
+                if servo_id < 1:
+                    servo_id = None
                 ret = self.motion_enable(enable=value, servo_id=servo_id)
             elif num == 12:  # H12 set_state ex: H12 V0
                 value = parse.gcode_get_chint(command, 'V')
@@ -1297,6 +1306,10 @@ class XArm(Gripper):
             elif num == 18:  # H18 set_brake ex: H18 V0 S{servo_id}
                 value = parse.gcode_get_chint(command, 'V')
                 servo_id = parse.gcode_get_chint(command, 'S')
+                if value == -1:
+                    value = 0
+                if servo_id < 1:
+                    servo_id = None
                 if value == 0:
                     ret = self.set_servo_attach(servo_id=servo_id)
                 else:
@@ -1318,13 +1331,13 @@ class XArm(Gripper):
             elif num == 40:  # H40 save_conf ex: H40
                 ret = self.save_conf()
             elif num == 41:  # H41 get_position ex: H41 V0
-                value = parse.gcode_get_value(command)
-                if value is None:
+                value = parse.gcode_get_chint(command, 'V')
+                if value == -1:
                     value = 0
                 ret = self.get_position(is_radian=value == 0)
             elif num == 42:  # H42 get_servo_angle ex: H42 V0
-                value = parse.gcode_get_value(command)
-                if value is None:
+                value = parse.gcode_get_chint(command, 'V')
+                if value == -1:
                     value = 0
                 ret = self.get_servo_angle(is_radian=value == 0)
             elif num == 43:  # H43 get_ik ex: H43 X100 Y0 Z100 A90 B90 C100
@@ -1341,24 +1354,34 @@ class XArm(Gripper):
                 ret = self.is_tcp_limit(pose, is_radian=False)
             elif num == 101:
                 servo_id = parse.gcode_get_chint(command, 'S')
+                if servo_id < 1:
+                    servo_id = None
                 addr = parse.gcode_get_chint(command, 'A')
-                value = parse.gcode_get_chint(command, 'V')
+                value = parse.gcode_get_value(command)
                 ret = self.set_servo_addr_16(servo_id=servo_id, addr=addr, value=value)
             elif num == 102:
                 servo_id = parse.gcode_get_chint(command, 'S')
+                if servo_id < 1:
+                    servo_id = None
                 addr = parse.gcode_get_chint(command, 'A')
                 ret = self.get_servo_addr_16(servo_id=servo_id, addr=addr)
             elif num == 103:
                 servo_id = parse.gcode_get_chint(command, 'S')
+                if servo_id < 1:
+                    servo_id = None
                 addr = parse.gcode_get_chint(command, 'A')
-                value = parse.gcode_get_chint(command, 'V')
+                value = parse.gcode_get_value(command)
                 ret = self.set_servo_addr_32(servo_id=servo_id, addr=addr, value=value)
             elif num == 104:
                 servo_id = parse.gcode_get_chint(command, 'S')
+                if servo_id < 1:
+                    servo_id = None
                 addr = parse.gcode_get_chint(command, 'A')
                 ret = self.get_servo_addr_32(servo_id=servo_id, addr=addr)
             elif num == 105:
                 servo_id = parse.gcode_get_chint(command, 'S')
+                if servo_id < 1:
+                    servo_id = None
                 ret = self.set_servo_zero(servo_id=servo_id)
             elif num == 106:
                 ret = self.get_servo_debug_msg()

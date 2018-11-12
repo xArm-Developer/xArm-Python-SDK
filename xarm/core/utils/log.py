@@ -47,7 +47,7 @@ class Logger(logging.Logger):
 
 logger = Logger(__name__)
 
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 logger.VERBOSE = logging.VERBOSE
 logger.DEBUG = logging.DEBUG

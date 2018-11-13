@@ -105,6 +105,14 @@ class XArmAPI(object):
         return self._arm.maable
 
     @property
+    def has_err_warn(self):
+        """
+        xArm has error warn or not
+        :return: True/False
+        """
+        return self._arm.has_err_warn
+
+    @property
     def error_code(self):
         """
         Error code
@@ -179,7 +187,7 @@ class XArmAPI(object):
         """
         Get the cartesian position
         :param is_radian: roll/yaw/pitch value is radian or not
-        :return: pos list, [x, y, z, roll, yaw, pitch]
+        :return: tuple((code, [x, y, z, roll, yaw, pitch])), only when code is 0, the returned result is correct.
         """
         return self._arm.get_position(is_radian=is_radian)
 
@@ -214,7 +222,7 @@ class XArmAPI(object):
         Get the servo angle
         :param servo_id: 1-7, None(8), default is None
         :param is_radian: return radian or not
-        :return: angle list if servo_id is None or 8 else angle
+        :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_servo_angle(servo_id=servo_id, is_radian=is_radian)
 
@@ -253,7 +261,7 @@ class XArmAPI(object):
     def set_servo_attach(self, servo_id=None):
         """
         Attach the servo
-        :param servo_id: 1-7, None(8), if servo_id is None or 8, will attach all servo
+        :param servo_id: 1-7, 8, if servo_id is 8, will attach all servo
         :return: code
         """
         return self._arm.set_servo_attach(servo_id=servo_id)
@@ -261,7 +269,7 @@ class XArmAPI(object):
     def set_servo_detach(self, servo_id=None):
         """
         Detach the servo
-        :param servo_id: 1-7, None(8), if servo_id is None or 8, will detach all servo
+        :param servo_id: 1-7, 8, if servo_id is 8, will detach all servo
         :return: code
         """
         return self._arm.set_servo_detach(servo_id=servo_id)
@@ -269,25 +277,26 @@ class XArmAPI(object):
     def get_version(self):
         """
         Get the xArm version
-        :return: version
+        :return: tuple((code, version)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_version()
 
     def get_is_moving(self):
         """
         Check xArm is moving or not
-        :return: 
+        :return: True/False
         """
         return self._arm.get_is_moving()
 
     def get_state(self):
         """
         Get state
-        :return: 
-            1: moving
-            2: sleeping
-            3: suspended
-            4: stopping
+        :return: tuple((code, state)), only when code is 0, the returned result is correct.
+            state:
+                1: moving
+                2: sleeping
+                3: suspended
+                4: stopping
         """
         return self._arm.get_state()
 
@@ -298,21 +307,21 @@ class XArmAPI(object):
             0: sport state
             3: pause state
             4: stop state
-        :return: 
+        :return: code
         """
         return self._arm.set_state(state=state)
 
     def get_cmdnum(self):
         """
         Get the cmd count in cache
-        :return: cmd num
+        :return: tuple((code, cmd num)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_cmdnum()
 
     def get_err_warn_code(self):
         """
         Get the error and warn code
-        :return: [error_code, warn_code]
+        :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
         """
         return self._arm.get_err_warn_code()
 
@@ -416,8 +425,8 @@ class XArmAPI(object):
         """
         Inverse kinematics, do not use, just for debugging
         :param pose: 
-        :param is_radian: 
-        :return: 
+        :param is_radian:
+        :return: tuple((code, angles)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_ik(pose, is_radian=is_radian)
 
@@ -426,7 +435,7 @@ class XArmAPI(object):
         Positive kinematics, do not use, just for debugging
         :param angles: 
         :param is_radian: 
-        :return: 
+        :return: tuple((code, pose)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_fk(angles, is_radian=is_radian)
 
@@ -435,7 +444,7 @@ class XArmAPI(object):
         Check the tcp pose is in limit
         :param pose: [x, y, z, roll, yaw, pitch]
         :param is_radian: roll/yaw/pitch value is radian or not
-        :return: True/False/None
+        :return: tuple((code, limit)), only when code is 0, the returned result is correct.
         """
         return self._arm.is_tcp_limit(pose, is_radian=is_radian)
 
@@ -444,7 +453,7 @@ class XArmAPI(object):
         Check the joint is in limit
         :param joint: angle list
         :param is_radian: angle value is radian or not
-        :return: True/False/None
+        :return: tuple((code, limit)), only when code is 0, the returned result is correct.
         """
         return self._arm.is_joint_limit(joint, is_radian=is_radian)
 
@@ -479,7 +488,7 @@ class XArmAPI(object):
     def get_gripper_position(self):
         """
         Get the gripper position
-        :return: gripper pos
+        :return: tuple((code, pos)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_gripper_position()
 
@@ -506,7 +515,7 @@ class XArmAPI(object):
     def get_gripper_err_code(self):
         """
         Get the gripper error code
-        :return: gripper err code
+        :return: tuple((code, err_code)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_gripper_err_code()
 

@@ -31,7 +31,9 @@ class Gripper(object):
         ret = self.arm_cmd.gripper_get_pos()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 1:
             ret[1] = float('{:.2f}'.format(ret[1][0]))
-        return ret
+            ret[0] = 0
+            return ret[0], ret[1]
+        return ret[0], None
 
     @xarm_is_connected
     def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
@@ -91,7 +93,10 @@ class Gripper(object):
     @xarm_is_connected
     def get_gripper_err_code(self):
         ret = self.arm_cmd.gripper_get_errcode()
-        return ret[0]
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+            return ret[0], ret[1]
+        return ret[0], None
 
     @xarm_is_connected
     def clean_gripper_error(self):

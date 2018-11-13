@@ -1191,7 +1191,7 @@ class XArm(Gripper):
         if command is None:
             return 0
         if command.lower() == 'help':
-            return {
+            return 0, {
                 'G1': 'move tcp, G1 X300 Y0 Z100 A-180 B0 C0 F100 Q5000',
                 'G4': 'sleep, G4 V3',
                 'G7': 'move joint, G7 I0 J0 K0 L0 M0 N0 O0 F30 Q5000',

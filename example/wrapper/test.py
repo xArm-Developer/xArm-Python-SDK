@@ -16,6 +16,7 @@ from xarm.wrapper import XArmAPI
 
 
 xarm = XArmAPI('192.168.1.113', enable_report=False, report_type='normal')
+
 # # xarm.set_state(0)
 #
 # # print(xarm._arm.set_servo_zero(6))

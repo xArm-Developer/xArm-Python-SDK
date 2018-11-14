@@ -555,14 +555,14 @@ class XArm(Gripper):
         while self.connected:
             try:
                 if self.cmd_num > 300:
-                    time.sleep(0.02)
+                    time.sleep(1)
                 self.get_position()
-                time.sleep(0.02)
+                time.sleep(0.03)
                 self.get_servo_angle()
-                time.sleep(0.02)
+                time.sleep(0.03)
                 state = self.state
                 self.get_state()
-                time.sleep(0.02)
+                time.sleep(0.03)
                 cmd_num = self.cmd_num
                 self.get_cmdnum()
                 self._report_location_callback()
@@ -578,7 +578,7 @@ class XArm(Gripper):
                     self.get_err_warn_code()
                     self._report_error_warn_changed_callback()
                 self._report_callback()
-                time.sleep(0.02)
+                time.sleep(0.03)
             except:
                 pass
         self._report_connect_changed_callback(False, False)
@@ -972,11 +972,18 @@ class XArm(Gripper):
         return ret[0], self.cmd_num
 
     @xarm_is_connected
-    def get_err_warn_code(self):
+    def get_err_warn_code(self, show=False):
         ret = self.arm_cmd.get_err_code()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._error_code, self._warn_code = ret[1:3]
             ret[0] = 0
+        if show:
+            print('*************获取错误警告码, 状态: {}**************'.format(ret[0]))
+            controller_error = ControllerError(self.error_code)
+            controller_warn = ControllerWarn(self.warn_code)
+            print('* 错误码: {}, 错误信息: {}'.format(self.error_code, controller_error.description))
+            print('* 警告码: {}, 警告信息: {}'.format(self.warn_code, controller_warn.description))
+            print('*' * 50)
         return ret[0], [self._error_code, self._warn_code]
 
     @xarm_is_connected
@@ -1484,7 +1491,7 @@ class XArm(Gripper):
                     }
                 })
         if show:
-            print('************获取电机调试信息, 状态: {}*************'.format(dbmsg['code']))
+            print('************获取电机调试信息, 状态: {}*************'.format(ret[0]))
             for servo_info in dbmsg:
                 print('* {}, 状态: {}, 错误码: {}'.format(
                     servo_info['name'], servo_info['status'],

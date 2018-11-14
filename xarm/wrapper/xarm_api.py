@@ -318,12 +318,13 @@ class XArmAPI(object):
         """
         return self._arm.get_cmdnum()
 
-    def get_err_warn_code(self):
+    def get_err_warn_code(self, show=False):
         """
         Get the error and warn code
+        :param show: show the detail info if True
         :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
         """
-        return self._arm.get_err_warn_code()
+        return self._arm.get_err_warn_code(show=show)
 
     def clean_error(self):
         """
@@ -699,14 +700,14 @@ class XArmAPI(object):
         """
         return self._arm.release_cmdnum_changed_callback(callback)
 
-    # def get_servo_debug_msg(self, show=False):
-    #     """
-    #     Get the servo debug msg, just for debugging
-    #     :param show: show the detail info if True
-    #     :return:
-    #     """
-    #     return self._arm.get_servo_debug_msg(show=show)
-    #
+    def get_servo_debug_msg(self, show=False):
+        """
+        Get the servo debug msg, just for debugging
+        :param show: show the detail info if True
+        :return: tuple((code, servo_info_list)), only when code is 0, the returned result is correct.
+        """
+        return self._arm.get_servo_debug_msg(show=show)
+
     # def clean_servo_error(self, servo_id=None):
     #     """
     #     Warnning, do not use, just for debugging

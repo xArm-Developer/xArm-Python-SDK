@@ -568,6 +568,10 @@ class XArm(Gripper):
                 self._report_location_callback()
                 if cmd_num != self.cmd_num:
                     self._report_cmdnum_changed_callback()
+                if self.state == 4:
+                    self._is_ready = False
+                else:
+                    self._is_ready = True
                 if state != self.state:
                     self._report_state_changed_callback()
                 if self.arm_cmd.has_err_warn:
@@ -685,9 +689,12 @@ class XArm(Gripper):
             self._mvtime = mvtime
 
         if kwargs.get('check', False):
-            ret = self.arm_cmd.is_tcp_limit(self._last_position[:6])
-            if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
+            _, limit = self.is_tcp_limit(self._last_position[:6])
+            if _ == 0 and limit is True:
                 return APIState.TCP_LIMIT
+            # ret = self.arm_cmd.is_tcp_limit(self._last_position[:6])
+            # if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
+            #     return APIState.TCP_LIMIT
         if radius is not None:
             ret = self.arm_cmd.move_lineb(self._last_position[:6], self._mvvelo, self._mvacc, self._mvtime, self._last_position[6])
             if ret[0] != 0:
@@ -821,9 +828,12 @@ class XArm(Gripper):
             self._mvtime = mvtime
 
         if kwargs.get('check', False):
-            ret = self.arm_cmd.is_joint_limit(self._last_angles)
-            if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
+            _, limit = self.is_joint_limit(self._last_angles)
+            if _ == 0 and limit is True:
                 return APIState.JOINT_LIMIT
+            # ret = self.arm_cmd.is_joint_limit(self._last_angles)
+            # if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
+            #     return APIState.JOINT_LIMIT
 
         ret = self.arm_cmd.move_joint(self._last_angles, self._angle_mvvelo / RAD_DEGREE, self._angle_mvacc / RAD_DEGREE, self._mvtime)
         if ret[0] != 0:
@@ -1459,28 +1469,59 @@ class XArm(Gripper):
     @xarm_is_connected
     def get_servo_debug_msg(self, show=False):
         ret = self.arm_cmd.servo_get_dbmsg()
+        dbmsg = []
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            for i in range(1, 9):
+                servo_error = ServoError(ret[i * 2])
+                dbmsg.append({
+                    'name': '伺服{}'.format(i) if i < 8 else '机械爪',
+                    'servo_id': i,
+                    'status': ret[i * 2 - 1],
+                    'error': {
+                        'code': ret[i * 2],
+                        'desc': servo_error.description if ret[i * 2 - 1] != 3 else '通信错误(Communication error)',
+                        'handle': servo_error.handle if ret[i * 2 - 1] != 3 else ['检查连接，重新上电']
+                    }
+                })
         if show:
-            if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-                print('=' * 50)
-                for i in range(1, 8):
-                    if ret[i * 2 - 1] != 0:
-                        servo_error = ServoError(ret[i * 2])
-                        if ret[i * 2 - 1] == 3:
-                            servo_error.description = '通信错误'
-                        err_code = '{} ({})'.format(hex(ret[i * 2]), ret[i * 2])
-                        print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-                            i, ret[i * 2 - 1], err_code, servo_error.description))
-                        print('处理方法: {}'.format(servo_error.handle))
-                if ret[15] != 0:
-                    servo_error = ServoError(ret[16])
-                    if ret[15] == 3:
-                        servo_error.description = '通信错误'
-                    err_code = '{} ({})'.format(hex(ret[16]), ret[16])
-                    print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-                        ret[15], err_code, servo_error.description))
-                    print('处理方法: {}'.format(servo_error.handle))
-                print('=' * 50)
-        return ret
+            print('************获取电机调试信息, 状态: {}*************'.format(dbmsg['code']))
+            for servo_info in dbmsg:
+                print('* {}, 状态: {}, 错误码: {}'.format(
+                    servo_info['name'], servo_info['status'],
+                    servo_info['error']['code']))
+                if servo_info['error']['desc']:
+                    print('*  错误信息: {}'.format(servo_info['error']['desc']))
+                if servo_info['error']['handle']:
+                    print('*  处理方法: {}'.format(servo_info['error']['handle']))
+            print('*' * 50)
+        return ret[0], dbmsg
+
+        # if show:
+        #     if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        #         print('=' * 50)
+        #         for i in range(1, 8):
+        #             if ret[i * 2 - 1] != 0:
+        #                 servo_error = ServoError(ret[i * 2])
+        #                 if ret[i * 2 - 1] == 3:
+        #                     servo_error.description = '通信错误'
+        #                 err_code = '{} ({})'.format(hex(ret[i * 2]), ret[i * 2])
+        #                 print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
+        #                     i, ret[i * 2 - 1], err_code, servo_error.description))
+        #                 print('处理方法: {}'.format(servo_error.handle))
+        #             else:
+        #                 print('伺服{}, 状态: {}, 错误码: 0'.format(i, ret[i * 2 - 1]))
+        #         if ret[15] != 0:
+        #             servo_error = ServoError(ret[16])
+        #             if ret[15] == 3:
+        #                 servo_error.description = '通信错误'
+        #             err_code = '{} ({})'.format(hex(ret[16]), ret[16])
+        #             print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
+        #                 ret[15], err_code, servo_error.description))
+        #             print('处理方法: {}'.format(servo_error.handle))
+        #         else:
+        #             print('机械爪, 状态: {}, 错误码: 0'.format(ret[15]))
+        #         print('=' * 50)
+        # return ret
 
     @xarm_is_connected
     def set_servo_addr_16(self, servo_id=None, addr=None, value=None):
@@ -1542,7 +1583,6 @@ class XArm(Gripper):
         :return: 
         """
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8
-        ret = self.set_servo_addr_16(servo_id, 0x0109, 1)
-        return ret[0]
+        return self.set_servo_addr_16(servo_id, 0x0109, 1)
 
 

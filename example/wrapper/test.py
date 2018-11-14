@@ -15,11 +15,11 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from xarm.wrapper import XArmAPI
 
 
-# xarm = XArmAPI('192.168.1.185', enable_report=False, report_type='normal')
+xarm = XArmAPI('192.168.1.113', enable_report=False, report_type='normal')
 # # xarm.set_state(0)
 #
 # # print(xarm._arm.set_servo_zero(6))
-# print(xarm._arm.set_servo_zero(7))
+# print(xarm._arm.set_servo_zero(2))
 # xarm.motion_enable(False)
 # xarm.motion_enable(True)
 # xarm.set_state(0)

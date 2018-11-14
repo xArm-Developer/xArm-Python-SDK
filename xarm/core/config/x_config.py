@@ -131,15 +131,15 @@ class XCONF(object):
         SV3_BRO_ID = 0xFF
 
     class UxbusState:
-        ERR_CODE = 1
-        WAR_CODE = 2
-        ERR_TOUT = 3
-        ERR_LENG = 4
-        ERR_NUM = 5
-        ERR_PROT = 6
-        ERR_FUN = 7
-        ERR_NOTTCP = 8
-        ERR_OTHER = 11
+        ERR_CODE = 1  # 有尚未清除的错误
+        WAR_CODE = 2  # 有尚未清除的警告
+        ERR_TOUT = 3  # 获取结果超时
+        ERR_LENG = 4  # TCP回复长度错误
+        ERR_NUM = 5  # TCP回复序号错误
+        ERR_PROT = 6  # TCP协议标志错误
+        ERR_FUN = 7  # TCP回复指令和发送指令不匹配
+        ERR_NOTTCP = 8  # 发送错误
+        ERR_OTHER = 11  # 其它错误
 
 
 

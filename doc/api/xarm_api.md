@@ -137,10 +137,11 @@ Get the cmd count in cache
 :return: tuple((code, cmd num)), only when code is 0, the returned result is correct.
 ```
 
-#### def __get_err_warn_code__(self):
+#### def __get_err_warn_code__(self, show=False):
 
 ```
 Get the error and warn code
+:param show: show the detail info if True
 :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
 ```
 
@@ -201,6 +202,14 @@ Get the servo angle
 :param servo_id: 1-7, None(8), default is None
 :param is_radian: return radian or not
 :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
+```
+
+#### def __get_servo_debug_msg__(self, show=False):
+
+```
+Get the servo debug msg, just for debugging
+:param show: show the detail info if True
+:return: tuple((code, servo_info_list)), only when code is 0, the returned result is correct.
 ```
 
 #### def __get_state__(self):

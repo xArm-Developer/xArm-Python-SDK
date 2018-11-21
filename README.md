@@ -1,9 +1,9 @@
 # xArm-Python-SDK
- 
+
 ## Overview
 xArm Python SDK
 
-## Update Summary for 0.0.5
+## Update Summary for 0.0.9
 - Support serial port and TCP connection
 - Support parameter to enable reporting
 - Support callback register and release
@@ -20,7 +20,7 @@ xArm Python SDK
 ## Installation
 Install is not necessary, you can run examples without installation.
 - download
-  
+
   ``` git clone git@github.com:uArm-Developer/xArm-Python-SDK.git```
 - install
 
@@ -32,7 +32,7 @@ Install is not necessary, you can run examples without installation.
 ## Example
 - [xArm](example/wrapper/)
 
-- Import 
+- Import
   ```
   from xarm.wrapper import XArmAPI
   xarm = XArmAPI('COM5')

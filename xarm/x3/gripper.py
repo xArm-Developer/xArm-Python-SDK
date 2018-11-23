@@ -91,7 +91,7 @@ class Gripper(object):
                         print('gripper target: {}, current: {}'.format(pos, cur_pos))
                         break
                 time.sleep(0.02)
-            print('gripper, pos: {}, cur: {}, last: {}'.format(pos, last_pos))
+            print('gripper, pos: {}, last: {}'.format(pos, last_pos))
         return code[0]
 
     @check_xarm_is_connected_for_set

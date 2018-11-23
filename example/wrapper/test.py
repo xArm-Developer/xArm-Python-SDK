@@ -27,4 +27,5 @@ xarm = XArmAPI(port='192.168.1.113',
 
 time.sleep(2)
 
+print(xarm.get_gripper_position())
 print(xarm.set_gripper_position(100, True))

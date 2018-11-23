@@ -18,12 +18,13 @@ from xarm.core.utils.log import logger
 logger.setLevel(logger.DEBUG)
 
 
-# xarm = XArmAPI('192.168.1.112', enable_report=True, report_type='normal')
+xarm = XArmAPI('192.168.1.112', enable_report=True, report_type='normal')
 
-xarm= XArmAPI(port='192.168.1.112',
-              enable_heartbeat=True,
-              enable_report=True,
-              report_type='normal')
+xarm = XArmAPI(port='192.168.1.113',
+               enable_heartbeat=True,
+               enable_report=True,
+               report_type='normal')
 
-time.sleep(5)
+time.sleep(2)
 
+print(xarm.set_gripper_position(100, True))

@@ -20,7 +20,8 @@ from ..core.config.x_code import ControllerWarn, ControllerError, ServoError
 from .gripper import Gripper
 from . import parse
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_ready
+from .utils import check_xarm_is_connected_for_get, check_xarm_is_connected_for_set, \
+    check_xarm_is_ready_for_get, check_xarm_is_ready_for_set
 
 RAD_DEGREE = 57.295779513082320876798154814105
 LIMIT_VELO = [1, 1000]  # mm/s
@@ -632,7 +633,7 @@ class XArm(Gripper):
         def timeout_cb(self):
             self.is_timeout = True
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_position(self, is_radian=True):
         ret = self.arm_cmd.get_tcp_pose()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
@@ -643,7 +644,7 @@ class XArm(Gripper):
         else:
             return ret[0], [self.position[i] * RAD_DEGREE if 2 < i < 6 else self.position[i] for i in range(len(self.position))]
 
-    @xarm_is_ready
+    @check_xarm_is_ready_for_set
     def set_position(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=True,
                      wait=False, timeout=None, **kwargs):
@@ -695,7 +696,7 @@ class XArm(Gripper):
             # ret = self.arm_cmd.is_tcp_limit(self._last_position[:6])
             # if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or bool(ret[1]) is not False:
             #     return APIState.TCP_LIMIT
-        if radius is not None:
+        if radius is not None and radius >= 0:
             ret = self.arm_cmd.move_lineb(self._last_position[:6], self._mvvelo, self._mvacc, self._mvtime, self._last_position[6])
             if ret[0] != 0:
                 logger.debug('exception({}): move arc line: pos={}, mvvelo={}, mvacc={}, mvtime={}'.format(
@@ -724,7 +725,7 @@ class XArm(Gripper):
             self.is_stop = False
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_servo_angle(self, servo_id=None, is_radian=True):
         """
         :param servo_id: 1-7, None(8)
@@ -746,7 +747,7 @@ class XArm(Gripper):
             else:
                 return ret[0], self._angles[servo_id-1] * RAD_DEGREE
 
-    @xarm_is_ready
+    @check_xarm_is_ready_for_set
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
                         relative=False, is_radian=True, wait=False, timeout=None, **kwargs):
         """
@@ -853,7 +854,7 @@ class XArm(Gripper):
             self.is_stop = False
         return ret[0]
 
-    @xarm_is_ready
+    @check_xarm_is_ready_for_set
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None, **kwargs):
         if speed is not None:
             if isinstance(speed, str):
@@ -897,7 +898,7 @@ class XArm(Gripper):
             self.is_stop = False
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_servo_attach(self, servo_id=None):
         """
         类型标注语法: version >= python3.5
@@ -918,7 +919,7 @@ class XArm(Gripper):
             ret = self.motion_enable(servo_id=servo_id, enable=True)
         return ret
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_servo_detach(self, servo_id=None):
         """
         :param servo_id: 1-7, 8
@@ -931,7 +932,7 @@ class XArm(Gripper):
             ret = self.arm_cmd.set_brake(servo_id, 1)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_version(self):
         ret = self.arm_cmd.get_version()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -942,12 +943,11 @@ class XArm(Gripper):
         else:
             return ret[0], self._version
 
-    @xarm_is_connected
     def get_is_moving(self):
         self.get_state()
         return self.state == 1
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_state(self):
         ret = self.arm_cmd.get_state()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -955,7 +955,7 @@ class XArm(Gripper):
             ret[0] = 0
         return ret[0], self._state
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_state(self, state=0):
         ret = self.arm_cmd.set_state(state)
         if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -963,7 +963,7 @@ class XArm(Gripper):
             self._last_angles = self.angles
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_cmdnum(self):
         ret = self.arm_cmd.get_cmdnum()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -971,7 +971,7 @@ class XArm(Gripper):
             ret[0] = 0
         return ret[0], self.cmd_num
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_err_warn_code(self, show=False):
         ret = self.arm_cmd.get_err_code()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -986,17 +986,17 @@ class XArm(Gripper):
             print('*' * 50)
         return ret[0], [self._error_code, self._warn_code]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def clean_error(self):
         ret = self.arm_cmd.clean_err()
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def clean_warn(self):
         ret = self.arm_cmd.clean_war()
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def motion_enable(self, enable=True, servo_id=None):
         """
         :param enable: 
@@ -1018,49 +1018,49 @@ class XArm(Gripper):
         self.set_state(0)
         self.move_gohome(speed=speed, is_radian=is_radian, wait=wait, timeout=timeout)
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_sleep_time(self, sltime, wait=False):
         ret = self.arm_cmd.sleep_instruction(sltime)
         if wait:
             time.sleep(sltime)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_tcp_offset(self, offset):
         ret = self.arm_cmd.set_tcp_offset(offset)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_tcp_jerk(self, jerk):
         ret = self.arm_cmd.set_tcp_jerk(jerk)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_tcp_maxacc(self, acc):
         ret = self.arm_cmd.set_tcp_maxacc(acc)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_joint_jerk(self, jerk):
         ret = self.arm_cmd.set_joint_jerk(jerk)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_joint_maxacc(self, acc):
         ret = self.arm_cmd.set_joint_maxacc(acc)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def clean_conf(self):
         ret = self.arm_cmd.clean_conf()
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def save_conf(self):
         ret = self.arm_cmd.save_conf()
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_ik(self, pose, is_radian=True):
         assert len(pose) >= 6
         if not is_radian:
@@ -1074,7 +1074,7 @@ class XArm(Gripper):
                 angles = [angle * RAD_DEGREE for angle in angles]
         return ret[0], angles
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_fk(self, angles, is_radian=True):
         assert len(angles) >= 7
         if not is_radian:
@@ -1088,7 +1088,7 @@ class XArm(Gripper):
                 pose = [pose[i] if i < 3 else pose[i] * RAD_DEGREE for i in range(len(pose))]
         return ret[0], pose
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def is_tcp_limit(self, pose, is_radian=True):
         assert len(pose) >= 6
         for i in range(6):
@@ -1105,7 +1105,7 @@ class XArm(Gripper):
         else:
             return ret[0], None
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def is_joint_limit(self, joint, is_radian=True):
         assert len(joint) >= 7
         for i in range(7):
@@ -1462,7 +1462,7 @@ class XArm(Gripper):
     def release_cmdnum_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_servo_zero(self, servo_id=None):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
@@ -1473,7 +1473,7 @@ class XArm(Gripper):
         ret = self.arm_cmd.servo_set_zero(servo_id)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_servo_debug_msg(self, show=False):
         ret = self.arm_cmd.servo_get_dbmsg()
         dbmsg = []
@@ -1530,7 +1530,7 @@ class XArm(Gripper):
         #         print('=' * 50)
         # return ret
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_servo_addr_16(self, servo_id=None, addr=None, value=None):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
@@ -1544,7 +1544,7 @@ class XArm(Gripper):
         ret = self.arm_cmd.servo_addr_w16(servo_id, addr, value)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_servo_addr_16(self, servo_id=None, addr=None):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
@@ -1554,9 +1554,10 @@ class XArm(Gripper):
         """
         assert isinstance(servo_id, int) and 1 <= servo_id <= 7
         assert addr is not None
-        return self.arm_cmd.servo_addr_r16(servo_id, addr)
+        ret = self.arm_cmd.servo_addr_r16(servo_id, addr)
+        return ret[0], ret[1:]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def set_servo_addr_32(self, servo_id=None, addr=None, value=None):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
@@ -1570,7 +1571,7 @@ class XArm(Gripper):
         ret = self.arm_cmd.servo_addr_w32(servo_id, addr, value)
         return ret[0]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_get
     def get_servo_addr_32(self, servo_id=None, addr=None):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
@@ -1580,9 +1581,10 @@ class XArm(Gripper):
         """
         assert isinstance(servo_id, int) and 1 <= servo_id <= 7
         assert addr is not None
-        return self.arm_cmd.servo_addr_r32(servo_id, addr)
+        ret = self.arm_cmd.servo_addr_r32(servo_id, addr)
+        return ret[0], ret[1:]
 
-    @xarm_is_connected
+    @check_xarm_is_connected_for_set
     def clean_servo_error(self, servo_id=None):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging

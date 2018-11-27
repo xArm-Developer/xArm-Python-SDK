@@ -44,12 +44,14 @@ class XCONF(object):
         CLEAN_ERR = 16
         CLEAN_WAR = 17
         SET_BRAKE = 18
+        SET_MODE = 19
 
         MOVE_LINE = 21
         MOVE_LINEB = 22
         MOVE_JOINT = 23
         MOVE_HOME = 25
         SLEEP_INSTT = 26
+        MOVE_SERVOJ = 29
 
         SET_TCP_JERK = 31
         SET_TCP_MAXACC = 32

@@ -133,6 +133,10 @@ class UxbusCmd(object):
         txdata = [axis_id, int(enable)]
         return self.set_nu8(XCONF.UxbusReg.SET_BRAKE, txdata, 2)
 
+    def set_mode(self, mode):
+        txdata = [mode]
+        return self.set_nu8(XCONF.UxbusReg.SET_MODE, txdata, 1)
+
     def move_line(self, mvpose, mvvelo, mvacc, mvtime):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]
@@ -151,6 +155,11 @@ class UxbusCmd(object):
     def move_gohome(self, mvvelo, mvacc, mvtime):
         txdata = [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_HOME, txdata, 3)
+
+    def move_servoj(self, mvjoint, mvvelo, mvacc, mvtime):
+        txdata = [mvjoint[i] for i in range(7)]
+        txdata += [mvvelo, mvacc, mvtime]
+        return self.set_nfp32(XCONF.UxbusReg.MOVE_SERVOJ, txdata, 10)
 
     def sleep_instruction(self, sltime):
         txdata = [sltime]

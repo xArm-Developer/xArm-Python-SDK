@@ -9,14 +9,17 @@
 import time
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI('192.168.1.185')
+xarm = XArmAPI(port='192.168.1.113',
+               enable_heartbeat=True,
+               enable_report=True,
+               report_type='normal')
 xarm.motion_enable(True)
 xarm.set_state(0)
 
 
 xarm.reset()
 time.sleep(3)
-xarm.send_cmd_sync('G0 X300 Y100 Z200 F50')
+_, helpInfo = xarm.send_cmd_sync('G1 X300 Y0 Z150 F50')
 time.sleep(2)
 xarm.reset()
 time.sleep(5)

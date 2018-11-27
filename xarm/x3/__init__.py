@@ -855,6 +855,13 @@ class XArm(Gripper):
         return ret[0]
 
     @check_xarm_is_ready_for_set
+    def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=True, **kwargs):
+        if not is_radian:
+            angles = [angle / RAD_DEGREE for angle in angles]
+        ret = self.arm_cmd.move_servoj(angles, self._angle_mvvelo / RAD_DEGREE, self._angle_mvacc / RAD_DEGREE, self._mvtime)
+        return ret[0]
+
+    @check_xarm_is_ready_for_set
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None, **kwargs):
         if speed is not None:
             if isinstance(speed, str):
@@ -961,6 +968,13 @@ class XArm(Gripper):
         if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._last_position[:6] = self.position
             self._last_angles = self.angles
+        return ret[0]
+
+    @check_xarm_is_connected_for_set
+    def set_mode(self, mode=0):
+        ret = self.arm_cmd.set_mode(mode)
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
         return ret[0]
 
     @check_xarm_is_connected_for_get

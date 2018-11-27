@@ -245,6 +245,19 @@ class XArmAPI(object):
         return self._arm.set_servo_angle(servo_id=servo_id, angle=angle, speed=speed, mvacc=mvacc, mvtime=mvtime,
                                          relative=relative, is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
 
+    def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=True, **kwargs):
+        """
+        Set the servo angle, execute only the last instruction
+        :param angles: angle list, (unit: radian if is_radian is True else °)
+        :param speed: reserved
+        :param mvacc: reserved
+        :param mvtime: reserved
+        :param is_radian: angles value is radian or not
+        :param kwargs: reserved
+        :return: 
+        """
+        return self.set_servo_angle_j(angles, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, **kwargs)
+
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None):
         """
         Move to go home (Back to zero)
@@ -310,6 +323,14 @@ class XArmAPI(object):
         :return: code
         """
         return self._arm.set_state(state=state)
+
+    def set_mode(self, mode=0):
+        """
+        Set the xArm mode
+        :param mode: default is 0
+        :return: code
+        """
+        return self._arm.set_mode(mode=mode)
 
     def get_cmdnum(self):
         """

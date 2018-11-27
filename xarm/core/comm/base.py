@@ -28,6 +28,7 @@ class Port(threading.Thread):
         self.port_type = ''
         self.buffer_size = 1
         self.heartbeat_thread = None
+        self.alive = True
 
     @property
     def connected(self):
@@ -37,6 +38,7 @@ class Port(threading.Thread):
         self.recv_proc()
 
     def close(self):
+        self.alive = False
         if self.connected:
             self.com.close()
             while self.connected:
@@ -73,10 +75,11 @@ class Port(threading.Thread):
             return -1
 
     def recv_proc(self):
+        self.alive = True
         logger.debug('{} recv thread start'.format(self.port_type))
         try:
             failed_read_count = 0
-            while self.connected:
+            while self.connected and self.alive:
                 if self.port_type == 'main-socket':
                     try:
                         rx_data = self.com_read(self.buffer_size)
@@ -119,7 +122,8 @@ class Port(threading.Thread):
                     self.com.close()
                 except:
                     pass
-            logger.error('{}: {}'.format(self.port_type, e))
+            if self.alive:
+                logger.error('{}: {}'.format(self.port_type, e))
         logger.debug('{} recv thread had stopped'.format(self.port_type))
         # if self.heartbeat_thread:
         #     try:

@@ -508,6 +508,14 @@ Set joint maxacc, do not use, just for debugging
 :return: code
 ```
 
+#### def __set_mode__(self, mode=0):
+
+```
+Set the xArm mode
+:param mode: default is 0
+:return: code
+```
+
 #### def __set_params__(self, **kwargs):
 
 
@@ -548,6 +556,19 @@ Set the servo angle
 :param timeout: second，default is 10s
 :param kwargs: reserved
 :return: code
+```
+
+#### def __set_servo_angle_j__(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=True, **kwargs):
+
+```
+Set the servo angle, execute only the last instruction
+:param angles: angle list, (unit: radian if is_radian is True else °)
+:param speed: reserved
+:param mvacc: reserved
+:param mvtime: reserved
+:param is_radian: angles value is radian or not
+:param kwargs: reserved
+:return:
 ```
 
 #### def __set_servo_attach__(self, servo_id=None):

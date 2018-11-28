@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
-from .utils import check_xarm_is_connected_for_get, check_xarm_is_connected_for_set
+from .utils import xarm_is_connected, xarm_is_ready
 from ..core.config.x_config import XCONF
 
 
@@ -16,17 +16,17 @@ class Gripper(object):
         self.gripper_pos = 0
         pass
 
-    @check_xarm_is_connected_for_set
+    @xarm_is_connected(_type='set')
     def gripper_enable(self, enable):
         ret = self.arm_cmd.gripper_set_en(int(enable))
         return ret[0]
 
-    @check_xarm_is_connected_for_set
+    @xarm_is_connected(_type='set')
     def set_gripper_mode(self, mode):
         ret = self.arm_cmd.gripper_set_mode(mode)
         return ret[0]
 
-    @check_xarm_is_connected_for_get
+    @xarm_is_connected(_type='get')
     def get_gripper_position(self):
         ret = self.arm_cmd.gripper_get_pos()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 1:
@@ -44,7 +44,7 @@ class Gripper(object):
             return ret[0], ret[1]
         return ret[0], None
 
-    @check_xarm_is_connected_for_set
+    @xarm_is_connected(_type='set')
     def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
         if auto_enable:
             self.arm_cmd.gripper_set_en(True)
@@ -94,12 +94,12 @@ class Gripper(object):
             print('gripper, pos: {}, last: {}'.format(pos, last_pos))
         return code[0]
 
-    @check_xarm_is_connected_for_set
+    @xarm_is_connected(_type='set')
     def set_gripper_speed(self, speed):
         ret = self.arm_cmd.gripper_set_posspd(speed)
         return ret[0]
 
-    @check_xarm_is_connected_for_get
+    @xarm_is_connected(_type='get')
     def get_gripper_err_code(self):
         ret = self.arm_cmd.gripper_get_errcode()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -107,12 +107,12 @@ class Gripper(object):
             return ret[0], ret[1]
         return ret[0], None
 
-    @check_xarm_is_connected_for_set
+    @xarm_is_connected(_type='set')
     def clean_gripper_error(self):
         ret = self.arm_cmd.gripper_clean_err()
         return ret[0]
 
-    @check_xarm_is_connected_for_set
+    @xarm_is_connected(_type='set')
     def set_gripper_zero(self):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging

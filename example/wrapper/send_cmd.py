@@ -19,7 +19,7 @@ xarm.set_state(0)
 
 xarm.reset()
 time.sleep(3)
-_, helpInfo = xarm.send_cmd_sync('G1 X300 Y0 Z150 F50')
+ret = xarm.send_cmd_sync('G1 X300 Y0 Z150 F50')
 time.sleep(2)
 xarm.reset()
 time.sleep(5)

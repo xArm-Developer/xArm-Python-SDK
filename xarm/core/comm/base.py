@@ -9,36 +9,43 @@
 
 import threading
 import queue
-import functools
+import socket
+import time
 from ..utils.log import logger
 
 
-class _Port(threading.Thread):
+class Port(threading.Thread):
     def __init__(self, rxque_max):
-        super(_Port, self).__init__()
+        super(Port, self).__init__()
         self.daemon = True
         self.rx_que = queue.Queue(rxque_max)
-        # self.state = -1
-        # self.com = None
-        # self.rx_parse = -1
-        # self.com_read = None
-        # self.com_write = None
-        # self.DB_FLG = 'port'
-        # self.port_type = ''
+        self.write_lock = threading.Lock()
+        self._connected = False
+        self.com = None
+        self.rx_parse = -1
+        self.com_read = None
+        self.com_write = None
+        self.port_type = ''
+        self.buffer_size = 1
+        self.heartbeat_thread = None
+        self.alive = True
 
-    def is_ok(self):
-        return self.state
+    @property
+    def connected(self):
+        return self._connected
 
     def run(self):
-            self.recv_proc()
+        self.recv_proc()
 
     def close(self):
-        if 0 == self.state:
+        self.alive = False
+        if self.connected:
             self.com.close()
-            self.state = -1
+            while self.connected:
+                time.sleep(0.01)
 
     def flush(self, fromid=-1, toid=-1):
-        if 0 != self.state:
+        if not self.connected:
             return -1
         while not(self.rx_que.empty()):
             self.rx_que.queue.clear()
@@ -46,19 +53,20 @@ class _Port(threading.Thread):
             self.rx_parse.flush(fromid, toid)
         return 0
 
-    # def write(self, data):
-    #     if 0 != self.state:
-    #         return -1
-    #     try:
-    #         self.com_write(data)
-    #         return 0
-    #     except Exception as e:
-    #         self.state = -1
-    #         logger.error(self.DB_FLG + "{} send: {}".format(self.port_type, e))
-    #         return -1
+    def write(self, data):
+        if not self.connected:
+            return -1
+        try:
+            with self.write_lock:
+                self.com_write(data)
+            return 0
+        except Exception as e:
+            self._connected = False
+            logger.error("{} send: {}".format(self.port_type, e))
+            return -1
 
     def read(self, timeout=None):
-        if 0 != self.state:
+        if not self.connected:
             return -1
         if not self.rx_que.empty():
             buf = self.rx_que.get(timeout=timeout)
@@ -67,16 +75,40 @@ class _Port(threading.Thread):
             return -1
 
     def recv_proc(self):
-        logger.debug(self.DB_FLG + 'arm {} thread start'.format(self.port_type))
+        self.alive = True
+        logger.debug('{} recv thread start'.format(self.port_type))
         try:
-            while 0 == self.state:
-                if self.port_type == 'socket':
-                    rx_data = self.com_read(1024)
+            failed_read_count = 0
+            while self.connected and self.alive:
+                if self.port_type == 'main-socket':
+                    try:
+                        rx_data = self.com_read(self.buffer_size)
+                    except socket.timeout:
+                        continue
                     if len(rx_data) == 0:
-                        self.state = -1
-                        break
+                        failed_read_count += 1
+                        if failed_read_count > 30:
+                            self._connected = False
+                            break
+                        time.sleep(0.1)
+                        continue
+                elif self.port_type == 'report-socket':
+                    try:
+                        rx_data = self.com_read(self.buffer_size)
+                    except socket.timeout:
+                        continue
+                    if len(rx_data) == 0:
+                        failed_read_count += 1
+                        if failed_read_count > 30:
+                            self._connected = False
+                            break
+                        time.sleep(0.1)
+                        continue
+                elif self.port_type == 'main-serial':
+                    rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
                 else:
-                    rx_data = self.com_read(self.com.in_waiting or 1)
+                    break
+                failed_read_count = 0
                 if -1 == self.rx_parse:
                     if self.rx_que.full():
                         self.rx_que.get()
@@ -84,9 +116,18 @@ class _Port(threading.Thread):
                 else:
                     self.rx_parse.put(rx_data)
         except Exception as e:
-            logger.error(e)
-            self.state = -1
-            self.com.close()
-        logger.debug(self.DB_FLG + '{} thread stop'.format(self.port_type))
-
+            if self.connected:
+                self._connected = False
+                try:
+                    self.com.close()
+                except:
+                    pass
+            if self.alive:
+                logger.error('{}: {}'.format(self.port_type, e))
+        logger.debug('{} recv thread had stopped'.format(self.port_type))
+        # if self.heartbeat_thread:
+        #     try:
+        #         self.heartbeat_thread.join()
+        #     except:
+        #         pass
 

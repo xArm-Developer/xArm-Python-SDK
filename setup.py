@@ -12,7 +12,7 @@ try:
 except ImportError:
     from distutils.core import setup
     def find_packages():
-        return ['xarm', 'xarm.core', 'xarm.core.comm', 'xarm.core.utils', 'xarm.core.wrapper']
+        return ['xarm', 'xarm.__version__', 'xarm.core', 'xarm.core.comm', 'xarm.core.utils', 'xarm.core.wrapper', 'xarm.wrapper']
 import os
 from distutils.util import convert_path
 

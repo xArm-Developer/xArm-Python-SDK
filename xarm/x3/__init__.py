@@ -886,6 +886,9 @@ class XArm(Gripper):
                 mvtime = float(mvtime)
             self._mvtime = mvtime
 
+        self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0, 0]
+        self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
         ret = self.arm_cmd.move_gohome(self._angle_mvvelo / RAD_DEGREE, self._angle_mvacc / RAD_DEGREE, self._mvtime)
         if ret[0] != 0:
             logger.debug('exception({}): move gohome: mvvelo={}, mvacc={}, mvtime={}'.format(

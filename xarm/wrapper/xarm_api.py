@@ -186,7 +186,10 @@ class XArmAPI(object):
     def get_position(self, is_radian=True):
         """
         Get the cartesian position
-        :param is_radian: roll/yaw/pitch value is radian or not
+        Note:
+            1. If the value(roll/yaw/pitch) you want to return is an angle unit, please set the parameter is_radian to False
+                ex: code, pos = xarm.get_position(is_radian=False)
+        :param is_radian: roll/yaw/pitch value is radian or not, default is True
         :return: tuple((code, [x, y, z, roll, yaw, pitch])), only when code is 0, the returned result is correct.
         """
         return self._arm.get_position(is_radian=is_radian)
@@ -196,20 +199,29 @@ class XArmAPI(object):
                      wait=False, timeout=None, **kwargs):
         """
         Set the cartesian position
+        Note:
+            1. If the parameter(roll/yaw/pitch) you are passing is an angle unit, be sure to set the parameter is_radian to False.
+                ex: code = xarm.set_position(x=300, y=0, z=200, roll=180, yaw=0, pitch=0, is_radian=False)
+            2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
+                ex: code = xarm.set_position(x=300, y=0, z=200, roll=180, yaw=0, pitch=0, is_radian=False, wait=True)
         :param x: cartesian position x, (unit: mm)
         :param y: cartesian position y, (unit: mm)
         :param z: cartesian position z, (unit: mm)
         :param roll: cartesian roll, (unit: radian if is_radian is True else °)
         :param yaw: cartesian yaw, (unit: radian if is_radian is True else °)
         :param pitch: cartesian pitch, (unit: radian if is_radian is True else °)
-        :param radius: move radius, if radius is None, will move line, else move arc line
+        :param radius: move radius, if radius is None or radius less than 0, will MoveLine, else MoveArcLine
+            MoveLine: Linear motion
+                ex: code = xarm.set_position(..., radius=None)
+            MoveArcLine: Linear arc motion with interpolation
+                ex: code = xarm.set_position(..., radius=0)
         :param speed: move speed (mm/s, radian/s)
         :param mvacc: move acc (mm/s^2, radian/s^2)
         :param mvtime: 0, reserved
         :param relative: relative move or not
-        :param is_radian: roll/yaw/pitch value is radian or not 
-        :param wait: if True will wait the robot stop
-        :param timeout: second，default is 10s
+        :param is_radian: roll/yaw/pitch value is radian or not, default is True
+        :param wait: if True will wait the robot stop, default is False
+        :param timeout: second, default is 10s
         :param kwargs: reserved
         :return: code
         """
@@ -220,8 +232,13 @@ class XArmAPI(object):
     def get_servo_angle(self, servo_id=None, is_radian=True):
         """
         Get the servo angle
+        Note:
+            1. If the value you want to return is an angle unit, please set the parameter is_radian to False
+                ex: code, angles = xarm.get_servo_angle(is_radian=False)
+            2. If you want to return only the angle of a single joint, please set the parameter servo_id
+                ex: code, angle = xarm.get_servo_angle(servo_id=2)
         :param servo_id: 1-7, None(8), default is None
-        :param is_radian: return radian or not
+        :param is_radian: return radian or not, default is True
         :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
         """
         return self._arm.get_servo_angle(servo_id=servo_id, is_radian=is_radian)
@@ -230,15 +247,29 @@ class XArmAPI(object):
                         relative=False, is_radian=True, wait=False, timeout=None, **kwargs):
         """
         Set the servo angle
+        Note:
+            1. If the parameter angle you are passing is an angle unit, be sure to set the parameter is_radian to False.
+                ex: code = xarm.set_servo_angle(servo_id=3, angle=45, is_radian=False)
+            2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
+                ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False,wait=True)
         :param servo_id: 1-7, None(8)
+            1. 1-7 indicates the corresponding joint, the parameter angle should be a numeric value
+                ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
+            2. None(8) means all joints, default is None, the parameter angle should be a list of values whose length is the number of joints
+                ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 80], is_radian=False)
         :param angle: angle or angle list, (unit: radian if is_radian is True else °)
+            1. If servo_id is 1-7, angle should be a numeric value
+                ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
+            2. If servo_id is None or 8, angle should be a list of values whose length is the number of joints
+                like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
+                ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 80], is_radian=False)
         :param speed: move speed (unit: radian/s if is_radian is True else °/s)
         :param mvacc: move acc (unit: radian/s^2 if is_radian is True else °/s^2)
         :param mvtime: 0, reserved
         :param relative: relative move or not
-        :param is_radian: angle value is radian or not
-        :param wait: if True will wait the robot stop
-        :param timeout: second，default is 10s
+        :param is_radian: angle value is radian or not, default is True
+        :param wait: if True will wait the robot stop, default is False
+        :param timeout: second, default is 10s
         :param kwargs: reserved
         :return: code
         """
@@ -252,7 +283,7 @@ class XArmAPI(object):
         :param speed: reserved
         :param mvacc: reserved
         :param mvtime: reserved
-        :param is_radian: angles value is radian or not
+        :param is_radian: angles value is radian or not, defalut is True
         :param kwargs: reserved
         :return: 
         """
@@ -261,12 +292,15 @@ class XArmAPI(object):
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None):
         """
         Move to go home (Back to zero)
+        Note:
+            1. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
+                ex: code = xarm.move_gohome(wait=True)
         :param speed: reserved
         :param mvacc: reserved
         :param mvtime: reserved
         :param is_radian: reserved
-        :param wait: if True will wait the robot stop
-        :param timeout: second，default is 10s
+        :param wait: if True will wait the robot stop, default is False
+        :param timeout: second, default is 10s
         :return: code
         """
         return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
@@ -275,14 +309,22 @@ class XArmAPI(object):
         """
         Attach the servo
         :param servo_id: 1-7, 8, if servo_id is 8, will attach all servo
+            1. 1-7: attach only one joint
+                ex: xarm.set_servo_attach(servo_id=1)
+            2: 8: attach all joints
+                ex: xarm.set_servo_attach(servo_id=8)
         :return: code
         """
         return self._arm.set_servo_attach(servo_id=servo_id)
 
     def set_servo_detach(self, servo_id=None):
         """
-        Detach the servo
+        Detach the servo, be sure to do protective work before unlocking to avoid injury or damage.
         :param servo_id: 1-7, 8, if servo_id is 8, will detach all servo
+            1. 1-7: detach only one joint
+                ex: xarm.set_servo_detach(servo_id=1)
+            2: 8: detach all joints, please
+                ex: xarm.set_servo_detach(servo_id=8)
         :return: code
         """
         return self._arm.set_servo_detach(servo_id=servo_id)
@@ -375,8 +417,8 @@ class XArmAPI(object):
         Reset the xArm (motion enable -> set state -> back to zero)
         :param speed: reserved
         :param is_radian: reserved
-        :param wait: if True will wait the robot stop
-        :param timeout: second，default is 10s
+        :param wait: if True will wait the robot stop, default is False
+        :param timeout: second, default is 10s
         """
         return self._arm.reset(speed=speed, is_radian=is_radian, wait=wait, timeout=timeout)
 
@@ -384,7 +426,7 @@ class XArmAPI(object):
         """
         Set the sleep time, xArm will sleep sltime second
         :param sltime: sleep second
-        :param wait: wait or not
+        :param wait: wait or not, default is False
         :return: code
         """
         return self._arm.set_sleep_time(sltime, wait=wait)
@@ -465,7 +507,7 @@ class XArmAPI(object):
         """
         Check the tcp pose is in limit
         :param pose: [x, y, z, roll, yaw, pitch]
-        :param is_radian: roll/yaw/pitch value is radian or not
+        :param is_radian: roll/yaw/pitch value is radian or not, default is True
         :return: tuple((code, limit)), only when code is 0, the returned result is correct.
         """
         return self._arm.is_tcp_limit(pose, is_radian=is_radian)
@@ -474,7 +516,7 @@ class XArmAPI(object):
         """
         Check the joint is in limit
         :param joint: angle list
-        :param is_radian: angle value is radian or not
+        :param is_radian: angle value is radian or not, default is True
         :return: tuple((code, limit)), only when code is 0, the returned result is correct.
         """
         return self._arm.is_joint_limit(joint, is_radian=is_radian)
@@ -518,10 +560,10 @@ class XArmAPI(object):
         """
         Set the gripper position
         :param pos: pos
-        :param wait: wait or not
+        :param wait: wait or not, default is False
         :param speed: speed
-        :param auto_enable: auto enable or not
-        :param timeout: timeout
+        :param auto_enable: auto enable or not, default is False
+        :param timeout: second, default is 10s
         :return: code
         """
         return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)

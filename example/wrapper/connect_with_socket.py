@@ -10,8 +10,8 @@ import time
 from xarm.wrapper import XArmAPI
 
 xarm = XArmAPI('192.168.1.185')
-xarm.motion_enable(True)
-xarm.set_state(0)
+xarm.motion_enable(enable=True)
+xarm.set_state(state=0)
 
 time.sleep(5)
 xarm.disconnect()

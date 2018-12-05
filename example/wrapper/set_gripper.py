@@ -10,9 +10,10 @@ import time
 from xarm.wrapper import XArmAPI
 
 xarm = XArmAPI('192.168.1.185')
-xarm.motion_enable(True)
-xarm.set_state(0)
+xarm.motion_enable(enable=True)
+xarm.set_state(state=0)
 
+# set gripper position
 xarm.set_gripper_position(500, wait=True, speed=8000, auto_enable=True, timeout=10)
 
 time.sleep(5)

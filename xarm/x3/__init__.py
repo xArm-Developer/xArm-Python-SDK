@@ -1223,7 +1223,10 @@ class XArm(Gripper):
             self.set_state(4)
             time.sleep(0.1)
         self.is_stop = True
-        self.set_state(0)
+        start_time = time.time()
+        while self.state in [3, 4] and time.time() - start_time < 3:
+            self.set_state(0)
+            time.sleep(0.1)
         self.sleep_finish_time = 0
 
     def send_cmd_async(self, command, timeout=None):

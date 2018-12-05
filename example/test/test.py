@@ -24,13 +24,6 @@ xarm = XArmAPI(port='192.168.1.113',
                report_type='normal')
 
 time.sleep(2)
-
-xarm.disconnect()
-
-# xarm.set_sleep_time(10)
-# xarm.set_servo_angle(angle=[0, 0, 0, 0, 0, 0, 0], is_radian=False)
-# print(xarm.cmd_num)
-
-
-# print(xarm.get_gripper_position())
-# print(xarm.set_gripper_position(100, True))
+print(xarm.get_state())
+xarm.emergency_stop()
+print(xarm.get_state())

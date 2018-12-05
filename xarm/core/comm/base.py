@@ -124,6 +124,12 @@ class Port(threading.Thread):
                     pass
             if self.alive:
                 logger.error('{}: {}'.format(self.port_type, e))
+        finally:
+            self._connected = False
+            try:
+                self.com.close()
+            except:
+                pass
         logger.debug('{} recv thread had stopped'.format(self.port_type))
         # if self.heartbeat_thread:
         #     try:

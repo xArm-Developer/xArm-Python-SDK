@@ -9,7 +9,7 @@
 import time
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI('192.168.1.185')
+xarm = XArmAPI('192.168.1.113')
 xarm.motion_enable(enable=True)
 xarm.set_state(state=0)
 
@@ -24,18 +24,22 @@ xarm.set_position(x=300, y=0, z=100, roll=180, yaw=0, pitch=0, is_radian=False, 
 xarm.set_position(x=400, y=0, z=100, roll=-180, yaw=0, pitch=0, is_radian=False, speed=50, wait=True, timeout=20)
 
 # move arc line(Linear arc motion with interpolation)
-xarm.set_sleep_time(0.2)
-xarm.set_position(x=400, y=100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50)
-xarm.set_position(x=300, y=100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50)
-xarm.set_position(x=300, y=-100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50)
-xarm.set_position(x=400, y=-100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50)
-xarm.set_position(x=400, y=0, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50)
+xarm.set_sleep_time(2)
+xarm.set_position(x=400, y=100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50, wait=True)
+print(xarm.get_position(is_radian=False))
+xarm.set_position(x=300, y=100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50, wait=True)
+print(xarm.get_position(is_radian=False))
+xarm.set_position(x=300, y=-100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50, wait=True)
+print(xarm.get_position(is_radian=False))
+xarm.set_position(x=400, y=-100, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50, wait=True)
+xarm.set_position(x=400, y=0, z=100, roll=-180, yaw=0, pitch=0, radius=0, is_radian=False, speed=50, wait=True)
+print(xarm.get_position(is_radian=False))
 
 # move relative
-xarm.set_position(y=-100, wait=True, timeout=10)
-xarm.set_position(x=100, wait=True, timeout=10)
-xarm.set_position(y=100, wait=True, timeout=10)
-xarm.set_position(x=-100, wait=True, timeout=10)
+xarm.set_position(y=-100, relative=True, wait=True, timeout=10)
+xarm.set_position(x=100, relative=True, wait=True, timeout=10)
+xarm.set_position(y=100, relative=True, wait=True, timeout=10)
+xarm.set_position(x=-100, relative=True, wait=True, timeout=10)
 
 
 xarm.disconnect()

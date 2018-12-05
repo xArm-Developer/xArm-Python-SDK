@@ -95,6 +95,7 @@ class XArm(Gripper):
         self._is_sync = False
 
         self.start_time = time.time()
+        self.sleep_finish_time = time.time()
 
         self._report_callbacks = {
             REPORT_ID: [],
@@ -618,6 +619,9 @@ class XArm(Gripper):
             time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner.is_stop and self.owner.connected:
+                if time.time() < self.owner.sleep_finish_time:
+                    time.sleep(0.01)
+                    continue
                 if self.owner.angles == base_joint_pos or self.owner.state != 1:
                     count += 1
                     if count >= 6:
@@ -922,10 +926,7 @@ class XArm(Gripper):
         # # self.arm_cmd.set_state(0)
         # return ret[0]
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8
-        if servo_id is None or servo_id == 8:
-            ret = self.motion_enable(True)
-        else:
-            ret = self.motion_enable(servo_id=servo_id, enable=True)
+        ret = self.motion_enable(servo_id=servo_id, enable=True)
         return ret
 
     @xarm_is_connected(_type='set')
@@ -970,6 +971,7 @@ class XArm(Gripper):
         if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._last_position[:6] = self.position
             self._last_angles = self.angles
+            self.sleep_finish_time = 0
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1036,9 +1038,15 @@ class XArm(Gripper):
 
     @xarm_is_connected(_type='set')
     def set_sleep_time(self, sltime, wait=False):
+        assert isinstance(sltime, (int, float))
         ret = self.arm_cmd.sleep_instruction(sltime)
         if wait:
             time.sleep(sltime)
+        else:
+            if time.time() >= self.sleep_finish_time:
+                self.sleep_finish_time = time.time() + sltime
+            else:
+                self.sleep_finish_time += sltime
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1216,6 +1224,7 @@ class XArm(Gripper):
             time.sleep(0.1)
         self.is_stop = True
         self.set_state(0)
+        self.sleep_finish_time = 0
 
     def send_cmd_async(self, command, timeout=None):
         pass

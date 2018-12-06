@@ -33,6 +33,9 @@ def xarm_is_ready(_type='set'):
         @functools.wraps(func)
         def decorator(*args, **kwargs):
             try:
+                if args[0].connected and kwargs.get('auto_enable', False):
+                    args[0].motion_enable(enable=True)
+                    args[0].set_state(0)
                 if args[0].connected and args[0].ready:
                     return func(*args, **kwargs)
                 elif not args[0].connected:

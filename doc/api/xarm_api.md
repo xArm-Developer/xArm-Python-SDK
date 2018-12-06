@@ -127,7 +127,9 @@ Disconnect
 #### def __emergency_stop__(self):
 
 ```
-Emergency stop
+Emergency stop (set_state(4) -> motion_enable(True) -> set_state(0))
+Note:
+    1. This interface does not automatically clear the error. If there is an error, you need to handle it according to the error code.
 ```
 
 #### def __get_cmdnum__(self):
@@ -194,7 +196,7 @@ Get the cartesian position
 Note:
     1. If the value(roll/yaw/pitch) you want to return is an angle unit, please set the parameter is_radian to False
         ex: code, pos = xarm.get_position(is_radian=False)
-:param is_radian: roll/yaw/pitch value is radian or not, default is True
+:param is_radian: the returned value (only roll/yaw/pitch) is in radians, default is True
 :return: tuple((code, [x, y, z, roll, yaw, pitch])), only when code is 0, the returned result is correct.
 ```
 
@@ -208,7 +210,7 @@ Note:
     2. If you want to return only the angle of a single joint, please set the parameter servo_id
         ex: code, angle = xarm.get_servo_angle(servo_id=2)
 :param servo_id: 1-7, None(8), default is None
-:param is_radian: return radian or not, default is True
+:param is_radian: the returned value is in radians or not, default is True
 :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
 ```
 
@@ -273,12 +275,12 @@ Move to go home (Back to zero)
 Note:
     1. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
         ex: code = xarm.move_gohome(wait=True)
-:param speed: reserved
-:param mvacc: reserved
-:param mvtime: reserved
-:param is_radian: reserved
-:param wait: if True will wait the robot stop, default is False
-:param timeout: second, default is 10s
+:param speed: gohome speed (unit: rad/s if is_radian is True else °/s)
+:param mvacc: gohome acceleration (unit: rad/s^2 if is_radian is True else °/s^2)
+:param mvtime: 0, reserved
+:param is_radian: the speed and acceleration are in radians or not, default is True
+:param wait: whether to wait for the arm to complete, default is False
+:param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :return: code
 ```
 
@@ -443,14 +445,18 @@ Release the state changed callback
 :return:
 ```
 
-#### def __reset__(self, speed=None, is_radian=False, wait=False, timeout=None):
+#### def __reset__(self, speed=None, mvacc=None, mvtime=None, is_radian=True, wait=False, timeout=None):
 
 ```
 Reset the xArm (motion enable -> set state -> back to zero)
-:param speed: reserved
-:param is_radian: reserved
-:param wait: if True will wait the robot stop, default is False
-:param timeout: second, default is 10s
+Note:
+    1. If there are errors or warnings, this interface will clear the warnings and errors.
+:param speed: reset speed (unit: rad/s if is_radian is True else °/s)
+:param mvacc: reset acceleration (unit: rad/s^2 if is_radian is True else °/s^2)
+:param mvtime: reserved
+:param is_radian: the speed and acceleration are in radians or not, default is True
+:param wait: whether to wait for the arm to complete, default is False
+:param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 ```
 
 #### def __save_conf__(self):
@@ -550,13 +556,13 @@ Note:
         ex: code = xarm.set_position(..., radius=None)
     MoveArcLine: Linear arc motion with interpolation
         ex: code = xarm.set_position(..., radius=0)
-:param speed: move speed (mm/s, radian/s)
-:param mvacc: move acc (mm/s^2, radian/s^2)
+:param speed: move speed (mm/s, rad/s)
+:param mvacc: move acceleration (mm/s^2, rad/s^2)
 :param mvtime: 0, reserved
 :param relative: relative move or not
-:param is_radian: roll/yaw/pitch value is radian or not, default is True
-:param wait: if True will wait the robot stop, default is False
-:param timeout: second, default is 10s
+:param is_radian: the roll/yaw/pitch in radians or not, default is True
+:param wait: whether to wait for the arm to complete, default is False
+:param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :param kwargs: reserved
 :return: code
 ```
@@ -581,13 +587,13 @@ Note:
     2. If servo_id is None or 8, angle should be a list of values whose length is the number of joints
         like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
         ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 80], is_radian=False)
-:param speed: move speed (unit: radian/s if is_radian is True else °/s)
-:param mvacc: move acc (unit: radian/s^2 if is_radian is True else °/s^2)
+:param speed: move speed (unit: rad/s if is_radian is True else °/s)
+:param mvacc: move acceleration (unit: rad/s^2 if is_radian is True else °/s^2)
 :param mvtime: 0, reserved
 :param relative: relative move or not
-:param is_radian: angle value is radian or not, default is True
-:param wait: if True will wait the robot stop, default is False
-:param timeout: second, default is 10s
+:param is_radian: the angle in radians or not, default is True
+:param wait: whether to wait for the arm to complete, default is False
+:param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :param kwargs: reserved
 :return: code
 ```
@@ -597,10 +603,10 @@ Note:
 ```
 Set the servo angle, execute only the last instruction
 :param angles: angle list, (unit: radian if is_radian is True else °)
-:param speed: reserved
-:param mvacc: reserved
-:param mvtime: reserved
-:param is_radian: angles value is radian or not, defalut is True
+:param speed: speed, reserved
+:param mvacc: acceleration, reserved
+:param mvtime: 0, reserved
+:param is_radian: the angles in radians or not, defalut is True
 :param kwargs: reserved
 :return:
 ```
@@ -632,7 +638,7 @@ Detach the servo, be sure to do protective work before unlocking to avoid injury
 #### def __set_sleep_time__(self, sltime, wait=False):
 
 ```
-Set the sleep time, xArm will sleep sltime second
+Set the arm pause time, xArm will pause sltime second
 :param sltime: sleep second
 :param wait: wait or not, default is False
 :return: code

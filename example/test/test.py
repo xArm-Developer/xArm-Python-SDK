@@ -22,8 +22,14 @@ xarm = XArmAPI(port='192.168.1.113',
                enable_heartbeat=True,
                enable_report=True,
                report_type='normal')
+xarm.motion_enable(True)
+xarm.set_state(0)
 
-time.sleep(2)
-print(xarm.get_state())
-xarm.emergency_stop()
-print(xarm.get_state())
+xarm.set_position(x=300, y=0, z=150, roll=-180, yaw=0, pitch=0, is_radian=False, speed=100, auto_enable=True)
+xarm.set_position(x=400, y=100, z=150, roll=-180, yaw=0, pitch=0, is_radian=False, speed=100)
+xarm.set_position(x=250, y=0, z=200, roll=-180, yaw=0, pitch=0, is_radian=False, speed=100)
+
+xarm.set_servo_angle(angle=[0, 0, 0, 0, 0, 0, 0], speed=50, is_radian=False, wait=True)
+xarm.set_servo_angle(angle=[45, 0, 0, 0, 0, 0, 0], speed=50, is_radian=False, wait=True)
+xarm.set_servo_angle(angle=[0, -45, 0, 0, 0, 0, 0], speed=50, is_radian=False, wait=True)
+xarm.set_servo_angle(angle=[0, 0, 0, 0, 0, 0, 0], speed=50, is_radian=False, wait=True)

@@ -6,17 +6,16 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import os
+import sys
 import time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI('192.168.1.185')
-xarm.motion_enable(True)
-xarm.set_state(0)
+xarm = XArmAPI('192.168.1.113')
+xarm.motion_enable(enable=True)
+xarm.set_state(state=0)
 
-xarm.set_servo_detach(1)
-print('detach')
-time.sleep(5)
-xarm.set_servo_attach(1)
-print('attach')
 time.sleep(5)
 xarm.disconnect()

@@ -6,115 +6,163 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 ### __descriptors__
 ****************************************
 #### __angles__
+```
 Servo angles
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 :return: [angle1(° or radian), angle2(° or radian), ..., angle7(° or radian)]
+```
 
 #### __axis__
+```
 Axis number, only available in socket way and enable_report is True and report_type is 'rich'
+```
 
 #### __cmd_num__
+```
 Number of command caches in the controller
+```
 
 #### __connected__
+```
 Connection status
+```
 
 #### __core__
+```
 Core layer API, set only for advanced developers, do not provide documentation, please do not use
 :return:
+```
 
 #### __default_is_radian__
+```
 The default unit is radians or not
 :return:
+```
 
 #### __device_type__
+```
 Device type, only available in socket way and  enable_report is True and report_type is 'rich'
+```
 
 #### __error_code__
+```
 Controller error code. See the error code documentation for details.
+```
 
 #### __has_err_warn__
+```
 Contorller have an error or warning or not
 :return: True/False
+```
 
 #### __last_used_angles__
+```
 The last used servo angles
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 :return: [angle1(° or radian), angle2(° or radian), ..., angle7(° or radian)]
+```
 
 #### __last_used_joint_acc__
+```
 The last used joint acceleration
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 :return: acceleration (°/s^2 or radian/s^2)
+```
 
 #### __last_used_joint_speed__
+```
 The last used joint speed
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 :return: speed (°/s or radian/s)
+```
 
 #### __last_used_position__
+```
 The last used cartesion position
 Note:
     1. If self.default_is_radian is True, the returned value (only roll/yaw/pitch) is in radians
 :return: [x(mm), y(mm), z(mm), roll(° or radian), yaw(° or radian), pitch(° or radian)]
+```
 
 #### __last_used_tcp_acc__
+```
 The last used cartesion acceleration
 :return: acceleration (mm/s^2)
+```
 
 #### __last_used_tcp_speed__
+```
 The last used cartesion speed
 :return: speed (mm/s)
+```
 
 #### __maable__
+```
 Servo enable state list, only available in socket way and enable_report is True
 :return: [servo-1-enable-state, servo-2-..., servo-3-..., servo-4-..., servo-5-..., servo-6-..., servo-7-..., reserved]
     servo-{i}-enable-state:
         0: disable
         1: enable
+```
 
 #### __master_id__
+```
 Master id, only available in socket way and enable_report is True and report_type is 'rich'
+```
 
 #### __mtbrake__
+```
 Servo brake state list, only available in socket way and enable_report is True
 :return: [servo-1-brake-state, servo-2-..., servo-3-..., servo-4-..., servo-5-..., servo-6-..., servo-7-..., reserved]
     servo-{i}-brake-state:
         0: enable
         1: disable
+```
 
 #### __position__
+```
 Cartesion position
 Note:
     1. If self.default_is_radian is True, the returned value (only roll/yaw/pitch) is in radians
 return: [x(mm), y(mm), z(mm), roll(° or radian), yaw(° or radian), pitch(° or radian)]
+```
 
 #### __position_offset__
+```
 Cartesion position offset, only available in socket way and enable_report is True 
 Note:
     1. If self.default_is_radian is True, the returned value(roll_offset/yaw_offset/pitch_offset) is in radians
 :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or radian), yaw_offset(° or radian), pitch_offset(° or radian)]
+```
 
 #### __slave_id__
+```
 Slave id, only available in socket way and enable_report is True and report_type is 'rich'
+```
 
 #### __state__
+```
 xArm state
 :return: 
     1: in motion
     2: sleeping
     3: suspended
     4: stopping
+```
 
 #### __version__
+```
 xArm version
+```
 
 #### __warn_code__
+```
 Controller warn code. See the warn code documentation for details.
+```
 
 ****************************************
 ### __methods__

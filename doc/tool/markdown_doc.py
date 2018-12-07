@@ -22,7 +22,6 @@ class MarkdownDoc(pydoc.TextDoc):
     def process_docstring(self, obj):
         """Get the docstring and turn it into a list."""
         docstring = pydoc.getdoc(obj)
-        print(docstring)
         return '```\n{}\n```\n\n'.format(docstring) if docstring else ''
 
     def process_class_name(self, name, bases, module):
@@ -184,6 +183,11 @@ class MarkdownDoc(pydoc.TextDoc):
     def _docdescriptor(self, name, value, mod):
         results = ""
         if name: results += "#### " + self.bold(name) + "\n"
-        doc = pydoc.getdoc(value) or ""
+        # doc = pydoc.getdoc(value) or ""
+        docstring = pydoc.getdoc(value) or ''
+        if docstring:
+            doc = '```\n{}\n```'.format(docstring) if docstring else ''
+        else:
+            doc = ''
         if doc: results += doc + "\n"
         return results

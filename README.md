@@ -12,6 +12,15 @@ xArm Python SDK
 - Unified return value
 - Snaps an exception and returns the specified return value
 
+## Update Summary for 0.0.12
+- By specifying the value of the default parameter of the interface in the instantiation parameter, using angle or radians
+- Unify all interfaces by default using angle or radians
+- More interface routines
+- More detailed interface documentation
+- Richer interface
+- Set interface alias
+- Modified the default values of the default parameters of some interfaces, but support the use of parameters to be compatible when instantiating
+
 ## Caution
 - There is currently no collision detection, so try not to be close during use.
 - During use, people should stay away from the robot arm to avoid accidental injury or damage to other items by the robot arm.
@@ -23,13 +32,14 @@ xArm Python SDK
 Install is not necessary, you can run examples without installation.
 - download
 
-  ``` git clone git@github.com:uArm-Developer/xArm-Python-SDK.git```
+  ``` git clone git@github.com:xArm-Developer/xArm-Python-SDK.git```
 - install
 
   ``` python setup.py install ```
 
 ## Doc
 - #### [API](doc/api/xarm_api.md)
+- #### [API Code](doc/api/xarm_api_code.md)
 
 ## Example
 - #### [xArm](example/wrapper/)

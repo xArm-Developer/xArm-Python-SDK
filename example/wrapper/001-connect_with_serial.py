@@ -6,21 +6,18 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import os
+import sys
 import time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI(port='192.168.1.113',
-               enable_heartbeat=True,
-               enable_report=True,
-               report_type='normal')
+xarm = XArmAPI('COM5')
 xarm.motion_enable(enable=True)
 xarm.set_state(state=0)
 
-
-xarm.reset(wait=True)
-time.sleep(3)
-ret = xarm.send_cmd_sync('G1 X300 Y0 Z150 F50')
-time.sleep(2)
-xarm.reset(wait=True)
 time.sleep(5)
 xarm.disconnect()
+
+

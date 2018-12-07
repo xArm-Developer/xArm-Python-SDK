@@ -6,7 +6,11 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import os
+import sys
 import time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+
 from xarm.wrapper import XArmAPI
 
 
@@ -33,7 +37,7 @@ def callback_maable_mtbrake_changed(item):
 def callback_report_location(item):
     print('location report:', item)
 
-xarm = XArmAPI('192.168.1.185', do_not_open=True)
+xarm = XArmAPI('192.168.1.113', do_not_open=True)
 xarm.register_cmdnum_changed_callback(callback=callback_cmdnum_changed)
 xarm.register_state_changed_callback(callback=callback_state_changed)
 xarm.register_connect_changed_callback(callback=callback_connect_changed)

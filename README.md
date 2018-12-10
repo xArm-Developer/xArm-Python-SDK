@@ -95,7 +95,7 @@ Install is not necessary, you can run examples without installation.
   xarm.set_state(...)
   xarm.set_mode(...)
   xarm.motion_enable(...)
-  xarm.set_sleep_time(...)
+  xarm.set_pause_time(...)
   ```
 - #### Get
   ```

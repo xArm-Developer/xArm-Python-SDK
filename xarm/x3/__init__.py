@@ -1011,7 +1011,7 @@ class XArm(Gripper):
         return ret[0]
 
     @xarm_is_ready(_type='set')
-    def continuous_move_arc_line(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
+    def move_arc_lines(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
                                  automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
         assert len(paths) > 0
         is_radian = self._default_is_radian if is_radian is None else is_radian

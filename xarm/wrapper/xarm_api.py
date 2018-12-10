@@ -59,7 +59,7 @@ class XArmAPI(object):
                     13. method: is_tcp_limit
                     14. method: is_joint_limit
                     15. method: get_params
-                    16: method: continuous_move_arc_line
+                    16: method: move_arc_lines
             Note: This parameter determines the default return type for some interfaces (such as the position, velocity, and acceleration associated with the return angle arc).
                 The affected attributes are as follows:
                     1. property: position
@@ -474,8 +474,8 @@ class XArmAPI(object):
         """
         return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
 
-    def continuous_move_arc_line(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
-                                 automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
+    def move_arc_lines(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
+                       automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
         """
         Continuous linear motion with interpolation
         Note:
@@ -494,9 +494,9 @@ class XArmAPI(object):
         :param mvtime: 0, reserved 
         :param wait: whether to wait for the arm to complete, default is False
         """
-        return self._arm.continuous_move_arc_line(paths, is_radian=is_radian, times=times, first_pause_time=first_pause_time,
-                                                  repeat_pause_time=repeat_pause_time, automatic_calibration=automatic_calibration,
-                                                  speed=speed, mvacc=mvacc, mvtime=mvtime, wait=wait)
+        return self._arm.move_arc_lines(paths, is_radian=is_radian, times=times, first_pause_time=first_pause_time,
+                                        repeat_pause_time=repeat_pause_time, automatic_calibration=automatic_calibration,
+                                        speed=speed, mvacc=mvacc, mvtime=mvtime, wait=wait)
 
     def set_servo_attach(self, servo_id=None):
         """

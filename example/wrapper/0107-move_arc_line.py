@@ -37,6 +37,6 @@ paths = [
     [300, 0, 250, -180, 0, 0],
 ]
 
-xarm.continuous_move_arc_line(paths, is_radian=False, speed=300, times=0, wait=True)
+xarm.move_arc_lines(paths, is_radian=False, speed=300, times=0, wait=True)
 
 xarm.disconnect()

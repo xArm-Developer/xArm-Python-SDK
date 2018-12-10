@@ -43,6 +43,26 @@ Install is not necessary, you can run examples without installation.
 
 ## Example
 - #### [xArm](example/wrapper/)
+- ##### [001-connect-with-serial](example/wrapper/001-connect_with_serial.py)
+- ##### [002-connect_with_socket](example/wrapper/002-connect_with_socket.py)
+- ##### [003-event_register](example/wrapper/003-event_register.py)
+- ##### [004-move_line](example/wrapper/004-move_line.py)
+- ##### [005-move_line](example/wrapper/005-move_line.py)
+- ##### [006-move_line](example/wrapper/006-move_line.py)
+- ##### [007-move_line](example/wrapper/007-move_line.py)
+- ##### [008-relative_move_line](example/wrapper/008-relative_move_line.py)
+- ##### [009-move_arc_line](example/wrapper/009-move_arc_line.py)
+- ##### [010-move_joint](example/wrapper/010-move_joint.py)
+- ##### [011-move_joint](example/wrapper/011-move_joint.py)
+- ##### [012-move_joint](example/wrapper/012-move_joint.py)
+- ##### [013-move_joint](example/wrapper/013-move_joint.py)
+- ##### [014-move_joint](example/wrapper/014-move_joint.py)
+- ##### [015-send_cmd](example/wrapper/015-send_cmd.py)
+- ##### [016-servo_attach_detach](example/wrapper/016-servo_attach_detach.py)
+- ##### [017-set_gripper](example/wrapper/017-set_gripper.py)
+- ##### [018-handle_error_warn](example/wrapper/018-handle_error_warn.py)
+- ##### [019-get_property](example/wrapper/019-get_property.py)
+- ##### [020-get](example/wrapper/020-get.py)
 
 - #### Import
   ```

@@ -421,9 +421,9 @@ class XArm(Gripper):
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self.position.copy()
+                    ret['cartesian'] = self.position
                 if item['joints']:
-                    ret['joints'] = self.angles.copy()
+                    ret['joints'] = self.angles
                 if item['error_code']:
                     ret['error_code'] = self.error_code
                 if item['warn_code']:

@@ -58,15 +58,17 @@ Contorller have an error or warning or not
 
 #### __last_used_angles__
 ```
-The last used servo angles
+The last used servo angles, default value of parameter angle of interface set_servo_angle
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
+    2. self.set_servo_angle(servo_id=1, angle=75) <==> self.set_servo_angle(angle=[75] + self.last_used_angles[1:])
+    3. self.set_servo_angle(servo_id=5, angle=30) <==> self.set_servo_angle(angle=self.last_used_angles[:4] + [30] + self.last_used_angles[5:])
 :return: [angle1(° or radian), angle2(° or radian), ..., angle7(° or radian)]
 ```
 
 #### __last_used_joint_acc__
 ```
-The last used joint acceleration
+The last used joint acceleration, default value of parameter mvacc of interface set_servo_angle
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 :return: acceleration (°/s^2 or radian/s^2)
@@ -74,7 +76,7 @@ Note:
 
 #### __last_used_joint_speed__
 ```
-The last used joint speed
+The last used joint speed, default value of parameter speed of interface set_servo_angle
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 :return: speed (°/s or radian/s)
@@ -82,21 +84,23 @@ Note:
 
 #### __last_used_position__
 ```
-The last used cartesion position
+The last used cartesion position, default value of parameter x/y/z/roll/yaw/pitch of interface set_position
 Note:
     1. If self.default_is_radian is True, the returned value (only roll/yaw/pitch) is in radians
+    2. self.set_position(x=300) <==> self.set_position(x=300, *last_used_position[1:])
+    2. self.set_position(roll=-180) <==> self.set_position(x=self.last_used_position[:3], roll=-180, *self.last_used_position[4:])
 :return: [x(mm), y(mm), z(mm), roll(° or radian), yaw(° or radian), pitch(° or radian)]
 ```
 
 #### __last_used_tcp_acc__
 ```
-The last used cartesion acceleration
+The last used cartesion acceleration, default value of parameter mvacc of interface set_position
 :return: acceleration (mm/s^2)
 ```
 
 #### __last_used_tcp_speed__
 ```
-The last used cartesion speed
+The last used cartesion speed, default value of parameter speed of interface set_position
 :return: speed (mm/s)
 ```
 
@@ -320,6 +324,7 @@ get forward kinematics
 ```
 Get the gripper error code
 :return: tuple((code, err_code)), only when code is 0, the returned result is correct.
+    code: See the return code documentation for details.
 ```
 
 #### def __get_gripper_position__(self):
@@ -632,8 +637,10 @@ Release the state changed callback
 ```
 Reset the xArm
 Note:
-    1. If there are errors or warnings, this interface will clear the warnings and errors.
-    1. If not ready, the api will auto enable motion and set state
+    1. The API will change self.last_used_position value into [201.5, 0, 140.5, -180, 0, 0]
+    2. The API will change self.last_used_angles value into [0, 0, 0, 0, 0, 0, 0]
+    3. If there are errors or warnings, this interface will clear the warnings and errors.
+    4. If not ready, the api will auto enable motion and set state
 :param speed: reset speed (unit: rad/s if is_radian is True else °/s), default is 50 °/s
 :param mvacc: reset acceleration (unit: rad/s^2 if is_radian is True else °/s^2), default is 5000 °/s^2
 :param mvtime: reserved

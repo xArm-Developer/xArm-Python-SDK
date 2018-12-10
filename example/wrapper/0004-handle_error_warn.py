@@ -47,6 +47,7 @@ def hangle_err_warn_changed(item):
 xarm.register_error_warn_changed_callback(hangle_err_warn_changed)
 xarm.connect()
 xarm.motion_enable(enable=True)
+xarm.set_mode(0)
 xarm.set_state(state=0)
 
 xarm.reset(wait=True)

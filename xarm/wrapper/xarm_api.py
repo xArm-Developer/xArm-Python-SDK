@@ -23,7 +23,7 @@ class XArmAPI(object):
         :param filters: serial port filters, invalid, reserved.
         :param enable_heartbeat: whether to enable heartbeat, default is True, only available in socket way
         :param enable_report: whether to enable report, default is True
-            Note: if enable_report is True, the last_used_position and last_used_angles value is the urrent position of robot
+            Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
         :param report_type: report type('normal'/'real'/'rich'), only available in socket way, default is 'normal'
             Note:
                 'normal': Reported at a frequency of 10 Hz
@@ -59,8 +59,9 @@ class XArmAPI(object):
                     13. method: is_tcp_limit
                     14. method: is_joint_limit
                     15. method: get_params
+                    16: method: continuous_move_arc_line
             Note: This parameter determines the default return type for some interfaces (such as the position, velocity, and acceleration associated with the return angle arc).
-                The affected attributes are as follows
+                The affected attributes are as follows:
                     1. property: position
                     2. property: last_used_position
                     3. property: angles
@@ -256,6 +257,20 @@ class XArmAPI(object):
         return self._arm.has_err_warn
 
     @property
+    def has_error(self):
+        """
+        Controller have an error or not
+        """
+        return self._arm.has_error
+
+    @property
+    def has_warn(self):
+        """
+        Controller have an error or not
+        """
+        return self._arm.has_warn
+
+    @property
     def error_code(self):
         """
         Controller error code. See the error code documentation for details.
@@ -427,7 +442,7 @@ class XArmAPI(object):
 
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
         """
-        Set the servo angle, execute only the last instruction
+        Set the servo angle, execute only the last instruction, need to be set to servo motion mode
         :param angles: angle list, (unit: radian if is_radian is True else °)
         :param speed: speed, reserved
         :param mvacc: acceleration, reserved
@@ -442,6 +457,7 @@ class XArmAPI(object):
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
         """
         Move to go home (Back to zero), the API will modify self.last_used_position and self.last_used_angles value
+        Warnning: without limit detection
         Note:
             1. The API will change self.last_used_position value into [201.5, 0, 140.5, -180, 0, 0]
             2. The API will change self.last_used_angles value into [0, 0, 0, 0, 0, 0, 0]
@@ -457,6 +473,30 @@ class XArmAPI(object):
             code: See the return code documentation for details.
         """
         return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
+
+    def continuous_move_arc_line(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
+                                 automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
+        """
+        Continuous linear motion with interpolation
+        Note:
+            1. If an error occurs, it will return early
+            2. If the emergency_stop interface is called actively, it will return early.
+        :param paths: cartesian path list
+            1. Specify arc radius： [[x, y, z, roll, yaw, pitch, radius], ....]
+            1. Do not specify arc radius (radius=0)： [[x, y, z, roll, yaw, pitch], ....]
+        :param is_radian: roll/yaw/pitch of paths are in radians or not, default is self.default_is_radian
+        :param times: repeat times, 0 is infinite loop, default is 1
+        :param first_pause_time: sleep time at first, purpose is to cache the instruction, default is 0.1s
+        :param repeat_pause_time: interval between repeated movements, unit: second
+        :param automatic_calibration: automatic calibration or not, default is True
+        :param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
+        :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
+        :param mvtime: 0, reserved 
+        :param wait: whether to wait for the arm to complete, default is False
+        """
+        return self._arm.continuous_move_arc_line(paths, is_radian=is_radian, times=times, first_pause_time=first_pause_time,
+                                                  repeat_pause_time=repeat_pause_time, automatic_calibration=automatic_calibration,
+                                                  speed=speed, mvacc=mvacc, mvtime=mvtime, wait=wait)
 
     def set_servo_attach(self, servo_id=None):
         """
@@ -528,6 +568,10 @@ class XArmAPI(object):
         """
         Set the xArm mode
         :param mode: default is 0
+            0: position control mode
+            1: servo motion mode
+            2: joint teaching mode (invalid)
+            3: cartesian teaching mode (invalid)
         :return: code
             code: See the return code documentation for details.
         """
@@ -581,6 +625,7 @@ class XArmAPI(object):
     def reset(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
         """
         Reset the xArm
+        Warnning: without limit detection
         Note:
             1. The API will change self.last_used_position value into [201.5, 0, 140.5, -180, 0, 0]
             2. The API will change self.last_used_angles value into [0, 0, 0, 0, 0, 0, 0]
@@ -607,7 +652,12 @@ class XArmAPI(object):
 
     def set_tcp_offset(self, offset, is_radian=None):
         """
-        Set tcp offset, do not use, used only for debugging
+        Set the tool coordinate system offset at the end
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
         :param offset: [x, y, z, roll, yaw, pitch]
         :param is_radian: the roll/yaw/pitch in radians or not, default is self.default_is_radian
         :return: code
@@ -618,6 +668,11 @@ class XArmAPI(object):
     def set_tcp_jerk(self, jerk):
         """
         Set the translational jerk of Cartesian space
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
         :param jerk: jerk (mm/s^3)
         :return: code
             code: See the return code documentation for details.
@@ -627,6 +682,11 @@ class XArmAPI(object):
     def set_tcp_maxacc(self, acc):
         """
         Set the max translational acceleration of Cartesian space
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
         :param acc: acceleration (mm/s^2)
         :return: code
             code: See the return code documentation for details.
@@ -636,6 +696,11 @@ class XArmAPI(object):
     def set_joint_jerk(self, jerk, is_radian=None):
         """
         Set the jerk of Joint space
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
         :param jerk: jerk (°/s^3 or radian/s^3)
         :param is_radian: the jerk in radians or not, default is self.default_is_radian
         :return: code
@@ -655,7 +720,9 @@ class XArmAPI(object):
 
     def clean_conf(self):
         """
-        Clean config
+        Clean current config and restore system default settings
+        Note:
+            1. This interface will clear the current settings and restore to the original settings (system default settings)
         :return: code
             code: See the return code documentation for details.
         """
@@ -664,6 +731,9 @@ class XArmAPI(object):
     def save_conf(self):
         """
         Save config
+        Note:
+            1. This interface can record the current settings and will not be lost after the restart.
+            2. The clean_conf interface can restore system default settings
         :return: code
             code: See the return code documentation for details.
         """

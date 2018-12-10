@@ -47,6 +47,7 @@ xarm.register_report_location_callback(callback=callback_report_location)
 
 xarm.connect()
 xarm.motion_enable(enable=True)
+xarm.set_mode(0)
 xarm.set_state(state=0)
 
 time.sleep(5)

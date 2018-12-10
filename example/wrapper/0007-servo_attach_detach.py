@@ -15,7 +15,13 @@ from xarm.wrapper import XArmAPI
 
 xarm = XArmAPI('192.168.1.113')
 xarm.motion_enable(enable=True)
+xarm.set_mode(0)
 xarm.set_state(state=0)
 
+# detach a servo
+xarm.set_servo_detach(servo_id=1)
+time.sleep(5)
+# attach a servo
+xarm.set_servo_attach(servo_id=1)
 time.sleep(5)
 xarm.disconnect()

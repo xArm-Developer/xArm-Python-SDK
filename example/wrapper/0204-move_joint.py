@@ -22,6 +22,7 @@ Move joint
 
 xarm = XArmAPI('192.168.1.113', is_radian=True)
 xarm.motion_enable(enable=True)
+xarm.set_mode(0)
 xarm.set_state(state=0)
 
 xarm.reset(wait=True)

@@ -1,6 +1,7 @@
 # xArmPythonSDK API code description
 
 ## API return value status code
+- -8: out of range
 - -7: joint angle limit
 - -6: cartesian pos limit
 - -5: revesed, no use

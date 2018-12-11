@@ -17,21 +17,28 @@ from xarm.core.utils.log import logger
 
 # logger.setLevel(logger.DEBUG)
 
+import math
+print(math.radians(20))
+print(math.pi)
+print(math.degrees(math.pi))
 
 xarm = XArmAPI(port='192.168.1.113',
                enable_heartbeat=True,
                enable_report=True,
                report_type='normal',
                is_radian=True)
-# xarm.motion_enable(True)
-# xarm.set_state(0)
+xarm.motion_enable(True)
+xarm.set_state(0)
 
-
-print(xarm.get_position())
 print(xarm.get_servo_angle())
-print(xarm.is_tcp_limit([300, 0, 100, 180, 0, 0]))
-print(xarm.is_joint_limit([90, -45, 0, 0, 0, 0, 0]))
+print(xarm.send_cmd_sync('help'))
 
+# print(time.time())
+# print(xarm.get_position())
+# print(xarm.get_servo_angle())
+# print(xarm.is_tcp_limit([300, 0, 100, 180, 0, 0]))
+# print(xarm.is_joint_limit([90, -45, 0, 0, 0, 0, 0]))
+# print(time.time())
 
 # def test():
 #     print('default_is_radian:', xarm.default_is_radian)

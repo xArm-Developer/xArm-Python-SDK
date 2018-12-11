@@ -13,11 +13,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from xarm.wrapper import XArmAPI
 
-xarm = XArmAPI('COM5')
+xarm = XArmAPI('192.168.1.113')
 xarm.motion_enable(enable=True)
+xarm.set_mode(0)
 xarm.set_state(state=0)
+
+# set gripper position
+xarm.set_gripper_position(500, wait=True, speed=8000, auto_enable=True, timeout=10)
 
 time.sleep(5)
 xarm.disconnect()
-
-

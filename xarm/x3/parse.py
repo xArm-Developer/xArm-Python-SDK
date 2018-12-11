@@ -27,6 +27,8 @@ GCODE_PARAM_Q = 'Q'
 GCODE_PARAM_T = 'T'
 GCODE_PARAM_E = 'E'
 GCODE_PARAM_V = 'V'
+GCODE_PARAM_W = 'W'
+GCODE_PARAM_S = 'S'
 
 RAD_DEGREE = 57.295779513082320876798154814105
 
@@ -80,6 +82,17 @@ def gcode_get_mvradii(str):
 
 def gcode_get_value(str):
     return __gcode_get_numfp(str, GCODE_PARAM_V)
+
+
+def gcode_get_servo(str):
+    servo_id = gcode_get_chint(str, GCODE_PARAM_S)
+    if servo_id < 1:
+        servo_id = None
+    return servo_id
+
+
+def gcode_get_wait(str):
+    return gcode_get_chint(str, GCODE_PARAM_W) > 0
 
 
 def gcode_get_mvcarts(str):

@@ -43,6 +43,28 @@ Install is not necessary, you can run examples without installation.
 
 ## Example
 - #### [xArm](example/wrapper/)
+- ##### [0001-connect-with-serial](example/wrapper/0001-connect_with_serial.py)
+- ##### [0002-connect_with_socket](example/wrapper/0002-connect_with_socket.py)
+- ##### [0003-event_register](example/wrapper/0003-event_register.py)
+- ##### [0004-handle_error_warn](example/wrapper/0004-handle_error_warn.py)
+- ##### [0005-get_property](example/wrapper/0005-get_property.py)
+- ##### [0006-get](example/wrapper/0006-get.py)
+- ##### [0007-servo_attach_detach](example/wrapper/0007-servo_attach_detach.py)
+- ##### [0008-send_cmd](example/wrapper/0008-send_cmd.py)
+- ##### [0009-set_gripper](example/wrapper/0009-set_gripper.py)
+- ##### [0101-move_line](example/wrapper/0101-move_line.py)
+- ##### [0102-move_line](example/wrapper/0102-move_line.py)
+- ##### [0103-move_line](example/wrapper/0103-move_line.py)
+- ##### [0104-move_line](example/wrapper/0104-move_line.py)
+- ##### [0105-relative_move_line](example/wrapper/0105-relative_move_line.py)
+- ##### [0106-move_arc_line](example/wrapper/0106-move_arc_line.py)
+- ##### [0107-move_arc_line](example/wrapper/0107-move_arc_line.py)
+- ##### [0201-move_joint](example/wrapper/0201-move_joint.py)
+- ##### [0202-move_joint](example/wrapper/0202-move_joint.py)
+- ##### [0203-move_joint](example/wrapper/0203-move_joint.py)
+- ##### [0204-move_joint](example/wrapper/0204-move_joint.py)
+- ##### [0205-move_joint](example/wrapper/0205-move_joint.py)
+
 
 - #### Import
   ```
@@ -73,7 +95,7 @@ Install is not necessary, you can run examples without installation.
   xarm.set_state(...)
   xarm.set_mode(...)
   xarm.motion_enable(...)
-  xarm.set_sleep_time(...)
+  xarm.set_pause_time(...)
   ```
 - #### Get
   ```

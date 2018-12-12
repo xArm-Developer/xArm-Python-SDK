@@ -17,16 +17,16 @@ from xarm.core.utils.log import logger
 
 # logger.setLevel(logger.DEBUG)
 
-# xarm = XArmAPI(port='192.168.1.113',
-#                enable_heartbeat=True,
-#                enable_report=True,
-#                report_type='normal',
-#                is_radian=True)
-# xarm.motion_enable(True)
-# xarm.set_state(0)
-#
-# print(xarm.get_servo_angle())
-# print(xarm.send_cmd_sync('help'))
+xarm = XArmAPI(port='192.168.1.113',
+               enable_heartbeat=True,
+               enable_report=True,
+               report_type='normal',
+               is_radian=True)
+xarm.motion_enable(True)
+xarm.set_state(0)
+
+print(xarm.get_servo_angle())
+print(xarm.get_position(is_radian=False))
 
 # print(time.time())
 # print(xarm.get_position())

@@ -88,7 +88,7 @@ class XArm(Gripper):
         self._report_thread = None
         self._only_report_err_warn_changed = True
 
-        self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), yaw(rad), pitch(rad)]
+        self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
         self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # [servo_1(rad), servo_2(rad), servo_3(rad), servo_4(rad), servo_5(rad), servo_6(rad), servo_7(rad)]
         self._mvvelo = 100  # mm/s, rad/s
         self._mvacc = 2000  # mm/s^2, rad/s^2
@@ -714,7 +714,7 @@ class XArm(Gripper):
             time.sleep(0.2)
 
     @xarm_is_ready(_type='set')
-    def set_position(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None,
+    def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
         # self._is_stop = False
@@ -731,7 +731,7 @@ class XArm(Gripper):
             return ret
 
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        tcp_pos = [x, y, z, roll, yaw, pitch]
+        tcp_pos = [x, y, z, roll, pitch, yaw]
         last_used_position = self._last_position.copy()
         last_used_speed = self._mvvelo
         last_used_acc = self._mvacc
@@ -1496,11 +1496,11 @@ class XArm(Gripper):
             return 0
         if command.lower() == 'help':
             return 0, {
-                'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{yaw(° or rad)} C{pitch(° or rad)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
+                'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
                 'G4': 'set_pause_time: G4 V{sltime(second)}',
                 'G7': 'set_servo_angle: G7 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)} F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}',
                 'G8': 'move_gohome: G8 F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}',
-                'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{yaw(° or rad)} C{pitch(° or rad)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
+                'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{pitch(° or rad)} C{yaw(° or rad)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
                 'H1': 'get_version: H1',
                 'H11': 'motion_enable: H11 S{servo_id} V{enable}',
                 'H12': 'set_state: H12 V{state}',
@@ -1518,10 +1518,10 @@ class XArm(Gripper):
                 'H40': 'save_conf: H40',
                 'H41': 'get_position: H41',
                 'H42': 'get_servo_angle: H42',
-                'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{yaw(° or rad)} C{pitch(° or rad)}',
+                'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}',
                 'H44': 'get_forward_kinematics: H44 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}',
                 'H45': 'is_joint_limit: H45 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}',
-                'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{yaw(° or rad)} C{pitch(° or rad)}',
+                'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}',
                 # 'H101': '(Danger, please do not use) set_servo_addr_16: H101 S{servo_id(1-7)} A{addr} V{value}',
                 # 'H102': '(Danger, please do not use) get_servo_addr_16: H102 S{servo_id(1-7)} A{addr}',
                 # 'H103': '(Danger, please do not use) set_servo_addr_32: H103 S{servo_id(1-7)} A{addr} V{value}',

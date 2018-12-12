@@ -20,6 +20,11 @@ xArm Python SDK
 - Richer interface
 - Set interface alias
 - Modified the default values of the default parameters of some interfaces, but support the use of parameters to be compatible when instantiating
+  
+## Update Summary for 0.0.13
+- Supports trajectory repeat motion interface with circular interpolation, supports repetition times, calibration
+- Increase joint limits, attitude angle limits and cmd cache limits
+- Exchange the parameters of the attitude angle yaw and the attitude angle pitch, but retain the parameter position 
 
 ## Caution
 - There is currently no collision detection, so try not to be close during use.

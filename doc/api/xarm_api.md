@@ -11,7 +11,7 @@ Servo angles
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 
-:return: [angle1(° or radian), angle2(° or radian), ..., angle7(° or radian)]
+:return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
 ```
 
 #### __axis__
@@ -79,7 +79,7 @@ Note:
     2. self.set_servo_angle(servo_id=1, angle=75) <==> self.set_servo_angle(angle=[75] + self.last_used_angles[1:])
     3. self.set_servo_angle(servo_id=5, angle=30) <==> self.set_servo_angle(angle=self.last_used_angles[:4] + [30] + self.last_used_angles[5:])
 
-:return: [angle1(° or radian), angle2(° or radian), ..., angle7(° or radian)]
+:return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
 ```
 
 #### __last_used_joint_acc__
@@ -88,7 +88,7 @@ The last used joint acceleration, default value of parameter mvacc of interface 
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 
-:return: acceleration (°/s^2 or radian/s^2)
+:return: acceleration (°/s^2 or rad/s^2)
 ```
 
 #### __last_used_joint_speed__
@@ -97,18 +97,18 @@ The last used joint speed, default value of parameter speed of interface set_ser
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 
-:return: speed (°/s or radian/s)
+:return: speed (°/s or rad/s)
 ```
 
 #### __last_used_position__
 ```
-The last used cartesion position, default value of parameter x/y/z/roll/yaw/pitch of interface set_position
+The last used cartesion position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position
 Note:
-    1. If self.default_is_radian is True, the returned value (only roll/yaw/pitch) is in radians
+    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
     2. self.set_position(x=300) <==> self.set_position(x=300, *last_used_position[1:])
     2. self.set_position(roll=-180) <==> self.set_position(x=self.last_used_position[:3], roll=-180, *self.last_used_position[4:])
 
-:return: [x(mm), y(mm), z(mm), roll(° or radian), yaw(° or radian), pitch(° or radian)]
+:return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 ```
 
 #### __last_used_tcp_acc__
@@ -154,18 +154,18 @@ Servo brake state list, only available in socket way and enable_report is True
 ```
 Cartesion position
 Note:
-    1. If self.default_is_radian is True, the returned value (only roll/yaw/pitch) is in radians
+    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
 
-return: [x(mm), y(mm), z(mm), roll(° or radian), yaw(° or radian), pitch(° or radian)]
+return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 ```
 
 #### __position_offset__
 ```
 Cartesion position offset, only available in socket way and enable_report is True 
 Note:
-    1. If self.default_is_radian is True, the returned value(roll_offset/yaw_offset/pitch_offset) is in radians
+    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
 
-:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or radian), yaw_offset(° or radian), pitch_offset(° or radian)]
+:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
 ```
 
 #### __slave_id__
@@ -204,6 +204,10 @@ Controller warn code. See the warn code documentation for details.
 
 ```
 The API wrapper of xArm
+Note: Orientation of attitude angle
+    roll: rotate around the X axis
+    pitch: rotate around the Y axis
+    yaw: rotate around the Z axis
 
 :param port: port name(such as 'COM5'/'/dev/ttyUSB0') or ip-address(such as '192.168.1.185')
     Note: this parameter is required if parameter do_not_open is False
@@ -221,15 +225,24 @@ The API wrapper of xArm
 :param do_not_open: do not open, default is False
 :param limit_velo: limit velo, default is [0, 1000] mm/s
 :param limit_acc: limit acc, default is [0, 20000] mm/s^2
-:param limit_angle_velo: limit angle velo, default is [1°/s, 180°/s] (unit: °/s or radian/s)
-    Note: If the parameter is_radian is True then use radian/s, otherwise use °/s
-:param limit_angle_acc: limit angle acc, default is [1°/s^2, 3600°/s^2] (unit: °/s^2 or radian/s^2)
-    Note: If the parameter is_radian is True then use radian/s^2, otherwise use °/s^2
-:param is_radian: set the default is radian or not, default is False
+:param limit_angle_velo: limit angle velo, default is [1°/s, 180°/s] (unit: °/s or rad/s)
+    Note: If the parameter is_radian is True then use rad/s, otherwise use °/s
+:param limit_angle_acc: limit angle acc, default is [1°/s^2, 3600°/s^2] (unit: °/s^2 or rad/s^2)
+    Note: If the parameter is_radian is True then use rad/s^2, otherwise use °/s^2
+:param is_radian: set the default unit is radians or not, default is False
     Note: (aim of design)
         1. Default value for unified interface parameters
         2: Unification of the external unit system
         3. For compatibility with previous interfaces
+    Note: the conversion of degree (°) and radians (rad)
+        * 1 rad == 57.29577951308232 °
+        * 1 ° == 0.017453292519943295 rad
+        * 1 rad/s == 57.29577951308232 °/s
+        * 1 °/s == 0.017453292519943295 rad/s
+        * 1 rad/s^2 == 57.29577951308232 °/s^2
+        * 1 °/s^2 == 0.017453292519943295 rad/s^2
+        * 1 rad/s^3 == 57.29577951308232 °/s^3
+        * 1 °/s^3 == 0.017453292519943295 rad/s^3
     Note: This parameter determines the value of the property self.default_is_radian 
     Note: This parameter determines the default value of the interface with the is_radian(input_is_radian/return_is_radian) parameter
        The list of affected interfaces is as follows:
@@ -352,8 +365,8 @@ Get forward kinematics
 :param return_is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, pose)), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
-    pose: [x(mm), y(mm), z(mm), roll(radian or °), yaw(radian or °), pitch(radian or °)] or []
-        Note: the roll/yaw/pitch unit is radian if return_is_radian is True, else °
+    pose: [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)] or []
+        Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
 ```
 
 #### def __get_gripper_err_code__(self):
@@ -379,14 +392,14 @@ Get the gripper position
 ```
 Get inverse kinematics
 
-:param pose: [x(mm), y(mm), z(mm), roll(radian or radian or °), yaw(radian or radian or °), pitch(radian or radian or °)]
-    Note: the roll/yaw/pitch unit is radian if input_is_radian is True, else °
-:param input_is_radian: the param pose value(only roll/yaw/pitch) is in radians or not, default is self.default_is_radian
+:param pose: [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
+    Note: the roll/pitch/yaw unit is radian if input_is_radian is True, else °
+:param input_is_radian: the param pose value(only roll/pitch/yaw) is in radians or not, default is self.default_is_radian
 :param return_is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, angles)), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
-    angles: [angle-1(radian or radian or °), angle-2, ..., angle-7] or []
-        Note: the returned angle value unit is radian if return_is_radian is True, else °
+    angles: [angle-1(rad or °), angle-2, ..., angle-7] or []
+        Note: the returned angle value is radians if return_is_radian is True, else °
 ```
 
 #### def __get_is_moving__(self):
@@ -401,11 +414,11 @@ Check xArm is moving or not
 ```
 Get the cartesian position
 Note:
-    1. If the value(roll/yaw/pitch) you want to return is an radian unit, please set the parameter is_radian to True
+    1. If the value(roll/pitch/yaw) you want to return is an radian unit, please set the parameter is_radian to True
         ex: code, pos = xarm.get_position(is_radian=True)
 
-:param is_radian: the returned value (only roll/yaw/pitch) is in radians or not, default is self.default_is_radian
-:return: tuple((code, [x, y, z, roll, yaw, pitch])), only when code is 0, the returned result is correct.
+:param is_radian: the returned value (only roll/pitch/yaw) is in radians or not, default is self.default_is_radian
+:return: tuple((code, [x, y, z, roll, pitch, yaw])), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
 ```
 
@@ -464,7 +477,7 @@ Get the xArm version
 Check the joint is in limit
 
 :param joint: angle list
-:param is_radian: angle value is radian or not, default is self.default_is_radian
+:param is_radian: angle value is radians or not, default is self.default_is_radian
 :return: tuple((code, limit)), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
     limit: True/False/None, limit or not, or failed
@@ -475,8 +488,8 @@ Check the joint is in limit
 ```
 Check the tcp pose is in limit
 
-:param pose: [x, y, z, roll, yaw, pitch]
-:param is_radian: roll/yaw/pitch value is radian or not, default is self.default_is_radian
+:param pose: [x, y, z, roll, pitch, yaw]
+:param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian
 :return: tuple((code, limit)), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
     limit: True/False/None, limit or not, or failed
@@ -504,9 +517,9 @@ Note:
     4. The last_used_angles/last_used_joint_speed/last_used_joint_acc will not be modified
 
 :param paths: cartesian path list
-    1. Specify arc radius： [[x, y, z, roll, yaw, pitch, radius], ....]
-    1. Do not specify arc radius (radius=0)： [[x, y, z, roll, yaw, pitch], ....]
-:param is_radian: roll/yaw/pitch of paths are in radians or not, default is self.default_is_radian
+    1. Specify arc radius： [[x, y, z, roll, pitch, yaw, radius], ....]
+    1. Do not specify arc radius (radius=0)： [[x, y, z, roll, pitch, yaw], ....]
+:param is_radian: roll/pitch/yaw of paths are in radians or not, default is self.default_is_radian
 :param times: repeat times, 0 is infinite loop, default is 1
 :param first_pause_time: sleep time at first, purpose is to cache the instruction, default is 0.1s
 :param repeat_pause_time: interval between repeated movements, unit: second
@@ -630,7 +643,7 @@ Register the report location callback, only available if enable_report is True
 :param callback: 
     callback data:
     {
-        "cartesian": [x, y, z, roll, yaw, pitch], ## if report_cartesian is True
+        "cartesian": [x, y, z, roll, pitch, yaw], ## if report_cartesian is True
         "joints": [angle-1, angle-2, angle-3, angle-4, angle-5, angle-6, angle-7], ## if report_joints is True
     }
 :param report_cartesian: report or not, True/False, default is True
@@ -754,11 +767,11 @@ Note:
     1. Some command depends on self.default_is_radian
 
 :param command: 
-    'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or radian)} B{yaw(° or radian)} C{pitch(° or radian)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}'
+    'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}'
     'G4': 'set_pause_time: G4 V{sltime(second)}'
-    'G7': 'set_servo_angle: G7 I{servo_1(° or radian)} J{servo_2(° or radian)} K{servo_3(° or radian)} L{servo_4(° or radian)} M{servo_5(° or radian)} N{servo_6(° or radian)} O{servo_7(° or radian)} F{speed(°/s or radian/s)} Q{acc(°/s^2 or radian/s^2)} T{mvtime} W{wait}'
-    'G8': 'move_gohome: G8 F{speed(°/s or radian/s)} Q{acc(°/s^2 or radian/s^2)} T{mvtime} W{wait}'
-    'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{yaw(° or radian)} C{pitch(° or radian)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}'
+    'G7': 'set_servo_angle: G7 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)} F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}'
+    'G8': 'move_gohome: G8 F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}'
+    'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{pitch(° or rad)} C{yaw(° or rad)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}'
     'H1': 'get_version: H1'
     'H11': 'motion_enable: H11 S{servo_id} V{enable}'
     'H12': 'set_state: H12 V{state}'
@@ -770,16 +783,16 @@ Note:
     'H18': 'set_servo_attach/set_servo_detach: H18 S{servo_id} V{1: enable(detach), 0: disable(attach)}'
     'H31': 'set_tcp_jerk: H31 V{jerk(mm/s^3)}'
     'H32': 'set_tcp_maxacc: H32 V{maxacc(mm/s^2)}'
-    'H33': 'set_joint_jerk: H33 V{jerk(°/s^3 or radian/s^3)}'
-    'H34': 'set_joint_maxacc: H34 {maxacc(°/s^2 or radian/s^2)}'
+    'H33': 'set_joint_jerk: H33 V{jerk(°/s^3 or rad/s^3)}'
+    'H34': 'set_joint_maxacc: H34 {maxacc(°/s^2 or rad/s^2)}'
     'H39': 'clean_conf: H39'
     'H40': 'save_conf: H40'
     'H41': 'get_position: H41'
     'H42': 'get_servo_angle: H42'
-    'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or radian)} B{yaw(° or radian)} C{pitch(° or radian)}'
-    'H44': 'get_forward_kinematics: H44 I{servo_1(° or radian)} J{servo_2(° or radian)} K{servo_3(° or radian)} L{servo_4(° or radian)} M{servo_5(° or radian)} N{servo_6(° or radian)} O{servo_7(° or radian)}'
-    'H45': 'is_joint_limit: H45 I{servo_1(° or radian)} J{servo_2(° or radian)} K{servo_3(° or radian)} L{servo_4(° or radian)} M{servo_5(° or radian)} N{servo_6(° or radian)} O{servo_7(° or radian)}'
-    'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or radian)} B{yaw(° or radian)} C{pitch(° or radian)}'
+    'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}'
+    'H44': 'get_forward_kinematics: H44 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}'
+    'H45': 'is_joint_limit: H45 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}'
+    'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}'
     'H106': 'get_servo_debug_msg: H106'
 :return: code or tuple((code, ...))
     code: See the return code documentation for details.
@@ -839,7 +852,7 @@ Note:
     3. The save_conf interface can record the current settings and will not be lost after the restart.
     4. The clean_conf interface can restore system default settings
 
-:param jerk: jerk (°/s^3 or radian/s^3)
+:param jerk: jerk (°/s^3 or rad/s^3)
 :param is_radian: the jerk in radians or not, default is self.default_is_radian
 :return: code
     code: See the return code documentation for details.
@@ -850,7 +863,7 @@ Note:
 ```
 Set the max acceleration of Joint space
 
-:param acc: mac acceleration (°/s^2 or radian/s^2)
+:param acc: mac acceleration (°/s^2 or rad/s^2)
 :param is_radian: the jerk in radians or not, default is self.default_is_radian
 :return: code
     code: See the return code documentation for details.
@@ -881,22 +894,22 @@ Set the arm pause time, xArm will pause sltime second
     code: See the return code documentation for details.
 ```
 
-#### def __set_position__(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __set_position__(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
 
 ```
 Set the cartesian position, the API will modify self.last_used_position value
 Note:
-    1. If the parameter(roll/yaw/pitch) you are passing is an radian unit, be sure to set the parameter is_radian to True.
-        ex: code = xarm.set_position(x=300, y=0, z=200, roll=-3.14, yaw=0, pitch=0, is_radian=True)
+    1. If the parameter(roll/pitch/yaw) you are passing is an radian unit, be sure to set the parameter is_radian to True.
+        ex: code = xarm.set_position(x=300, y=0, z=200, roll=-3.14, pitch=0, yaw=0, is_radian=True)
     2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
-        ex: code = xarm.set_position(x=300, y=0, z=200, roll=180, yaw=0, pitch=0, is_radian=False, wait=True)
+        ex: code = xarm.set_position(x=300, y=0, z=200, roll=180, pitch=0, yaw=0, is_radian=False, wait=True)
 
 :param x: cartesian position x, (unit: mm), default is self.last_used_position[0]
 :param y: cartesian position y, (unit: mm), default is self.last_used_position[1]
 :param z: cartesian position z, (unit: mm), default is self.last_used_position[2]
-:param roll: cartesian roll, (unit: radian if is_radian is True else °), default is self.last_used_position[3]
-:param yaw: cartesian yaw, (unit: radian if is_radian is True else °), default is self.last_used_position[4]
-:param pitch: cartesian pitch, (unit: radian if is_radian is True else °), default is self.last_used_position[5]
+:param roll: rotate around the X axis, (unit: rad if is_radian is True else °), default is self.last_used_position[3]
+:param pitch: rotate around the Y axis, (unit: rad if is_radian is True else °), default is self.last_used_position[4]
+:param yaw: rotate around the Z axis, (unit: rad if is_radian is True else °), default is self.last_used_position[5]
 :param radius: move radius, if radius is None or radius less than 0, will MoveLine, else MoveArcLine
     MoveLine: Linear motion
         ex: code = xarm.set_position(..., radius=None)
@@ -906,7 +919,7 @@ Note:
 :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
 :param mvtime: 0, reserved
 :param relative: relative move or not
-:param is_radian: the roll/yaw/pitch in radians or not, default is self.default_is_radian
+:param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
 :param wait: whether to wait for the arm to complete, default is False
 :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :param kwargs: reserved
@@ -931,7 +944,7 @@ Note:
         ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
     2. None(8) means all joints, default is None, the parameter angle should be a list of values whose length is the number of joints
         ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 80], is_radian=False)
-:param angle: angle or angle list, (unit: radian if is_radian is True else °)
+:param angle: angle or angle list, (unit: rad if is_radian is True else °)
     1. If servo_id is 1-7, angle should be a numeric value
         ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
     2. If servo_id is None or 8, angle should be a list of values whose length is the number of joints
@@ -958,7 +971,7 @@ Set the servo angle, execute only the last instruction, need to be set to servo 
 Note:
     1. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
 
-:param angles: angle list, (unit: radian if is_radian is True else °)
+:param angles: angle list, (unit: rad if is_radian is True else °)
 :param speed: speed, reserved
 :param mvacc: acceleration, reserved
 :param mvtime: 0, reserved
@@ -1049,8 +1062,8 @@ Note:
     3. The save_conf interface can record the current settings and will not be lost after the restart.
     4. The clean_conf interface can restore system default settings
 
-:param offset: [x, y, z, roll, yaw, pitch]
-:param is_radian: the roll/yaw/pitch in radians or not, default is self.default_is_radian
+:param offset: [x, y, z, roll, pitch, yaw]
+:param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
 :return: code
     code: See the return code documentation for details.
 ```

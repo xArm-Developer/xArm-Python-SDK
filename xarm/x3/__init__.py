@@ -698,7 +698,7 @@ class XArm(Gripper):
     @staticmethod
     def _is_out_of_tcp_rotate_range(angle, i):
         rotate_range = LIMIT_TCP_ROTATE[i]
-        if angle <= rotate_range[0] or angle >= rotate_range[1]:
+        if angle < rotate_range[0] or angle > rotate_range[1]:
             return True
         return False
 
@@ -837,7 +837,7 @@ class XArm(Gripper):
             self._angles = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 8)]
             ret[0] = 0
         if servo_id is None or servo_id == 8 or len(self._angles) < servo_id:
-            return list(map(lambda x: x if is_radian else x * RAD_DEGREE, self._angles))
+            return ret[0], list(map(lambda x: x if is_radian else x * RAD_DEGREE, self._angles))
         else:
             return ret[0], self._angles[servo_id-1] if is_radian else self._angles[servo_id-1] * RAD_DEGREE
 

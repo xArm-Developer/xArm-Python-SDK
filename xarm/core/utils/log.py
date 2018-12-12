@@ -98,6 +98,15 @@ def log(level, msg, args, exc_info=None, extra=None, stack_info=False):
 logger._log = log
 
 
-def pretty_print(msg, color='none'):
+# def pretty_print(msg, color='none'):
+#     msg = colors.get(color, 'none').format(msg)
+#     print(msg)
+
+
+def pretty_print(*args, sep=' ', end='\n', file=None, color='none'):
+    msg = ''
+    for arg in args:
+        msg += arg + sep
+    msg = msg.rstrip(sep)
     msg = colors.get(color, 'none').format(msg)
-    print(msg)
+    print(msg, end=end, file=file)

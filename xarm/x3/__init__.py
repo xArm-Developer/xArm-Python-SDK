@@ -702,10 +702,7 @@ class XArm(Gripper):
             return True
         return False
 
-    @xarm_is_ready(_type='set')
-    def set_position(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None,
-                     speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
-                     wait=False, timeout=None, **kwargs):
+    def _wait_until_cmdnum_lt_max(self):
         self._is_stop = False
         while self.cmd_num >= MAX_CMD_NUM:
             if not self.connected:
@@ -714,7 +711,24 @@ class XArm(Gripper):
                 return 0
             elif self.has_error:
                 return APIState.HAS_ERROR
-            time.sleep(0.1)
+            time.sleep(0.2)
+
+    @xarm_is_ready(_type='set')
+    def set_position(self, x=None, y=None, z=None, roll=None, yaw=None, pitch=None, radius=None,
+                     speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
+                     wait=False, timeout=None, **kwargs):
+        # self._is_stop = False
+        # while self.cmd_num >= MAX_CMD_NUM:
+        #     if not self.connected:
+        #         return APIState.NOT_CONNECTED
+        #     elif self._is_stop:
+        #         return 0
+        #     elif self.has_error:
+        #         return APIState.HAS_ERROR
+        #     time.sleep(0.1)
+        ret = self._wait_until_cmdnum_lt_max()
+        if ret is not None:
+            return ret
 
         is_radian = self._default_is_radian if is_radian is None else is_radian
         tcp_pos = [x, y, z, roll, yaw, pitch]
@@ -854,15 +868,18 @@ class XArm(Gripper):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
             or (1 <= servo_id <= 7 and angle is not None and not isinstance(angle, Iterable)), \
             'param servo_id or angle error'
-        self._is_stop = False
-        while self.cmd_num >= MAX_CMD_NUM:
-            if not self.connected:
-                return APIState.NOT_CONNECTED
-            elif self._is_stop:
-                return 0
-            elif self.has_error:
-                return APIState.HAS_ERROR
-            time.sleep(0.1)
+        # self._is_stop = False
+        # while self.cmd_num >= MAX_CMD_NUM:
+        #     if not self.connected:
+        #         return APIState.NOT_CONNECTED
+        #     elif self._is_stop:
+        #         return 0
+        #     elif self.has_error:
+        #         return APIState.HAS_ERROR
+        #     time.sleep(0.1)
+        ret = self._wait_until_cmdnum_lt_max()
+        if ret is not None:
+            return ret
 
         last_used_angle = self._last_angles.copy()
         last_used_speed = self._angle_mvvelo
@@ -1075,12 +1092,12 @@ class XArm(Gripper):
                     radius = path[6]
                 else:
                     radius = 0
-                if self.has_error or self._is_stop:
-                    return
-                while self.cmd_num >= MAX_CMD_NUM:
-                    if self.has_error or self._is_stop:
-                        return
-                    time.sleep(0.1)
+                # if self.has_error or self._is_stop:
+                #     return
+                # while self.cmd_num >= MAX_CMD_NUM:
+                #     if self.has_error or self._is_stop:
+                #         return
+                #     time.sleep(0.1)
                 ret = self.set_position(*path[:6], radius=radius, is_radian=is_radian, wait=False, speed=speed, mvacc=mvacc, mvtime=mvtime)
                 if ret < 0:
                     logger.error('set_positon, ret={}'.format(ret))
@@ -1089,16 +1106,14 @@ class XArm(Gripper):
         count = 1
         if times == 0:
             while not self.has_error and not self._is_stop:
-                # print('第{}次开始'.format(count))
                 _move()
-                # print('第{}次结束'.format(count))
                 count += 1
                 if not self._is_stop and self._error_code == 0:
                     self.set_pause_time(repeat_pause_time)
-            if self._is_stop:
-                logger.error('quit, emergency_stop')
-            elif self._error_code != 0:
+            if self._error_code != 0:
                 logger.error('quit, controller error')
+            elif self._is_stop:
+                logger.error('quit, emergency_stop')
         else:
             for i in range(times):
                 if self.has_error or self._is_stop:
@@ -1109,10 +1124,10 @@ class XArm(Gripper):
                 count += 1
                 if not self._is_stop and self._error_code == 0:
                     self.set_pause_time(repeat_pause_time)
-            if self._is_stop:
-                logger.error('quit, emergency_stop')
-            elif self._error_code != 0:
+            if self._error_code != 0:
                 logger.error('quit, controller error')
+            elif self._is_stop:
+                logger.error('quit, emergency_stop')
         if wait:
             self._WaitMove(self, 0).start()
             self._is_stop = False
@@ -1481,11 +1496,11 @@ class XArm(Gripper):
             return 0
         if command.lower() == 'help':
             return 0, {
-                'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or radian)} B{yaw(° or radian)} C{pitch(° or radian)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
+                'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{yaw(° or rad)} C{pitch(° or rad)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
                 'G4': 'set_pause_time: G4 V{sltime(second)}',
-                'G7': 'set_servo_angle: G7 I{servo_1(° or radian)} J{servo_2(° or radian)} K{servo_3(° or radian)} L{servo_4(° or radian)} M{servo_5(° or radian)} N{servo_6(° or radian)} O{servo_7(° or radian)} F{speed(°/s or radian/s)} Q{acc(°/s^2 or radian/s^2)} T{mvtime} W{wait}',
-                'G8': 'move_gohome: G8 F{speed(°/s or radian/s)} Q{acc(°/s^2 or radian/s^2)} T{mvtime} W{wait}',
-                'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{yaw(° or radian)} C{pitch(° or radian)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
+                'G7': 'set_servo_angle: G7 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)} F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}',
+                'G8': 'move_gohome: G8 F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}',
+                'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{yaw(° or rad)} C{pitch(° or rad)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}',
                 'H1': 'get_version: H1',
                 'H11': 'motion_enable: H11 S{servo_id} V{enable}',
                 'H12': 'set_state: H12 V{state}',
@@ -1497,16 +1512,16 @@ class XArm(Gripper):
                 'H18': 'set_servo_attach/set_servo_detach: H18 S{servo_id} V{1: enable(detach), 0: disable(attach)}',
                 'H31': 'set_tcp_jerk: H31 V{jerk(mm/s^3)}',
                 'H32': 'set_tcp_maxacc: H32 V{maxacc(mm/s^2)}',
-                'H33': 'set_joint_jerk: H33 V{jerk(°/s^3 or radian/s^3)}',
-                'H34': 'set_joint_maxacc: H34 {maxacc(°/s^2 or radian/s^2)}',
+                'H33': 'set_joint_jerk: H33 V{jerk(°/s^3 or rad/s^3)}',
+                'H34': 'set_joint_maxacc: H34 {maxacc(°/s^2 or rad/s^2)}',
                 'H39': 'clean_conf: H39',
                 'H40': 'save_conf: H40',
                 'H41': 'get_position: H41',
                 'H42': 'get_servo_angle: H42',
-                'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or radian)} B{yaw(° or radian)} C{pitch(° or radian)}',
-                'H44': 'get_forward_kinematics: H44 I{servo_1(° or radian)} J{servo_2(° or radian)} K{servo_3(° or radian)} L{servo_4(° or radian)} M{servo_5(° or radian)} N{servo_6(° or radian)} O{servo_7(° or radian)}',
-                'H45': 'is_joint_limit: H45 I{servo_1(° or radian)} J{servo_2(° or radian)} K{servo_3(° or radian)} L{servo_4(° or radian)} M{servo_5(° or radian)} N{servo_6(° or radian)} O{servo_7(° or radian)}',
-                'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or radian)} B{yaw(° or radian)} C{pitch(° or radian)}',
+                'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{yaw(° or rad)} C{pitch(° or rad)}',
+                'H44': 'get_forward_kinematics: H44 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}',
+                'H45': 'is_joint_limit: H45 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}',
+                'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{yaw(° or rad)} C{pitch(° or rad)}',
                 # 'H101': '(Danger, please do not use) set_servo_addr_16: H101 S{servo_id(1-7)} A{addr} V{value}',
                 # 'H102': '(Danger, please do not use) get_servo_addr_16: H102 S{servo_id(1-7)} A{addr}',
                 # 'H103': '(Danger, please do not use) set_servo_addr_32: H103 S{servo_id(1-7)} A{addr} V{value}',

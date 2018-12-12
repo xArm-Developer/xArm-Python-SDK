@@ -708,7 +708,7 @@ class XArm(Gripper):
                      wait=False, timeout=None, **kwargs):
         self._is_stop = False
         while self.cmd_num >= MAX_CMD_NUM:
-            if self.connected:
+            if not self.connected:
                 return APIState.NOT_CONNECTED
             elif self._is_stop:
                 return 0
@@ -856,7 +856,7 @@ class XArm(Gripper):
             'param servo_id or angle error'
         self._is_stop = False
         while self.cmd_num >= MAX_CMD_NUM:
-            if self.connected:
+            if not self.connected:
                 return APIState.NOT_CONNECTED
             elif self._is_stop:
                 return 0
@@ -1064,7 +1064,11 @@ class XArm(Gripper):
 
         def _move():
             if automatic_calibration:
-                self.set_servo_angle(angle=angles, is_radian=True, speed=0.8726646259971648, wait=False)
+                ret = self.set_servo_angle(angle=angles, is_radian=True, speed=0.8726646259971648, wait=False)
+                if ret < 0:
+                    logger.error('set_servo_angle, ret={}'.format(ret))
+                    self._is_stop = True
+                    return
                 self._angle_mvvelo = last_used_angle_speed
             for path in paths:
                 if len(path) > 6 and path[6] >= 0:
@@ -1077,8 +1081,11 @@ class XArm(Gripper):
                     if self.has_error or self._is_stop:
                         return
                     time.sleep(0.1)
-                self.set_position(*path[:6], radius=radius, is_radian=is_radian, wait=False, speed=speed, mvacc=mvacc,
-                                  mvtime=mvtime)
+                ret = self.set_position(*path[:6], radius=radius, is_radian=is_radian, wait=False, speed=speed, mvacc=mvacc, mvtime=mvtime)
+                if ret < 0:
+                    logger.error('set_positon, ret={}'.format(ret))
+                    self._is_stop = True
+                    return
         count = 1
         if times == 0:
             while not self.has_error and not self._is_stop:

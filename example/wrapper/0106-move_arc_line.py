@@ -12,6 +12,7 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from xarm.wrapper import XArmAPI
+from xarm.core.utils.log import pretty_print
 
 """
 Move Arc line(linear arc motion)
@@ -57,11 +58,20 @@ xarm.set_pause_time(0.2)
 
 
 def move():
-    xarm.set_servo_angle(angle=angles, is_radian=False, speed=50, wait=False)
+    global flag
+    ret = xarm.set_servo_angle(angle=angles, is_radian=False, speed=50, wait=False)
+    if ret < 0:
+        pretty_print('set_servo_angle, ret={}'.format(ret), color='red')
+        flag = False
+        return
     for path in paths:
         if xarm.has_error:
             return
-        xarm.set_position(*path[:6], radius=0, is_radian=False, wait=False, speed=300)
+        ret = xarm.set_position(*path[:6], radius=0, is_radian=False, wait=False, speed=300)
+        if ret < 0:
+            pretty_print('set_position, ret={}'.format(ret), color='red')
+            flag = False
+            return
 
 while flag:
     move()

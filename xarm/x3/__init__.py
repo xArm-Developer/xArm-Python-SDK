@@ -15,7 +15,7 @@ from ..core.comm import SerialPort, SocketPort
 from ..core.config.x_config import XCONF
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils import convert
-from ..core.utils.log import logger
+from ..core.utils.log import logger, pretty_print
 from ..core.config.x_code import ControllerWarn, ControllerError, ServoError
 from .gripper import Gripper
 from . import parse
@@ -118,7 +118,7 @@ class XArm(Gripper):
         self._is_sync = False
         self._default_is_radian = is_radian
 
-        self.sleep_finish_time = time.time()
+        self._sleep_finish_time = time.time()
 
         self._report_callbacks = {
             REPORT_ID: [],
@@ -454,6 +454,14 @@ class XArm(Gripper):
                 self._warn_code = warn_code
                 self._error_code = error_code
                 self._report_error_warn_changed_callback()
+                if self._error_code != 0:
+                    pretty_print('Error, Code: {}'.format(self._error_code), color='red')
+                else:
+                    pretty_print('Error had clean', color='blue')
+                if self._warn_code != 0:
+                    pretty_print('WarnCode: {}'.format(self._error_code), color='yellow')
+                else:
+                    pretty_print('Warnning had clean', color='blue')
             elif not self._only_report_err_warn_changed:
                 self._report_error_warn_changed_callback()
 
@@ -615,7 +623,7 @@ class XArm(Gripper):
                 self._report_location_callback()
                 self._report_callback()
 
-                if self.cmd_num >= MAX_CMD_NUM:
+                if self._cmd_num >= MAX_CMD_NUM:
                     time.sleep(1)
 
                 time.sleep(0.1)
@@ -660,7 +668,7 @@ class XArm(Gripper):
             time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner._is_stop and self.owner.connected and not self.owner.has_error:
-                if time.time() < self.owner.sleep_finish_time:
+                if time.time() < self.owner._sleep_finish_time:
                     time.sleep(0.01)
                     continue
                 if self.owner.angles == base_joint_pos or self.owner.state != 1:
@@ -1147,7 +1155,7 @@ class XArm(Gripper):
         if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             # self._last_position[:6] = self.position
             # self._last_angles = self.angles
-            self.sleep_finish_time = 0
+            self._sleep_finish_time = 0
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1172,12 +1180,12 @@ class XArm(Gripper):
             self._error_code, self._warn_code = ret[1:3]
             ret[0] = 0
         if show:
-            print('*************获取错误警告码, 状态: {}**************'.format(ret[0]))
-            controller_error = ControllerError(self.error_code)
-            controller_warn = ControllerWarn(self.warn_code)
-            print('* 错误码: {}, 错误信息: {}'.format(self.error_code, controller_error.description))
-            print('* 警告码: {}, 警告信息: {}'.format(self.warn_code, controller_warn.description))
-            print('*' * 50)
+            pretty_print('*************获取错误警告码, 状态: {}**************'.format(ret[0]), color='light_blue')
+            controller_error = ControllerError(self._error_code)
+            controller_warn = ControllerWarn(self._warn_code)
+            pretty_print('* 错误码: {}, 错误信息: {}'.format(self._error_code, controller_error.description), color='red' if self._error_code != 0 else 'white')
+            pretty_print('* 警告码: {}, 警告信息: {}'.format(self._warn_code, controller_warn.description), color='yellow' if self._warn_code != 0 else 'white')
+            pretty_print('*' * 50, color='light_blue')
         return ret[0], [self._error_code, self._warn_code]
 
     @xarm_is_connected(_type='set')
@@ -1206,9 +1214,9 @@ class XArm(Gripper):
         if not self._enable_report or self._stream_type != 'socket':
             self.get_err_warn_code()
             self.get_state()
-        if self.warn_code != 0:
+        if self._warn_code != 0:
             self.clean_warn()
-        if self.error_code != 0:
+        if self._error_code != 0:
             self.clean_error()
             self.motion_enable(enable=True, servo_id=8)
             self.set_state(0)
@@ -1224,10 +1232,10 @@ class XArm(Gripper):
         if wait:
             time.sleep(sltime)
         else:
-            if time.time() >= self.sleep_finish_time:
-                self.sleep_finish_time = time.time() + sltime
+            if time.time() >= self._sleep_finish_time:
+                self._sleep_finish_time = time.time() + sltime
             else:
-                self.sleep_finish_time += sltime
+                self._sleep_finish_time += sltime
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1456,7 +1464,7 @@ class XArm(Gripper):
         while self.state in [0, 3, 4] and time.time() - start_time < 3:
             self.set_state(0)
             time.sleep(0.1)
-        self.sleep_finish_time = 0
+        self._sleep_finish_time = 0
 
     def send_cmd_async(self, command, timeout=None):
         pass
@@ -1743,16 +1751,17 @@ class XArm(Gripper):
                     }
                 })
         if show:
-            print('************获取电机调试信息, 状态: {}*************'.format(ret[0]))
+            pretty_print('************获取电机调试信息, 状态: {}*************'.format(ret[0]), color='light_blue')
             for servo_info in dbmsg:
-                print('* {}, 状态: {}, 错误码: {}'.format(
+                color = 'red' if servo_info['error']['code'] != 0 or servo_info['status'] != 0 else 'white'
+                pretty_print('* {}, 状态: {}, 错误码: {}'.format(
                     servo_info['name'], servo_info['status'],
-                    servo_info['error']['code']))
+                    servo_info['error']['code']), color=color)
                 if servo_info['error']['desc']:
-                    print('*  错误信息: {}'.format(servo_info['error']['desc']))
+                    pretty_print('*  错误信息: {}'.format(servo_info['error']['desc']), color=color)
                 if servo_info['error']['handle']:
-                    print('*  处理方法: {}'.format(servo_info['error']['handle']))
-            print('*' * 50)
+                    pretty_print('*  处理方法: {}'.format(servo_info['error']['handle']), color=color)
+            pretty_print('*' * 50, color='light_blue')
         return ret[0], dbmsg
 
         # if show:

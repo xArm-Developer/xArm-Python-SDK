@@ -59,3 +59,45 @@ logger.CRITICAL = logging.CRITICAL
 
 logger.verbose = functools.partial(logger.log, logging.VERBOSE)
 
+colors = {
+    'none': '{}',
+    'white': '\033[30m{}\033[0m',
+    'red': '\033[31m{}\033[0m',
+    'green': '\033[32m{}\033[0m',
+    'orange': '\033[33m{}\033[0m',
+    'blue': '\033[34m{}\033[0m',
+    'purple': '\033[35m{}\033[0m',
+    'cyan': '\033[36m{}\033[0m',
+    'light_gray': '\033[37m{}\033[0m',
+    'dark_gray': '\033[90m{}\033[0m',
+    'light_red': '\033[91m{}\033[0m',
+    'light_green': '\033[92m{}\033[0m',
+    'yellow': '\033[93m{}\033[0m',
+    'light_blue': '\033[94m{}\033[0m',
+    'pink': '\033[95m{}\033[0m',
+    'light_cyan': '\033[96m{}\033[0m',
+}
+
+level_color_map = {
+    logger.VERBOSE: 'cyan',
+    logger.DEBUG: 'light_gray',
+    logger.INFO: 'blue',
+    logger.WARN: 'yellow',
+    logger.ERROR: 'light_red',
+    logger.CRITICAL: 'red',
+}
+
+_log = logger._log
+
+
+def log(level, msg, args, exc_info=None, extra=None, stack_info=False):
+    color = level_color_map.get(level, 'none')
+    msg = colors.get(color, 'none').format(msg)
+    return _log(level=level, msg=msg, args=args, exc_info=exc_info, extra=extra, stack_info=stack_info)
+
+logger._log = log
+
+
+def pretty_print(msg, color='none'):
+    msg = colors.get(color, 'none').format(msg)
+    print(msg)

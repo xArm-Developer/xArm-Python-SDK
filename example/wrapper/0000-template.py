@@ -12,7 +12,7 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
 from xarm.wrapper import XArmAPI
-from xarm.core.config.x_code import ControllerWarn, ControllerError
+from xarm.core import ControllerError, ControllerWarn
 
 
 xarm = XArmAPI('192.168.1.113', do_not_open=True, is_radian=False)

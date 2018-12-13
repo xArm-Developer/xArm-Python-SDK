@@ -1065,9 +1065,9 @@ class XArm(Gripper):
             mvtime = 0
 
         if automatic_calibration:
-            code = self.set_position(*paths[0], is_radian=is_radian, speed=speed, mvacc=mvacc, mvtime=mvtime, wait=True)
-            if code < 0:
-                logger.error('quit, api failed, code={}'.format(code))
+            _ = self.set_position(*paths[0], is_radian=is_radian, speed=speed, mvacc=mvacc, mvtime=mvtime, wait=True)
+            if _ < 0:
+                logger.error('quit, api failed, code={}'.format(_))
                 return
             _, angles = self.get_servo_angle(is_radian=True)
         self.set_pause_time(first_pause_time)
@@ -1087,7 +1087,7 @@ class XArm(Gripper):
                 else:
                     radius = 0
                 if self.has_error or self._is_stop:
-                    return
+                    return -2
                 ret = self.set_position(*path[:6], radius=radius, is_radian=is_radian, wait=False, speed=speed, mvacc=mvacc, mvtime=mvtime)
                 if ret < 0:
                     logger.error('set_positon, ret={}'.format(ret))
@@ -1095,39 +1095,54 @@ class XArm(Gripper):
             return 0
         count = 1
         api_failed = False
-        if times == 0:
-            while not self.has_error and not self._is_stop:
-                if _move() != 0:
-                    api_failed = True
-                    break
-                count += 1
-                if not self._is_stop and self._error_code == 0:
+
+        def state_changed_callback(item):
+            if item['state'] == 4:
+                self._is_stop = True
+
+        self.register_state_changed_callback(state_changed_callback)
+        try:
+            if times == 0:
+                while not self.has_error and not self._is_stop:
+                    _ = _move()
+                    if _ == -1:
+                        api_failed = True
+                        break
+                    elif _ == -2:
+                        break
+                    count += 1
                     self.set_pause_time(repeat_pause_time)
-            if api_failed:
-                logger.error('quit, api error')
-            elif self._error_code != 0:
-                logger.error('quit, controller error')
-            elif self._is_stop:
-                logger.error('quit, emergency_stop')
-        else:
-            for i in range(times):
-                if self.has_error or self._is_stop:
-                    break
-                if _move() != 0:
-                    api_failed = True
-                    break
-                count += 1
-                if not self._is_stop and self._error_code == 0:
+                if api_failed:
+                    logger.error('quit, api error')
+                elif self._error_code != 0:
+                    logger.error('quit, controller error')
+                elif self._is_stop:
+                    logger.error('quit, emergency_stop')
+            else:
+                for i in range(times):
+                    if self.has_error or self._is_stop:
+                        break
+                    _ = _move()
+                    if _ == -1:
+                        api_failed = True
+                        break
+                    elif _ == -2:
+                        break
+                    count += 1
                     self.set_pause_time(repeat_pause_time)
-            if api_failed:
-                logger.error('quit, api error')
-            elif self._error_code != 0:
-                logger.error('quit, controller error')
-            elif self._is_stop:
-                logger.error('quit, emergency_stop')
+                if api_failed:
+                    logger.error('quit, api error')
+                elif self._error_code != 0:
+                    logger.error('quit, controller error')
+                elif self._is_stop:
+                    logger.error('quit, emergency_stop')
+        except:
+            pass
+        finally:
+            self.release_state_changed_callback(state_changed_callback)
         if wait:
             self._WaitMove(self, 0).start()
-            self._is_stop = False
+        self._is_stop = False
 
     @xarm_is_connected(_type='set')
     def set_servo_attach(self, servo_id=None):

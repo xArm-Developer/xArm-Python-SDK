@@ -715,25 +715,18 @@ class XArm(Gripper):
         while self.cmd_num >= MAX_CMD_NUM:
             if not self.connected:
                 return APIState.NOT_CONNECTED
+            elif not self.ready:
+                return APIState.NOT_READY
             elif self._is_stop:
-                return 0
+                return APIState.EMERGENCY_STOP
             elif self.has_error:
-                return APIState.HAS_ERROR
+                return
             time.sleep(0.2)
 
     @xarm_is_ready(_type='set')
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
-        # self._is_stop = False
-        # while self.cmd_num >= MAX_CMD_NUM:
-        #     if not self.connected:
-        #         return APIState.NOT_CONNECTED
-        #     elif self._is_stop:
-        #         return 0
-        #     elif self.has_error:
-        #         return APIState.HAS_ERROR
-        #     time.sleep(0.1)
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
             return ret
@@ -876,15 +869,6 @@ class XArm(Gripper):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
             or (1 <= servo_id <= 7 and angle is not None and not isinstance(angle, Iterable)), \
             'param servo_id or angle error'
-        # self._is_stop = False
-        # while self.cmd_num >= MAX_CMD_NUM:
-        #     if not self.connected:
-        #         return APIState.NOT_CONNECTED
-        #     elif self._is_stop:
-        #         return 0
-        #     elif self.has_error:
-        #         return APIState.HAS_ERROR
-        #     time.sleep(0.1)
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
             return ret
@@ -1081,7 +1065,10 @@ class XArm(Gripper):
             mvtime = 0
 
         if automatic_calibration:
-            self.set_position(*paths[0], is_radian=is_radian, speed=speed, mvacc=mvacc, mvtime=mvtime, wait=True)
+            code = self.set_position(*paths[0], is_radian=is_radian, speed=speed, mvacc=mvacc, mvtime=mvtime, wait=True)
+            if code < 0:
+                logger.error('quit, api failed, code={}'.format(code))
+                return
             _, angles = self.get_servo_angle(is_radian=True)
         self.set_pause_time(first_pause_time)
         self._is_stop = False
@@ -1092,33 +1079,33 @@ class XArm(Gripper):
                 ret = self.set_servo_angle(angle=angles, is_radian=True, speed=0.8726646259971648, wait=False)
                 if ret < 0:
                     logger.error('set_servo_angle, ret={}'.format(ret))
-                    self._is_stop = True
-                    return
+                    return -1
                 self._angle_mvvelo = last_used_angle_speed
             for path in paths:
                 if len(path) > 6 and path[6] >= 0:
                     radius = path[6]
                 else:
                     radius = 0
-                # if self.has_error or self._is_stop:
-                #     return
-                # while self.cmd_num >= MAX_CMD_NUM:
-                #     if self.has_error or self._is_stop:
-                #         return
-                #     time.sleep(0.1)
+                if self.has_error or self._is_stop:
+                    return
                 ret = self.set_position(*path[:6], radius=radius, is_radian=is_radian, wait=False, speed=speed, mvacc=mvacc, mvtime=mvtime)
                 if ret < 0:
                     logger.error('set_positon, ret={}'.format(ret))
-                    self._is_stop = True
-                    return
+                    return -1
+            return 0
         count = 1
+        api_failed = False
         if times == 0:
             while not self.has_error and not self._is_stop:
-                _move()
+                if _move() != 0:
+                    api_failed = True
+                    break
                 count += 1
                 if not self._is_stop and self._error_code == 0:
                     self.set_pause_time(repeat_pause_time)
-            if self._error_code != 0:
+            if api_failed:
+                logger.error('quit, api error')
+            elif self._error_code != 0:
                 logger.error('quit, controller error')
             elif self._is_stop:
                 logger.error('quit, emergency_stop')
@@ -1126,13 +1113,15 @@ class XArm(Gripper):
             for i in range(times):
                 if self.has_error or self._is_stop:
                     break
-                # print('第{}次开始'.format(count))
-                _move()
-                # print('第{}次结束'.format(count))
+                if _move() != 0:
+                    api_failed = True
+                    break
                 count += 1
                 if not self._is_stop and self._error_code == 0:
                     self.set_pause_time(repeat_pause_time)
-            if self._error_code != 0:
+            if api_failed:
+                logger.error('quit, api error')
+            elif self._error_code != 0:
                 logger.error('quit, controller error')
             elif self._is_stop:
                 logger.error('quit, emergency_stop')

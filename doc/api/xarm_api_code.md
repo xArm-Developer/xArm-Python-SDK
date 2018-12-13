@@ -1,13 +1,14 @@
 # xArmPythonSDK API code description
 
 ## API return value status code
+- -9: emergency stop
 - -8: out of range
 - -7: joint angle limit
 - -6: cartesian pos limit
 - -5: revesed, no use
 - -4: command is not exist
 - -3: revesed, no use
-- -2: xArm is not ready, may be the motion is not enable or not set state 
+- -2: xArm is not ready, may be the motion is not enable or not set state
 - -1: xArm is disconnect or not connect
 - 0: success
 - 1: there are errors that have not been cleared
@@ -16,7 +17,7 @@
 - 4: tcp reply length error
 - 5: tcp reply number error
 - 6: tcp protocol flag error
-- 7: tcp reply command and send command do not match 
+- 7: tcp reply command and send command do not match
 - 8: send command error, may be network exception
 - 9: reversed, no use
 - 10: reversed, no use

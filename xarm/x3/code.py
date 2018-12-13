@@ -18,6 +18,7 @@ class APIState(object):
     TCP_LIMIT = -6  # 笛卡尔限位
     JOINT_LIMIT = -7  # 关节角度限位
     OUT_OF_RANGE = -8  # 超出范围
+    EMERGENCY_STOP = -9  # 紧急停止
     NORMAL = 0  # 正常
     HAS_ERROR = XCONF.UxbusState.ERR_CODE  # 有尚未清除的错误
     HAS_WARN = XCONF.UxbusState.WAR_CODE  # 有尚未清除的警告

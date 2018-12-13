@@ -24,7 +24,8 @@ class Logger(logging.Logger):
     # logger_fmt = '[%(levelname)s] %(asctime)s [%(pathname)s:%(lineno)d]: %(message)s'
     logger_fmt = '[SDK][%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]: %(message)s'
     logger_date_fmt = '%Y-%m-%d %H:%M:%S'
-    stream_handler_fmt = logger_fmt
+    # stream_handler_fmt = logger_fmt
+    stream_handler_fmt = '[SDK][%(levelname)s][%(asctime)s][%(lineno)d]: %(message)s'
     stream_handler_date_fmt = logger_date_fmt
     stream_handler = logging.StreamHandler(sys.stdout)
     stream_handler.setLevel(logging.VERBOSE)
@@ -47,7 +48,7 @@ class Logger(logging.Logger):
 
 logger = Logger(__name__)
 
-logger.setLevel(logging.WARNING)
+logger.setLevel(logging.INFO)
 
 logger.VERBOSE = logging.VERBOSE
 logger.DEBUG = logging.DEBUG
@@ -90,8 +91,9 @@ level_color_map = {
 _log = logger._log
 
 
-def log(level, msg, args, exc_info=None, extra=None, stack_info=False):
-    color = level_color_map.get(level, 'none')
+def log(level, msg, args, exc_info=None, extra=None, stack_info=False, color=None):
+    if color is None:
+        color = level_color_map.get(level, 'none')
     msg = colors.get(color, 'none').format(msg)
     return _log(level=level, msg=msg, args=args, exc_info=exc_info, extra=extra, stack_info=stack_info)
 

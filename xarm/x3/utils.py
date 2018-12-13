@@ -38,6 +38,8 @@ def xarm_is_ready(_type='set'):
                 return APIState.NOT_CONNECTED if _type == 'set' else APIState.NOT_CONNECTED, 'xArm is not connect'
             else:
                 logger.error('xArm is not ready')
+                logger.info('Please check the arm for errors. If so, please clear the error first. '
+                            'Then enable the motor, set the mode and set the state')
                 return APIState.NOT_READY if _type == 'set' else APIState.NOT_READY, 'xArm is not ready'
         return decorator
     return _xarm_is_ready

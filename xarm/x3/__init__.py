@@ -230,7 +230,7 @@ class XArm(Gripper):
 
     @property
     def has_err_warn(self):
-        return self.has_error or self.has_warn or (self.arm_cmd and self.arm_cmd.has_err_warn)
+        return self.has_error or self._warn_code != 0 or (self.arm_cmd and self.arm_cmd.has_err_warn)
 
     @property
     def cmd_num(self):
@@ -291,7 +291,7 @@ class XArm(Gripper):
                 except:
                     self._stream_report = None
 
-                if self._stream.connected:
+                if self._stream.connected and self._enable_report:
                     self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
                     self._report_thread.start()
                 self._report_connect_changed_callback()
@@ -405,9 +405,9 @@ class XArm(Gripper):
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self._position
+                    ret['cartesian'] = self._position.copy()
                 if item['joints']:
-                    ret['joints'] = self._angles
+                    ret['joints'] = self._angles.copy()
                 try:
                     callback(ret)
                 except Exception as e:
@@ -419,9 +419,9 @@ class XArm(Gripper):
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self._position
+                    ret['cartesian'] = self._position.copy()
                 if item['joints']:
-                    ret['joints'] = self._angles
+                    ret['joints'] = self._angles.copy()
                 if item['error_code']:
                     ret['error_code'] = self._error_code
                 if item['warn_code']:
@@ -485,8 +485,12 @@ class XArm(Gripper):
 
             _mtbrake = [bool(item[0] & item[1]) for item in zip(mtbrake, maable)]
             if state == 4 or not all(_mtbrake[:7]):
+                if self._is_ready:
+                    logger.info('[report], xArm is not ready to move', color='orange')
                 self._is_ready = False
             else:
+                if not self._is_ready:
+                    logger.info('[report], xArm is ready to move', color='green')
                 self._is_ready = True
 
             self._error_code = error_code
@@ -611,9 +615,13 @@ class XArm(Gripper):
                     self._report_cmdnum_changed_callback()
                 if state != self._state:
                     self._report_state_changed_callback()
-                if self._state == 4:
+                if state == 4:
+                    if self._is_ready:
+                        logger.info('[report], xArm is not ready to move', color='orange')
                     self._is_ready = False
                 else:
+                    if not self._is_ready:
+                        logger.info('[report], xArm is ready to move', color='green')
                     self._is_ready = True
                 if error_code != self._error_code or warn_code != self._warn_code:
                     self._report_error_warn_changed_callback()
@@ -1136,7 +1144,7 @@ class XArm(Gripper):
     def set_servo_attach(self, servo_id=None):
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8
         ret = self.arm_cmd.set_brake(servo_id, 0)
-        return ret
+        return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_servo_detach(self, servo_id=None):
@@ -1178,6 +1186,15 @@ class XArm(Gripper):
             # self._last_position[:6] = self.position
             # self._last_angles = self.angles
             self._sleep_finish_time = 0
+        self.get_state()
+        if self._state in [3, 4]:
+            if self._is_ready:
+                logger.info('[set_state], xArm is not ready to move', color='orange')
+            self._is_ready = False
+        else:
+            if not self._is_ready:
+                logger.info('[set_state], xArm is ready to move', color='green')
+            self._is_ready = True
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1213,6 +1230,15 @@ class XArm(Gripper):
     @xarm_is_connected(_type='set')
     def clean_error(self):
         ret = self.arm_cmd.clean_err()
+        self.get_state()
+        if self._state in [3, 4]:
+            if self._is_ready:
+                logger.info('[clean_error], xArm is not ready to move', color='orange')
+            self._is_ready = False
+        else:
+            if not self._is_ready:
+                logger.info('[clean_error], xArm is ready to move', color='green')
+            self._is_ready = True
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1227,8 +1253,17 @@ class XArm(Gripper):
             ret = self.arm_cmd.motion_en(8, int(enable))
         else:
             ret = self.arm_cmd.motion_en(servo_id, int(enable))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            self._is_ready = bool(enable)
+        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        #     self._is_ready = bool(enable)
+        self.get_state()
+        if self._state in [3, 4]:
+            if self._is_ready:
+                logger.info('[motion_enable], xArm is not ready to move', color='orange')
+            self._is_ready = False
+        else:
+            if not self._is_ready:
+                logger.info('[motion_enable], xArm is ready to move', color='green')
+            self._is_ready = True
         return ret[0]
 
     def reset(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):

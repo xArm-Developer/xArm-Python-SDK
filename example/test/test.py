@@ -24,9 +24,12 @@ xarm = XArmAPI(port='192.168.1.113',
                is_radian=True)
 xarm.motion_enable(True)
 xarm.set_state(0)
+xarm.clean_error()
+xarm.set_state(0)
+time.sleep(5)
 
-print(xarm.get_servo_angle())
-print(xarm.get_position(is_radian=False))
+# print(xarm.get_servo_angle())
+# print(xarm.get_position(is_radian=False))
 
 # print(time.time())
 # print(xarm.get_position())

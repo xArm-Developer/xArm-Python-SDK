@@ -39,10 +39,13 @@ class Port(threading.Thread):
 
     def close(self):
         self.alive = False
-        if self.connected:
-            self.com.close()
-            while self.connected:
-                time.sleep(0.01)
+        self.com.close()
+        while self.connected:
+            time.sleep(0.01)
+        # if self.connected:
+        #     self.com.close()
+        #     while self.connected:
+        #         time.sleep(0.01)
 
     def flush(self, fromid=-1, toid=-1):
         if not self.connected:

@@ -55,31 +55,38 @@ REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 
 
 class XArm(Gripper):
-    def __init__(self, port=None, baudrate=921600, timeout=None, filters=None,
-                 enable_heartbeat=True, enable_report=True, report_type='normal', do_not_open=False,
-                 limit_velo=None, limit_acc=None, limit_angle_velo=None, limit_angle_acc=None, is_radian=False):
+    def __init__(self, port=None, do_not_open=False, is_radian=False, **kwargs):
         super(XArm, self).__init__()
         self._port = port
-        self._baudrate = baudrate
-        self._timeout = timeout
-        self._filters = filters
-        self._enable_heartbeat = enable_heartbeat
-        self._enable_report = enable_report
-        self._report_type = report_type
+        self._baudrate = kwargs.get('baudrate', 921600)
+        self._timeout = kwargs.get('timeout', None)
+        self._filters = kwargs.get('filters', None)
+        self._enable_heartbeat = kwargs.get('enable_heartbeat', True)
+        self._enable_report = kwargs.get('enable_report', True)
+        self._report_type = kwargs.get('report_type', 'rich')
 
-        self._min_velo, self._max_velo = limit_velo if limit_velo is not None and len(limit_velo) >= 2 else LIMIT_VELO
-        self._min_acc, self._max_acc = limit_acc if limit_acc is not None and len(limit_acc) >= 2 else LIMIT_ACC
+        # self._min_tcp_speed, self._max_tcp_speed = limit_velo if limit_velo is not None and len(limit_velo) >= 2 else LIMIT_VELO
+        # self._min_tcp_acc, self._max_tcp_acc = limit_acc if limit_acc is not None and len(limit_acc) >= 2 else LIMIT_ACC
+        self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
+        self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
+        self._tcp_jerk = 1000  # mm/s^3
 
-        self._min_angle_velo, self._max_angle_velo = list(map(lambda x: x / RAD_DEGREE, LIMIT_ANGLE_VELO))
-        self._min_angle_acc, self._max_angle_acc = list(map(lambda x: x / RAD_DEGREE, LIMIT_ANGLE_ACC))
-        if limit_angle_velo is not None and len(limit_angle_velo) >= 2:
-            if not is_radian:
-                limit_angle_velo = list(map(lambda x: x / RAD_DEGREE, limit_angle_velo))
-            self._min_angle_velo, self._max_angle_velo = limit_angle_velo
-        if limit_angle_acc is not None and len(limit_angle_acc) >= 2:
-            if not is_radian:
-                limit_angle_acc = list(map(lambda x: x / RAD_DEGREE, limit_angle_acc))
-            self._min_angle_acc, self._max_angle_acc = limit_angle_acc
+        # self._min_joint_speed, self._max_joint_speed = list(map(lambda x: x / RAD_DEGREE, LIMIT_ANGLE_VELO))
+        # self._min_joint_acc, self._max_joint_acc = list(map(lambda x: x / RAD_DEGREE, LIMIT_ANGLE_ACC))
+        # if limit_angle_velo is not None and len(limit_angle_velo) >= 2:
+        #     if not is_radian:
+        #         limit_angle_velo = list(map(lambda x: x / RAD_DEGREE, limit_angle_velo))
+        #     self._min_joint_speed, self._max_joint_speed = limit_angle_velo
+        # if limit_angle_acc is not None and len(limit_angle_acc) >= 2:
+        #     if not is_radian:
+        #         limit_angle_acc = list(map(lambda x: x / RAD_DEGREE, limit_angle_acc))
+        #     self._min_joint_acc, self._max_joint_acc = limit_angle_acc
+        self._min_joint_speed, self._max_joint_speed = 0.01, 4.0  # rad/s
+        self._min_joint_acc, self._max_joint_acc = 0.01, 20.0  # rad/s^2
+        self._joint_jerk = 20.0  # rad/s^3
+
+        self._rot_jerk = 2.3
+        self._max_rot_acc = 2.7
 
         self._stream_type = 'serial'
         self._stream = None
@@ -88,12 +95,12 @@ class XArm(Gripper):
         self._report_thread = None
         self._only_report_err_warn_changed = True
 
-        self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
+        self._last_position = [201.5, 0, 140.5, 3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
         self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # [servo_1(rad), servo_2(rad), servo_3(rad), servo_4(rad), servo_5(rad), servo_6(rad), servo_7(rad)]
-        self._mvvelo = 100  # mm/s, rad/s
-        self._mvacc = 2000  # mm/s^2, rad/s^2
-        self._angle_mvvelo = 0.3490658503988659  # 20 °/s
-        self._angle_mvacc = 8.726646259971648  # 500 °/s^2
+        self._last_tcp_speed = 100  # mm/s, rad/s
+        self._last_tcp_acc = 2000  # mm/s^2, rad/s^2
+        self._last_joint_speed = 0.3490658503988659  # 20 °/s
+        self._last_joint_acc = 8.726646259971648  # 500 °/s^2
         self._mvtime = 0
 
         self._version = None
@@ -108,10 +115,10 @@ class XArm(Gripper):
         self._cmd_num = 0
         self._arm_type = 2
         self._arm_axis = 7
-        self._arm_mid = 0
-        self._arm_sid = 0
-        self._arm_mttid = 0
-        self._arm_mtfid = 0
+        self._arm_master_id = 0
+        self._arm_slave_id = 0
+        self._arm_motor_tid = 0
+        self._arm_motor_fid = 0
 
         self._is_ready = False
         self._is_stop = False
@@ -128,6 +135,16 @@ class XArm(Gripper):
             REPORT_STATE_CHANGED_ID: [],
             REPORT_MAABLE_MTBRAKE_CHANGED_ID: [],
             REPORT_CMDNUM_CHANGED_ID: [],
+        }
+
+        self._robot_type_axis_map = {
+            XCONF.RobotType.XARM6_X1: 6,
+            XCONF.RobotType.XARM7_X2: 7,
+            XCONF.RobotType.XARM7_X3: 7,
+            XCONF.RobotType.XARM7_X3MIR: 7,
+            XCONF.RobotType.XARM5_X4: 5,
+            XCONF.RobotType.XARM6_X4: 6,
+            XCONF.RobotType.XARM7_X4: 7,
         }
 
         if not do_not_open:
@@ -159,17 +176,25 @@ class XArm(Gripper):
                 else self._position[i] for i in range(len(self._position))]
 
     @property
+    def tcp_speed_limit(self):
+        return self._min_tcp_speed, self._max_tcp_speed
+
+    @property
+    def tcp_acc_limit(self):
+        return self._min_tcp_acc, self._max_tcp_acc
+
+    @property
     def last_used_position(self):
         return [self._last_position[i] * RAD_DEGREE if 2 < i < 6 and not self._default_is_radian
                 else self._last_position[i] for i in range(len(self._last_position))]
 
     @property
     def last_used_tcp_speed(self):
-        return self._mvvelo
+        return self._last_tcp_speed
 
     @property
     def last_used_tcp_acc(self):
-        return self._mvacc
+        return self._last_tcp_acc
 
     @property
     def angles(self):
@@ -178,16 +203,30 @@ class XArm(Gripper):
         return [angle if self._default_is_radian else angle * RAD_DEGREE for angle in self._angles]
 
     @property
+    def joint_speed_limit(self):
+        limit = [self._min_joint_speed, self._max_joint_speed]
+        if not self._default_is_radian:
+            limit = [i * RAD_DEGREE for i in limit]
+        return limit
+
+    @property
+    def joint_acc_limit(self):
+        limit = [self._min_joint_acc, self._max_joint_acc]
+        if not self._default_is_radian:
+            limit = [i * RAD_DEGREE for i in limit]
+        return limit
+
+    @property
     def last_used_angles(self):
         return [angle if self._default_is_radian else angle * RAD_DEGREE for angle in self._last_angles]
 
     @property
     def last_used_joint_speed(self):
-        return self._angle_mvvelo if self._default_is_radian else self._angle_mvvelo * RAD_DEGREE
+        return self._last_joint_speed if self._default_is_radian else self._last_joint_speed * RAD_DEGREE
 
     @property
     def last_used_joint_acc(self):
-        return self._angle_mvacc if self._default_is_radian else self._angle_mvacc * RAD_DEGREE
+        return self._last_joint_acc if self._default_is_radian else self._last_joint_acc * RAD_DEGREE
 
     @property
     def position_offset(self):
@@ -248,19 +287,19 @@ class XArm(Gripper):
 
     @property
     def master_id(self):
-        return self._arm_mid
+        return self._arm_master_id
 
     @property
     def slave_id(self):
-        return self._arm_sid
+        return self._arm_slave_id
 
     @property
-    def arm_mttid(self):
-        return self._arm_mttid
+    def motor_tid(self):
+        return self._arm_motor_tid
 
     @property
-    def arm_mtfid(self):
-        return self._arm_mtfid
+    def motor_fid(self):
+        return self._arm_motor_fid
 
     def connect(self, port=None, baudrate=None, timeout=None):
         if self.connected:
@@ -484,7 +523,8 @@ class XArm(Gripper):
                 self._report_maable_mtbrake_changed_callback()
 
             _mtbrake = [bool(item[0] & item[1]) for item in zip(mtbrake, maable)]
-            if state == 4 or not all(_mtbrake[:7]):
+            axis = self._robot_type_axis_map.get(self.device_type)
+            if state == 4 or not all(_mtbrake[:axis]):
                 if self._is_ready:
                     logger.info('[report], xArm is not ready to move', color='orange')
                 self._is_ready = False
@@ -532,40 +572,43 @@ class XArm(Gripper):
             __handle_report_normal(rx_data)
             (self._arm_type,
              self._arm_axis,
-             self._arm_mid,
-             self._arm_sid,
-             self._arm_mtfid,
-             self._arm_mttid) = rx_data[87:93]
+             self._arm_master_id,
+             self._arm_slave_id,
+             self._arm_motor_tid,
+             self._arm_motor_fid) = rx_data[87:93]
 
-            ver_msg = rx_data[93:112]
-            trs_msg = convert.bytes_to_fp32s(rx_data[113:133], 5)
-            p2p_msg = convert.bytes_to_fp32s(rx_data[133:153], 5)
-            ros_msg = convert.bytes_to_fp32s(rx_data[153:161], 2)
+            ver_msg = rx_data[93:122]
+            self._version = str(ver_msg, 'utf-8')
 
+            trs_msg = convert.bytes_to_fp32s(rx_data[123:143], 5)
             trs_msg = [i[0] for i in trs_msg]
-            p2p_msg = [i[0] for i in p2p_msg]
-            ros_msg = [i[0] for i in ros_msg]
-            # ver_msg = str(ver_msg, 'utf-8')
-            # print("arm_type: %d, arm_axis: %d, arm_mid: %d, arm_sid: %d, arm_mttid: %d, arm_mtfid: %d" % \
-            #       (self.arm_type, self.arm_axis, self.arm_mid, self.arm_sid, self.arm_mttid, self.arm_mtfid))
-            # print("trs_msg: {}".format(trs_msg))
-            # print("p2p_msg: {}".format(p2p_msg))
-            # print("ros_msg: {}".format(ros_msg))
-            # print("ver_msg: {}".format(ver_msg))
+            (self._tcp_jerk,
+             self._min_tcp_acc,
+             self._max_tcp_acc,
+             self._min_tcp_speed,
+             self._max_tcp_speed) = trs_msg
+            # print('tcp_jerk: {}, min_acc: {}, max_acc: {}, min_speed: {}, max_speed: {}'.format(
+            #     self._tcp_jerk, self._min_tcp_acc, self._max_tcp_acc, self._min_tcp_speed, self._max_tcp_speed
+            # ))
 
-            # version = ''.join(list(map(chr, ver_msg)))
-            # version = version[:version.find('\0')]
-            # (trs_jerk,
-            #  trs_acc_min,
-            #  trs_acc_max,
-            #  trs_velo_min,
-            #  trs_velo_max) = trs_msg
-            # (p2p_jerk,
-            #  p2p_acc_min,
-            #  p2p_acc_max,
-            #  p2p_velo_min,
-            #  p2p_velo_max) = p2p_msg
-            # rot_jerk, ros_acc_max = ros_msg
+            p2p_msg = convert.bytes_to_fp32s(rx_data[143:163], 5)
+            p2p_msg = [i[0] for i in p2p_msg]
+            (self._joint_jerk,
+             self._min_joint_acc,
+             self._max_joint_acc,
+             self._min_joint_speed,
+             self._max_joint_speed) = p2p_msg
+            # print('joint_jerk: {}, min_acc: {}, max_acc: {}, min_speed: {}, max_speed: {}'.format(
+            #     self._joint_jerk, self._min_joint_acc, self._max_joint_acc,
+            #     self._min_joint_speed, self._max_joint_speed
+            # ))
+
+            rot_msg = convert.bytes_to_fp32s(rx_data[163:171], 2)
+            rot_msg = [i[0] for i in rot_msg]
+            self._rot_jerk, self._max_rot_acc = rot_msg
+            # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
+
+            sv3_msg = convert.bytes_to_u16s(rx_data[171:187], 8)
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -734,8 +777,8 @@ class XArm(Gripper):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         tcp_pos = [x, y, z, roll, pitch, yaw]
         last_used_position = self._last_position.copy()
-        last_used_speed = self._mvvelo
-        last_used_acc = self._mvacc
+        last_used_tcp_speed = self._last_tcp_speed
+        last_used_tcp_acc = self._last_tcp_acc
         for i in range(6):
             value = tcp_pos[i]
             if value is None:
@@ -779,23 +822,23 @@ class XArm(Gripper):
                 if speed.isdigit():
                     speed = float(speed)
                 else:
-                    speed = self._mvvelo
-            self._mvvelo = min(max(speed, self._min_velo), self._max_velo)
+                    speed = self._last_tcp_speed
+            self._last_tcp_speed = min(max(speed, self._min_tcp_speed), self._max_tcp_speed)
         elif kwargs.get('mvvelo', None) is not None:
             mvvelo = kwargs.get('mvvelo')
             if isinstance(mvvelo, str):
                 if mvvelo.isdigit():
                     mvvelo = float(mvvelo)
                 else:
-                    mvvelo = self._mvvelo
-            self._mvvelo = min(max(mvvelo, self._min_velo), self._max_velo)
+                    mvvelo = self._last_tcp_speed
+            self._last_tcp_speed = min(max(mvvelo, self._min_tcp_speed), self._max_tcp_speed)
         if mvacc is not None:
             if isinstance(mvacc, str):
                 if mvacc.isdigit():
                     mvacc = float(mvacc)
                 else:
-                    mvacc = self._mvacc
-            self._mvacc = min(max(mvacc, self._min_acc), self._max_acc)
+                    mvacc = self._last_tcp_acc
+            self._last_tcp_acc = min(max(mvacc, self._min_tcp_acc), self._max_tcp_acc)
         if mvtime is not None:
             if isinstance(mvtime, str):
                 if mvacc.isdigit():
@@ -808,28 +851,28 @@ class XArm(Gripper):
             _, limit = self.is_tcp_limit(self._last_position)
             if _ == 0 and limit is True:
                 self._last_position = last_used_position
-                self._mvvelo = last_used_speed
-                self._mvacc = last_used_acc
+                self._last_tcp_speed = last_used_tcp_speed
+                self._last_tcp_acc = last_used_tcp_acc
                 return APIState.TCP_LIMIT
         if radius is not None and radius >= 0:
-            ret = self.arm_cmd.move_lineb(self._last_position, self._mvvelo, self._mvacc, self._mvtime, radius)
+            ret = self.arm_cmd.move_lineb(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius)
             if ret[0] != 0:
                 logger.debug('exception({}): move arc line: pos={}, mvvelo={}, mvacc={}, mvtime={}, mvradius={}'.format(
-                    ret[0], self._last_position, self._mvvelo, self._mvacc, self._mvtime, radius
+                    ret[0], self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius
                 ))
             else:
                 logger.debug('move arc line: {}, mvvelo={}, mvacc={}, mvtime={}, mvradius={}'.format(
-                    self._last_position, self._mvvelo, self._mvacc, self._mvtime, radius
+                    self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius
                 ))
         else:
-            ret = self.arm_cmd.move_line(self._last_position, self._mvvelo, self._mvacc, self._mvtime)
+            ret = self.arm_cmd.move_line(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
             if ret[0] != 0:
                 logger.debug('exception({}): move line: pos={}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                    ret[0], self._last_position, self._mvvelo, self._mvacc, self._mvtime
+                    ret[0], self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime
                 ))
             else:
                 logger.debug('move line: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                    self._last_position, self._mvvelo, self._mvacc, self._mvtime
+                    self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime
                 ))
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
@@ -840,8 +883,8 @@ class XArm(Gripper):
             self._is_stop = False
         if ret[0] < 0:
             self._last_position = last_used_position
-            self._mvvelo = last_used_speed
-            self._mvacc = last_used_acc
+            self._last_tcp_speed = last_used_tcp_speed
+            self._last_tcp_acc = last_used_tcp_acc
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -874,8 +917,8 @@ class XArm(Gripper):
             return ret
 
         last_used_angle = self._last_angles.copy()
-        last_used_speed = self._angle_mvvelo
-        last_used_acc = self._angle_mvacc
+        last_used_joint_speed = self._last_joint_speed
+        last_used_joint_acc = self._last_joint_acc
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if servo_id is None or servo_id == 8:
             for i in range(min(len(angle), len(self._last_angles))):
@@ -943,29 +986,29 @@ class XArm(Gripper):
                 if speed.isdigit():
                     speed = float(speed)
                 else:
-                    speed = self._angle_mvvelo if is_radian else self._angle_mvvelo * RAD_DEGREE
+                    speed = self._last_joint_speed if is_radian else self._last_joint_speed * RAD_DEGREE
             if not is_radian:
                 speed /= RAD_DEGREE
-            self._angle_mvvelo = min(max(speed, self._min_angle_velo), self._max_angle_velo)
+            self._last_joint_speed = min(max(speed, self._min_joint_speed), self._max_joint_speed)
         elif kwargs.get('mvvelo', None) is not None:
             mvvelo = kwargs.get('mvvelo')
             if isinstance(mvvelo, str):
                 if mvvelo.isdigit():
                     mvvelo = float(mvvelo)
                 else:
-                    mvvelo = self._angle_mvvelo if is_radian else self._angle_mvvelo * RAD_DEGREE
+                    mvvelo = self._last_joint_speed if is_radian else self._last_joint_speed * RAD_DEGREE
             if not is_radian:
                 mvvelo /= RAD_DEGREE
-            self._angle_mvvelo = min(max(mvvelo, self._min_angle_velo), self._max_angle_velo)
+            self._last_joint_speed = min(max(mvvelo, self._min_joint_speed), self._max_joint_speed)
         if mvacc is not None:
             if isinstance(mvacc, str):
                 if mvacc.isdigit():
                     mvacc = float(mvacc)
                 else:
-                    mvacc = self._angle_mvacc if is_radian else self._angle_mvacc * RAD_DEGREE
+                    mvacc = self._last_joint_acc if is_radian else self._last_joint_acc * RAD_DEGREE
             if not is_radian:
                 mvacc /= RAD_DEGREE
-            self._angle_mvacc = min(max(mvacc, self._min_angle_acc), self._max_angle_acc)
+            self._last_joint_acc = min(max(mvacc, self._min_joint_acc), self._max_joint_acc)
         if mvtime is not None:
             if isinstance(mvtime, str):
                 if mvacc.isdigit():
@@ -978,18 +1021,18 @@ class XArm(Gripper):
             _, limit = self.is_joint_limit(self._last_angles)
             if _ == 0 and limit is True:
                 self._last_angles = last_used_angle
-                self._angle_mvvelo = last_used_speed
-                self._angle_mvacc = last_used_acc
+                self._last_joint_speed = last_used_joint_speed
+                self._last_joint_acc = last_used_joint_acc
                 return APIState.JOINT_LIMIT
 
-        ret = self.arm_cmd.move_joint(self._last_angles, self._angle_mvvelo, self._angle_mvacc, self._mvtime)
+        ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
         if ret[0] != 0:
             logger.debug('exception({}): move joint: joint={}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                ret[0], self._last_angles, self._angle_mvvelo, self._angle_mvacc, self._mvtime
+                ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime
             ))
         else:
             logger.debug('move joint: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                self._last_angles, self._angle_mvvelo, self._angle_mvacc, self._mvtime
+                self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime
             ))
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
@@ -1000,8 +1043,8 @@ class XArm(Gripper):
             self._is_stop = False
         if ret[0] < 0:
             self._last_angles = last_used_angle
-            self._angle_mvvelo = last_used_speed
-            self._angle_mvacc = last_used_acc
+            self._last_joint_speed = last_used_joint_speed
+            self._last_joint_acc = last_used_joint_acc
         return ret[0]
 
     @xarm_is_ready(_type='set')
@@ -1012,7 +1055,7 @@ class XArm(Gripper):
         for i in range(7):
             if self._is_out_of_angle_range(angles[i], i):
                 return APIState.OUT_OF_RANGE
-        ret = self.arm_cmd.move_servoj(angles, self._angle_mvvelo, self._angle_mvacc, self._mvtime)
+        ret = self.arm_cmd.move_servoj(angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
         return ret[0]
 
     @xarm_is_ready(_type='set')
@@ -1058,9 +1101,9 @@ class XArm(Gripper):
         assert len(paths) > 0
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if speed is None:
-            speed = self._mvvelo
+            speed = self._last_tcp_speed
         if mvacc is None:
-            mvacc = self._mvacc
+            mvacc = self._last_tcp_acc
         if mvtime is None:
             mvtime = 0
 
@@ -1072,7 +1115,7 @@ class XArm(Gripper):
             _, angles = self.get_servo_angle(is_radian=True)
         self.set_pause_time(first_pause_time)
         self._is_stop = False
-        last_used_angle_speed = self._angle_mvvelo
+        last_used_joint_speed = self._last_joint_speed
 
         def _move():
             if automatic_calibration:
@@ -1080,7 +1123,7 @@ class XArm(Gripper):
                 if ret < 0:
                     logger.error('set_servo_angle, ret={}'.format(ret))
                     return -1
-                self._angle_mvvelo = last_used_angle_speed
+                self._last_joint_speed = last_used_joint_speed
             for path in paths:
                 if len(path) > 6 and path[6] >= 0:
                     radius = path[6]
@@ -1455,33 +1498,33 @@ class XArm(Gripper):
             self._last_angles[6] = kwargs.get('O') if is_radian else kwargs.get('O') / RAD_DEGREE
 
         if 'F' in kwargs and isinstance(kwargs['F'], (int, float)):
-            self._mvvelo = kwargs.get('F')
-            self._mvvelo = min(max(self._mvvelo, self._min_velo), self._max_velo)
+            self._last_tcp_speed = kwargs.get('F')
+            self._last_tcp_speed = min(max(self._last_tcp_speed, self._min_tcp_speed), self._max_tcp_speed)
         if 'Q' in kwargs and isinstance(kwargs['Q'], (int, float)):
-            self._mvacc = kwargs.get('Q')
-            self._mvacc = min(max(self._mvacc, self._min_acc), self._max_acc)
+            self._last_tcp_acc = kwargs.get('Q')
+            self._last_tcp_acc = min(max(self._last_tcp_acc, self._min_tcp_acc), self._max_tcp_acc)
         if 'F2' in kwargs and isinstance(kwargs['F2'], (int, float)):
-            self._angle_mvvelo = kwargs.get('F2')
+            self._last_joint_speed = kwargs.get('F2')
             if not is_radian:
-                self._angle_mvvelo /= RAD_DEGREE
-            self._angle_mvvelo = min(max(self._angle_mvvelo, self._min_angle_velo), self._max_angle_velo)
+                self._last_joint_speed /= RAD_DEGREE
+            self._last_joint_speed = min(max(self._last_joint_speed, self._min_joint_speed), self._max_joint_speed)
         if 'Q2' in kwargs and isinstance(kwargs['Q2'], (int, float)):
-            self._angle_mvacc = kwargs.get('Q2')
+            self._last_joint_acc = kwargs.get('Q2')
             if not is_radian:
-                self._angle_mvacc /= RAD_DEGREE
-            self._angle_mvacc = min(max(self._angle_mvacc, self._min_angle_acc), self._max_angle_acc)
+                self._last_joint_acc /= RAD_DEGREE
+            self._last_joint_acc = min(max(self._last_joint_acc, self._min_joint_acc), self._max_joint_acc)
         if 'T' in kwargs and isinstance(kwargs['T'], (int, float)):
             self._mvtime = kwargs.get('T')
         if 'LIMIT_VELO' in kwargs and isinstance(kwargs['LIMIT_VELO'], (list, tuple)) \
                 and len(kwargs['LIMIT_VELO']) == 2 and isinstance(kwargs['LIMIT_VELO'][0], (int, float)) \
                 and isinstance(kwargs['LIMIT_VELO'][1], (int, float)) \
                 and kwargs['LIMIT_VELO'][0] <= kwargs['LIMIT_VELO'][1]:
-            self._min_velo, self._max_velo = kwargs.get('LIMIT_VELO')
+            self._min_tcp_speed, self._max_tcp_speed = kwargs.get('LIMIT_VELO')
         if 'LIMIT_ACC' in kwargs and isinstance(kwargs['LIMIT_ACC'], (list, tuple)) \
                 and len(kwargs['LIMIT_ACC']) == 2 and isinstance(kwargs['LIMIT_ACC'][0], (int, float)) \
                 and isinstance(kwargs['LIMIT_ACC'][1], (int, float)) \
                 and kwargs['LIMIT_ACC'][0] <= kwargs['LIMIT_ACC'][1]:
-            self._min_acc, self._max_acc = kwargs.get('LIMIT_ACC')
+            self._min_tcp_acc, self._max_tcp_acc = kwargs.get('LIMIT_ACC')
 
     def _get_params(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1489,29 +1532,29 @@ class XArm(Gripper):
             return {
                 'lastPosition': self._last_position,
                 'lastAngles': self._last_angles,
-                'mvvelo': self._mvvelo,
-                'mvacc': self._mvacc,
-                'angle_mvvelo': self._angle_mvvelo,
-                'angle_mvacc': self._angle_mvacc,
+                'mvvelo': self._last_tcp_speed,
+                'mvacc': self._last_tcp_acc,
+                'angle_mvvelo': self._last_joint_speed,
+                'angle_mvacc': self._last_joint_acc,
                 'mvtime': self._mvtime,
-                'LIMIT_VELO': [self._min_velo, self._max_velo],
-                'LIMIT_ACC': [self._min_acc, self._max_acc],
-                'LIMIT_ANGLE_VELO': [self._min_angle_velo, self._max_angle_velo],
-                'LIMIT_ANGLE_ACC': [self._min_angle_acc, self._max_angle_acc],
+                'LIMIT_VELO': [self._min_tcp_speed, self._max_tcp_speed],
+                'LIMIT_ACC': [self._min_tcp_acc, self._max_tcp_acc],
+                'LIMIT_ANGLE_VELO': [self._min_joint_speed, self._max_joint_speed],
+                'LIMIT_ANGLE_ACC': [self._min_joint_acc, self._max_joint_acc],
             }
         else:
             return {
                 'lastPosition': [self._last_position[i] * RAD_DEGREE if 2 < i < 6 else self._last_position[i] for i in range(len(self._last_position))],
                 'lastAngles': [angle * RAD_DEGREE for angle in self._last_angles],
-                'mvvelo': self._mvvelo,
-                'mvacc': self._mvacc,
-                'angle_mvvelo': self._angle_mvvelo * RAD_DEGREE,
-                'angle_mvacc': self._angle_mvacc * RAD_DEGREE,
+                'mvvelo': self._last_tcp_speed,
+                'mvacc': self._last_tcp_acc,
+                'angle_mvvelo': self._last_joint_speed * RAD_DEGREE,
+                'angle_mvacc': self._last_joint_acc * RAD_DEGREE,
                 'mvtime': self._mvtime,
-                'LIMIT_VELO': [self._min_velo, self._max_velo],
-                'LIMIT_ACC': [self._min_acc, self._max_acc],
-                'LIMIT_ANGLE_VELO': [self._min_angle_velo * RAD_DEGREE, self._max_angle_velo * RAD_DEGREE],
-                'LIMIT_ANGLE_ACC': [self._min_angle_acc * RAD_DEGREE, self._max_angle_acc * RAD_DEGREE],
+                'LIMIT_VELO': [self._min_tcp_speed, self._max_tcp_speed],
+                'LIMIT_ACC': [self._min_tcp_acc, self._max_tcp_acc],
+                'LIMIT_ANGLE_VELO': [self._min_joint_speed * RAD_DEGREE, self._max_joint_speed * RAD_DEGREE],
+                'LIMIT_ANGLE_ACC': [self._min_joint_acc * RAD_DEGREE, self._max_joint_acc * RAD_DEGREE],
             }
 
     def emergency_stop(self):

@@ -14,6 +14,15 @@ class XCONF(object):
     def __init__(self):
         pass
 
+    class RobotType:
+        XARM6_X1 = 1
+        XARM7_X2 = 2
+        XARM7_X3 = 3
+        XARM7_X3MIR = 4
+        XARM5_X4 = 5
+        XARM6_X4 = 6
+        XARM7_X4 = 7
+
     class SerialConf:
         SERIAL_BAUD = 921600
         UXBUS_RXQUE_MAX = 10
@@ -32,7 +41,7 @@ class XCONF(object):
         TCP_RX_QUE_MAX = 1024
         TCP_CONTROL_BUF_SIZE = 1024
         TCP_REPORT_NORMAL_BUF_SIZE = 87
-        TCP_REPORT_RICH_BUF_SIZE = 161
+        TCP_REPORT_RICH_BUF_SIZE = 187
 
     class UxbusReg:
         GET_VERSION = 1

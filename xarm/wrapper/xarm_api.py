@@ -12,8 +12,7 @@ from ..x3 import XArm
 
 class XArmAPI(object):
     def __init__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=True,
-                 enable_report=True, report_type='normal', do_not_open=False,
-                 limit_velo=None, limit_acc=None, limit_angle_velo=None, limit_angle_acc=None, is_radian=False):
+                 enable_report=True, report_type='normal', do_not_open=False, is_radian=False, **kwargs):
         """
         The API wrapper of xArm
         Note: Orientation of attitude angle
@@ -35,12 +34,6 @@ class XArmAPI(object):
                 'real': Reported at a frequency of 10 Hz (used only for debugging)
                 'rich': Reported at a frequency of 100 Hz
         :param do_not_open: do not open, default is False
-        :param limit_velo: limit velo, default is [0, 1000] mm/s
-        :param limit_acc: limit acc, default is [0, 20000] mm/s^2
-        :param limit_angle_velo: limit angle velo, default is [1°/s, 180°/s] (unit: °/s or rad/s)
-            Note: If the parameter is_radian is True then use rad/s, otherwise use °/s
-        :param limit_angle_acc: limit angle acc, default is [1°/s^2, 3600°/s^2] (unit: °/s^2 or rad/s^2)
-            Note: If the parameter is_radian is True then use rad/s^2, otherwise use °/s^2
         :param is_radian: set the default unit is radians or not, default is False
             Note: (aim of design)
                 1. Default value for unified interface parameters
@@ -83,6 +76,7 @@ class XArmAPI(object):
                     5. property: last_used_joint_speed
                     6. property: last_used_joint_acc
                     7. property: position_offset
+        :param kwargs: reversed
         """
         self._arm = XArm(port=port,
                          baudrate=baudrate,
@@ -92,10 +86,6 @@ class XArmAPI(object):
                          enable_report=enable_report,
                          report_type=report_type,
                          do_not_open=do_not_open,
-                         limit_velo=limit_velo,
-                         limit_acc=limit_acc,
-                         limit_angle_velo=limit_angle_velo,
-                         limit_angle_acc=limit_angle_acc,
                          is_radian=is_radian)
         self.__attr_alias_map = {
             'get_ik': self.get_inverse_kinematics,
@@ -166,6 +156,14 @@ class XArmAPI(object):
         return self._arm.last_used_position
 
     @property
+    def tcp_speed_limit(self):
+        return self._arm.tcp_speed_limit
+
+    @property
+    def tcp_acc_limit(self):
+        return self._arm.tcp_acc_limit
+
+    @property
     def last_used_tcp_speed(self):
         """
         The last used cartesion speed, default value of parameter speed of interface set_position
@@ -193,6 +191,14 @@ class XArmAPI(object):
         :return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
         """
         return self._arm.angles
+
+    @property
+    def joint_speed_limit(self):
+        return self._arm.joint_speed_limit
+
+    @property
+    def joint_acc_limit(self):
+        return self._arm.joint_acc_limit
 
     @property
     def last_used_angles(self):

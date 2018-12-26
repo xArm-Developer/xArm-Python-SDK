@@ -20,13 +20,18 @@ from xarm.core.utils.log import logger
 xarm = XArmAPI(port='192.168.1.113',
                enable_heartbeat=True,
                enable_report=True,
-               report_type='normal',
+               report_type='rich',
                is_radian=True)
-xarm.motion_enable(True)
-xarm.set_state(0)
-xarm.clean_error()
-xarm.set_state(0)
-time.sleep(5)
+
+time.sleep(2)
+print(xarm.device_type)
+print(xarm.axis)
+
+# xarm.motion_enable(True)
+# xarm.set_state(0)
+# xarm.clean_error()
+# xarm.set_state(0)
+# time.sleep(5)
 
 # print(xarm.get_servo_angle())
 # print(xarm.get_position(is_radian=False))

@@ -18,14 +18,22 @@ from xarm.core.utils.log import logger
 # logger.setLevel(logger.DEBUG)
 
 xarm = XArmAPI(port='192.168.1.113',
-               enable_heartbeat=True,
                enable_report=True,
                report_type='rich',
-               is_radian=True)
+               is_radian=False)
 
-time.sleep(2)
+# xarm.motion_enable(True)
+# xarm.set_mode(0)
+# xarm.set_state(0)
+print(xarm.version)
+# print(xarm.get_position())
 print(xarm.device_type)
 print(xarm.axis)
+# print(xarm.tcp_speed_limit)
+# print(xarm.tcp_acc_limit)
+# print(xarm.joint_speed_limit)
+# print(xarm.joint_acc_limit)
+
 
 # xarm.motion_enable(True)
 # xarm.set_state(0)

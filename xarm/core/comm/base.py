@@ -39,13 +39,15 @@ class Port(threading.Thread):
 
     def close(self):
         self.alive = False
+        if 'socket' in self.port_type:
+            try:
+                self.com.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
         self.com.close()
-        while self.connected:
-            time.sleep(0.01)
-        # if self.connected:
-        #     self.com.close()
-        #     while self.connected:
-        #         time.sleep(0.01)
+        # start_time = time.time()
+        # while self.connected and time.time() - start_time < 5:
+        #     time.sleep(0.01)
 
     def flush(self, fromid=-1, toid=-1):
         if not self.connected:
@@ -102,7 +104,7 @@ class Port(threading.Thread):
                         continue
                     if len(rx_data) == 0:
                         failed_read_count += 1
-                        if failed_read_count > 30:
+                        if failed_read_count > 5:
                             self._connected = False
                             break
                         time.sleep(0.1)
@@ -119,20 +121,10 @@ class Port(threading.Thread):
                 else:
                     self.rx_parse.put(rx_data)
         except Exception as e:
-            if self.connected:
-                self._connected = False
-                try:
-                    self.com.close()
-                except:
-                    pass
             if self.alive:
                 logger.error('{}: {}'.format(self.port_type, e))
         finally:
-            self._connected = False
-            try:
-                self.com.close()
-            except:
-                pass
+            self.close()
         logger.debug('{} recv thread had stopped'.format(self.port_type))
         # if self.heartbeat_thread:
         #     try:

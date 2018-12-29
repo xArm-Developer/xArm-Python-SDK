@@ -11,8 +11,7 @@ from ..x3 import XArm
 
 
 class XArmAPI(object):
-    def __init__(self, port=None, baudrate=921600, timeout=None, filters=None, enable_heartbeat=True,
-                 enable_report=True, report_type='normal', do_not_open=False, is_radian=False, **kwargs):
+    def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         """
         The API wrapper of xArm
         Note: Orientation of attitude angle
@@ -22,18 +21,6 @@ class XArmAPI(object):
         
         :param port: port name(such as 'COM5'/'/dev/ttyUSB0') or ip-address(such as '192.168.1.185')
             Note: this parameter is required if parameter do_not_open is False
-        :param baudrate: baudrate, only available in serial way, default is 921600
-        :param timeout: timeout, only available in serial way, default is None
-        :param filters: serial port filters, invalid, reserved.
-        :param enable_heartbeat: whether to enable heartbeat, default is True, only available in socket way
-        :param enable_report: whether to enable report, default is True
-            Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
-        :param report_type: report type('normal'/'real'/'rich'), only available in socket way, default is 'normal'
-            Note:
-                'normal': Reported at a frequency of 10 Hz
-                'real': Reported at a frequency of 10 Hz (used only for debugging)
-                'rich': Reported at a frequency of 100 Hz
-        :param do_not_open: do not open, default is False
         :param is_radian: set the default unit is radians or not, default is False
             Note: (aim of design)
                 1. Default value for unified interface parameters
@@ -76,17 +63,22 @@ class XArmAPI(object):
                     5. property: last_used_joint_speed
                     6. property: last_used_joint_acc
                     7. property: position_offset
-        :param kwargs: reversed
+        :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
+        :param kwargs: keyword parameters, generally do not need to set
+            baudrate: baudrate, only available in serial way, default is 921600
+            timeout: timeout, only available in serial way, default is None
+            filters: serial port filters, invalid, reserved.
+            enable_report: whether to enable report, default is True
+                Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
+            report_type: report type('normal'/'rich'/'real'), only available in socket way, default is 'rich'
+                Note:
+                    'normal': Reported at a frequency of 10 Hz
+                    'rich': Reported at a frequency of 10 Hz, more reported content than normal
+                    'real': Reported at a frequency of 100 Hz, same as the content reported by normal, but the frequency is different
         """
         self._arm = XArm(port=port,
-                         baudrate=baudrate,
-                         timeout=timeout,
-                         filters=filters,
-                         enable_heartbeat=enable_heartbeat,
-                         enable_report=enable_report,
-                         report_type=report_type,
-                         do_not_open=do_not_open,
-                         is_radian=is_radian)
+                         is_radian=is_radian,
+                         do_not_open=do_not_open)
         self.__attr_alias_map = {
             'get_ik': self.get_inverse_kinematics,
             'get_fk': self.get_forward_kinematics,
@@ -157,10 +149,20 @@ class XArmAPI(object):
 
     @property
     def tcp_speed_limit(self):
+        """
+        Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+        
+        :return: [min_tcp_acc(mm/s), max_tcp_acc(mm/s)]
+        """
         return self._arm.tcp_speed_limit
 
     @property
     def tcp_acc_limit(self):
+        """
+        Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+        
+        :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
+        """
         return self._arm.tcp_acc_limit
 
     @property
@@ -194,10 +196,24 @@ class XArmAPI(object):
 
     @property
     def joint_speed_limit(self):
+        """
+        Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'
+        Note:
+            1. If self.default_is_radian is True, the returned value is in radians
+            
+        :return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]
+        """
         return self._arm.joint_speed_limit
 
     @property
     def joint_acc_limit(self):
+        """
+        Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+        Note:
+            1. If self.default_is_radian is True, the returned value is in radians
+        
+        :return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]
+        """
         return self._arm.joint_acc_limit
 
     @property
@@ -260,28 +276,32 @@ class XArmAPI(object):
         return self._arm.state
 
     @property
-    def mtbrake(self):
+    def motor_brake_states(self):
         """
-        Servo brake state list, only available in socket way and enable_report is True
+        Motor brake state list, only available in socket way and enable_report is True
+        Note:
+            For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
         
-        :return: [servo-1-brake-state, servo-2-..., servo-3-..., servo-4-..., servo-5-..., servo-6-..., servo-7-..., reserved]
-            servo-{i}-brake-state:
+        :return: [motor-1-brake-state, motor-2-..., motor-3-..., motor-4-..., motor-5-..., motor-6-..., motor-7-..., reserved]
+            motor-{i}-brake-state:
                 0: enable
                 1: disable
         """
-        return self._arm.mtbrake
+        return self._arm.motor_brake_states
 
     @property
-    def maable(self):
+    def motor_enable_states(self):
         """
-        Servo enable state list, only available in socket way and enable_report is True
-        
-        :return: [servo-1-enable-state, servo-2-..., servo-3-..., servo-4-..., servo-5-..., servo-6-..., servo-7-..., reserved]
-            servo-{i}-enable-state:
+        Motor enable state list, only available in socket way and enable_report is True
+        Note:
+            For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
+            
+        :return: [motor-1-enable-state, motor-2-..., motor-3-..., motor-4-..., motor-5-..., motor-6-..., motor-7-..., reserved]
+            motor-{i}-enable-state:
                 0: disable
                 1: enable
         """
-        return self._arm.maable
+        return self._arm.motor_enable_states
 
     @property
     def has_err_warn(self):
@@ -429,9 +449,11 @@ class XArmAPI(object):
         """
         Set the cartesian position, the API will modify self.last_used_position value
         Note:
-            1. If the parameter(roll/pitch/yaw) you are passing is an radian unit, be sure to set the parameter is_radian to True.
+            1. If it is a 5-axis arm, ensure that the current robot arm has a roll value of 180° or π rad and has a roll value of 0 before calling this interface.
+            2. If it is a 5-axis arm, roll must be set to 180° or π rad, pitch must be set to 0
+            3. If the parameter(roll/pitch/yaw) you are passing is an radian unit, be sure to set the parameter is_radian to True.
                 ex: code = xarm.set_position(x=300, y=0, z=200, roll=-3.14, pitch=0, yaw=0, is_radian=True)
-            2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
+            4. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
                 ex: code = xarm.set_position(x=300, y=0, z=200, roll=180, pitch=0, yaw=0, is_radian=False, wait=True)
         
         :param x: cartesian position x, (unit: mm), default is self.last_used_position[0]
@@ -484,7 +506,7 @@ class XArmAPI(object):
         Set the servo angle, the API will modify self.last_used_angles value
         Note:
             1. If the parameter angle you are passing is an radian unit, be sure to set the parameter is_radian to True.
-                ex: code = xarm.set_servo_angle(servo_id=3, angle=45, is_radian=True)
+                ex: code = xarm.set_servo_angle(servo_id=1, angle=1.57, is_radian=True)
             2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
                 ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False,wait=True)
         
@@ -492,13 +514,13 @@ class XArmAPI(object):
             1. 1-7 indicates the corresponding joint, the parameter angle should be a numeric value
                 ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
             2. None(8) means all joints, default is None, the parameter angle should be a list of values whose length is the number of joints
-                ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 80], is_radian=False)
+                ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
         :param angle: angle or angle list, (unit: rad if is_radian is True else °)
             1. If servo_id is 1-7, angle should be a numeric value
                 ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
             2. If servo_id is None or 8, angle should be a list of values whose length is the number of joints
                 like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
-                ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 80], is_radian=False)
+                ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
         :param speed: move speed (unit: rad/s if is_radian is True else °/s), default is self.last_used_joint_speed
         :param mvacc: move acceleration (unit: rad/s^2 if is_radian is True else °/s^2), default is self.last_used_joint_acc
         :param mvtime: 0, reserved
@@ -976,7 +998,7 @@ class XArmAPI(object):
 
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
                                  report_state=True, report_error_code=True, report_warn_code=True,
-                                 report_maable=True, report_mtbrake=True, report_cmd_num=True):
+                                 report_mtable=True, report_mtbrake=True, report_cmd_num=True):
         """
         Register the report callback, only available if enable_report is True
         
@@ -989,7 +1011,7 @@ class XArmAPI(object):
                 'warn_code': 0, # if report_warn_code is True
                 'state': state, # if report_state is True
                 'mtbrake': mtbrake, # if report_mtbrake is True, and available if enable_report is True and the connect way is socket
-                'maable': maable, # if report_maable is True, and available if enable_report is True and the connect way is socket
+                'mtable': mtable, # if report_mtable is True, and available if enable_report is True and the connect way is socket
                 'cmdnum': cmdnum, # if report_cmd_num is True
             }
         :param report_cartesian: report cartesian or not, default is True
@@ -997,8 +1019,8 @@ class XArmAPI(object):
         :param report_state: report state or not, default is True
         :param report_error_code: report error or not, default is True
         :param report_warn_code: report warn or not, default is True
-        :param report_maable: report maable or not, default is True
-        :param report_mtbrake: report mtbrake or not, default is True
+        :param report_mtable: report motor enable states or not, default is True
+        :param report_mtbrake: report motor brake states or not, default is True
         :param report_cmd_num: report cmdnum or not, default is True
         :return: True/False
         """
@@ -1008,7 +1030,7 @@ class XArmAPI(object):
                                                   report_state=report_state,
                                                   report_error_code=report_error_code,
                                                   report_warn_code=report_warn_code,
-                                                  report_maable=report_maable,
+                                                  report_mtable=report_mtable,
                                                   report_mtbrake=report_mtbrake,
                                                   report_cmd_num=report_cmd_num)
 
@@ -1057,19 +1079,19 @@ class XArmAPI(object):
         """
         return self._arm.register_state_changed_callback(callback=callback)
 
-    def register_maable_mtbrake_changed_callback(self, callback=None):
+    def register_mtable_mtbrake_changed_callback(self, callback=None):
         """
-        Register the maable or mtbrake status changed callback, only available if enable_report is True and the connect way is socket
+        Register the motor enable states or motor brake states changed callback, only available if enable_report is True and the connect way is socket
         
         :param callback: 
             callback data:
             {
-                "maable": [axis-1-motion-enable, axis-2-motion-enable, ...],
-                "mtbrake": [axis-1-brake-enable, axis-1-brake-enable,...],
+                "mtable": [motor-1-motion-enable, motor-2-motion-enable, ...],
+                "mtbrake": [motor-1-brake-enable, motor-1-brake-enable,...],
             }
         :return: True/False
         """
-        return self._arm.register_maable_mtbrake_changed_callback(callback=callback)
+        return self._arm.register_mtable_mtbrake_changed_callback(callback=callback)
 
     def register_error_warn_changed_callback(self, callback=None):
         """
@@ -1134,14 +1156,14 @@ class XArmAPI(object):
         """
         return self._arm.release_state_changed_callback(callback)
 
-    def release_maable_mtbrake_changed_callback(self, callback=None):
+    def release_mtable_mtbrake_changed_callback(self, callback=None):
         """
-        Release the maable or mtbrake changed callback
+        Release the motor enable states or motor brake states changed callback
         
         :param callback: 
         :return: True/False
         """
-        return self._arm.release_maable_mtbrake_changed_callback(callback)
+        return self._arm.release_mtable_mtbrake_changed_callback(callback)
 
     def release_error_warn_changed_callback(self, callback=None):
         """

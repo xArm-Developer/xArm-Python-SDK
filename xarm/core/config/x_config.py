@@ -6,10 +6,13 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import math
+
 
 class XCONF(object):
     ARM_AXIS_NUM = 7
     GRIPPER_ID = 8
+    MAX_CMD_NUM = 256
 
     def __init__(self):
         pass
@@ -22,6 +25,104 @@ class XCONF(object):
         XARM5_X4 = 5
         XARM6_X4 = 6
         XARM7_X4 = 7
+
+        JOINT_LIMITS = {
+            XARM5_X4: [
+                (-2 * math.pi, 2 * math.pi),
+                (-2.18, 2.18),
+                (-4.01, 0.1),
+                (-1.75, math.pi),
+                (-2 * math.pi, 2 * math.pi)
+            ],
+            XARM6_X4: [
+                (-2 * math.pi, 2 * math.pi),
+                (-2.18, 2.18),
+                (-4.01, 0.1),
+                (-2 * math.pi, 2 * math.pi),
+                (-1.75, math.pi),
+                (-2 * math.pi, 2 * math.pi)
+            ],
+            XARM7_X4: [
+                (-2 * math.pi, 2 * math.pi),
+                (-2.18, 2.18),
+                (-2 * math.pi, 2 * math.pi),
+                (-4.01, 0.1),
+                (-2 * math.pi, 2 * math.pi),
+                (-1.75, math.pi),
+                (-2 * math.pi, 2 * math.pi)
+            ],
+            XARM7_X3: [
+                (-2 * math.pi, 2 * math.pi),
+                (-2.18, 2.18),
+                (-2 * math.pi, 2 * math.pi),
+                (-4.01, 0.1),
+                (-2 * math.pi, 2 * math.pi),
+                (-1.75, math.pi),
+                (-2 * math.pi, 2 * math.pi)
+            ],
+            XARM7_X3MIR: [
+                (-2 * math.pi, 2 * math.pi),
+                (-2.18, 2.18),
+                (-2 * math.pi, 2 * math.pi),
+                (-4.01, 0.1),
+                (-2 * math.pi, 2 * math.pi),
+                (-1.75, math.pi),
+                (-2 * math.pi, 2 * math.pi)
+            ]
+        }
+
+        TCP_LIMITS = {
+            XARM5_X4: [
+                (-750, 750),
+                (-750, 750),
+                (-400, 1000),
+                (math.pi, math.pi),
+                (0, 0),
+                (-math.pi, math.pi)
+            ],
+            XARM6_X4: [
+                (-750, 750),
+                (-750, 750),
+                (-400, 1000),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi)
+            ],
+            XARM7_X4: [
+                (-750, 750),
+                (-750, 750),
+                (-400, 1000),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi)
+            ],
+            XARM7_X3: [
+                (-750, 750),
+                (-750, 750),
+                (-400, 1000),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi)
+            ],
+            XARM7_X3MIR: [
+                (-750, 750),
+                (-750, 750),
+                (-400, 1000),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi),
+                (-math.pi, math.pi)
+            ]
+        }
+
+        AXIS_MAP = {
+            XARM6_X1: 6,
+            XARM7_X2: 7,
+            XARM7_X3: 7,
+            XARM7_X3MIR: 7,
+            XARM5_X4: 5,
+            XARM6_X4: 6,
+            XARM7_X4: 7,
+        }
 
     class SerialConf:
         SERIAL_BAUD = 921600

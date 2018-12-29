@@ -23,64 +23,31 @@ from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready
 
 RAD_DEGREE = 57.295779513082320876798154814105
-LIMIT_VELO = [1, 1000]  # mm/s
-LIMIT_ACC = [1, 20000]  # mm/s^2
-LIMIT_ANGLE_VELO = [1, 180]  # °/s
-LIMIT_ANGLE_ACC = [1, 3600]  # °/s^2
-
-LIMIT_TCP_ROTATE = [
-    (-math.pi, math.pi),
-    (-math.pi, math.pi),
-    (-math.pi, math.pi)
-]
-LIMIT_JOINTS = [
-    (-2 * math.pi, 2 * math.pi),
-    (-2.18, 2.18),
-    (-2 * math.pi, 2 * math.pi),
-    (-4.01, 0.2),
-    (-2 * math.pi, 2 * math.pi),
-    (-1.79, math.pi),
-    (-2 * math.pi, 2 * math.pi)
-]
-MAX_CMD_NUM = 256
 
 REPORT_ID = 'REPORT'
 REPORT_LOCATION_ID = 'LOCATION'
-
 REPORT_CONNECT_CHANGED_ID = 'REPORT_CONNECT_CHANGED'
 REPORT_STATE_CHANGED_ID = 'REPORT_STATE_CHANGED'
-REPORT_MAABLE_MTBRAKE_CHANGED_ID = 'REPORT_MAABLE_MTBRAKE_CHANGED'
+REPORT_MTABLE_MTBRAKE_CHANGED_ID = 'REPORT_MTABLE_MTBRAKE_CHANGED'
 REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
 REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 
 
 class XArm(Gripper):
-    def __init__(self, port=None, do_not_open=False, is_radian=False, **kwargs):
+    def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         super(XArm, self).__init__()
         self._port = port
         self._baudrate = kwargs.get('baudrate', 921600)
         self._timeout = kwargs.get('timeout', None)
         self._filters = kwargs.get('filters', None)
-        self._enable_heartbeat = kwargs.get('enable_heartbeat', True)
+        self._enable_heartbeat = kwargs.get('enable_heartbeat', False)
         self._enable_report = kwargs.get('enable_report', True)
         self._report_type = kwargs.get('report_type', 'rich')
 
-        # self._min_tcp_speed, self._max_tcp_speed = limit_velo if limit_velo is not None and len(limit_velo) >= 2 else LIMIT_VELO
-        # self._min_tcp_acc, self._max_tcp_acc = limit_acc if limit_acc is not None and len(limit_acc) >= 2 else LIMIT_ACC
         self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
         self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
         self._tcp_jerk = 1000  # mm/s^3
 
-        # self._min_joint_speed, self._max_joint_speed = list(map(lambda x: x / RAD_DEGREE, LIMIT_ANGLE_VELO))
-        # self._min_joint_acc, self._max_joint_acc = list(map(lambda x: x / RAD_DEGREE, LIMIT_ANGLE_ACC))
-        # if limit_angle_velo is not None and len(limit_angle_velo) >= 2:
-        #     if not is_radian:
-        #         limit_angle_velo = list(map(lambda x: x / RAD_DEGREE, limit_angle_velo))
-        #     self._min_joint_speed, self._max_joint_speed = limit_angle_velo
-        # if limit_angle_acc is not None and len(limit_angle_acc) >= 2:
-        #     if not is_radian:
-        #         limit_angle_acc = list(map(lambda x: x / RAD_DEGREE, limit_angle_acc))
-        #     self._min_joint_acc, self._max_joint_acc = limit_angle_acc
         self._min_joint_speed, self._max_joint_speed = 0.01, 4.0  # rad/s
         self._min_joint_acc, self._max_joint_acc = 0.01, 20.0  # rad/s^2
         self._joint_jerk = 20.0  # rad/s^3
@@ -110,15 +77,15 @@ class XArm(Gripper):
         self._state = 4
         self._error_code = 0
         self._warn_code = 0
-        self._mtbrake = [0, 0, 0, 0, 0, 0, 0, 0]  # [serve_1_brake, serve_2_brake, serve_3_brake, serve_4_brake, serve_5_brake, serve_6_brake, serve_7_brake, reserved]
-        self._maable = [0, 0, 0, 0, 0, 0, 0, 0]  # [serve_1_enable, serve_2_enable, serve_3_enable, serve_4_enable, serve_5_enable, serve_6_enable, serve_7_enable, reserved]
         self._cmd_num = 0
-        self._arm_type = 2
+        self._arm_type = XCONF.RobotType.XARM7_X4
         self._arm_axis = 7
         self._arm_master_id = 0
         self._arm_slave_id = 0
         self._arm_motor_tid = 0
         self._arm_motor_fid = 0
+        self._arm_motor_brake_states = [0, 0, 0, 0, 0, 0, 0, 0]  # [motor-1-brake-state, ..., motor-7-brake, reserved]
+        self._arm_motor_enable_states = [0, 0, 0, 0, 0, 0, 0, 0]  # [motor-1-enable-state, ..., motor-7-enable, reserved]
 
         self._is_ready = False
         self._is_stop = False
@@ -133,18 +100,8 @@ class XArm(Gripper):
             REPORT_CONNECT_CHANGED_ID: [],
             REPORT_ERROR_WARN_CHANGED_ID: [],
             REPORT_STATE_CHANGED_ID: [],
-            REPORT_MAABLE_MTBRAKE_CHANGED_ID: [],
+            REPORT_MTABLE_MTBRAKE_CHANGED_ID: [],
             REPORT_CMDNUM_CHANGED_ID: [],
-        }
-
-        self._robot_type_axis_map = {
-            XCONF.RobotType.XARM6_X1: 6,
-            XCONF.RobotType.XARM7_X2: 7,
-            XCONF.RobotType.XARM7_X3: 7,
-            XCONF.RobotType.XARM7_X3MIR: 7,
-            XCONF.RobotType.XARM5_X4: 5,
-            XCONF.RobotType.XARM6_X4: 6,
-            XCONF.RobotType.XARM7_X4: 7,
         }
 
         if not do_not_open:
@@ -177,11 +134,11 @@ class XArm(Gripper):
 
     @property
     def tcp_speed_limit(self):
-        return self._min_tcp_speed, self._max_tcp_speed
+        return [self._min_tcp_speed, self._max_tcp_speed]
 
     @property
     def tcp_acc_limit(self):
-        return self._min_tcp_acc, self._max_tcp_acc
+        return [self._min_tcp_acc, self._max_tcp_acc]
 
     @property
     def last_used_position(self):
@@ -240,12 +197,12 @@ class XArm(Gripper):
         return self._state
 
     @property
-    def mtbrake(self):
-        return self._mtbrake
+    def motor_brake_states(self):
+        return self._arm_motor_brake_states
 
     @property
-    def maable(self):
-        return self._maable
+    def motor_enable_states(self):
+        return self._arm_motor_enable_states
 
     @property
     def error_code(self):
@@ -404,18 +361,18 @@ class XArm(Gripper):
                 except Exception as e:
                     logger.error('state changed callback: {}'.format(e))
 
-    def _report_maable_mtbrake_changed_callback(self):
-        if REPORT_MAABLE_MTBRAKE_CHANGED_ID in self._report_callbacks.keys():
-            maable = [bool(i) for i in self._maable]
-            mtbrake = [bool(i) for i in self._mtbrake]
-            for callback in self._report_callbacks[REPORT_MAABLE_MTBRAKE_CHANGED_ID]:
+    def _report_mtable_mtbrake_changed_callback(self):
+        if REPORT_MTABLE_MTBRAKE_CHANGED_ID in self._report_callbacks.keys():
+            mtable = [bool(i) for i in self._arm_motor_enable_states]
+            mtbrake = [bool(i) for i in self._arm_motor_brake_states]
+            for callback in self._report_callbacks[REPORT_MTABLE_MTBRAKE_CHANGED_ID]:
                 try:
                     callback({
-                        'maable': maable.copy(),
+                        'mtable': mtable.copy(),
                         'mtbrake': mtbrake.copy()
                     })
                 except Exception as e:
-                    logger.error('maable/mtbrake changed callback: {}'.format(e))
+                    logger.error('mtable/mtbrake changed callback: {}'.format(e))
 
     def _report_error_warn_changed_callback(self):
         if REPORT_ERROR_WARN_CHANGED_ID in self._report_callbacks.keys():
@@ -467,11 +424,11 @@ class XArm(Gripper):
                     ret['warn_code'] = self._warn_code
                 if item['state']:
                     ret['state'] = self._state
-                if item['maable']:
-                    maable = [bool(i) for i in self._maable]
-                    ret['maable'] = maable.copy()
+                if item['mtable']:
+                    mtable = [bool(i) for i in self._arm_motor_enable_states]
+                    ret['mtable'] = mtable.copy()
                 if item['mtbrake']:
-                    mtbrake = [bool(i) for i in self._mtbrake]
+                    mtbrake = [bool(i) for i in self._arm_motor_brake_states]
                     ret['mtbrake'] = mtbrake.copy()
                 if item['cmdnum']:
                     ret['cmdnum'] = self._cmd_num
@@ -483,7 +440,7 @@ class XArm(Gripper):
     def _report_thread_handle(self):
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
-            state, mtbrake, maable, error_code, warn_code = rx_data[4:9]
+            state, mtbrake, mtable, error_code, warn_code = rx_data[4:9]
             angles = convert.bytes_to_fp32s(rx_data[9:7 * 4 + 9], 7)
             pose = convert.bytes_to_fp32s(rx_data[37:6 * 4 + 37], 6)
             cmd_num = convert.bytes_to_u16(rx_data[61:63])
@@ -514,17 +471,16 @@ class XArm(Gripper):
 
             mtbrake = [mtbrake & 0x01, mtbrake >> 1 & 0x01, mtbrake >> 2 & 0x01, mtbrake >> 3 & 0x01,
                        mtbrake >> 4 & 0x01, mtbrake >> 5 & 0x01, mtbrake >> 6 & 0x01, mtbrake >> 7 & 0x01]
-            maable = [maable & 0x01, maable >> 1 & 0x01, maable >> 2 & 0x01, maable >> 3 & 0x01,
-                      maable >> 4 & 0x01, maable >> 5 & 0x01, maable >> 6 & 0x01, maable >> 7 & 0x01]
+            mtable = [mtable & 0x01, mtable >> 1 & 0x01, mtable >> 2 & 0x01, mtable >> 3 & 0x01,
+                      mtable >> 4 & 0x01, mtable >> 5 & 0x01, mtable >> 6 & 0x01, mtable >> 7 & 0x01]
 
-            if mtbrake != self._mtbrake or maable != self._maable:
-                self._maable = maable
-                self._mtbrake = mtbrake
-                self._report_maable_mtbrake_changed_callback()
+            if mtbrake != self._arm_motor_brake_states or mtable != self._arm_motor_enable_states:
+                self._arm_motor_enable_states = mtable
+                self._arm_motor_brake_states = mtbrake
+                self._report_mtable_mtbrake_changed_callback()
 
-            _mtbrake = [bool(item[0] & item[1]) for item in zip(mtbrake, maable)]
-            axis = self._robot_type_axis_map.get(self.device_type)
-            if state == 4 or not all(_mtbrake[:axis]):
+            axis = XCONF.RobotType.AXIS_MAP.get(self.device_type)
+            if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:axis]):
                 if self._is_ready:
                     logger.info('[report], xArm is not ready to move', color='orange')
                 self._is_ready = False
@@ -538,8 +494,8 @@ class XArm(Gripper):
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
             self._state = state
             self._cmd_num = cmd_num
-            self._mtbrake = mtbrake
-            self._maable = maable
+            self._arm_motor_brake_states = mtbrake
+            self._arm_motor_enable_states = mtable
 
             for i in range(len(pose)):
                 if i < 3:
@@ -577,8 +533,10 @@ class XArm(Gripper):
              self._arm_motor_tid,
              self._arm_motor_fid) = rx_data[87:93]
 
+            self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type)
+
             ver_msg = rx_data[93:122]
-            self._version = str(ver_msg, 'utf-8')
+            # self._version = str(ver_msg, 'utf-8')
 
             trs_msg = convert.bytes_to_fp32s(rx_data[123:143], 5)
             trs_msg = [i[0] for i in trs_msg]
@@ -674,7 +632,7 @@ class XArm(Gripper):
                 self._report_location_callback()
                 self._report_callback()
 
-                if self._cmd_num >= MAX_CMD_NUM:
+                if self._cmd_num >= XCONF.MAX_CMD_NUM:
                     time.sleep(1)
 
                 time.sleep(0.1)
@@ -746,16 +704,17 @@ class XArm(Gripper):
         return ret[0], [self._position[i] * RAD_DEGREE if 2 < i < 6 and not is_radian else self._position[i] for i in
                         range(len(self._position))]
 
-    @staticmethod
-    def _is_out_of_tcp_rotate_range(angle, i):
-        rotate_range = LIMIT_TCP_ROTATE[i]
-        if angle < rotate_range[0] or angle > rotate_range[1]:
-            return True
+    def _is_out_of_tcp_range(self, value, i):
+        tcp_range = XCONF.RobotType.TCP_LIMITS.get(self.device_type, [])
+        if 2 < i < len(tcp_range):  # only limit rotate
+            limit = tcp_range[i]
+            if value < limit[0] or value > limit[1]:
+                return True
         return False
 
     def _wait_until_cmdnum_lt_max(self):
         self._is_stop = False
-        while self.cmd_num >= MAX_CMD_NUM:
+        while self.cmd_num >= XCONF.MAX_CMD_NUM:
             if not self.connected:
                 return APIState.NOT_CONNECTED
             elif not self.ready:
@@ -791,12 +750,12 @@ class XArm(Gripper):
             if relative:
                 if 2 < i < 6:
                     if is_radian:
-                        if self._is_out_of_tcp_rotate_range(self._last_position[i] + value, i - 3):
+                        if self._is_out_of_tcp_range(self._last_position[i] + value, i):
                             self._last_position = last_used_position
                             return APIState.OUT_OF_RANGE
                         self._last_position[i] += value
                     else:
-                        if self._is_out_of_tcp_rotate_range(self._last_position[i] + value / RAD_DEGREE, i - 3):
+                        if self._is_out_of_tcp_range(self._last_position[i] + value / RAD_DEGREE, i):
                             self._last_position = last_used_position
                             return APIState.OUT_OF_RANGE
                         self._last_position[i] += value / RAD_DEGREE
@@ -805,12 +764,12 @@ class XArm(Gripper):
             else:
                 if 2 < i < 6:
                     if is_radian:
-                        if self._is_out_of_tcp_rotate_range(value, i - 3):
+                        if self._is_out_of_tcp_range(value, i):
                             self._last_position = last_used_position
                             return APIState.OUT_OF_RANGE
                         self._last_position[i] = value
                     else:
-                        if self._is_out_of_tcp_rotate_range(value / RAD_DEGREE, i - 3):
+                        if self._is_out_of_tcp_range(value / RAD_DEGREE, i):
                             self._last_position = last_used_position
                             return APIState.OUT_OF_RANGE
                         self._last_position[i] = value / RAD_DEGREE
@@ -899,11 +858,12 @@ class XArm(Gripper):
         else:
             return ret[0], self._angles[servo_id-1] if is_radian else self._angles[servo_id-1] * RAD_DEGREE
 
-    @staticmethod
-    def _is_out_of_angle_range(angle, i):
-        angle_range = LIMIT_JOINTS[i]
-        if angle <= angle_range[0] or angle >= angle_range[1]:
-            return True
+    def _is_out_of_joint_range(self, angle, i):
+        joint_limit = XCONF.RobotType.JOINT_LIMITS.get(self.device_type, [])
+        if i < len(joint_limit):
+            angle_range = joint_limit[i]
+            if angle <= angle_range[0] or angle >= angle_range[1]:
+                return True
         return False
 
     @xarm_is_ready(_type='set')
@@ -932,23 +892,23 @@ class XArm(Gripper):
                         continue
                 if relative:
                     if is_radian:
-                        if self._is_out_of_angle_range(self._last_angles[i] + value, i):
+                        if self._is_out_of_joint_range(self._last_angles[i] + value, i):
                             self._last_angles = last_used_angle
                             return APIState.OUT_OF_RANGE
                         self._last_angles[i] += value
                     else:
-                        if self._is_out_of_angle_range(self._last_angles[i] + value / RAD_DEGREE, i):
+                        if self._is_out_of_joint_range(self._last_angles[i] + value / RAD_DEGREE, i):
                             self._last_angles = last_used_angle
                             return APIState.OUT_OF_RANGE
                         self._last_angles[i] += value / RAD_DEGREE
                 else:
                     if is_radian:
-                        if self._is_out_of_angle_range(value, i):
+                        if self._is_out_of_joint_range(value, i):
                             self._last_angles = last_used_angle
                             return APIState.OUT_OF_RANGE
                         self._last_angles[i] = value
                     else:
-                        if self._is_out_of_angle_range(value / RAD_DEGREE, i):
+                        if self._is_out_of_joint_range(value / RAD_DEGREE, i):
                             self._last_angles = last_used_angle
                             return APIState.OUT_OF_RANGE
                         self._last_angles[i] = value / RAD_DEGREE
@@ -960,23 +920,23 @@ class XArm(Gripper):
                     raise Exception('param angle error')
             if relative:
                 if is_radian:
-                    if self._is_out_of_angle_range(self._last_angles[servo_id - 1] + angle, servo_id - 1):
+                    if self._is_out_of_joint_range(self._last_angles[servo_id - 1] + angle, servo_id - 1):
                         self._last_angles = last_used_angle
                         return APIState.OUT_OF_RANGE
                     self._last_angles[servo_id - 1] += angle
                 else:
-                    if self._is_out_of_angle_range(self._last_angles[servo_id - 1] + angle / RAD_DEGREE, servo_id - 1):
+                    if self._is_out_of_joint_range(self._last_angles[servo_id - 1] + angle / RAD_DEGREE, servo_id - 1):
                         self._last_angles = last_used_angle
                         return APIState.OUT_OF_RANGE
                     self._last_angles[servo_id - 1] += angle / RAD_DEGREE
             else:
                 if is_radian:
-                    if self._is_out_of_angle_range(angle, servo_id - 1):
+                    if self._is_out_of_joint_range(angle, servo_id - 1):
                         self._last_angles = last_used_angle
                         return APIState.OUT_OF_RANGE
                     self._last_angles[servo_id - 1] = angle
                 else:
-                    if self._is_out_of_angle_range(angle / RAD_DEGREE, servo_id - 1):
+                    if self._is_out_of_joint_range(angle / RAD_DEGREE, servo_id - 1):
                         self._last_angles = last_used_angle
                         return APIState.OUT_OF_RANGE
                     self._last_angles[servo_id - 1] = angle / RAD_DEGREE
@@ -1053,7 +1013,7 @@ class XArm(Gripper):
         if not is_radian:
             angles = [angle / RAD_DEGREE for angle in angles]
         for i in range(7):
-            if self._is_out_of_angle_range(angles[i], i):
+            if self._is_out_of_joint_range(angles[i], i):
                 return APIState.OUT_OF_RANGE
         ret = self.arm_cmd.move_servoj(angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
         return ret[0]
@@ -1546,15 +1506,15 @@ class XArm(Gripper):
             return {
                 'lastPosition': [self._last_position[i] * RAD_DEGREE if 2 < i < 6 else self._last_position[i] for i in range(len(self._last_position))],
                 'lastAngles': [angle * RAD_DEGREE for angle in self._last_angles],
-                'mvvelo': self._last_tcp_speed,
-                'mvacc': self._last_tcp_acc,
-                'angle_mvvelo': self._last_joint_speed * RAD_DEGREE,
-                'angle_mvacc': self._last_joint_acc * RAD_DEGREE,
+                'mvvelo': int(self._last_tcp_speed),
+                'mvacc': int(self._last_tcp_acc),
+                'angle_mvvelo': int(self._last_joint_speed * RAD_DEGREE),
+                'angle_mvacc': int(self._last_joint_acc * RAD_DEGREE),
                 'mvtime': self._mvtime,
-                'LIMIT_VELO': [self._min_tcp_speed, self._max_tcp_speed],
-                'LIMIT_ACC': [self._min_tcp_acc, self._max_tcp_acc],
-                'LIMIT_ANGLE_VELO': [self._min_joint_speed * RAD_DEGREE, self._max_joint_speed * RAD_DEGREE],
-                'LIMIT_ANGLE_ACC': [self._min_joint_acc * RAD_DEGREE, self._max_joint_acc * RAD_DEGREE],
+                'LIMIT_VELO': list(map(int, [self._min_tcp_speed, self._max_tcp_speed])),
+                'LIMIT_ACC': list(map(int, [self._min_tcp_acc, self._max_tcp_acc])),
+                'LIMIT_ANGLE_VELO': list(map(int, [self._min_joint_speed * RAD_DEGREE, self._max_joint_speed * RAD_DEGREE])),
+                'LIMIT_ANGLE_ACC': list(map(int, [self._min_joint_acc * RAD_DEGREE, self._max_joint_acc * RAD_DEGREE])),
             }
 
     def emergency_stop(self):
@@ -1780,7 +1740,7 @@ class XArm(Gripper):
 
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
                                  report_state=True, report_error_code=True, report_warn_code=True,
-                                 report_maable=True, report_mtbrake=True, report_cmd_num=True):
+                                 report_mtable=True, report_mtbrake=True, report_cmd_num=True):
         return self._register_report_callback(REPORT_ID, {
             'callback': callback,
             'cartesian': report_cartesian,
@@ -1788,7 +1748,7 @@ class XArm(Gripper):
             'error_code': report_error_code,
             'warn_code': report_warn_code,
             'state': report_state,
-            'maable': report_maable,
+            'mtable': report_mtable,
             'mtbrake': report_mtbrake,
             'cmdnum': report_cmd_num
         })
@@ -1807,8 +1767,8 @@ class XArm(Gripper):
     def register_state_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_STATE_CHANGED_ID, callback)
 
-    def register_maable_mtbrake_changed_callback(self, callback=None):
-        return self._register_report_callback(REPORT_MAABLE_MTBRAKE_CHANGED_ID, callback)
+    def register_mtable_mtbrake_changed_callback(self, callback=None):
+        return self._register_report_callback(REPORT_MTABLE_MTBRAKE_CHANGED_ID, callback)
 
     def register_error_warn_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_ERROR_WARN_CHANGED_ID, callback)
@@ -1828,8 +1788,8 @@ class XArm(Gripper):
     def release_state_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_STATE_CHANGED_ID, callback)
 
-    def release_maable_mtbrake_changed_callback(self, callback=None):
-        return self._release_report_callback(REPORT_MAABLE_MTBRAKE_CHANGED_ID, callback)
+    def release_mtable_mtbrake_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_MTABLE_MTBRAKE_CHANGED_ID, callback)
 
     def release_error_warn_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_ERROR_WARN_CHANGED_ID, callback)

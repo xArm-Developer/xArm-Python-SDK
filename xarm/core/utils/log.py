@@ -94,7 +94,7 @@ _log = logger._log
 def log(level, msg, args, exc_info=None, extra=None, stack_info=False, color=None):
     if color is None:
         color = level_color_map.get(level, 'none')
-    msg = colors.get(color, 'none').format(msg)
+    msg = colors.get(color, '{}').format(msg)
     return _log(level=level, msg=msg, args=args, exc_info=exc_info, extra=extra, stack_info=stack_info)
 
 logger._log = log
@@ -110,5 +110,5 @@ def pretty_print(*args, sep=' ', end='\n', file=None, color='none'):
     for arg in args:
         msg += arg + sep
     msg = msg.rstrip(sep)
-    msg = colors.get(color, 'none').format(msg)
+    msg = colors.get(color, '{}').format(msg)
     print(msg, end=end, file=file)

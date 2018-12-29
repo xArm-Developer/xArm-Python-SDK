@@ -45,6 +45,7 @@ class SocketPort(Port):
         try:
             socket.setdefaulttimeout(1)
             self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.com.setblocking(True)
             self.com.settimeout(1)
             self.com.connect((server_ip, server_port))

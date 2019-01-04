@@ -83,6 +83,8 @@ class XArmAPI(object):
             'get_ik': self.get_inverse_kinematics,
             'get_fk': self.get_forward_kinematics,
             'set_sleep_time': self.set_pause_time,
+            'register_maable_mtbrake_changed_callback': self.register_mtable_mtbrake_changed_callback,
+            'release_maable_mtbrake_changed_callback': self.release_mtable_mtbrake_changed_callback
         }
 
     def __getattr__(self, item):

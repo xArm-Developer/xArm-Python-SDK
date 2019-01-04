@@ -773,9 +773,10 @@ class XArmAPI(object):
         Set the tool coordinate system offset at the end
         Note:
             1. Do not use if not required
-            2. If not saved, it will be lost after reboot
-            3. The save_conf interface can record the current settings and will not be lost after the restart.
-            4. The clean_conf interface can restore system default settings
+            2. If not saved and you want to revert to the last saved value, please reset the offset by set_tcp_offset([0, 0, 0, 0, 0, 0])
+            3. If not saved, it will be lost after reboot
+            4. The save_conf interface can record the current settings and will not be lost after the restart.
+            5. The clean_conf interface can restore system default settings
         
         :param offset: [x, y, z, roll, pitch, yaw]
         :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian

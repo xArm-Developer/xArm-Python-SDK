@@ -1163,9 +1163,11 @@ class XArm(Gripper):
 
     @xarm_is_connected(_type='set')
     def set_servo_attach(self, servo_id=None):
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 8
-        ret = self.arm_cmd.set_brake(servo_id, 0)
-        return ret[0]
+        # assert isinstance(servo_id, int) and 1 <= servo_id <= 8
+        # ret = self.arm_cmd.set_brake(servo_id, 0)
+        ret = self.motion_enable(servo_id=servo_id, enable=True)
+        self.set_state(0)
+        return ret
 
     @xarm_is_connected(_type='set')
     def set_servo_detach(self, servo_id=None):

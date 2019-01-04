@@ -90,6 +90,7 @@ class XArm(Gripper):
         self._is_ready = False
         self._is_stop = False
         self._is_sync = False
+        self._is_first_report = True
         self._default_is_radian = is_radian
 
         self._sleep_finish_time = time.time()
@@ -479,15 +480,19 @@ class XArm(Gripper):
                 self._arm_motor_brake_states = mtbrake
                 self._report_mtable_mtbrake_changed_callback()
 
-            axis = XCONF.RobotType.AXIS_MAP.get(self.device_type)
-            if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:axis]):
-                if self._is_ready:
-                    logger.info('[report], xArm is not ready to move', color='orange')
-                self._is_ready = False
+            if not self._is_first_report:
+                axis = XCONF.RobotType.AXIS_MAP.get(self.device_type)
+                if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:axis]):
+                    if self._is_ready:
+                        logger.info('[report], xArm is not ready to move', color='orange')
+                    self._is_ready = False
+                else:
+                    if not self._is_ready:
+                        logger.info('[report], xArm is ready to move', color='green')
+                    self._is_ready = True
             else:
-                if not self._is_ready:
-                    logger.info('[report], xArm is ready to move', color='green')
-                self._is_ready = True
+                self._is_ready = False
+            self._is_first_report = False
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -644,11 +649,20 @@ class XArm(Gripper):
     def disconnect(self):
         self._stream.close()
         if self._stream_report:
-            self._stream_report.close()
+            try:
+                self._stream_report.close()
+            except:
+                pass
         self._is_ready = False
-        self._stream.join()
+        try:
+            self._stream.join()
+        except:
+            pass
         if self._stream_report:
-            self._stream_report.join()
+            try:
+                self._stream_report.join()
+            except:
+                pass
         self._report_connect_changed_callback(False, False)
 
     def _sync(self):
@@ -685,7 +699,7 @@ class XArm(Gripper):
                     if count >= 6:
                         break
                 else:
-                    base_joint_pos = self.owner.angles.copy()
+                    base_joint_pos = self.owner._angles.copy()
                     count = 0
                 time.sleep(0.05)
             # if not self.is_timeout:
@@ -1378,10 +1392,15 @@ class XArm(Gripper):
     def get_forward_kinematics(self, angles, input_is_radian=None, return_is_radian=None):
         input_is_radian = self._default_is_radian if input_is_radian is None else input_is_radian
         return_is_radian = self._default_is_radian if return_is_radian is None else return_is_radian
-        assert len(angles) >= 7
+        # assert len(angles) >= 7
         if not input_is_radian:
-            angles = [angles[i] / RAD_DEGREE for i in range(7)]
-        ret = self.arm_cmd.get_fk(angles)
+            angles = [angles[i] / RAD_DEGREE for i in range(len(angles))]
+
+        new_angles = [0] * 7
+        for i in range(min(len(angles), 7)):
+            new_angles[i] = angles[i]
+
+        ret = self.arm_cmd.get_fk(new_angles)
         pose = []
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             pose = [ret[i][0] for i in range(1, 7)]
@@ -1411,15 +1430,20 @@ class XArm(Gripper):
     @xarm_is_connected(_type='get')
     def is_joint_limit(self, joint, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        assert len(joint) >= 7
-        for i in range(7):
+        # assert len(joint) >= 7
+        for i in range(len(joint)):
             if isinstance(joint[i], str):
                 joint[i] = float(joint[i])
             if joint[i] is None:
                 joint[i] = self._last_angles[i]
             elif not is_radian:
                 joint[i] = joint[i] / RAD_DEGREE
-        ret = self.arm_cmd.is_joint_limit(joint)
+
+        new_angles = [0] * 7
+        for i in range(min(len(joint), 7)):
+            new_angles[i] = joint[i]
+
+        ret = self.arm_cmd.is_joint_limit(new_angles)
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
             return ret[0], bool(ret[1])

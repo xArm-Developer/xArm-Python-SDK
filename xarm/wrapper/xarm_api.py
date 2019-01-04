@@ -190,7 +190,7 @@ class XArmAPI(object):
         Note:
             1. If self.default_is_radian is True, the returned value is in radians
         
-        :return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
+        :return: [angle1(° or rad), angle2(° or rad), ..., anglen(° or rad)]
         """
         return self._arm.angles
 
@@ -883,7 +883,7 @@ class XArmAPI(object):
         """
         Get forward kinematics
         
-        :param angles: [angle-1, angle-2, ..., angle-7]
+        :param angles: [angle-1, angle-2, ..., angle-n], n is the number of axes of the arm
         :param input_is_radian: the param angles value is in radians or not, default is self.default_is_radian
         :param return_is_radian: the returned value is in radians or not, default is self.default_is_radian
         :return: tuple((code, pose)), only when code is 0, the returned result is correct.
@@ -909,7 +909,7 @@ class XArmAPI(object):
         """
         Check the joint is in limit
         
-        :param joint: angle list
+        :param joint: [angle-1, angle-2, ..., angle-n], n is the number of axes of the arm
         :param is_radian: angle value is radians or not, default is self.default_is_radian
         :return: tuple((code, limit)), only when code is 0, the returned result is correct.
             code: See the return code documentation for details.

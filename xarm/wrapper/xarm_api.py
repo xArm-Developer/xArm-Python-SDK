@@ -75,10 +75,17 @@ class XArmAPI(object):
                     'normal': Reported at a frequency of 10 Hz
                     'rich': Reported at a frequency of 10 Hz, more reported content than normal
                     'real': Reported at a frequency of 100 Hz, same as the content reported by normal, but the frequency is different
+            check_tcp_limit: check the tcp param value out of limit or not, default is True
+                Note: only check the param roll/pitch/yaw of the interface `set_position`
+            check_joint_limit: check the joint param value out of limit or not, default is True
+                Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
+            check_cmdnum_limit: check the cmdnum out of limit or not, default is True
+                Note: only available in the interface `set_position` and `set_servo_angle`
         """
         self._arm = XArm(port=port,
                          is_radian=is_radian,
-                         do_not_open=do_not_open)
+                         do_not_open=do_not_open,
+                         **kwargs)
         self.__attr_alias_map = {
             'get_ik': self.get_inverse_kinematics,
             'get_fk': self.get_forward_kinematics,

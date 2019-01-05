@@ -44,6 +44,10 @@ class XArm(Gripper):
         self._enable_report = kwargs.get('enable_report', True)
         self._report_type = kwargs.get('report_type', 'rich')
 
+        self._check_tcp_limit = kwargs.get('check_tcp_limit', True)
+        self._check_joint_limit = kwargs.get('check_joint_limit', True)
+        self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
+
         self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
         self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
         self._tcp_jerk = 1000  # mm/s^3
@@ -719,6 +723,8 @@ class XArm(Gripper):
                         range(len(self._position))]
 
     def _is_out_of_tcp_range(self, value, i):
+        if not self._check_tcp_limit:
+            return False
         tcp_range = XCONF.RobotType.TCP_LIMITS.get(self.device_type, [])
         if 2 < i < len(tcp_range):  # only limit rotate
             limit = tcp_range[i]
@@ -732,6 +738,8 @@ class XArm(Gripper):
         return False
 
     def _wait_until_cmdnum_lt_max(self):
+        if not self._check_cmdnum_limit:
+            return
         self._is_stop = False
         while self.cmd_num >= XCONF.MAX_CMD_NUM:
             if not self.connected:
@@ -878,6 +886,8 @@ class XArm(Gripper):
             return ret[0], self._angles[servo_id-1] if is_radian else self._angles[servo_id-1] * RAD_DEGREE
 
     def _is_out_of_joint_range(self, angle, i):
+        if not self._check_joint_limit:
+            return False
         joint_limit = XCONF.RobotType.JOINT_LIMITS.get(self.device_type, [])
         if i < len(joint_limit):
             angle_range = joint_limit[i]

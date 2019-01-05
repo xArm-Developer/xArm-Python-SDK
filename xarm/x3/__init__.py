@@ -722,6 +722,11 @@ class XArm(Gripper):
         tcp_range = XCONF.RobotType.TCP_LIMITS.get(self.device_type, [])
         if 2 < i < len(tcp_range):  # only limit rotate
             limit = tcp_range[i]
+            if limit[0] == limit[1]:
+                if value == limit[0] or value == limit[0] - 2 * math.pi:
+                    return False
+                else:
+                    return True
             if value < limit[0] or value > limit[1]:
                 return True
         return False

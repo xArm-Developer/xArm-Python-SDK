@@ -485,7 +485,7 @@ class XArm(Gripper):
                 self._report_mtable_mtbrake_changed_callback()
 
             if not self._is_first_report:
-                axis = XCONF.RobotType.AXIS_MAP.get(self.device_type)
+                axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self.axis)
                 if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:axis]):
                     if self._is_ready:
                         logger.info('[report], xArm is not ready to move', color='orange')
@@ -542,7 +542,7 @@ class XArm(Gripper):
              self._arm_motor_tid,
              self._arm_motor_fid) = rx_data[87:93]
 
-            self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type)
+            self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self._arm_axis)
 
             ver_msg = rx_data[93:122]
             # self._version = str(ver_msg, 'utf-8')
@@ -1968,7 +1968,7 @@ class XArm(Gripper):
         :param servo_id: 
         :return: 
         """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 8
+        assert isinstance(servo_id, int) and 1 <= servo_id <= 7
         return self.set_servo_addr_16(servo_id, 0x0109, 1)
 
 

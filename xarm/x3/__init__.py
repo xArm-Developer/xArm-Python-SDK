@@ -1257,11 +1257,11 @@ class XArm(Gripper):
             self._error_code, self._warn_code = ret[1:3]
             ret[0] = 0
         if show:
-            pretty_print('*************获取错误警告码, 状态: {}**************'.format(ret[0]), color='light_blue')
+            pretty_print('*************GetErrorWarnCode, status: {}**************'.format(ret[0]), color='light_blue')
             controller_error = ControllerError(self._error_code)
             controller_warn = ControllerWarn(self._warn_code)
-            pretty_print('* 错误码: {}, 错误信息: {}'.format(self._error_code, controller_error.description), color='red' if self._error_code != 0 else 'white')
-            pretty_print('* 警告码: {}, 警告信息: {}'.format(self._warn_code, controller_warn.description), color='yellow' if self._warn_code != 0 else 'white')
+            pretty_print('* ErrorCode: {}, ErrorMsg: {}'.format(self._error_code, controller_error.description), color='red' if self._error_code != 0 else 'white')
+            pretty_print('* WarnCode: {}, WarnMsg: {}'.format(self._warn_code, controller_warn.description), color='yellow' if self._warn_code != 0 else 'white')
             pretty_print('*' * 50, color='light_blue')
         return ret[0], [self._error_code, self._warn_code]
 
@@ -1856,16 +1856,16 @@ class XArm(Gripper):
                     }
                 })
         if show:
-            pretty_print('************获取电机调试信息, 状态: {}*************'.format(ret[0]), color='light_blue')
+            pretty_print('************GetServoDebugMsg, Status: {}*************'.format(ret[0]), color='light_blue')
             for servo_info in dbmsg:
                 color = 'red' if servo_info['error']['code'] != 0 or servo_info['status'] != 0 else 'white'
-                pretty_print('* {}, 状态: {}, 错误码: {}'.format(
+                pretty_print('* {}, Status: {}, Code: {}'.format(
                     servo_info['name'], servo_info['status'],
                     servo_info['error']['code']), color=color)
                 if servo_info['error']['desc']:
-                    pretty_print('*  错误信息: {}'.format(servo_info['error']['desc']), color=color)
+                    pretty_print('*  Description: {}'.format(servo_info['error']['desc']), color=color)
                 if servo_info['error']['handle']:
-                    pretty_print('*  处理方法: {}'.format(servo_info['error']['handle']), color=color)
+                    pretty_print('*  Handle: {}'.format(servo_info['error']['handle']), color=color)
             pretty_print('*' * 50, color='light_blue')
         return ret[0], dbmsg
 

@@ -17,7 +17,7 @@ class Gripper(object):
         pass
 
     @xarm_is_connected(_type='set')
-    def gripper_enable(self, enable):
+    def set_gripper_enable(self, enable):
         ret = self.arm_cmd.gripper_set_en(int(enable))
         return ret[0]
 

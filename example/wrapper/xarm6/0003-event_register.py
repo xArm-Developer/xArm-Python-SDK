@@ -6,6 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+
 """
 Example: Event callback registration and release
     Note: Register different event callbacks as needed
@@ -35,7 +36,7 @@ def callback_error_warn_changed(item):
     print('error warn changed:', item)
 
 
-def callback_mtable_mtbrake_changed(item):
+def callback_maable_mtbrake_changed(item):
     print('maable mtbrake changed:', item)
 
 
@@ -47,7 +48,7 @@ arm.register_cmdnum_changed_callback(callback=callback_cmdnum_changed)
 arm.register_state_changed_callback(callback=callback_state_changed)
 arm.register_connect_changed_callback(callback=callback_connect_changed)
 arm.register_error_warn_changed_callback(callback=callback_error_warn_changed)
-arm.register_mtable_mtbrake_changed_callback(callback=callback_mtable_mtbrake_changed)
+arm.register_mtable_mtbrake_changed_callback(callback=callback_maable_mtbrake_changed)
 arm.register_report_location_callback(callback=callback_report_location)
 
 arm.connect()

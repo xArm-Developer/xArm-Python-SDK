@@ -18,6 +18,7 @@ from ..core.utils import convert
 from ..core.utils.log import logger, pretty_print
 from ..core.config.x_code import ControllerWarn, ControllerError, ServoError
 from .gripper import Gripper
+from .gpio import GPIO
 from . import parse
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready
@@ -33,11 +34,11 @@ REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
 REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 
 
-class XArm(Gripper):
+class XArm(Gripper, GPIO):
     def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         super(XArm, self).__init__()
         self._port = port
-        self._baudrate = kwargs.get('baudrate', 921600)
+        self._baudrate = kwargs.get('baudrate', XCONF.SerialConf.SERIAL_BAUD)
         self._timeout = kwargs.get('timeout', None)
         self._filters = kwargs.get('filters', None)
         self._enable_heartbeat = kwargs.get('enable_heartbeat', False)
@@ -1932,7 +1933,7 @@ class XArm(Gripper):
         assert isinstance(servo_id, int) and 1 <= servo_id <= 7
         assert addr is not None
         ret = self.arm_cmd.servo_addr_r16(servo_id, addr)
-        return ret[0], ret[1:]
+        return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
     def set_servo_addr_32(self, servo_id=None, addr=None, value=None):
@@ -1959,7 +1960,7 @@ class XArm(Gripper):
         assert isinstance(servo_id, int) and 1 <= servo_id <= 7
         assert addr is not None
         ret = self.arm_cmd.servo_addr_r32(servo_id, addr)
-        return ret[0], ret[1:]
+        return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
     def clean_servo_error(self, servo_id=None):

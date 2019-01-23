@@ -31,7 +31,7 @@ print(arm.send_cmd_sync('G1 X300 Y-200 Z150 F300'))  # set_position
 print(arm.send_cmd_sync('G1 X500 Y-200 Z150 F300'))  # set_position
 print(arm.send_cmd_sync('G1 X500 Y200 Z150 F300'))  # set_position
 print(arm.send_cmd_sync('G1 X300 Y0 Z150 F300'))  # set_position
-print(arm.send_cmd_sync('G7 I0 J0 K0 L0 M0 N0 O0 F50'))  # set_servo_angle
+print(arm.send_cmd_sync('G7 I0 J0 K0 L0 M0 F50'))  # set_servo_angle
 
 arm.reset(wait=True)
 arm.disconnect()

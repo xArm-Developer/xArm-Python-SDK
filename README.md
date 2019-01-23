@@ -3,6 +3,9 @@
 ## Overview
 xArm Python SDK
 
+## Update summary for 0.1.1
+- Support GPIO interface
+
 ## Update Summary for 0.1.0
 - Compatible with 5, 6, and 7 axis robot arms
 

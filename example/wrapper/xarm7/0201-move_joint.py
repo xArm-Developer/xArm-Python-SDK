@@ -6,13 +6,6 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-import os
-import sys
-import time
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
-
-from xarm.wrapper import XArmAPI
-
 """
 Move joint,
     set_servo_angle:
@@ -21,6 +14,13 @@ Move joint,
     get_servo_angle:
         1. explicit setting is_radian=False, the returned value unit is degree (°)
 """
+
+import os
+import sys
+import time
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+
+from xarm.wrapper import XArmAPI
 
 arm = XArmAPI('192.168.1.113')
 arm.motion_enable(enable=True)

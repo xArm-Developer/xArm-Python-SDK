@@ -275,6 +275,90 @@ class UxbusCmd(object):
     def gripper_clean_err(self):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
+    def gpio_addr_w16(self, addr, value):
+        txdata = bytes([XCONF.GPIO_ID])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.fp32_to_bytes(value)
+        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_W16B, txdata, 7)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.GRIPP_W16B, 0, XCONF.UxbusConf.GET_TIMEOUT)
+        return ret
+
+    def gpio_addr_r16(self, addr):
+        txdata = bytes([XCONF.GPIO_ID])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R16B, txdata, 3)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.GRIPP_R16B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = convert.bytes_to_long_big(ret[1:5])
+        return ret1
+
+    def gpio_addr_w32(self, addr, value):
+        txdata = bytes([XCONF.GPIO_ID])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.fp32_to_bytes(value)
+        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_W32B, txdata, 7)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.GRIPP_W32B, 0, XCONF.UxbusConf.GET_TIMEOUT)
+        return ret
+
+    def gpio_addr_r32(self, addr):
+        txdata = bytes([XCONF.GPIO_ID])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R32B, txdata, 3)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.GRIPP_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = convert.bytes_to_long_big(ret[1:5])
+        return ret1
+
+    def gpio_get_digital(self):
+        ret = self.gpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
+        value = [0] * 3
+        value[0] = ret[0]
+        value[1] = ret[1] & 0x0001
+        value[2] = (ret[1] & 0x0002) >> 1
+        return value
+
+    def gpio_set_digital(self, ionum, value):
+        tmp = 0
+        if ionum == 1:
+            tmp = tmp | 0x0100
+            if value:
+                tmp = tmp | 0x0001
+        elif ionum == 2:
+            tmp = tmp | 0x0200
+            if value:
+                tmp = tmp | 0x0002
+        else:
+            return [-1, -1]
+        return self.gpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp)
+
+    def gpio_get_analog1(self):
+        ret = self.gpio_addr_r16(XCONF.ServoConf.ANALOG_IO1)
+        value = [0] * 2
+        value[0] = ret[0]
+        value[1] = ret[1] * 3.3 / 4096.0
+        return value
+
+    def gpio_get_analog2(self):
+        ret = self.gpio_addr_r16(XCONF.ServoConf.ANALOG_IO2)
+        value = [0] * 2
+        value[0] = ret[0]
+        value[1] = ret[1] * 3.3 / 4096.0
+        return value
+
     def servo_set_zero(self, axis_id):
         txdata = [int(axis_id)]
         ret = self.set_nu8(XCONF.UxbusReg.SERVO_ZERO, txdata, 1)

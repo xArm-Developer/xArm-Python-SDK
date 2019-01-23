@@ -12,6 +12,7 @@ import math
 class XCONF(object):
     ARM_AXIS_NUM = 7
     GRIPPER_ID = 8
+    GPIO_ID = 9
     MAX_CMD_NUM = 256
 
     def __init__(self):
@@ -125,7 +126,7 @@ class XCONF(object):
         }
 
     class SerialConf:
-        SERIAL_BAUD = 921600
+        SERIAL_BAUD = 2000000  # 921600
         UXBUS_RXQUE_MAX = 10
         UXBUS_DEF_FROMID = 0xAA
         UXBUS_DEF_TOID = 0x55
@@ -241,6 +242,11 @@ class XCONF(object):
         ERR_SWITCH = 0x0910
         RESET_ERR = 0x0109
         SV3_BRO_ID = 0xFF
+
+        DIGITAL_IN = 0x0A14
+        DIGITAL_OUT = 0x0A15
+        ANALOG_IO1 = 0x0A16
+        ANALOG_IO2 = 0x0A17
 
     class UxbusState:
         ERR_CODE = 1  # 有尚未清除的错误

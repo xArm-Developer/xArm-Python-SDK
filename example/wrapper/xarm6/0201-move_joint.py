@@ -11,7 +11,6 @@ Move joint,
     set_servo_angle:
         1. explicit setting is_radian=False, the param angle unit is degree (°)
         2. explicit setting wait=True to wait for the arm to complete
-        3. set param servo_id to set a single joint
     get_servo_angle:
         1. explicit setting is_radian=False, the returned value unit is degree (°)
 """
@@ -30,23 +29,17 @@ arm.set_state(state=0)
 
 arm.reset(wait=True)
 
-arm.set_servo_angle(servo_id=1, angle=60, speed=30, is_radian=False, wait=True)
+arm.set_servo_angle(angle=[60, 0, 0, 0, 0, 0], speed=30, is_radian=False, wait=True)
 print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=2, angle=-45, speed=30, is_radian=False, wait=True)
+arm.set_servo_angle(angle=[60, -45, 0, 0, 0, 0], speed=30, is_radian=False, wait=True)
 print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=4, angle=-60, speed=30, is_radian=False, wait=True)
+arm.set_servo_angle(angle=[60, -45, 0, -60, 0, 0], speed=30, is_radian=False, wait=True)
 print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=3, angle=-30, speed=30, is_radian=False, wait=True)
+arm.set_servo_angle(angle=[45, -45, -30, -60, 0, 0], speed=30, is_radian=False, wait=True)
 print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=1, angle=-45, speed=30, is_radian=False, wait=True)
+arm.set_servo_angle(angle=[-45, -45, 0, 0, 0, 0], speed=30, is_radian=False, wait=True)
 print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=4, angle=0, speed=30, is_radian=False, wait=True)
-print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=3, angle=0, speed=30, is_radian=False, wait=True)
-print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=1, angle=0, speed=30, is_radian=False, wait=True)
-print(arm.get_servo_angle(is_radian=False))
-arm.set_servo_angle(servo_id=2, angle=0, speed=30, is_radian=False, wait=True)
+arm.set_servo_angle(angle=[0, 0, 0, 0, 0, 0], speed=30, is_radian=False, wait=True)
 print(arm.get_servo_angle(is_radian=False))
 
 arm.disconnect()

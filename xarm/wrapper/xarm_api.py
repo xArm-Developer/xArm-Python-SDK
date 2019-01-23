@@ -65,7 +65,7 @@ class XArmAPI(object):
                     7. property: position_offset
         :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
         :param kwargs: keyword parameters, generally do not need to set
-            baudrate: baudrate, only available in serial way, default is 921600
+            baudrate: baudrate, only available in serial way, default is 2000000
             timeout: timeout, only available in serial way, default is None
             filters: serial port filters, invalid, reserved.
             enable_report: whether to enable report, default is True
@@ -943,7 +943,7 @@ class XArmAPI(object):
         :return: code
             code: See the return code documentation for details.
         """
-        return self._arm.gripper_enable(enable)
+        return self._arm.set_gripper_enable(enable)
 
     def set_gripper_mode(self, mode):
         """
@@ -1005,6 +1005,48 @@ class XArmAPI(object):
             code: See the return code documentation for details.
         """
         return self._arm.clean_gripper_error()
+
+    # def set_gpio_addr_16(self, addr, value):
+    #     return self._arm.set_gpio_addr_16(addr, value)
+    #
+    # def get_gpio_addr_16(self, addr):
+    #     return self._arm.get_gpio_addr_16(addr)
+    #
+    # def set_gpio_addr_32(self, addr, value):
+    #     return self._arm.set_gpio_addr_32(addr, value)
+    #
+    # def get_gpio_addr_32(self, addr):
+    #     return self._arm.get_gpio_addr_32(addr)
+
+    def get_gpio_digital(self, ionum=None):
+        """
+        Get the digital value of the specified GPIO
+        
+        :param ionum: 1 or 2 or None(both 1 and 2), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the return code documentation for details.
+        """
+        return self._arm.get_gpio_digital(ionum)
+
+    def set_gpio_digital(self, ionum, value):
+        """
+        Set the digital value of the specified GPIO
+        
+        :param ionum: 1 or 2
+        :param value: value
+        :return: code
+            code: See the return code documentation for details.
+        """
+        return self._arm.set_gpio_digital(ionum, value)
+
+    def get_gpio_analog(self, ionum=None):
+        """
+        Get the analog value of the specified GPIO
+        :param ionum: 1 or 2 or None(both 1 and 2), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the return code documentation for details.
+        """
+        return self._arm.get_gpio_analog(ionum)
 
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
                                  report_state=True, report_error_code=True, report_warn_code=True,

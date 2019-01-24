@@ -34,13 +34,13 @@ class Gripper(object):
                 self.get_err_warn_code()
                 if self.error_code != 28:
                     ret[0] = 0
-                    ret[1] = float('{:.2f}'.format(ret[1][0]))
+                    ret[1] = float('{:.2f}'.format(ret[1]))
                 else:
                     ret[0] = XCONF.UxbusState.ERR_CODE
                     ret[1] = None
             else:
                 ret[0] = 0
-                ret[1] = float('{:.2f}'.format(ret[1][0]))
+                ret[1] = float('{:.2f}'.format(ret[1]))
             return ret[0], ret[1]
         return ret[0], None
 
@@ -56,7 +56,7 @@ class Gripper(object):
         if ret[0] != 0:
             self.get_err_warn_code()
         if self.error_code != 28:
-            last_pos = int(ret[1][0])
+            last_pos = int(ret[1])
             if last_pos == pos:
                 return 0
             is_add = True if pos > last_pos else False
@@ -71,7 +71,7 @@ class Gripper(object):
                 if ret[0] != 0:
                     self.get_err_warn_code()
                 if self.error_code != 28:
-                    cur_pos = int(ret[1][0])
+                    cur_pos = int(ret[1])
                     # print(cur_pos, last_pos)
                     if abs(pos - cur_pos) < 1:
                         break

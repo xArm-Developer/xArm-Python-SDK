@@ -34,7 +34,7 @@ def fp32s_to_bytes(data, n):
 def bytes_to_fp32s(data, n):
     ret = [0] * n
     for i in range(n):
-        ret[i] = bytes_to_fp32(data[i * 4: i * 4 + 4])
+        ret[i] = bytes_to_fp32(data[i * 4:i * 4 + 4])
     return ret
 
 
@@ -66,4 +66,5 @@ def bytes_to_long_big(data):
     byte += bytes([data[1]])
     byte += bytes([data[2]])
     byte += bytes([data[3]])
-    return struct.unpack(">l", byte)
+    ret = struct.unpack(">l", byte)
+    return ret[0]

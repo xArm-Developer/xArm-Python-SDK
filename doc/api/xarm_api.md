@@ -453,7 +453,7 @@ Get inverse kinematics
 :param return_is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, angles)), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
-    angles: [angle-1(rad or °), angle-2, ..., angle-7] or []
+    angles: [angle-1(rad or °), angle-2, ..., angle-(Number of axes)] or []
         Note: the returned angle value is radians if return_is_radian is True, else °
 ```
 
@@ -487,7 +487,7 @@ Note:
     2. If you want to return only the angle of a single joint, please set the parameter servo_id
         ex: code, angle = xarm.get_servo_angle(servo_id=2)
 
-:param servo_id: 1-7, None(8), default is None
+:param servo_id: 1-(Number of axes), None(8), default is None
 :param is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
     code: See the return code documentation for details.
@@ -556,7 +556,7 @@ Check the tcp pose is in limit
 Motion enable
 
 :param enable: 
-:param servo_id: 1-7, None(8)
+:param servo_id: 1-(Number of axes), None(8)
 :return: code
     code: See the return code documentation for details.
 ```
@@ -1007,13 +1007,13 @@ Note:
     2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
         ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False,wait=True)
 
-:param servo_id: 1-7, None(8)
-    1. 1-7 indicates the corresponding joint, the parameter angle should be a numeric value
+:param servo_id: 1-(Number of axes), None(8)
+    1. 1-(Number of axes) indicates the corresponding joint, the parameter angle should be a numeric value
         ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
     2. None(8) means all joints, default is None, the parameter angle should be a list of values whose length is the number of joints
         ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
 :param angle: angle or angle list, (unit: rad if is_radian is True else °)
-    1. If servo_id is 1-7, angle should be a numeric value
+    1. If servo_id is 1-(Number of axes), angle should be a numeric value
         ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
     2. If servo_id is None or 8, angle should be a list of values whose length is the number of joints
         like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
@@ -1054,8 +1054,8 @@ Note:
 ```
 Attach the servo
 
-:param servo_id: 1-7, 8, if servo_id is 8, will attach all servo
-    1. 1-7: attach only one joint
+:param servo_id: 1-(Number of axes), 8, if servo_id is 8, will attach all servo
+    1. 1-(Number of axes): attach only one joint
         ex: xarm.set_servo_attach(servo_id=1)
     2: 8: attach all joints
         ex: xarm.set_servo_attach(servo_id=8)
@@ -1068,8 +1068,8 @@ Attach the servo
 ```
 Detach the servo, be sure to do protective work before unlocking to avoid injury or damage.
 
-:param servo_id: 1-7, 8, if servo_id is 8, will detach all servo
-    1. 1-7: detach only one joint
+:param servo_id: 1-(Number of axes), 8, if servo_id is 8, will detach all servo
+    1. 1-(Number of axes): detach only one joint
         ex: xarm.set_servo_detach(servo_id=1)
     2: 8: detach all joints, please
         ex: xarm.set_servo_detach(servo_id=8)

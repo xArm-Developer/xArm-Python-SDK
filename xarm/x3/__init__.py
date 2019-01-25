@@ -16,25 +16,19 @@ from ..core.config.x_config import XCONF
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils import convert
 from ..core.utils.log import logger, pretty_print
-from ..core.config.x_code import ControllerWarn, ControllerError, ServoError
+from ..core.config.x_code import ControllerWarn, ControllerError
 from .gripper import Gripper
 from .gpio import GPIO
+from .servo import Servo
+from .events import *
 from . import parse
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready
 
 RAD_DEGREE = 57.295779513082320876798154814105
 
-REPORT_ID = 'REPORT'
-REPORT_LOCATION_ID = 'LOCATION'
-REPORT_CONNECT_CHANGED_ID = 'REPORT_CONNECT_CHANGED'
-REPORT_STATE_CHANGED_ID = 'REPORT_STATE_CHANGED'
-REPORT_MTABLE_MTBRAKE_CHANGED_ID = 'REPORT_MTABLE_MTBRAKE_CHANGED'
-REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
-REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 
-
-class XArm(Gripper, GPIO):
+class XArm(Gripper, Servo, GPIO, Events):
     def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         super(XArm, self).__init__()
         self._port = port
@@ -100,16 +94,7 @@ class XArm(Gripper, GPIO):
 
         self._sleep_finish_time = time.time()
 
-        self._report_callbacks = {
-            REPORT_ID: [],
-            REPORT_LOCATION_ID: [],
-            REPORT_CONNECT_CHANGED_ID: [],
-            REPORT_ERROR_WARN_CHANGED_ID: [],
-            REPORT_STATE_CHANGED_ID: [],
-            REPORT_MTABLE_MTBRAKE_CHANGED_ID: [],
-            REPORT_CMDNUM_CHANGED_ID: [],
-        }
-
+        Events.__init__(self)
         if not do_not_open:
             self.connect()
 
@@ -1088,7 +1073,7 @@ class XArm(Gripper, GPIO):
     @xarm_is_ready(_type='set')
     def move_arc_lines(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
                        automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
-        assert len(paths) > 0
+        assert len(paths) > 0, 'parameter paths error'
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if speed is None:
             speed = self._last_tcp_speed
@@ -1191,7 +1176,7 @@ class XArm(Gripper, GPIO):
         :param servo_id: 1-7, 8
         :return: 
         """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 8
+        assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
         ret = self.arm_cmd.set_brake(servo_id, 1)
         return ret[0]
 
@@ -1261,8 +1246,8 @@ class XArm(Gripper, GPIO):
             pretty_print('*************GetErrorWarnCode, status: {}**************'.format(ret[0]), color='light_blue')
             controller_error = ControllerError(self._error_code)
             controller_warn = ControllerWarn(self._warn_code)
-            pretty_print('* ErrorCode: {}, ErrorMsg: {}'.format(self._error_code, controller_error.description), color='red' if self._error_code != 0 else 'white')
-            pretty_print('* WarnCode: {}, WarnMsg: {}'.format(self._warn_code, controller_warn.description), color='yellow' if self._warn_code != 0 else 'white')
+            pretty_print('* ErrorCode: {}, ErrorMsg: {}({})'.format(self._error_code, controller_error.description['cn'], controller_error.description['en']), color='red' if self._error_code != 0 else 'white')
+            pretty_print('* WarnCode: {}, WarnMsg: {}({})'.format(self._warn_code, controller_warn.description['cn'], controller_warn.description['en']), color='yellow' if self._warn_code != 0 else 'white')
             pretty_print('*' * 50, color='light_blue')
         return ret[0], [self._error_code, self._warn_code]
 
@@ -1752,224 +1737,3 @@ class XArm(Gripper, GPIO):
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
         return ret
-
-    def _register_report_callback(self, report_id, callback):
-        if report_id not in self._report_callbacks.keys():
-            self._report_callbacks[report_id] = []
-        if (callable(callback) or isinstance(callback, dict)) and callback not in self._report_callbacks[report_id]:
-            self._report_callbacks[report_id].append(callback)
-            return True
-        elif not (callable(callback) or isinstance(callback, dict)):
-            return False
-        else:
-            return True
-
-    def _release_report_callback(self, report_id, callback):
-        if report_id in self._report_callbacks.keys() and callback:
-            if callback is None:
-                self._report_callbacks[report_id].clear()
-                return True
-            elif callback:
-                for cb in self._report_callbacks[report_id]:
-                    if callback == cb:
-                        self._report_callbacks[report_id].remove(callback)
-                        return True
-                    elif isinstance(cb, dict):
-                        if cb['callback'] == callback:
-                            self._report_callbacks[report_id].remove(cb)
-                            return True
-        return False
-
-    def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
-                                 report_state=True, report_error_code=True, report_warn_code=True,
-                                 report_mtable=True, report_mtbrake=True, report_cmd_num=True):
-        return self._register_report_callback(REPORT_ID, {
-            'callback': callback,
-            'cartesian': report_cartesian,
-            'joints': report_joints,
-            'error_code': report_error_code,
-            'warn_code': report_warn_code,
-            'state': report_state,
-            'mtable': report_mtable,
-            'mtbrake': report_mtbrake,
-            'cmdnum': report_cmd_num
-        })
-
-    def register_report_location_callback(self, callback=None, report_cartesian=True, report_joints=False):
-        ret = self._register_report_callback(REPORT_LOCATION_ID, {
-            'callback': callback,
-            'cartesian': report_cartesian,
-            'joints': report_joints,
-        })
-        return ret
-
-    def register_connect_changed_callback(self, callback=None):
-        return self._register_report_callback(REPORT_CONNECT_CHANGED_ID, callback)
-
-    def register_state_changed_callback(self, callback=None):
-        return self._register_report_callback(REPORT_STATE_CHANGED_ID, callback)
-
-    def register_mtable_mtbrake_changed_callback(self, callback=None):
-        return self._register_report_callback(REPORT_MTABLE_MTBRAKE_CHANGED_ID, callback)
-
-    def register_error_warn_changed_callback(self, callback=None):
-        return self._register_report_callback(REPORT_ERROR_WARN_CHANGED_ID, callback)
-
-    def register_cmdnum_changed_callback(self, callback=None):
-        return self._register_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
-
-    def release_report_callback(self, callback=None):
-        return self._release_report_callback(REPORT_ID, callback)
-
-    def release_report_location_callback(self, callback=None):
-        return self._release_report_callback(REPORT_LOCATION_ID, callback)
-
-    def release_connect_changed_callback(self, callback=None):
-        return self._release_report_callback(REPORT_CONNECT_CHANGED_ID, callback)
-
-    def release_state_changed_callback(self, callback=None):
-        return self._release_report_callback(REPORT_STATE_CHANGED_ID, callback)
-
-    def release_mtable_mtbrake_changed_callback(self, callback=None):
-        return self._release_report_callback(REPORT_MTABLE_MTBRAKE_CHANGED_ID, callback)
-
-    def release_error_warn_changed_callback(self, callback=None):
-        return self._release_report_callback(REPORT_ERROR_WARN_CHANGED_ID, callback)
-
-    def release_cmdnum_changed_callback(self, callback=None):
-        return self._release_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
-
-    @xarm_is_connected(_type='get')
-    def get_servo_debug_msg(self, show=False):
-        ret = self.arm_cmd.servo_get_dbmsg()
-        dbmsg = []
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            for i in range(1, 9):
-                servo_error = ServoError(ret[i * 2])
-                dbmsg.append({
-                    'name': '伺服{}'.format(i) if i < 8 else '机械爪',
-                    'servo_id': i,
-                    'status': ret[i * 2 - 1],
-                    'error': {
-                        'code': ret[i * 2],
-                        'desc': servo_error.description if ret[i * 2 - 1] != 3 else '通信错误(Communication error)',
-                        'handle': servo_error.handle if ret[i * 2 - 1] != 3 else ['检查连接，重新上电']
-                    }
-                })
-        if show:
-            pretty_print('************GetServoDebugMsg, Status: {}*************'.format(ret[0]), color='light_blue')
-            for servo_info in dbmsg:
-                color = 'red' if servo_info['error']['code'] != 0 or servo_info['status'] != 0 else 'white'
-                pretty_print('* {}, Status: {}, Code: {}'.format(
-                    servo_info['name'], servo_info['status'],
-                    servo_info['error']['code']), color=color)
-                if servo_info['error']['desc']:
-                    pretty_print('*  Description: {}'.format(servo_info['error']['desc']), color=color)
-                if servo_info['error']['handle']:
-                    pretty_print('*  Handle: {}'.format(servo_info['error']['handle']), color=color)
-            pretty_print('*' * 50, color='light_blue')
-        return ret[0], dbmsg
-
-        # if show:
-        #     if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #         print('=' * 50)
-        #         for i in range(1, 8):
-        #             if ret[i * 2 - 1] != 0:
-        #                 servo_error = ServoError(ret[i * 2])
-        #                 if ret[i * 2 - 1] == 3:
-        #                     servo_error.description = '通信错误'
-        #                 err_code = '{} ({})'.format(hex(ret[i * 2]), ret[i * 2])
-        #                 print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-        #                     i, ret[i * 2 - 1], err_code, servo_error.description))
-        #                 print('处理方法: {}'.format(servo_error.handle))
-        #             else:
-        #                 print('伺服{}, 状态: {}, 错误码: 0'.format(i, ret[i * 2 - 1]))
-        #         if ret[15] != 0:
-        #             servo_error = ServoError(ret[16])
-        #             if ret[15] == 3:
-        #                 servo_error.description = '通信错误'
-        #             err_code = '{} ({})'.format(hex(ret[16]), ret[16])
-        #             print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-        #                 ret[15], err_code, servo_error.description))
-        #             print('处理方法: {}'.format(servo_error.handle))
-        #         else:
-        #             print('机械爪, 状态: {}, 错误码: 0'.format(ret[15]))
-        #         print('=' * 50)
-        # return ret
-
-    @xarm_is_connected(_type='set')
-    def set_servo_zero(self, servo_id=None):
-        """
-        Danger, do not use, may cause the arm to be abnormal,  just for debugging
-        :param servo_id: 
-        :return: 
-        """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 8
-        ret = self.arm_cmd.servo_set_zero(servo_id)
-        return ret[0]
-
-    @xarm_is_connected(_type='set')
-    def set_servo_addr_16(self, servo_id=None, addr=None, value=None):
-        """
-        Danger, do not use, may cause the arm to be abnormal,  just for debugging
-        :param servo_id: 
-        :param addr: 
-        :param value: 
-        :return: 
-        """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7
-        assert addr is not None and value is not None
-        ret = self.arm_cmd.servo_addr_w16(servo_id, addr, value)
-        return ret[0]
-
-    @xarm_is_connected(_type='get')
-    def get_servo_addr_16(self, servo_id=None, addr=None):
-        """
-        Danger, do not use, may cause the arm to be abnormal,  just for debugging
-        :param servo_id: 
-        :param addr: 
-        :return: 
-        """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7
-        assert addr is not None
-        ret = self.arm_cmd.servo_addr_r16(servo_id, addr)
-        return ret[0], ret[1]
-
-    @xarm_is_connected(_type='set')
-    def set_servo_addr_32(self, servo_id=None, addr=None, value=None):
-        """
-        Danger, do not use, may cause the arm to be abnormal,  just for debugging
-        :param servo_id: 
-        :param addr: 
-        :param value: 
-        :return: 
-        """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7
-        assert addr is not None and value is not None
-        ret = self.arm_cmd.servo_addr_w32(servo_id, addr, value)
-        return ret[0]
-
-    @xarm_is_connected(_type='get')
-    def get_servo_addr_32(self, servo_id=None, addr=None):
-        """
-        Danger, do not use, may cause the arm to be abnormal,  just for debugging
-        :param servo_id: 
-        :param addr: 
-        :return: 
-        """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7
-        assert addr is not None
-        ret = self.arm_cmd.servo_addr_r32(servo_id, addr)
-        return ret[0], ret[1]
-
-    @xarm_is_connected(_type='set')
-    def clean_servo_error(self, servo_id=None):
-        """
-        Danger, do not use, may cause the arm to be abnormal,  just for debugging
-        :param servo_id: 
-        :return: 
-        """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7
-        return self.set_servo_addr_16(servo_id, 0x0109, 1)
-
-

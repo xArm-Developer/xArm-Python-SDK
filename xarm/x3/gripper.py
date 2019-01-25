@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
-from .utils import xarm_is_connected, xarm_is_ready
+from .utils import xarm_is_connected
 from ..core.config.x_config import XCONF
 
 
@@ -15,6 +15,26 @@ class Gripper(object):
     def __init__(self):
         self.gripper_pos = 0
         pass
+
+    @xarm_is_connected(_type='set')
+    def set_gripper_addr_16(self, addr, value):
+        ret = self.arm_cmd.gripper_addr_w16(addr, value)
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_gripper_addr_16(self, addr):
+        ret = self.arm_cmd.gripper_addr_r16(addr)
+        return ret[0], ret[1]
+
+    @xarm_is_connected(_type='set')
+    def set_gripper_addr_32(self, addr, value):
+        ret = self.arm_cmd.gripper_addr_w32(addr, value)
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_gripper_addr_32(self, addr):
+        ret = self.arm_cmd.gripper_addr_r32(addr)
+        return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
     def set_gripper_enable(self, enable):

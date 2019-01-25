@@ -6,7 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-from .utils import xarm_is_connected, xarm_is_ready
+from .utils import xarm_is_connected
 
 
 class GPIO(object):
@@ -35,8 +35,12 @@ class GPIO(object):
 
     @xarm_is_connected(_type='get')
     def get_gpio_digital(self, ionum=None):
-        assert ionum is None or ionum == 1 or ionum == 2
+        assert ionum is None or ionum == 1 or ionum == 2, 'The value of parameter ionum can only be 1 or 2 or None.'
         ret = self.arm_cmd.gpio_get_digital()
+        if ret[0] != 0:
+            self.get_err_warn_code()
+            if self.error_code != 28:
+                ret[0] = 0
         return ret[0], ret[1:] if ionum is None else ret[ionum]
 
     @xarm_is_connected(_type='set')
@@ -54,12 +58,16 @@ class GPIO(object):
                 code = ret2[0]
             else:
                 code = ret1[0]
-            return code, [ret1[1], ret2[1]]
+            ret = [code, [ret1[1], ret2[1]]]
         else:
-            assert ionum == 1 or ionum == 2
+            assert ionum == 1 or ionum == 2, 'The value of parameter ionum can only be 1 or 2 or None.'
             if ionum == 1:
                 ret = self.arm_cmd.gpio_get_analog1()
             else:
                 ret = self.arm_cmd.gpio_get_analog2()
-            return ret[0], ret[1]
+        if ret[0] != 0:
+            self.get_err_warn_code()
+            if self.error_code != 28:
+                ret[0] = 0
+        return ret[0], ret[1]
 

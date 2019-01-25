@@ -5,3 +5,4 @@ files__pycache__/
 build/
 dist/
 *.egg-info/
+example/test/

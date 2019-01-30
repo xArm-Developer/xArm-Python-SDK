@@ -24,7 +24,7 @@ class Servo(object):
             for i in range(1, 9):
                 servo_error = ServoError(ret[i * 2])
                 dbmsg.append({
-                    'name': '伺服{}'.format(i) if i < 8 else '机械爪',
+                    'name': '伺服(Servo)-{}'.format(i) if i < 8 else '机械爪(Gripper)',
                     'servo_id': i,
                     'status': ret[i * 2 - 1],
                     'error': {

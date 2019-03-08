@@ -70,11 +70,10 @@ class XArmAPI(object):
             filters: serial port filters, invalid, reserved.
             enable_report: whether to enable report, default is True
                 Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
-            report_type: report type('normal'/'rich'/'real'), only available in socket way, default is 'rich'
+            report_type: report type('normal'/'rich'), only available in socket way, default is 'rich'
                 Note:
                     'normal': Reported at a frequency of 10 Hz
                     'rich': Reported at a frequency of 10 Hz, more reported content than normal
-                    'real': Reported at a frequency of 100 Hz, same as the content reported by normal, but the frequency is different
             check_tcp_limit: check the tcp param value out of limit or not, default is True
                 Note: only check the param roll/pitch/yaw of the interface `set_position`
             check_joint_limit: check the joint param value out of limit or not, default is True
@@ -285,9 +284,59 @@ class XArmAPI(object):
         return self._arm.state
 
     @property
+    def mode(self):
+        """
+        xArm mode，only available in socket way and  enable_report is True
+        
+        :return: 
+            0: position control mode
+            1: servo motion mode
+            2: joint teaching mode
+            3: cartesian teaching mode (invalid)
+        """
+        return self._arm.mode
+
+    @property
+    def joints_torque(self):
+        """
+        Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'
+        
+        :return: [joint-1, ....]
+        """
+        return self._arm.joints_torque
+
+    @property
+    def tcp_load(self):
+        """
+        xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
+        
+        :return: [weight, center of gravity] 
+            such as: [weight(kg), [x(mm), y(mm), z(mm)]]
+        """
+        return self._arm.tcp_load
+
+    @property
+    def collision_sensitivity(self):
+        """
+        The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'
+        
+        :return: 0~255
+        """
+        return self._arm.collision_sensitivity
+
+    @property
+    def teach_sensitivity(self):
+        """
+        The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
+        
+        :return: 0~255
+        """
+        return self._arm.teach_sensitivity
+
+    @property
     def motor_brake_states(self):
         """
-        Motor brake state list, only available in socket way and enable_report is True
+        Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'
         Note:
             For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
         
@@ -301,7 +350,7 @@ class XArmAPI(object):
     @property
     def motor_enable_states(self):
         """
-        Motor enable state list, only available in socket way and enable_report is True
+        Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'
         Note:
             For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
             
@@ -690,7 +739,7 @@ class XArmAPI(object):
         :param mode: default is 0
             0: position control mode
             1: servo motion mode
-            2: joint teaching mode (invalid)
+            2: joint teaching mode
             3: cartesian teaching mode (invalid)
         :return: code
             code: See the API code documentation for details.
@@ -850,6 +899,37 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.set_joint_maxacc(acc, is_radian=is_radian)
+
+    def set_tcp_load(self, weight, center_of_gravity):
+        """
+        Set the load
+        
+        :param weight: load weight (unit: kg)
+        :param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_tcp_load(weight, center_of_gravity)
+
+    def set_collision_sensitivity(self, value):
+        """
+        Set the sensitivity of collision
+        
+        :param value: sensitivity value， 0~255
+        :return: code
+            code: See the API code documentation for details. 
+        """
+        return self._arm.set_collision_sensitivity(value)
+
+    def set_teach_sensitivity(self, value):
+        """
+        Set the sensitivity of drag and teach
+        
+        :param value: sensitivity value， 0~255
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_teach_sensitivity(value)
 
     def clean_conf(self):
         """
@@ -1143,6 +1223,19 @@ class XArmAPI(object):
         """
         return self._arm.register_state_changed_callback(callback=callback)
 
+    def register_mode_changed_callback(self, callback=None):
+        """
+        Register the mode changed callback, only available if enable_report is True and the connect way is socket
+
+        :param callback:
+            callback data:
+            {
+                "mode": mode,
+            }
+        :return: True/False
+        """
+        return self._arm.register_mode_changed_callback(callback=callback)
+
     def register_mtable_mtbrake_changed_callback(self, callback=None):
         """
         Register the motor enable states or motor brake states changed callback, only available if enable_report is True and the connect way is socket
@@ -1219,6 +1312,15 @@ class XArmAPI(object):
         :return: True/False
         """
         return self._arm.release_state_changed_callback(callback)
+
+    def release_mode_changed_callback(self, callback=None):
+        """
+        Release the mode changed callback
+
+        :param callback: 
+        :return: True/False
+        """
+        return self._arm.release_mode_changed_callback(callback)
 
     def release_mtable_mtbrake_changed_callback(self, callback=None):
         """

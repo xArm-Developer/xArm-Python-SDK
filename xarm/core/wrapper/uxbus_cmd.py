@@ -184,6 +184,19 @@ class UxbusCmd(object):
     def set_tcp_offset(self, pose_offset):
         return self.set_nfp32(XCONF.UxbusReg.SET_TCP_OFFSET, pose_offset, 6)
 
+    def set_tcp_load(self, load_mass, load_com):
+        param_list = [load_mass]
+        param_list.extend(load_com)
+        return self.set_nfp32(XCONF.UxbusReg.SET_LOAD_PARAM, param_list, 4)
+
+    def set_collis_sens(self, value):
+        txdata = [value]
+        return self.set_nu8(XCONF.UxbusReg.SET_COLLIS_SENS, txdata, 1)
+
+    def set_teach_sens(self, value):
+        txdata = [value]
+        return self.set_nu8(XCONF.UxbusReg.SET_TEACH_SENS, txdata, 1)
+
     def clean_conf(self):
         return self.set_nu8(XCONF.UxbusReg.CLEAN_CONF, 0, 0)
 

@@ -3,6 +3,11 @@
 ## Overview
 xArm Python SDK
 
+## Update summary for 0.2.0
+
+- Support torque detection
+- Support drag teaching mode
+
 ## Update summary for 0.1.1
 - Support GPIO interface
 
@@ -100,6 +105,7 @@ Install is not necessary, you can run examples without installation.
   arm.set_servo_angle(...)
   arm.set_servo_angle_j(...)
   arm.move_gohome(...)
+  ```
 - #### Set
   ```
   arm.set_servo_attach(...)

@@ -20,7 +20,8 @@ def bytes_to_fp32(data):
     byte += bytes([data[1]])
     byte += bytes([data[2]])
     byte += bytes([data[3]])
-    return struct.unpack("f", byte)
+    ret = struct.unpack("f", byte)
+    return ret[0]
 
 
 def fp32s_to_bytes(data, n):

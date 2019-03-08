@@ -24,6 +24,13 @@ Axis number, only available in socket way and enable_report is True and report_t
 Number of command caches in the controller
 ```
 
+#### __collision_sensitivity__
+```
+The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: 0~255
+```
+
 #### __connected__
 ```
 Connection status
@@ -89,6 +96,13 @@ Note:
 :return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]
 ```
 
+#### __joints_torque__
+```
+Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: [joint-1, ....]
+```
+
 #### __last_used_angles__
 ```
 The last used servo angles, default value of parameter angle of interface set_servo_angle
@@ -148,9 +162,20 @@ The last used cartesion speed, default value of parameter speed of interface set
 Master id, only available in socket way and enable_report is True and report_type is 'rich'
 ```
 
+#### __mode__
+```
+xArm mode，only available in socket way and  enable_report is True
+
+:return: 
+    0: position control mode
+    1: servo motion mode
+    2: joint teaching mode
+    3: cartesian teaching mode (invalid)
+```
+
 #### __motor_brake_states__
 ```
-Motor brake state list, only available in socket way and enable_report is True
+Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'
 Note:
     For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
 
@@ -162,7 +187,7 @@ Note:
 
 #### __motor_enable_states__
 ```
-Motor enable state list, only available in socket way and enable_report is True
+Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'
 Note:
     For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
     
@@ -213,11 +238,26 @@ Joint acceleration limit, only available in socket way and enable_report is True
 :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
 ```
 
+#### __tcp_load__
+```
+xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: [weight, center of gravity] 
+    such as: [weight(kg), [x(mm), y(mm), z(mm)]]
+```
+
 #### __tcp_speed_limit__
 ```
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s), max_tcp_acc(mm/s)]
+```
+
+#### __teach_sensitivity__
+```
+The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: 0~255
 ```
 
 #### __version__
@@ -296,11 +336,10 @@ Note: Orientation of attitude angle
     filters: serial port filters, invalid, reserved.
     enable_report: whether to enable report, default is True
         Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
-    report_type: report type('normal'/'rich'/'real'), only available in socket way, default is 'rich'
+    report_type: report type('normal'/'rich'), only available in socket way, default is 'rich'
         Note:
             'normal': Reported at a frequency of 10 Hz
             'rich': Reported at a frequency of 10 Hz, more reported content than normal
-            'real': Reported at a frequency of 100 Hz, same as the content reported by normal, but the frequency is different
     check_tcp_limit: check the tcp param value out of limit or not, default is True
         Note: only check the param roll/pitch/yaw of the interface `set_position`
     check_joint_limit: check the joint param value out of limit or not, default is True
@@ -317,7 +356,7 @@ Note:
     1. This interface will clear the current settings and restore to the original settings (system default settings)
 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __clean_error__(self):
@@ -326,7 +365,7 @@ Note:
 Clean the error, need to be manually enabled motion and set state after clean error
 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __clean_gripper_error__(self):
@@ -335,7 +374,7 @@ Clean the error, need to be manually enabled motion and set state after clean er
 Clean the gripper error
 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __clean_warn__(self):
@@ -344,7 +383,7 @@ Clean the gripper error
 Clean the warn
 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __connect__(self, port=None, baudrate=None, timeout=None):
@@ -376,7 +415,7 @@ Note:
 ```
 Get the cmd count in cache
 :return: tuple((code, cmd_num)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_err_warn_code__(self, show=False):
@@ -386,7 +425,7 @@ Get the controller error and warn code
 
 :param show: show the detail info if True
 :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
     error_code: See the controller error code documentation for details.
     warn_code: See the controller warn code documentation for details.
 ```
@@ -400,7 +439,7 @@ Get forward kinematics
 :param input_is_radian: the param angles value is in radians or not, default is self.default_is_radian
 :param return_is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, pose)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
     pose: [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)] or []
         Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
 ```
@@ -411,7 +450,7 @@ Get forward kinematics
 Get the analog value of the specified GPIO
 :param ionum: 1 or 2 or None(both 1 and 2), default is None
 :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_gpio_digital__(self, ionum=None):
@@ -421,7 +460,7 @@ Get the digital value of the specified GPIO
 
 :param ionum: 1 or 2 or None(both 1 and 2), default is None
 :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_gripper_err_code__(self):
@@ -430,7 +469,7 @@ Get the digital value of the specified GPIO
 Get the gripper error code
 
 :return: tuple((code, err_code)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_gripper_position__(self):
@@ -439,7 +478,7 @@ Get the gripper error code
 Get the gripper position
 
 :return: tuple((code, pos)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_inverse_kinematics__(self, pose, input_is_radian=None, return_is_radian=None):
@@ -452,7 +491,7 @@ Get inverse kinematics
 :param input_is_radian: the param pose value(only roll/pitch/yaw) is in radians or not, default is self.default_is_radian
 :param return_is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, angles)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
     angles: [angle-1(rad or °), angle-2, ..., angle-(Number of axes)] or []
         Note: the returned angle value is radians if return_is_radian is True, else °
 ```
@@ -474,7 +513,7 @@ Note:
 
 :param is_radian: the returned value (only roll/pitch/yaw) is in radians or not, default is self.default_is_radian
 :return: tuple((code, [x, y, z, roll, pitch, yaw])), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_servo_angle__(self, servo_id=None, is_radian=None):
@@ -490,7 +529,7 @@ Note:
 :param servo_id: 1-(Number of axes), None(8), default is None
 :param is_radian: the returned value is in radians or not, default is self.default_is_radian
 :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_servo_debug_msg__(self, show=False):
@@ -500,7 +539,7 @@ Get the servo debug msg, used only for debugging
 
 :param show: show the detail info if True
 :return: tuple((code, servo_info_list)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_state__(self):
@@ -509,7 +548,7 @@ Get the servo debug msg, used only for debugging
 Get state
 
 :return: tuple((code, state)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
     state:
         1: in motion
         2: sleeping
@@ -523,7 +562,7 @@ Get state
 Get the xArm version
 
 :return: tuple((code, version)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __is_joint_limit__(self, joint, is_radian=None):
@@ -534,7 +573,7 @@ Check the joint is in limit
 :param joint: [angle-1, angle-2, ..., angle-n], n is the number of axes of the arm
 :param is_radian: angle value is radians or not, default is self.default_is_radian
 :return: tuple((code, limit)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
     limit: True/False/None, limit or not, or failed
 ```
 
@@ -546,7 +585,7 @@ Check the tcp pose is in limit
 :param pose: [x, y, z, roll, pitch, yaw]
 :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian
 :return: tuple((code, limit)), only when code is 0, the returned result is correct.
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
     limit: True/False/None, limit or not, or failed
 ```
 
@@ -558,7 +597,7 @@ Motion enable
 :param enable: 
 :param servo_id: 1-(Number of axes), None(8)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __move_arc_lines__(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0, automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
@@ -604,7 +643,7 @@ Note:
 :param wait: whether to wait for the arm to complete, default is False
 :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __register_cmdnum_changed_callback__(self, callback=None):
@@ -644,6 +683,19 @@ Register the error code or warn code changed callback, only available if enable_
     {
         "error_code": error_code,
         "warn_code": warn_code,
+    }
+:return: True/False
+```
+
+#### def __register_mode_changed_callback__(self, callback=None):
+
+```
+Register the mode changed callback, only available if enable_report is True and the connect way is socket
+
+:param callback:
+    callback data:
+    {
+        "mode": mode,
     }
 :return: True/False
 ```
@@ -746,6 +798,15 @@ Release the error warn changed callback
 :return: True/False
 ```
 
+#### def __release_mode_changed_callback__(self, callback=None):
+
+```
+Release the mode changed callback
+
+:param callback: 
+:return: True/False
+```
+
 #### def __release_mtable_mtbrake_changed_callback__(self, callback=None):
 
 ```
@@ -811,7 +872,7 @@ Note:
     2. The clean_conf interface can restore system default settings
 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __send_cmd_sync__(self, command=None):
@@ -850,7 +911,17 @@ Note:
     'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}'
     'H106': 'get_servo_debug_msg: H106'
 :return: code or tuple((code, ...))
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
+```
+
+#### def __set_collision_sensitivity__(self, value):
+
+```
+Set the sensitivity of collision
+
+:param value: sensitivity value， 0~255
+:return: code
+    code: See the API code documentation for details.
 ```
 
 #### def __set_gpio_digital__(self, ionum, value):
@@ -861,7 +932,7 @@ Set the digital value of the specified GPIO
 :param ionum: 1 or 2
 :param value: value
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_gripper_enable__(self, enable):
@@ -871,7 +942,7 @@ Set the gripper enable
 
 :param enable: 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_gripper_mode__(self, mode):
@@ -881,7 +952,7 @@ Set the gripper mode
 
 :param mode: 1: location mode, 2: speed mode (no use), 3: torque mode (no use)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_gripper_position__(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
@@ -895,7 +966,7 @@ Set the gripper position
 :param auto_enable: auto enable or not, default is False
 :param timeout: second, default is 10s
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_gripper_speed__(self, speed):
@@ -905,7 +976,7 @@ Set the gripper speed
 
 :param speed: 
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_joint_jerk__(self, jerk, is_radian=None):
@@ -921,7 +992,7 @@ Note:
 :param jerk: jerk (°/s^3 or rad/s^3)
 :param is_radian: the jerk in radians or not, default is self.default_is_radian
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_joint_maxacc__(self, acc, is_radian=None):
@@ -932,7 +1003,7 @@ Set the max acceleration of Joint space
 :param acc: mac acceleration (°/s^2 or rad/s^2)
 :param is_radian: the jerk in radians or not, default is self.default_is_radian
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_mode__(self, mode=0):
@@ -943,10 +1014,10 @@ Set the xArm mode
 :param mode: default is 0
     0: position control mode
     1: servo motion mode
-    2: joint teaching mode (invalid)
+    2: joint teaching mode
     3: cartesian teaching mode (invalid)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_pause_time__(self, sltime, wait=False):
@@ -957,7 +1028,7 @@ Set the arm pause time, xArm will pause sltime second
 :param sltime: sleep second
 :param wait: wait or not, default is False
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_position__(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
@@ -992,7 +1063,7 @@ Note:
 :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :param kwargs: reserved
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
         code < 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will not be modified
         code >= 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified
 ```
@@ -1027,7 +1098,7 @@ Note:
 :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 :param kwargs: reserved
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
         code < 0: the last_used_angles/last_used_joint_speed/last_used_joint_acc will not be modified
         code >= 0: the last_used_angles/last_used_joint_speed/last_used_joint_acc will be modified
 ```
@@ -1046,7 +1117,7 @@ Note:
 :param is_radian: the angles in radians or not, defalut is self.default_is_radian
 :param kwargs: reserved
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_servo_attach__(self, servo_id=None):
@@ -1060,7 +1131,7 @@ Attach the servo
     2: 8: attach all joints
         ex: xarm.set_servo_attach(servo_id=8)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_servo_detach__(self, servo_id=None):
@@ -1074,7 +1145,7 @@ Detach the servo, be sure to do protective work before unlocking to avoid injury
     2: 8: detach all joints, please
         ex: xarm.set_servo_detach(servo_id=8)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_state__(self, state=0):
@@ -1087,7 +1158,7 @@ Set the xArm state
     3: pause state
     4: stop state
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_tcp_jerk__(self, jerk):
@@ -1102,7 +1173,18 @@ Note:
 
 :param jerk: jerk (mm/s^3)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
+```
+
+#### def __set_tcp_load__(self, weight, center_of_gravity):
+
+```
+Set the load
+
+:param weight: load weight (unit: kg)
+:param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]
+:return: code
+    code: See the API code documentation for details.
 ```
 
 #### def __set_tcp_maxacc__(self, acc):
@@ -1117,7 +1199,7 @@ Note:
 
 :param acc: acceleration (mm/s^2)
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
 ```
 
 #### def __set_tcp_offset__(self, offset, is_radian=None):
@@ -1134,5 +1216,15 @@ Note:
 :param offset: [x, y, z, roll, pitch, yaw]
 :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
 :return: code
-    code: See the return code documentation for details.
+    code: See the API code documentation for details.
+```
+
+#### def __set_teach_sensitivity__(self, value):
+
+```
+Set the sensitivity of drag and teach
+
+:param value: sensitivity value， 0~255
+:return: code
+    code: See the API code documentation for details.
 ```

@@ -10,6 +10,7 @@ REPORT_ID = 'REPORT'
 REPORT_LOCATION_ID = 'LOCATION'
 REPORT_CONNECT_CHANGED_ID = 'REPORT_CONNECT_CHANGED'
 REPORT_STATE_CHANGED_ID = 'REPORT_STATE_CHANGED'
+REPORT_MODE_CHANGED_ID = 'REPORT_MODE_CHANGED'
 REPORT_MTABLE_MTBRAKE_CHANGED_ID = 'REPORT_MTABLE_MTBRAKE_CHANGED'
 REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
 REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
@@ -23,6 +24,7 @@ class Events(object):
             REPORT_CONNECT_CHANGED_ID: [],
             REPORT_ERROR_WARN_CHANGED_ID: [],
             REPORT_STATE_CHANGED_ID: [],
+            REPORT_MODE_CHANGED_ID: [],
             REPORT_MTABLE_MTBRAKE_CHANGED_ID: [],
             REPORT_CMDNUM_CHANGED_ID: [],
         }
@@ -83,6 +85,9 @@ class Events(object):
     def register_state_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_STATE_CHANGED_ID, callback)
 
+    def register_mode_changed_callback(self, callback=None):
+        return self._register_report_callback(REPORT_MODE_CHANGED_ID, callback)
+
     def register_mtable_mtbrake_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_MTABLE_MTBRAKE_CHANGED_ID, callback)
 
@@ -103,6 +108,9 @@ class Events(object):
 
     def release_state_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_STATE_CHANGED_ID, callback)
+
+    def release_mode_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_MODE_CHANGED_ID, callback)
 
     def release_mtable_mtbrake_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_MTABLE_MTBRAKE_CHANGED_ID, callback)

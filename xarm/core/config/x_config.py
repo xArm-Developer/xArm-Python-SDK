@@ -142,8 +142,9 @@ class XCONF(object):
         TCP_REPORT_REAL_PORT = 30003
         TCP_RX_QUE_MAX = 1024
         TCP_CONTROL_BUF_SIZE = 1024
-        TCP_REPORT_NORMAL_BUF_SIZE = 87
-        TCP_REPORT_RICH_BUF_SIZE = 187
+        TCP_REPORT_REAL_BUF_SIZE = 87
+        TCP_REPORT_NORMAL_BUF_SIZE = 133
+        TCP_REPORT_RICH_BUF_SIZE = 233
 
     class UxbusReg:
         GET_VERSION = 1
@@ -169,6 +170,9 @@ class XCONF(object):
         SET_JOINT_JERK = 33
         SET_JOINT_MAXACC = 34
         SET_TCP_OFFSET = 35
+        SET_LOAD_PARAM = 36
+        SET_COLLIS_SENS = 37
+        SET_TEACH_SENS = 38
         CLEAN_CONF = 39
         SAVE_CONF = 40
 

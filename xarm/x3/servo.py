@@ -37,9 +37,9 @@ class Servo(object):
             pretty_print('************GetServoDebugMsg, Status: {}*************'.format(ret[0]), color='light_blue')
             for servo_info in dbmsg:
                 color = 'red' if servo_info['error']['code'] != 0 or servo_info['status'] != 0 else 'white'
-                pretty_print('* {}, Status: {}, Code: {}'.format(
+                pretty_print('* {}, Status: {}, Code: {:#x}({})'.format(
                     servo_info['name'], servo_info['status'],
-                    servo_info['error']['code']), color=color)
+                    servo_info['error']['code'], servo_info['error']['code']), color=color)
                 if servo_info['error']['desc']:
                     pretty_print('*  Description: {}({})'.format(servo_info['error']['desc']['cn'], servo_info['error']['desc']['en']), color=color)
                 if servo_info['error']['handle']:

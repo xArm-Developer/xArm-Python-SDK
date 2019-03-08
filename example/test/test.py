@@ -17,9 +17,15 @@ from xarm.core.utils.log import logger
 
 # logger.setLevel(logger.DEBUG)
 
-arm = XArmAPI(port='192.168.1.113', is_radian=False)
+arm = XArmAPI(port='192.168.1.145', is_radian=False)
 
-print(arm.get_gpio_digital())
-print(arm.get_gpio_analog())
+# arm.set_mode(2)
+# arm.set_teach_sensitivity(1)
+# arm.save_conf()
 
+# print(arm.get_gpio_digital())
+# print(arm.get_gpio_analog())
+# import time
+
+time.sleep(1)
 arm.disconnect()

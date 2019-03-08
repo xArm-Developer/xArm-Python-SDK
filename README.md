@@ -166,7 +166,7 @@ Install is not necessary, you can run examples without installation.
   arm.last_used_angles
   arm.last_used_joint_speed
   arm.last_used_joint_acc
-  arm.position_offset
+  arm.tcp_offset
   arm.state
   arm.motor_brake_states
   arm.motor_enable_states

@@ -62,7 +62,7 @@ class XArmAPI(object):
                     4. property: last_used_angles
                     5. property: last_used_joint_speed
                     6. property: last_used_joint_acc
-                    7. property: position_offset
+                    7. property: tcp_offset
         :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
         :param kwargs: keyword parameters, generally do not need to set
             baudrate: baudrate, only available in serial way, default is 2000000
@@ -90,7 +90,8 @@ class XArmAPI(object):
             'get_fk': self.get_forward_kinematics,
             'set_sleep_time': self.set_pause_time,
             'register_maable_mtbrake_changed_callback': self.register_mtable_mtbrake_changed_callback,
-            'release_maable_mtbrake_changed_callback': self.release_mtable_mtbrake_changed_callback
+            'release_maable_mtbrake_changed_callback': self.release_mtable_mtbrake_changed_callback,
+            'position_offset': self.tcp_offset,
         }
 
     def __getattr__(self, item):
@@ -260,7 +261,7 @@ class XArmAPI(object):
         return self._arm.last_used_joint_acc
 
     @property
-    def position_offset(self):
+    def tcp_offset(self):
         """
         Cartesion position offset, only available in socket way and enable_report is True 
         Note:

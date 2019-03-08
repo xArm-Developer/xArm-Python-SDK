@@ -206,15 +206,6 @@ Note:
 return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 ```
 
-#### __position_offset__
-```
-Cartesion position offset, only available in socket way and enable_report is True 
-Note:
-    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
-
-:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
-```
-
 #### __slave_id__
 ```
 Slave id, only available in socket way and enable_report is True and report_type is 'rich'
@@ -244,6 +235,15 @@ xArm tcp load, only available in socket way and  enable_report is True and repor
 
 :return: [weight, center of gravity] 
     such as: [weight(kg), [x(mm), y(mm), z(mm)]]
+```
+
+#### __tcp_offset__
+```
+Cartesion position offset, only available in socket way and enable_report is True 
+Note:
+    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
+
+:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
 ```
 
 #### __tcp_speed_limit__
@@ -328,7 +328,7 @@ Note: Orientation of attitude angle
             4. property: last_used_angles
             5. property: last_used_joint_speed
             6. property: last_used_joint_acc
-            7. property: position_offset
+            7. property: tcp_offset
 :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
 :param kwargs: keyword parameters, generally do not need to set
     baudrate: baudrate, only available in serial way, default is 2000000

@@ -335,6 +335,12 @@ ControllerErrorCodeMap = {
             'cn': '其它错误',
             'en': 'Other error'
         }
+    },
+    30: {
+        'description': {
+            'cn': '力矩限位',
+            'en': 'Torque limit'
+        }
     }
 }
 
@@ -378,7 +384,7 @@ class BaseCode(object):
     @property
     def description(self):
         if self._description is None:
-            self._description = self._code_map.get(self.code, {}).get('description', None)
+            self._description = self._code_map.get(self.code, {}).get('description', {'cn': '', 'en': ''})
         return self._description
 
     @description.setter
@@ -387,7 +393,7 @@ class BaseCode(object):
 
     @property
     def handle(self):
-        return self._code_map.get(self.code, {}).get('handle', None)
+        return self._code_map.get(self.code, {}).get('handle', [])
 
 
 class ControllerError(BaseCode):

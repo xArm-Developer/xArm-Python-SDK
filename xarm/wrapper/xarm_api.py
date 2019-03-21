@@ -6,8 +6,13 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-
+import os
 from ..x3 import XArm
+try:
+    from ..tools.xml_tool import XmlTool
+except:
+    print('import XmlTool module failed')
+    XmlTool = None
 
 
 class XArmAPI(object):
@@ -1421,4 +1426,17 @@ class XArmAPI(object):
     #     """
     #     return self._arm.get_servo_addr_32(servo_id=servo_id, addr=addr)
 
-
+    def run_blockly_app(self, path):
+        """
+        run blockly app
+        :param path: app path
+        """
+        if not os.path.exists(path):
+            path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', 'xarm{}'.format(self.axis), 'app', 'myapp', path)
+        if os.path.isdir(path):
+            path = os.path.join(path, 'app.xml')
+        if not os.path.exists(path):
+            raise FileNotFoundError
+        xml = XmlTool(path)
+        xml.to_python(ip=self)
+        exec(xml.py_code, {'arm': self})

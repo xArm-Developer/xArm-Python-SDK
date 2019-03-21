@@ -1431,12 +1431,15 @@ class XArmAPI(object):
         run blockly app
         :param path: app path
         """
-        if not os.path.exists(path):
-            path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', 'xarm{}'.format(self.axis), 'app', 'myapp', path)
-        if os.path.isdir(path):
-            path = os.path.join(path, 'app.xml')
-        if not os.path.exists(path):
-            raise FileNotFoundError
-        xml = XmlTool(path)
-        xml.to_python(ip=self)
-        exec(xml.py_code, {'arm': self})
+        try:
+            if not os.path.exists(path):
+                path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', 'xarm{}'.format(self.axis), 'app', 'myapp', path)
+            if os.path.isdir(path):
+                path = os.path.join(path, 'app.xml')
+            if not os.path.exists(path):
+                raise FileNotFoundError
+            xml = XmlTool(path)
+            xml.to_python(ip=self)
+            exec(xml.py_code, {'arm': self})
+        except Exception as e:
+            print(e)

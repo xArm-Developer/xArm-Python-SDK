@@ -3,6 +3,28 @@
 ## Overview
 xArm Python SDK
 
+## Caution
+- There is currently no collision detection, so try not to be close during use.
+- During use, people should stay away from the robot arm to avoid accidental injury or damage to other items by the robot arm.
+- Protect the arm before use.
+- Before you exercise, please make sure you don't encounter obstacles.
+- Protect the arm before unlocking the motor.
+
+## Installation
+Install is not necessary, you can run examples without installation.Only Python3 is supported.
+- download
+
+  ``` git clone git@github.com:xArm-Developer/xArm-Python-SDK.git```
+- install
+
+  ``` python setup.py install ```
+
+## Update summary for 0.2.1
+
+- Added GPIO example
+- Compatible with old reporting protocols using new reporting protocols
+- New tools to convert xArmStudio's app code into Python code
+
 ## Update summary for 0.2.0
 
 - Support torque detection
@@ -37,50 +59,64 @@ xArm Python SDK
 - Unified return value
 - Snaps an exception and returns the specified return value
 
-
-## Caution
-- There is currently no collision detection, so try not to be close during use.
-- During use, people should stay away from the robot arm to avoid accidental injury or damage to other items by the robot arm.
-- Protect the arm before use.
-- Before you exercise, please make sure you don't encounter obstacles.
-- Protect the arm before unlocking the motor.
-
-## Installation
-Install is not necessary, you can run examples without installation.
-- download
-
-  ``` git clone git@github.com:xArm-Developer/xArm-Python-SDK.git```
-- install
-
-  ``` python setup.py install ```
-
 ## Doc
 - #### [API](doc/api/xarm_api.md)
 - #### [API Code](doc/api/xarm_api_code.md)
 
 ## Example
 - #### [xArm](example/wrapper/)
+
 - ##### 0001-connect-with-serial --> [xarm5](example/wrapper/xarm5/0001-connect_with_serial.py) --- [xarm6](example/wrapper/xarm6/0001-connect_with_serial.py) --- [xarm7](example/wrapper/xarm7/0001-connect_with_serial.py)
+
 - ##### 0002-connect_with_socket --> [xarm5](example/wrapper/xarm5/0002-connect_with_socket.py) --- [xarm6](example/wrapper/xarm6/0002-connect_with_socket.py) --- [xarm7](example/wrapper/xarm7/0002-connect_with_socket.py)
+
 - ##### 0003-event_register --> [xarm5](example/wrapper/xarm5/0003-event_register.py) --- [xarm6](example/wrapper/xarm6/0003-event_register.py) --- [xarm7](example/wrapper/xarm7/0003-event_register.py)
+
 - ##### 0004-handle_error_warn --> [xarm5](example/wrapper/xarm5/0004-handle_error_warn.py) --- [xarm6](example/wrapper/xarm6/0004-handle_error_warn.py) --- [xarm7](example/wrapper/xarm7/0004-handle_error_warn.py)
+
 - ##### 0005-get_property --> [xarm5](example/wrapper/xarm5/0005-get_property.py) --- [xarm6](example/wrapper/xarm6/0005-get_property.py) --- [xarm7](example/wrapper/xarm7/0005-get_property.py)
+
 - ##### 0006-get --> [xarm5](example/wrapper/xarm5/0006-get.py) --- [xarm6](example/wrapper/xarm6/0006-get.py) --- [xarm7](example/wrapper/xarm7/0006-get.py)
+
 - ##### 0007-servo_attach_detach --> [xarm5](example/wrapper/xarm5/0007-servo_attach_detach.py) --- [xarm6](example/wrapper/xarm6/0007-servo_attach_detach.py) --- [xarm7](example/wrapper/xarm7/0007-servo_attach_detach.py)
+
 - ##### 0008-send_cmd --> [xarm5](example/wrapper/xarm5/0008-send_cmd.py) --- [xarm6](example/wrapper/xarm6/0008-send_cmd.py) --- [xarm7](example/wrapper/xarm7/0008-send_cmd.py)
+
 - ##### 0009-set_gripper--> [xarm5](example/wrapper/xarm5/0009-set_gripper.py) --- [xarm6](example/wrapper/xarm6/0009-set_gripper.py) --- [xarm7](example/wrapper/xarm7/0009-set_gripper.py)
+
 - ##### 0101-move_line --> [xarm5](example/wrapper/xarm5/0101-move_line.py) --- [xarm6](example/wrapper/xarm6/0101-move_line.py) --- [xarm7](example/wrapper/xarm7/0101-move_line.py)
+
 - ##### 0102-move_line --> [xarm5](example/wrapper/xarm5/0102-move_line.py) --- [xarm6](example/wrapper/xarm6/0102-move_line.py) --- [xarm7](example/wrapper/xarm7/0102-move_line.py)
+
 - ##### 0103-move_line --> [xarm5](example/wrapper/xarm5/0103-move_line.py) --- [xarm6](example/wrapper/xarm6/0103-move_line.py) --- [xarm7](example/wrapper/xarm7/0103-move_line.py)
+
 - ##### 0104-move_line --> [xarm5](example/wrapper/xarm5/0104-move_line.py) --- [xarm6](example/wrapper/xarm6/0104-move_line.py) --- [xarm7](example/wrapper/xarm7/0104-move_line.py)
+
 - ##### 0105-relative_move_line --> [xarm5](example/wrapper/xarm5/0105-relative_move_line.py) --- [xarm6](example/wrapper/xarm6/0105-relative_move_line.py) --- [xarm7](example/wrapper/xarm7/0105-relative_move_line.py)
+
 - ##### 0106-move_arc_line --> [xarm5](example/wrapper/xarm5/0106-move_arc_line.py) --- [xarm6](example/wrapper/xarm6/0106-move_arc_line.py) --- [xarm7](example/wrapper/xarm7/0106-move_arc_line.py)
+
 - ##### 0107-move_arc_line --> [xarm5](example/wrapper/xarm5/0107-move_arc_line.py) --- [xarm6](example/wrapper/xarm6/0107-move_arc_line.py) --- [xarm7](example/wrapper/xarm7/0107-move_arc_line.py)
+
 - ##### 0201-move_joint --> [xarm5](example/wrapper/xarm5/0201-move_joint.py) --- [xarm6](example/wrapper/xarm6/0201-move_joint.py) --- [xarm7](example/wrapper/xarm7/0201-move_joint.py)
+
 - ##### 0202-move_joint --> [xarm5](example/wrapper/xarm5/0202-move_joint.py) --- [xarm6](example/wrapper/xarm6/0202-move_joint.py) --- [xarm7](example/wrapper/xarm7/0202-move_joint.py)
+
 - ##### 0203-move_joint --> [xarm5](example/wrapper/xarm5/0203-move_joint.py) --- [xarm6](example/wrapper/xarm6/0203-move_joint.py) --- [xarm7](example/wrapper/xarm7/0203-move_joint.py)
+
 - ##### 0204-move_joint --> [xarm5](example/wrapper/xarm5/0204-move_joint.py) --- [xarm6](example/wrapper/xarm6/0204-move_joint.py) --- [xarm7](example/wrapper/xarm7/0204-move_joint.py)
+
 - ##### 0205-move_joint --> [xarm5](example/wrapper/xarm5/0205-move_joint.py) --- [xarm6](example/wrapper/xarm6/0205-move_joint.py) --- [xarm7](example/wrapper/xarm7/0205-move_joint.py)
+
+- [1001-get_gpio_digital](example/wrapper/common/1001-get_gpio_digital.py)
+
+- [1002-get_gpio_analog](example/wrapper/common/1002-get_gpio_analog.py)
+
+- [1003-set_gpio_digital](example/wrapper/common/1003-set_gpio_digital.py)
+
+- [1004-set_gripper](example/wrapper/common/1004-set_gripper.py)
+
+- [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 
 
 - #### Import

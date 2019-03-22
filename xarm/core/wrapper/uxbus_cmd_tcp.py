@@ -4,6 +4,7 @@
 # Copyright (c) 2018, UFACTORY, Inc.
 # All rights reserved.
 #
+# Author: Jimy Zhang <jimy.zhang@ufactory.cc> <jimy92@163.com>
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 

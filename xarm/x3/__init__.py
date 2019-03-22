@@ -23,7 +23,7 @@ from .servo import Servo
 from .events import *
 from . import parse
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_ready
+from .utils import xarm_is_connected, xarm_is_ready, compare_time
 
 RAD_DEGREE = 57.295779513082320876798154814105
 
@@ -98,6 +98,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._default_is_radian = is_radian
 
         self._sleep_finish_time = time.time()
+        self._is_old_protocol = False
 
         Events.__init__(self)
         if not do_not_open:
@@ -298,13 +299,28 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self.arm_cmd = UxbusCmdTcp(self._stream)
                 self._stream_type = 'socket'
 
+                self._version = None
+                try:
+                    count = 30
+                    while not self._version and count:
+                        self.get_version()
+                        time.sleep(0.1)
+                        count -= 1
+                    version_date = '-'.join(self._version.split('-')[-3:])
+                    self._is_old_protocol = compare_time('2019-02-01', version_date)
+                except Exception as e:
+                    print('compare_time: {}, {}'.format(self._version, e))
+
                 try:
                     self._connect_report()
                 except:
                     self._stream_report = None
 
                 if self._stream.connected and self._enable_report:
-                    self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
+                    if self._is_old_protocol:
+                        self._report_thread = threading.Thread(target=self._report_thread_handle_old, daemon=True)
+                    else:
+                        self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
                     self._report_thread.start()
                 self._report_connect_changed_callback()
             else:
@@ -342,19 +358,22 @@ class XArm(Gripper, Servo, GPIO, Events):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port,
                                              XCONF.SocketConf.TCP_REPORT_NORM_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE)
+                                             buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE
+                                             if not self._is_old_protocol else 87)
 
     def __connect_report_rich(self):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port,
                                              XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE)
+                                             buffer_size=XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE
+                                             if not self._is_old_protocol else 187)
 
     def __connect_report_real(self):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port,
                                              XCONF.SocketConf.TCP_REPORT_REAL_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_REAL_BUF_SIZE)
+                                             buffer_size=XCONF.SocketConf.TCP_REPORT_REAL_BUF_SIZE
+                                             if not self._is_old_protocol else 87)
 
     def _report_connect_changed_callback(self, main_connected=None, report_connected=None):
         if REPORT_CONNECT_CHANGED_ID in self._report_callbacks.keys():
@@ -463,6 +482,171 @@ class XArm(Gripper, Servo, GPIO, Events):
                 except Exception as e:
                     logger.error('report callback: {}'.format(e))
 
+    def _report_thread_handle_old(self):
+        def __handle_report_normal(rx_data):
+            # print('length:', convert.bytes_to_u32(rx_data[0:4]))
+            state, mtbrake, mtable, error_code, warn_code = rx_data[4:9]
+            angles = convert.bytes_to_fp32s(rx_data[9:7 * 4 + 9], 7)
+            pose = convert.bytes_to_fp32s(rx_data[37:6 * 4 + 37], 6)
+            cmd_num = convert.bytes_to_u16(rx_data[61:63])
+            pose_offset = convert.bytes_to_fp32s(rx_data[63:6 * 4 + 63], 6)
+
+            if error_code != self._error_code or warn_code != self._warn_code:
+                self._warn_code = warn_code
+                self._error_code = error_code
+                self._report_error_warn_changed_callback()
+                if self._error_code != 0:
+                    pretty_print('Error, Code: {}'.format(self._error_code), color='red')
+                else:
+                    pretty_print('Error had clean', color='blue')
+                if self._warn_code != 0:
+                    pretty_print('WarnCode: {}'.format(self._error_code), color='yellow')
+                else:
+                    pretty_print('Warnning had clean', color='blue')
+            elif not self._only_report_err_warn_changed:
+                self._report_error_warn_changed_callback()
+
+            if cmd_num != self._cmd_num:
+                self._cmd_num = cmd_num
+                self._report_cmdnum_changed_callback()
+
+            if state != self._state:
+                self._state = state
+                self._report_state_changed_callback()
+
+            mtbrake = [mtbrake & 0x01, mtbrake >> 1 & 0x01, mtbrake >> 2 & 0x01, mtbrake >> 3 & 0x01,
+                       mtbrake >> 4 & 0x01, mtbrake >> 5 & 0x01, mtbrake >> 6 & 0x01, mtbrake >> 7 & 0x01]
+            mtable = [mtable & 0x01, mtable >> 1 & 0x01, mtable >> 2 & 0x01, mtable >> 3 & 0x01,
+                      mtable >> 4 & 0x01, mtable >> 5 & 0x01, mtable >> 6 & 0x01, mtable >> 7 & 0x01]
+
+            if mtbrake != self._arm_motor_brake_states or mtable != self._arm_motor_enable_states:
+                self._arm_motor_enable_states = mtable
+                self._arm_motor_brake_states = mtbrake
+                self._report_mtable_mtbrake_changed_callback()
+
+            if not self._is_first_report:
+                axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self.axis)
+                if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:axis]):
+                    if self._is_ready:
+                        logger.info('[report], xArm is not ready to move', color='orange')
+                    self._is_ready = False
+                else:
+                    if not self._is_ready:
+                        logger.info('[report], xArm is ready to move', color='green')
+                    self._is_ready = True
+            else:
+                self._is_ready = False
+            self._is_first_report = False
+
+            self._error_code = error_code
+            self._warn_code = warn_code
+            self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
+            self._state = state
+            self._cmd_num = cmd_num
+            self._arm_motor_brake_states = mtbrake
+            self._arm_motor_enable_states = mtable
+
+            for i in range(len(pose)):
+                if i < 3:
+                    pose[i] = float('{:.3f}'.format(pose[i]))
+                    # pose[i] = float('{:.3f}'.format(pose[i][0]))
+                else:
+                    pose[i] = float('{:.6f}'.format(pose[i]))
+                    # pose[i] = float('{:.6f}'.format(pose[i][0]))
+            for i in range(len(angles)):
+                angles[i] = float('{:.6f}'.format(angles[i]))
+                # angles[i] = float('{:.6f}'.format(angles[i][0]))
+            for i in range(len(pose_offset)):
+                if i < 3:
+                    pose_offset[i] = float('{:.3f}'.format(pose_offset[i]))
+                    # pose_offset[i] = float('{:.3f}'.format(pose_offset[i][0]))
+                else:
+                    pose_offset[i] = float('{:.6f}'.format(pose_offset[i]))
+                    # pose_offset[i] = float('{:.6f}'.format(pose_offset[i][0]))
+
+            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
+                self._position = pose
+            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
+                self._angles = angles
+            if math.inf not in pose_offset and -math.inf not in pose_offset and not (10 <= self._error_code <= 17):
+                self._position_offset = pose_offset
+
+            self._report_location_callback()
+
+            self._report_callback()
+            if not self._is_sync:
+                self._sync()
+                self._is_sync = True
+
+        def __handle_report_rich(rx_data):
+            __handle_report_normal(rx_data)
+            (self._arm_type,
+             self._arm_axis,
+             self._arm_master_id,
+             self._arm_slave_id,
+             self._arm_motor_tid,
+             self._arm_motor_fid) = rx_data[87:93]
+
+            self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self._arm_axis)
+
+            ver_msg = rx_data[93:122]
+            # self._version = str(ver_msg, 'utf-8')
+
+            trs_msg = convert.bytes_to_fp32s(rx_data[123:143], 5)
+            # trs_msg = [i[0] for i in trs_msg]
+            (self._tcp_jerk,
+             self._min_tcp_acc,
+             self._max_tcp_acc,
+             self._min_tcp_speed,
+             self._max_tcp_speed) = trs_msg
+            # print('tcp_jerk: {}, min_acc: {}, max_acc: {}, min_speed: {}, max_speed: {}'.format(
+            #     self._tcp_jerk, self._min_tcp_acc, self._max_tcp_acc, self._min_tcp_speed, self._max_tcp_speed
+            # ))
+
+            p2p_msg = convert.bytes_to_fp32s(rx_data[143:163], 5)
+            # p2p_msg = [i[0] for i in p2p_msg]
+            (self._joint_jerk,
+             self._min_joint_acc,
+             self._max_joint_acc,
+             self._min_joint_speed,
+             self._max_joint_speed) = p2p_msg
+            # print('joint_jerk: {}, min_acc: {}, max_acc: {}, min_speed: {}, max_speed: {}'.format(
+            #     self._joint_jerk, self._min_joint_acc, self._max_joint_acc,
+            #     self._min_joint_speed, self._max_joint_speed
+            # ))
+
+            rot_msg = convert.bytes_to_fp32s(rx_data[163:171], 2)
+            # rot_msg = [i[0] for i in rot_msg]
+            self._rot_jerk, self._max_rot_acc = rot_msg
+            # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
+
+            sv3_msg = convert.bytes_to_u16s(rx_data[171:187], 8)
+
+        main_socket_connected = self._stream and self._stream.connected
+        report_socket_connected = self._stream_report and self._stream_report.connected
+        while self._stream and self._stream.connected:
+            try:
+                if not self._stream_report or not self._stream_report.connected:
+                    if report_socket_connected:
+                        report_socket_connected = False
+                        self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
+                    self._connect_report()
+                    continue
+                if not report_socket_connected:
+                    report_socket_connected = True
+                    self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
+                rx_data = self._stream_report.read()
+                if rx_data != -1 and len(rx_data) >= 87:
+                    if len(rx_data) == 87:
+                        __handle_report_normal(rx_data)
+                    elif len(rx_data) >= 187:
+                        __handle_report_rich(rx_data)
+            except Exception as e:
+                logger.error(e)
+            time.sleep(0.001)
+        self.disconnect()
+        self._report_connect_changed_callback(False, False)
+
     def _report_thread_handle(self):
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
@@ -561,11 +745,11 @@ class XArm(Gripper, Servo, GPIO, Events):
                     pose_offset[i] = float('{:.6f}'.format(pose_offset[i]))
                     # pose_offset[i] = float('{:.6f}'.format(pose_offset[i][0]))
 
-            if math.inf not in pose and -math.inf not in pose:
+            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
                 self._position = pose
-            if math.inf not in angles and -math.inf not in angles:
+            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
                 self._angles = angles
-            if math.inf not in pose_offset and -math.inf not in pose_offset:
+            if math.inf not in pose_offset and -math.inf not in pose_offset and not (10 <= self._error_code <= 17):
                 self._position_offset = pose_offset
 
             self._report_location_callback()

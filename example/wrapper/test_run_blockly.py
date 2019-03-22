@@ -17,6 +17,8 @@ from xarm.wrapper import XArmAPI
 arm = XArmAPI(port='192.168.1.145')
 
 arm.run_blockly_app('./example.xml')
+# source_path = 'C:\\Users\\ufactory\\.UFACTORY\projects\\test\\xarm7\\app\\myapp\\pour_water\\app.xml'
+# arm.run_blockly_app(source_path)
 
 time.sleep(1)
 arm.disconnect()

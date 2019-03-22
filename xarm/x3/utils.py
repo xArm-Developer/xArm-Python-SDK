@@ -6,6 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import time
 import functools
 from ..core.utils.log import logger
 from .code import APIState
@@ -84,3 +85,11 @@ def xarm_is_ready(_type='set'):
 #                 return APIState.API_EXCEPTION if _type == 'set' else APIState.API_EXCEPTION, str(e)
 #         return decorator
 #     return _xarm_is_ready
+
+def compare_time(time1, time2):
+    try:
+        s_time = time.mktime(time.strptime(time1, '%Y-%m-%d'))
+        e_time = time.mktime(time.strptime(time2, '%Y-%m-%d'))
+        return int(s_time) - int(e_time) > 0
+    except:
+        return False

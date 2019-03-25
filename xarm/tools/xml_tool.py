@@ -88,6 +88,7 @@ class XmlTool(object):
         self._insert_to_file(self.index, 'import sys')
         self._insert_to_file(self.index, 'import time')
         self._insert_to_file(self.index, 'import threading')
+        self._insert_to_file(self.index, '# xArm-Python-SDK: https://github.com/xArm-Developer/xArm-Python-SDK')
         self._insert_to_file(self.index, 'from xarm.wrapper import XArmAPI\n')
         if arm is None:
             self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1])')

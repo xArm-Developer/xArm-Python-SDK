@@ -1439,7 +1439,7 @@ class XArmAPI(object):
             if not os.path.exists(path):
                 raise FileNotFoundError
             xml = XmlTool(path)
-            xml.to_python(ip=self)
+            xml.to_python(arm=self)
             exec(xml.py_code, {'arm': self})
         except Exception as e:
             print(e)

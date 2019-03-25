@@ -32,6 +32,7 @@ class XmlTool(object):
         self._events = {}
         self._index = -1
         self.py_code = ''
+        self._succeed = True
 
     @property
     def index(self):
@@ -78,7 +79,7 @@ class XmlTool(object):
                 nodes.append(node)
         return nodes
 
-    def _init_py3(self, ip=None, clean_err_warn=True, motion_enable=True, mode=0, state=0, error_exit=True):
+    def _init_py3(self, arm=None, clean_err_warn=True, motion_enable=True, mode=0, state=0, error_exit=True):
         self._insert_to_file(self.index, '#!/usr/bin/env python3')
         self._insert_to_file(self.index, '# Software License Agreement (BSD License)\n#')
         self._insert_to_file(self.index, '# Copyright (c) 2019, UFACTORY, Inc.')
@@ -88,10 +89,10 @@ class XmlTool(object):
         self._insert_to_file(self.index, 'import time')
         self._insert_to_file(self.index, 'import threading')
         self._insert_to_file(self.index, 'from xarm.wrapper import XArmAPI\n')
-        if ip is None:
+        if arm is None:
             self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1])')
-        elif isinstance(ip, str):
-            self._insert_to_file(self.index, 'arm = XArmAPI(\'{}\')'.format(ip))
+        elif isinstance(arm, str):
+            self._insert_to_file(self.index, 'arm = XArmAPI(\'{}\')'.format(arm))
         self._insert_to_file(self.index, 'time.sleep(0.5)')
         if clean_err_warn:
             self._insert_to_file(self.index, 'arm.clean_warn()')
@@ -119,36 +120,61 @@ class XmlTool(object):
             self._append_to_file('\nwhile arm.connected and arm.error_code == 0:')
             self._append_to_file('    time.sleep(1)')
 
-    def to_python(self, path=None, ip=None, clean_err_warn=True, motion_enable=True, mode=0, state=0, error_exit=True):
-        self._init_py3(ip, clean_err_warn, motion_enable, mode, state, error_exit)
+    def to_python(self, path=None, arm=None, clean_err_warn=True, motion_enable=True, mode=0, state=0, error_exit=True):
+        self._succeed = True
+        self._init_py3(arm, clean_err_warn, motion_enable, mode, state, error_exit)
         self.parse()
         self._finish_py3()
         self.py_code = '\n'.join(self._py_list)
         if path is not None:
             with open(path, 'w', encoding='utf-8') as f:
                 f.write('{}\n'.format(self.py_code))
+        return self._succeed
 
     def parse(self, root=None, prefix=''):
-        is_statement = root is None
-        if root is not None:
-            if root.tag == self.namespace+'statement':
-                is_statement = True
-        block = self.get_node('block', root=root)
-        while block is not None:
-            if not is_statement:
-                block = self.get_node('next', root=block)
-                if not block:
-                    break
-                block = self.get_node('block', root=block)
-            else:
-                is_statement = False
-            if block.attrib.get('disabled', False):
-                continue
-            func = getattr(self, '_handle_{}'.format(block.attrib['type']), None)
-            if func:
-                func(block, prefix)
-            else:
-                print('block {} can\'t convert to python code'.format(block.attrib['type']))
+        # is_statement = root is None
+        # if root is not None:
+        #     if root.tag == self.namespace+'statement':
+        #         is_statement = True
+        blocks = self.get_nodes('block', root=root)
+        if blocks:
+            for block in blocks:
+                is_statement = root is None
+                if root is not None:
+                    if root.tag == self.namespace + 'statement':
+                        is_statement = True
+                while block is not None:
+                    if not is_statement:
+                        block = self.get_node('next', root=block)
+                        if not block:
+                            break
+                        block = self.get_node('block', root=block)
+                    else:
+                        is_statement = False
+                    if block.attrib.get('disabled', False):
+                        continue
+                    func = getattr(self, '_handle_{}'.format(block.attrib['type']), None)
+                    if func:
+                        func(block, prefix)
+                    else:
+                        self._succeed = False
+                        print('block {} can\'t convert to python code'.format(block.attrib['type']))
+        # block = self.get_node('block', root=root)
+        # while block is not None:
+        #     if not is_statement:
+        #         block = self.get_node('next', root=block)
+        #         if not block:
+        #             break
+        #         block = self.get_node('block', root=block)
+        #     else:
+        #         is_statement = False
+        #     if block.attrib.get('disabled', False):
+        #         continue
+        #     func = getattr(self, '_handle_{}'.format(block.attrib['type']), None)
+        #     if func:
+        #         func(block, prefix)
+        #     else:
+        #         print('block {} can\'t convert to python code'.format(block.attrib['type']))
 
     def _handle_set_speed(self, block, prefix=''):
         # print('{}{}'.format(prefix, block.attrib['type']))
@@ -480,4 +506,4 @@ if __name__ == '__main__':
     if not os.path.exists(target_path):
         os.makedirs(target_path)
     target_file = os.path.join(target_path, 'xml_to_py.py')
-    xmlTool.to_python(target_file, ip='192.168.1.145')
+    xmlTool.to_python(target_file, arm='192.168.1.145')

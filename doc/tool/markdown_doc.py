@@ -98,7 +98,7 @@ class MarkdownDoc(pydoc.TextDoc):
 
         if descriptors:
             # start the descriptors section
-            document.append(self.process_subsection(self.bold("descriptors")))
+            document.append(self.process_subsection(self.bold("Attributes")))
             document.append(self.underline)
 
             # process your descriptors
@@ -108,12 +108,13 @@ class MarkdownDoc(pydoc.TextDoc):
         if methods:
             # start the methods section
             document.append(self.underline)
-            document.append(self.process_subsection(self.bold("methods")))
+            document.append(self.process_subsection(self.bold("Methods")))
             document.append(self.underline)
 
             # process your methods
             for name, kind, classname, value in methods:
-                document.append(self.document(getattr(cls, name), name, mod, cls))
+                if name == '__init__' or not name.startswith('__'):
+                    document.append(self.document(getattr(cls, name), name, mod, cls))
 
         return "\n".join(document)
 

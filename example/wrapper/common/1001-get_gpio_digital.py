@@ -26,7 +26,7 @@ if arm.error_code != 0:
     arm.clean_error()
 
 last_digitals = [-1, -1]
-while arm.connected and arm.error_code == 0:
+while arm.connected and arm.error_code != 28:
     code, digitals = arm.get_gpio_digital()
     if code == 0:
         if digitals[0] == 1 and digitals[0] != last_digitals[0]:

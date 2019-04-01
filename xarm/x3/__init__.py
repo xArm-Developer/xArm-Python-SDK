@@ -1277,6 +1277,68 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_ready(_type='set')
+    def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+        last_used_tcp_speed = self._last_tcp_speed
+        last_used_tcp_acc = self._last_tcp_acc
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        pose_1 = []
+        pose_2 = []
+        for i in range(6):
+            pose_1.append(pose1[i] if i < 3 or is_radian else pose1[i] / RAD_DEGREE)
+            pose_2.append(pose2[i] if i < 3 or is_radian else pose2[i] / RAD_DEGREE)
+        if speed is not None:
+            if isinstance(speed, str):
+                if speed.isdigit():
+                    speed = float(speed)
+                else:
+                    speed = self._last_tcp_speed
+            self._last_tcp_speed = min(max(speed, self._min_tcp_speed), self._max_tcp_speed)
+        elif kwargs.get('mvvelo', None) is not None:
+            mvvelo = kwargs.get('mvvelo')
+            if isinstance(mvvelo, str):
+                if mvvelo.isdigit():
+                    mvvelo = float(mvvelo)
+                else:
+                    mvvelo = self._last_tcp_speed
+            self._last_tcp_speed = min(max(mvvelo, self._min_tcp_speed), self._max_tcp_speed)
+        if mvacc is not None:
+            if isinstance(mvacc, str):
+                if mvacc.isdigit():
+                    mvacc = float(mvacc)
+                else:
+                    mvacc = self._last_tcp_acc
+            self._last_tcp_acc = min(max(mvacc, self._min_tcp_acc), self._max_tcp_acc)
+        if mvtime is not None:
+            if isinstance(mvtime, str):
+                if mvacc.isdigit():
+                    mvtime = float(mvtime)
+                else:
+                    mvtime = self._mvtime
+            self._mvtime = mvtime
+
+        ret = self.arm_cmd.move_circle(pose_1, pose_2, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, percent)
+        if ret[0] != 0:
+            logger.debug('exception({}): move circle: pos1={}, pos2={}, percent={}'.format(
+                ret[0], pose_1, pose_2, percent
+            ))
+        else:
+            logger.debug('move circle: pos1={}, pos2={}, percent={}'.format(
+                pose_1, pose_2, percent
+            ))
+
+        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+            if not self._enable_report:
+                logger.warn('if you want to wait, please enable report')
+                return ret[0]
+            self._is_stop = False
+            self._WaitMove(self, timeout).start()
+            self._is_stop = False
+        if ret[0] < 0:
+            self._last_tcp_speed = last_used_tcp_speed
+            self._last_tcp_acc = last_used_tcp_acc
+        return ret[0]
+
+    @xarm_is_ready(_type='set')
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if speed is None:
@@ -1433,6 +1495,11 @@ class XArm(Gripper, Servo, GPIO, Events):
             return ret[0], self._version
         else:
             return ret[0], self._version
+
+    @xarm_is_connected(_type='set')
+    def shutdown_system(self, value=1):
+        ret = self.arm_cmd.shutdown_system(value)
+        return ret[0]
 
     def get_is_moving(self):
         self.get_state()
@@ -1621,6 +1688,11 @@ class XArm(Gripper, Servo, GPIO, Events):
     @xarm_is_connected(_type='set')
     def set_teach_sensitivity(self, value):
         ret = self.arm_cmd.set_teach_sens(value)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_gravity_direction(self, direction):
+        ret = self.arm_cmd.set_gravity_dir(direction)
         return ret[0]
 
     @xarm_is_connected(_type='set')

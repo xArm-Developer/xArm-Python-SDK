@@ -148,6 +148,7 @@ class XCONF(object):
 
     class UxbusReg:
         GET_VERSION = 1
+        SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
         SET_STATE = 12
         GET_STATE = 13
@@ -163,6 +164,7 @@ class XCONF(object):
         MOVE_JOINT = 23
         MOVE_HOME = 25
         SLEEP_INSTT = 26
+        MOVE_CIRCLE = 27
         MOVE_SERVOJ = 29
 
         SET_TCP_JERK = 31
@@ -182,6 +184,8 @@ class XCONF(object):
         GET_FK = 44
         IS_JOINT_LIMIT = 45
         IS_TCP_LIMIT = 46
+
+        SET_GRAVITY_DIR = 51
 
         SERVO_W16B = 101
         SERVO_R16B = 102

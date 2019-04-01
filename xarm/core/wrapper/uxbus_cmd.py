@@ -107,6 +107,10 @@ class UxbusCmd(object):
     def get_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_VERSION, 40)
 
+    def shutdown_system(self, value):
+        txdata = [value]
+        return self.set_nu8(XCONF.UxbusReg.SHUTDOWN_SYSTEM, txdata, 1)
+
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
         return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2)
@@ -166,6 +170,18 @@ class UxbusCmd(object):
         txdata = [sltime]
         return self.set_nfp32(XCONF.UxbusReg.SLEEP_INSTT, txdata, 1)
 
+    def move_circle(self, pose1, pose2, mvvelo, mvacc, mvtime, percent):
+        txdata = [0] * 16
+        for i in range(6):
+            txdata[i] = pose1[i]
+            txdata[6 + i] = pose2[i]
+        txdata[12] = mvvelo
+        txdata[13] = mvacc
+        txdata[14] = mvtime
+        txdata[15] = percent
+        ret = self.set_nfp32(XCONF.UxbusReg.MOVE_CIRCLE, txdata, 16)
+        return ret
+
     def set_tcp_jerk(self, jerk):
         txdata = [jerk]
         return self.set_nfp32(XCONF.UxbusReg.SET_TCP_JERK, txdata, 1)
@@ -197,6 +213,9 @@ class UxbusCmd(object):
     def set_teach_sens(self, value):
         txdata = [value]
         return self.set_nu8(XCONF.UxbusReg.SET_TEACH_SENS, txdata, 1)
+
+    def set_gravity_dir(self, gravity_dir):
+        return self.set_nfp32(XCONF.UxbusReg.SET_GRAVITY_DIR, gravity_dir, 3)
 
     def clean_conf(self):
         return self.set_nu8(XCONF.UxbusReg.CLEAN_CONF, 0, 0)

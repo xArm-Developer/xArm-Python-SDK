@@ -14,11 +14,11 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-from xarm.tools.xml_tool import XmlTool
+from xarm.tools.blockly_tool import BlocklyTool
 
 # blockly app path
 source_path = './example.xml'
 # the path is the python code to save
-target_path = './py_blockly.py'
-xml = XmlTool(source_path)
-xml.to_python(target_path)
+target_path = './blockly_app.py'
+blockly = BlocklyTool(source_path)
+blockly.to_python(target_path)

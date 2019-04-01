@@ -9,10 +9,10 @@
 import os
 from ..x3 import XArm
 try:
-    from ..tools.xml_tool import XmlTool
+    from ..tools.blockly_tool import BlocklyTool
 except:
-    print('import XmlTool module failed')
-    XmlTool = None
+    print('import BlocklyTool module failed')
+    BlocklyTool = None
 
 
 class XArmAPI(object):
@@ -59,6 +59,7 @@ class XArmAPI(object):
                     14. method: is_joint_limit
                     15. method: get_params
                     16: method: move_arc_lines
+                    17: method: move_circle
             Note: This parameter determines the default return type for some interfaces (such as the position, velocity, and acceleration associated with the return angle arc).
                 The affected attributes are as follows:
                     1. property: position
@@ -182,7 +183,7 @@ class XArmAPI(object):
     @property
     def last_used_tcp_speed(self):
         """
-        The last used cartesion speed, default value of parameter speed of interface set_position
+        The last used cartesion speed, default value of parameter speed of interface set_position/move_circle
         
         :return: speed (mm/s)
         """
@@ -191,7 +192,7 @@ class XArmAPI(object):
     @property
     def last_used_tcp_acc(self):
         """
-        The last used cartesion acceleration, default value of parameter mvacc of interface set_position
+        The last used cartesion acceleration, default value of parameter mvacc of interface set_position/move_circle
         
         :return: acceleration (mm/s^2)
         """
@@ -618,6 +619,28 @@ class XArmAPI(object):
         """
         return self._arm.set_servo_angle_j(angles, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, **kwargs)
 
+    def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+        """
+        The motion calculates the trajectory of the space circle according to the three-point coordinates.
+        The three-point coordinates are (current starting point, pose1, pose2).
+        
+        :param pose1: cartesian position, [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
+        :param pose2: cartesian position, [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
+        :param percent: the percentage of arc length and circumference of the movement
+        :param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
+        :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
+        :param mvtime: 0, reserved
+        :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian
+        :param wait: whether to wait for the arm to complete, default is False
+        :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
+        :param kwargs: reserved
+        :return: code
+            code: See the API code documentation for details.
+                code < 0: the last_used_tcp_speed/last_used_tcp_acc will not be modified
+                code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
+        """
+        return self._arm.move_circle(pose1, pose2, percent, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, **kwargs)
+
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
         """
         Move to go home (Back to zero), the API will modify self.last_used_position and self.last_used_angles value
@@ -703,6 +726,16 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.get_version()
+
+    def shutdown_system(self, value=1):
+        """
+        Shutdown the xArm controller system
+        
+        :param value: 1: remote shutdown
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.shutdown_system(value=value)
 
     def get_is_moving(self):
         """
@@ -873,7 +906,7 @@ class XArmAPI(object):
             3. The save_conf interface can record the current settings and will not be lost after the restart.
             4. The clean_conf interface can restore system default settings
         
-        :param acc: acceleration (mm/s^2)
+        :param acc: max acceleration (mm/s^2)
         :return: code
             code: See the API code documentation for details.
         """
@@ -899,7 +932,7 @@ class XArmAPI(object):
         """
         Set the max acceleration of Joint space
         
-        :param acc: mac acceleration (°/s^2 or rad/s^2)
+        :param acc: max acceleration (°/s^2 or rad/s^2)
         :param is_radian: the jerk in radians or not, default is self.default_is_radian
         :return: code
             code: See the API code documentation for details.
@@ -921,7 +954,7 @@ class XArmAPI(object):
         """
         Set the sensitivity of collision
         
-        :param value: sensitivity value， 0~255
+        :param value: sensitivity value, 0~255
         :return: code
             code: See the API code documentation for details. 
         """
@@ -931,11 +964,21 @@ class XArmAPI(object):
         """
         Set the sensitivity of drag and teach
         
-        :param value: sensitivity value， 0~255
+        :param value: sensitivity value, 0~255
         :return: code
             code: See the API code documentation for details.
         """
         return self._arm.set_teach_sensitivity(value)
+
+    def set_gravity_direction(self, direction):
+        """
+        Set the direction of gravity
+        
+        :param direction: direction of gravity, such as [x(mm), y(mm), z(mm)]
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_gravity_direction(direction=direction)
 
     def clean_conf(self):
         """
@@ -1428,7 +1471,7 @@ class XArmAPI(object):
 
     def run_blockly_app(self, path):
         """
-        Example: Run the app generated by xArmStudio software
+        Run the app generated by xArmStudio software
         :param path: app path
         """
         try:
@@ -1438,8 +1481,11 @@ class XArmAPI(object):
                 path = os.path.join(path, 'app.xml')
             if not os.path.exists(path):
                 raise FileNotFoundError
-            xml = XmlTool(path)
-            xml.to_python(arm=self)
-            exec(xml.py_code, {'arm': self})
+            blockly_tool = BlocklyTool(path)
+            succeed = blockly_tool.to_python(arm=self)
+            if succeed:
+                exec(blockly_tool.codes, {'arm': self})
+            else:
+                print('The conversion is incomplete and some blocks are not yet supported.')
         except Exception as e:
             print(e)

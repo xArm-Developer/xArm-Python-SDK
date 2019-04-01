@@ -25,8 +25,7 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-last_analogs = [-1, -1]
-while arm.connected and arm.error_code == 0:
+while arm.connected and arm.error_code != 28:
     code, analogs = arm.get_gpio_analog()
     print('code: {}, analogs={}'.format(code, analogs))
     time.sleep(1)

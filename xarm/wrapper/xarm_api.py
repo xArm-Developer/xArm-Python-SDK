@@ -440,6 +440,14 @@ class XArmAPI(object):
         """
         return self._arm.slave_id
 
+    @property
+    def gravity_direction(self):
+        """
+        gravity direction, only available in socket way and enable_report is True and report_type is 'rich'
+        :return: 
+        """
+        return self._arm.gravity_direction
+
     def connect(self, port=None, baudrate=None, timeout=None):
         """
         Connect to xArm

@@ -108,6 +108,8 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 - ##### 0205-move_joint --> [xarm5](example/wrapper/xarm5/0205-move_joint.py) --- [xarm6](example/wrapper/xarm6/0205-move_joint.py) --- [xarm7](example/wrapper/xarm7/0205-move_joint.py)
 
+- ##### 0301-move_circle --> [xarm6](example/wrapper/xarm6/0301-move_circle.py) --- [xarm7](example/wrapper/xarm7/0301-move_circle.py)
+
 - [1001-get_gpio_digital](example/wrapper/common/1001-get_gpio_digital.py)
 
 - [1002-get_gpio_analog](example/wrapper/common/1002-get_gpio_analog.py)
@@ -141,6 +143,8 @@ Install is not necessary, you can run examples without installation.Only Python3
   arm.set_servo_angle(...)
   arm.set_servo_angle_j(...)
   arm.move_gohome(...)
+  arm.move_circle(...)
+  arm.emergency_stop()
   ```
 - #### Set
   ```
@@ -161,6 +165,20 @@ Install is not necessary, you can run examples without installation.Only Python3
   arm.get_position(...)
   arm.get_servo_angle(...)
   ```
+- #### Setting
+```
+  arm.set_tcp_offset(...)
+  arm.set_tcp_jerk(...)
+  arm.set_tcp_maxacc(...)
+  arm.set_joint_jerk(...)
+  arm.set_joint_maxacc(...)
+  arm.set_tcp_load(...)
+  arm.set_collision_sensitivity(...)
+  arm.set_teach_sensitivity(...)
+  arm.set_gravity_direction(...)
+  arm.clean_conf()
+  arm.save_conf()
+```
 - #### Gripper
   ```
   arm.set_gripper_enable(...)
@@ -168,20 +186,35 @@ Install is not necessary, you can run examples without installation.Only Python3
   arm.set_gripper_position(...)
   arm.get_gripper_position()
   ```
+- #### GPIO
+  ```
+  arm.get_gpio_digital(...)
+  arm.set_gpio_digital(...)
+  arm.get_gpio_analog(...)
+  ```
+- #### Other
+```
+  arm.set_pause_time(...)
+  arm.shutdown_system(...)
+  arm.clean_error()
+  arm.clean_warn()
+```
 - #### Register/Release
   ```
   arm.register_report_callback(...)
   arm.register_report_location_callback(...)
   arm.register_connect_changed_callback(callback)
   arm.register_state_changed_callback(callback)
-  arm.register_maable_mtbrake_changed_callback(callback)
+  arm.register_mode_changed_callback(callback)
+  arm.register_mtable_mtbrake_changed_callback(callback)
   arm.register_error_warn_changed_callback(callback)
   arm.register_cmdnum_changed_callback(callback)
   arm.release_report_callback(callback)
   arm.release_report_location_callback(callback)
   arm.release_connect_changed_callback(callback)
   arm.release_state_changed_callback(callback)
-  arm.release_maable_mtbrake_changed_callback(callback)
+  arm.release_mode_changed_callback(callback)
+  arm.release_mtable_mtbrake_changed_callback(callback)
   arm.release_error_warn_changed_callback(callback)
   arm.release_cmdnum_changed_callback(callback)
   ```
@@ -204,6 +237,11 @@ Install is not necessary, you can run examples without installation.Only Python3
   arm.last_used_joint_acc
   arm.tcp_offset
   arm.state
+  arm.mode
+  arm.joints_torque
+  arm.tcp_load
+  arm.collision_sensitivity
+  arm.teach_sensitivity
   arm.motor_brake_states
   arm.motor_enable_states
   arm.has_err_warn
@@ -214,5 +252,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   arm.cmd_num
   arm.device_type
   arm.axis
+  arm.gravity_direction
   ```
 

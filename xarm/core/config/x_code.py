@@ -338,8 +338,14 @@ ControllerErrorCodeMap = {
     },
     30: {
         'description': {
-            'cn': '力矩限位',
-            'en': 'Torque limit'
+            'cn': '碰撞导致电流异常',
+            'en': 'Collision causes abnormal current'
+        }
+    },
+    31: {
+        'description': {
+            'cn': '示教模式电流异常',
+            'en': 'Teach mode current abnormality'
         }
     }
 }

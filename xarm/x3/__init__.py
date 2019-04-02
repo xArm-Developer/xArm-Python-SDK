@@ -90,6 +90,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._arm_motor_fid = 0
         self._arm_motor_brake_states = [0, 0, 0, 0, 0, 0, 0, 0]  # [motor-1-brake-state, ..., motor-7-brake, reserved]
         self._arm_motor_enable_states = [0, 0, 0, 0, 0, 0, 0, 0]  # [motor-1-enable-state, ..., motor-7-enable, reserved]
+        self._gravity_direction = [0, 0, -1]
 
         self._is_ready = False
         self._is_stop = False
@@ -274,6 +275,10 @@ class XArm(Gripper, Servo, GPIO, Events):
     @property
     def motor_fid(self):
         return self._arm_motor_fid
+
+    @property
+    def gravity_direction(self):
+        return self._gravity_direction
 
     def connect(self, port=None, baudrate=None, timeout=None):
         if self.connected:
@@ -659,6 +664,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             pose_offset = convert.bytes_to_fp32s(rx_data[91:6 * 4 + 91], 6)
             tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
+            self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))
@@ -766,13 +772,13 @@ class XArm(Gripper, Servo, GPIO, Events):
              self._arm_master_id,
              self._arm_slave_id,
              self._arm_motor_tid,
-             self._arm_motor_fid) = rx_data[133:139]
+             self._arm_motor_fid) = rx_data[145:151]
 
             self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self._arm_axis)
 
-            # self._version = str(rx_data[139:168], 'utf-8')
+            # self._version = str(rx_data[151:180], 'utf-8')
 
-            trs_msg = convert.bytes_to_fp32s(rx_data[169:189], 5)
+            trs_msg = convert.bytes_to_fp32s(rx_data[181:201], 5)
             # trs_msg = [i[0] for i in trs_msg]
             (self._tcp_jerk,
              self._min_tcp_acc,
@@ -783,7 +789,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             #     self._tcp_jerk, self._min_tcp_acc, self._max_tcp_acc, self._min_tcp_speed, self._max_tcp_speed
             # ))
 
-            p2p_msg = convert.bytes_to_fp32s(rx_data[189:209], 5)
+            p2p_msg = convert.bytes_to_fp32s(rx_data[201:221], 5)
             # p2p_msg = [i[0] for i in p2p_msg]
             (self._joint_jerk,
              self._min_joint_acc,
@@ -795,12 +801,12 @@ class XArm(Gripper, Servo, GPIO, Events):
             #     self._min_joint_speed, self._max_joint_speed
             # ))
 
-            rot_msg = convert.bytes_to_fp32s(rx_data[209:217], 2)
+            rot_msg = convert.bytes_to_fp32s(rx_data[221:229], 2)
             # rot_msg = [i[0] for i in rot_msg]
             self._rot_jerk, self._max_rot_acc = rot_msg
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
-            sv3_msg = rx_data[217:233]
+            sv3_msg = rx_data[229:245]
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected

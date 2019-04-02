@@ -279,6 +279,29 @@ class BlocklyTool(object):
         self._append_to_file('{}    arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
                              'radius={}, wait={})'.format(prefix, values, radius, wait))
 
+    def _handle_move_circle(self, block, prefix=''):
+        values = self.get_nodes('value', root=block)
+        percent = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        wait = self.get_nodes('field', root=values[3], descendant=True)[0].text == 'TRUE'
+
+        p1_block = self.get_node('block', root=values[0])
+        fields = self.get_nodes('field', root=p1_block)
+        pose1 = []
+        for field in fields:
+            pose1.append(float(field.text))
+
+        p2_block = self.get_node('block', root=values[1])
+        fields = self.get_nodes('field', root=p2_block)
+        pose2 = []
+        for field in fields:
+            pose2.append(float(field.text))
+        if self._show_comment:
+            self._append_to_file('{}# move circle and {}'.format(
+                prefix, 'wait' if wait else 'no wait'))
+        self._append_to_file('{}if arm.error_code == 0:'.format(prefix))
+        self._append_to_file('{}    arm.move_circle({}, {}, {}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'wait={})'.format(prefix, pose1, pose2, percent, wait))
+
     def _handle_move_7(self, block, prefix=''):
         value = self.get_node('value', root=block)
         p_block = self.get_node('block', root=value)
@@ -334,6 +357,13 @@ class BlocklyTool(object):
         y = self.get_nodes('field', root=values[2], descendant=True)[0].text
         z = self.get_nodes('field', root=values[3], descendant=True)[0].text
         self._append_to_file('{}arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
+
+    def _handle_set_gravity_direction(self, block, prefix=''):
+        values = self.get_nodes('value', root=block)
+        x = self.get_nodes('field', root=values[0], descendant=True)[0].text
+        y = self.get_nodes('field', root=values[1], descendant=True)[0].text
+        z = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        self._append_to_file('{}arm.set_gravity_direction([{}, {}, {}])'.format(prefix, x, y, z))
 
     def _handle_set_tcp_offset(self, block, prefix=''):
         values = self.get_nodes('value', root=block)

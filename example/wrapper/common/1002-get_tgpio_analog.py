@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 """
-Example: Get GPIO Digital
+Example: Get Tool GPIO Analog
 """
 
 import os
@@ -25,16 +25,16 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-last_digitals = [-1, -1]
 while arm.connected and arm.error_code != 28:
-    code, digitals = arm.get_gpio_digital()
-    if code == 0:
-        if digitals[0] == 1 and digitals[0] != last_digitals[0]:
-            print('IO1 output high level')
-        if digitals[1] == 1 and digitals[1] != last_digitals[1]:
-            print('IO2 output high level')
-        last_digitals = digitals
-    time.sleep(0.1)
+    code, analogs = arm.get_tgpio_analog()
+    print('code: {}, analogs={}'.format(code, analogs))
+    time.sleep(1)
+    code, analog = arm.get_tgpio_analog(1)
+    print('code: {}, analog(io1)={}'.format(code, analog))
+    time.sleep(0.2)
+    code, analog = arm.get_tgpio_analog(2)
+    print('code: {}, analog(io2)={}'.format(code, analog))
+    time.sleep(0.5)
 
 
 

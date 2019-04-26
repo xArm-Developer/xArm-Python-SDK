@@ -70,7 +70,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._mvtime = 0
 
         self._version = None
-        self._position = [0] * 6
+        self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
         self._state = 4
@@ -313,6 +313,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                         count -= 1
                     version_date = '-'.join(self._version.split('-')[-3:])
                     self._is_old_protocol = compare_time('2019-02-01', version_date)
+                    print('is_old_protocol: {}'.format(self._is_old_protocol))
                 except Exception as e:
                     print('compare_time: {}, {}'.format(self._version, e))
 
@@ -505,6 +506,8 @@ class XArm(Gripper, Servo, GPIO, Events):
                 else:
                     pretty_print('Error had clean', color='blue')
                 if self._warn_code != 0:
+                    # print(rx_data)
+                    # print('length:', convert.bytes_to_u32(rx_data[0:4]))
                     pretty_print('WarnCode: {}'.format(self._error_code), color='yellow')
                 else:
                     pretty_print('Warnning had clean', color='blue')
@@ -586,14 +589,15 @@ class XArm(Gripper, Servo, GPIO, Events):
         def __handle_report_rich(rx_data):
             __handle_report_normal(rx_data)
             (self._arm_type,
-             self._arm_axis,
+             arm_axis,
              self._arm_master_id,
              self._arm_slave_id,
              self._arm_motor_tid,
              self._arm_motor_fid) = rx_data[87:93]
 
-            self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self._arm_axis)
-
+            arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, arm_axis)
+            if 7>= arm_axis >= 5:
+                self._arm_axis = arm_axis
             ver_msg = rx_data[93:122]
             # self._version = str(ver_msg, 'utf-8')
 
@@ -632,6 +636,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         while self._stream and self._stream.connected:
             try:
                 if not self._stream_report or not self._stream_report.connected:
+                    self.get_err_warn_code()
                     if report_socket_connected:
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
@@ -729,7 +734,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
             self._joints_torque = torque
-            self._tcp_load = [tcp_load[0], tcp_load[1:]]
+            self._tcp_load = [tcp_load[0], [i * 1000 for i in tcp_load[1:]]]
             self._collision_sensitivity = collis_sens
             self._teach_sensitivity = teach_sens
 
@@ -768,13 +773,15 @@ class XArm(Gripper, Servo, GPIO, Events):
         def __handle_report_rich(rx_data):
             __handle_report_normal(rx_data)
             (self._arm_type,
-             self._arm_axis,
+             arm_axis,
              self._arm_master_id,
              self._arm_slave_id,
              self._arm_motor_tid,
              self._arm_motor_fid) = rx_data[145:151]
 
-            self._arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, self._arm_axis)
+            arm_axis = XCONF.RobotType.AXIS_MAP.get(self.device_type, arm_axis)
+            if 7 >= arm_axis >= 5:
+                self._arm_axis = arm_axis
 
             # self._version = str(rx_data[151:180], 'utf-8')
 
@@ -813,6 +820,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         while self._stream and self._stream.connected:
             try:
                 if not self._stream_report or not self._stream_report.connected:
+                    self.get_err_warn_code()
                     if report_socket_connected:
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
@@ -1683,7 +1691,7 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     @xarm_is_connected(_type='set')
     def set_tcp_load(self, weight, center_of_gravity):
-        ret = self.arm_cmd.set_tcp_load(weight, center_of_gravity)
+        ret = self.arm_cmd.set_tcp_load(weight, [item / 1000.0 for item in center_of_gravity])
         return ret[0]
 
     @xarm_is_connected(_type='set')

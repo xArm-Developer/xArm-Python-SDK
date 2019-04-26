@@ -317,6 +317,33 @@ class BlocklyTool(object):
             '{}    arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
             'mvacc=params[\'angle_acc\'], wait={})'.format(prefix, values, wait))
 
+    def _handle_move_joints(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        values = []
+        for field in fields[:-1]:
+            values.append(float(field.text))
+        wait = fields[-1].text == 'TRUE'
+        if self._show_comment:
+            self._append_to_file('{}# move joint and {}'.format(prefix, 'wait' if wait else 'no wait'))
+        self._append_to_file('{}if arm.error_code == 0:'.format(prefix))
+        self._append_to_file(
+            '{}    arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
+            'mvacc=params[\'angle_acc\'], wait={})'.format(prefix, values, wait))
+
+    def _handle_move_cartesian(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        values = []
+        for field in fields[:-2]:
+            values.append(float(field.text))
+        radius = float(fields[-2].text)
+        wait = fields[-1].text == 'TRUE'
+        if self._show_comment:
+            self._append_to_file('{}# move{}line and {}'.format(
+                prefix, ' arc ' if float(radius) >= 0 else ' ', 'wait' if wait else 'no wait'))
+        self._append_to_file('{}if arm.error_code == 0:'.format(prefix))
+        self._append_to_file('{}    arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'radius={}, wait={})'.format(prefix, values, radius, wait))
+
     def _handle_motion_stop(self, block, prefix=''):
         if self._show_comment:
             self._append_to_file('{}# emergency stop'.format(prefix))
@@ -382,7 +409,7 @@ class BlocklyTool(object):
         wait = self.get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
         if self._show_comment:
             self._append_to_file('{}# set gripper position and '.format(prefix, 'wait' if wait else 'no wait'))
-        self._append_to_file('{}arm.set_gripper_position({}, wait={}, speed={})'.format(prefix, pos, wait, speed))
+        self._append_to_file('{}arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True)'.format(prefix, pos, wait, speed))
 
     def _handle_event_gpio_digital(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)

@@ -107,7 +107,7 @@ class Gripper(object):
                         else:
                             last_pos = cur_pos
                             count = 0
-                    if count >= 25:
+                    if count >= 15:
                         print('gripper target: {}, current: {}'.format(pos, cur_pos))
                         break
                 time.sleep(0.02)

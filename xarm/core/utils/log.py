@@ -32,7 +32,7 @@ class Logger(logging.Logger):
     stream_handler.setFormatter(logging.Formatter(stream_handler_fmt, stream_handler_date_fmt))
 
     # rotating_file_handler = RotatingFileHandler(filename=os.path.join(log_path, 'xArm-Python-SDK.log'), mode='a',
-    #                                             maxBytes=10240000, backupCount=30)
+    #                                             encoding='utf-8', maxBytes=10240000, backupCount=30)
     # rotating_file_handler.setLevel(logging.VERBOSE)
     # rotating_file_handler.setFormatter(logging.Formatter(stream_handler_fmt, stream_handler_date_fmt))
 
@@ -47,7 +47,6 @@ class Logger(logging.Logger):
         return cls.logger
 
 logger = Logger(__name__)
-
 logger.setLevel(logging.INFO)
 
 logger.VERBOSE = logging.VERBOSE
@@ -89,8 +88,9 @@ level_color_map = {
 }
 
 logger.bak_log = logger._log
+logger.is_pretty = False
 
-if not hasattr(sys, 'frozen'):
+if not hasattr(sys, 'frozen') and logger.is_pretty:
     def log(level, msg, args, exc_info=None, extra=None, stack_info=False, color=None):
         if color is None:
             color = level_color_map.get(level, 'none')

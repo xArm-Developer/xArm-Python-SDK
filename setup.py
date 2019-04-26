@@ -35,7 +35,7 @@ setup(
     author='Vinman',
     description='Python SDK for xArm',
     packages=find_packages(),
-    author_email='developer@ufactory.cc',
+    author_email='vinman@ufactory.cc',
     install_requires=requirements,
     long_description=long_description,
     license='MIT',

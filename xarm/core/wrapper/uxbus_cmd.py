@@ -55,6 +55,26 @@ class UxbusCmd(object):
         return self.send_pend(funcode, num, XCONF.UxbusConf.GET_TIMEOUT)
 
     @lock_require
+    def set_nu16(self, funcode, datas, num):
+        hexdata = convert.u16s_to_bytes(datas, num)
+        ret = self.send_xbus(funcode, hexdata, num * 2)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        ret = self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
+        return ret
+
+    @lock_require
+    def get_nu16(self, funcode, num):
+        ret = self.send_xbus(funcode, 0, 0)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (num * 2 + 1)
+        ret = self.send_pend(funcode, num * 2, XCONF.UxbusConf.GET_TIMEOUT)
+        data = [0] * (1 + num)
+        data[0] = ret[0]
+        data[1:num] = convert.bytes_to_u16s(ret[1:num * 2 + 1], num)
+        return data
+
+    @lock_require
     def set_nfp32(self, funcode, datas, num):
         hexdata = convert.fp32s_to_bytes(datas, num)
         ret = self.send_xbus(funcode, hexdata, num * 4)
@@ -92,17 +112,6 @@ class UxbusCmd(object):
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * 2
         return self.send_pend(funcode, 1, XCONF.UxbusConf.GET_TIMEOUT)
-
-    @lock_require
-    def get_nu16(self, funcode, num):
-        ret = self.send_xbus(funcode, 0, 0)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (num * 2 + 1)
-        ret = self.send_pend(funcode, num * 2, XCONF.UxbusConf.GET_TIMEOUT)
-        data = [0] * (1 + num)
-        data[0] = ret[0]
-        data[1:num] = convert.bytes_to_u16s(ret[1:num * 2 + 1], num)
-        return data
 
     def get_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_VERSION, 40)
@@ -308,7 +317,7 @@ class UxbusCmd(object):
     def gripper_clean_err(self):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
-    def gpio_addr_w16(self, addr, value):
+    def tgpio_addr_w16(self, addr, value):
         txdata = bytes([XCONF.GPIO_ID])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -319,7 +328,7 @@ class UxbusCmd(object):
         ret = self.send_pend(XCONF.UxbusReg.GRIPP_W16B, 0, XCONF.UxbusConf.GET_TIMEOUT)
         return ret
 
-    def gpio_addr_r16(self, addr):
+    def tgpio_addr_r16(self, addr):
         txdata = bytes([XCONF.GPIO_ID])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R16B, txdata, 3)
@@ -332,7 +341,7 @@ class UxbusCmd(object):
         ret1[1] = convert.bytes_to_long_big(ret[1:5])
         return ret1
 
-    def gpio_addr_w32(self, addr, value):
+    def tgpio_addr_w32(self, addr, value):
         txdata = bytes([XCONF.GPIO_ID])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -343,7 +352,7 @@ class UxbusCmd(object):
         ret = self.send_pend(XCONF.UxbusReg.GRIPP_W32B, 0, XCONF.UxbusConf.GET_TIMEOUT)
         return ret
 
-    def gpio_addr_r32(self, addr):
+    def tgpio_addr_r32(self, addr):
         txdata = bytes([XCONF.GPIO_ID])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R32B, txdata, 3)
@@ -356,15 +365,15 @@ class UxbusCmd(object):
         ret1[1] = convert.bytes_to_long_big(ret[1:5])
         return ret1
 
-    def gpio_get_digital(self):
-        ret = self.gpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
+    def tgpio_get_digital(self):
+        ret = self.tgpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
         value = [0] * 3
         value[0] = ret[0]
         value[1] = ret[1] & 0x0001
         value[2] = (ret[1] & 0x0002) >> 1
         return value
 
-    def gpio_set_digital(self, ionum, value):
+    def tgpio_set_digital(self, ionum, value):
         tmp = 0
         if ionum == 1:
             tmp = tmp | 0x0100
@@ -376,17 +385,17 @@ class UxbusCmd(object):
                 tmp = tmp | 0x0002
         else:
             return [-1, -1]
-        return self.gpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp)
+        return self.tgpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp)
 
-    def gpio_get_analog1(self):
-        ret = self.gpio_addr_r16(XCONF.ServoConf.ANALOG_IO1)
+    def tgpio_get_analog1(self):
+        ret = self.tgpio_addr_r16(XCONF.ServoConf.ANALOG_IO1)
         value = [0] * 2
         value[0] = ret[0]
         value[1] = ret[1] * 3.3 / 4096.0
         return value
 
-    def gpio_get_analog2(self):
-        ret = self.gpio_addr_r16(XCONF.ServoConf.ANALOG_IO2)
+    def tgpio_get_analog2(self):
+        ret = self.tgpio_addr_r16(XCONF.ServoConf.ANALOG_IO2)
         value = [0] * 2
         value[0] = ret[0]
         value[1] = ret[1] * 3.3 / 4096.0
@@ -445,3 +454,73 @@ class UxbusCmd(object):
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
         # return [ret[0], convert.bytes_to_long_big(ret[1:5])[0]]
 
+    # -----------------------------------------------------
+    # controler gpio
+    # -----------------------------------------------------
+    def cgpio_get_auxdigit(self):
+        ret = self.get_nu16(XCONF.UxbusReg.CGPIO_GET_DIGIT, 1)
+        value = [0] * 2
+        value[0] = ret[0]
+        value[1] = ret[1]
+        return value
+
+    def cgpio_get_analog1(self):
+        ret = self.get_nu16(XCONF.UxbusReg.CGPIO_GET_ANALOG1, 1)
+        value = [0] * 2
+        value[0] = ret[0]
+        value[1] = ret[1] * 10.0 / 4096.0
+        return value
+
+    def cgpio_get_analog2(self):
+        ret = self.get_nu16(XCONF.UxbusReg.CGPIO_GET_ANALOG2, 1)
+        value = [0] * 2
+        value[0] = ret[0]
+        value[1] = ret[1] * 10.0 / 4096.0
+        return value
+
+    def cgpio_set_auxdigit(self, ionum, value):
+        """
+        ionum: 0~7
+        value: 0 / 1
+        """
+        if ionum > 7:
+            return [-1, -1]
+
+        tmp = [0] * 1
+        tmp[0] = tmp[0] | (0x0100 << ionum)
+        if value:
+            tmp[0] = tmp[0] | (0x0001 << ionum)
+        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1)
+
+    def cgpio_set_analog1(self, value):
+        txdata = [int(value / 10.0 * 4096.0)]
+        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG1, txdata, 1)
+
+    def cgpio_set_analog2(self, value):
+        txdata = [int(value / 10.0 * 4096.0)]
+        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG2, txdata, 1)
+
+    def cgpio_set_infun(self, num, fun):
+        txdata = [int(num), int(fun)]
+        return self.set_nu8(XCONF.UxbusReg.CGPIO_SET_IN_FUN, txdata, 2)
+
+    def cgpio_set_outfun(self, num, fun):
+        txdata = [int(num), int(fun)]
+        return self.set_nu8(XCONF.UxbusReg.CGPIO_SET_OUT_FUN, txdata, 2)
+
+    def cgpio_get_state(self):
+        ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, 34)
+        msg = [0] * 13
+        msg[0] = ret[0]
+        msg[1] = ret[1]
+        msg[2] = ret[2]
+
+        msg[3:11] = convert.bytes_to_u16s(ret[3:19], 8)
+        msg[7] = msg[7] / 4096.0 * 10.0
+        msg[8] = msg[8] / 4096.0 * 10.0
+        msg[9] = msg[9] / 4096.0 * 10.0
+        msg[10] = msg[10] / 4096.0 * 10.0
+        msg[11] = ret[19:27]
+        msg[12] = ret[27:35]
+
+        return msg

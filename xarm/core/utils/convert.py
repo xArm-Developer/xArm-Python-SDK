@@ -45,6 +45,15 @@ def u16_to_bytes(data):
     return bts
 
 
+def u16s_to_bytes(data, num):
+    bts = b''
+    if num != 0:
+        bts = u16_to_bytes(data[0])
+        for i in range(1, num):
+            bts += u16_to_bytes(data[i])
+    return bts
+
+
 def bytes_to_u16(data):
     data_u16 = data[0] << 8 | data[1]
     return data_u16

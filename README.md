@@ -14,7 +14,7 @@ xArm Python SDK
 Install is not necessary, you can run examples without installation.Only Python3 is supported.
 - download
 
-  ``` git clone git@github.com:xArm-Developer/xArm-Python-SDK.git```
+  ``` git clone https://github.com/xArm-Developer/xArm-Python-SDK.git```
 - install
 
   ``` python setup.py install ```
@@ -110,11 +110,11 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 - ##### 0301-move_circle --> [xarm6](example/wrapper/xarm6/0301-move_circle.py) --- [xarm7](example/wrapper/xarm7/0301-move_circle.py)
 
-- [1001-get_gpio_digital](example/wrapper/common/1001-get_gpio_digital.py)
+- [1001-get_tgpio_digital](example/wrapper/common/1001-get_tgpio_digital.py)
 
-- [1002-get_gpio_analog](example/wrapper/common/1002-get_gpio_analog.py)
+- [1002-get_tgpio_analog](example/wrapper/common/1002-get_tgpio_analog.py)
 
-- [1003-set_gpio_digital](example/wrapper/common/1003-set_gpio_digital.py)
+- [1003-set_tgpio_digital](example/wrapper/common/1003-set_tgpio_digital.py)
 
 - [1004-set_gripper](example/wrapper/common/1004-set_gripper.py)
 

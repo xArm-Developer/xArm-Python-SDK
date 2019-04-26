@@ -338,16 +338,28 @@ ControllerErrorCodeMap = {
     },
     30: {
         'description': {
-            'cn': '碰撞导致电流异常',
-            'en': 'Collision causes abnormal current'
+            'cn': '示教模式电流异常',
+            'en': 'Teach mode current abnormality'
         }
     },
     31: {
         'description': {
-            'cn': '示教模式电流异常',
-            'en': 'Teach mode current abnormality'
+            'cn': '碰撞导致电流异常',
+            'en': 'Collision causes abnormal current'
         }
-    }
+    },
+    32: {
+        'description': {
+            'cn': '三点圆弧指令计算出错',
+            'en': 'Three-point arc command calculation error'
+        }
+    },
+    33: {
+        'description': {
+            'cn': '控制器gpio模块报错',
+            'en': 'Controller gpio module error'
+        }
+    },
 }
 
 ControllerWarnCodeMap = {

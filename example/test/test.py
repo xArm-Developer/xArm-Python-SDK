@@ -23,27 +23,9 @@ time.sleep(1)
 arm.motion_enable(True)
 arm.set_mode(0)
 arm.set_state(0)
-pose = [
-    [300,  0,   100, -3.14, 0.3, 0.5],
-    [300,  100, 100, -3.14, 0.4, 0.1],
-    [400,  100, 100, -3.14, 0.1, 0.2],
-    [400, -100, 100, -3.14, 0.2, 0.2],
-    [300,  0,   300, -3.14, 0.5, 0.3]
-]
 
-ret = arm.move_gohome(wait=True)
-print('move_gohome, ret: {}'.format(ret))
-
-ret = arm.set_pause_time(1.1)
-print('set_pause_time, ret: {}'.format(ret))
-
-ret = arm.set_position(*pose[0], speed=50, mvacc=100, wait=True)
-print('set_position, ret: {}'.format(ret))
-
-ret = arm.move_circle(pose1=pose[1], pose2=pose[2], percent=50, speed=50, mvacc=100, wait=True)
-print('move_circle, ret: {}'.format(ret))
-
-ret = arm.move_circle(pose1=pose[3], pose2=pose[4], percent=100, speed=50, mvacc=100, wait=True)
-print('move_circle, ret: {}'.format(ret))
+print(arm.get_cgpio_analog())
+print(arm.get_cgpio_digital())
+print(arm.get_cgpio_state())
 
 arm.disconnect()

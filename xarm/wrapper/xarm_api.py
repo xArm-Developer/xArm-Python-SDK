@@ -98,6 +98,9 @@ class XArmAPI(object):
             'register_maable_mtbrake_changed_callback': self.register_mtable_mtbrake_changed_callback,
             'release_maable_mtbrake_changed_callback': self.release_mtable_mtbrake_changed_callback,
             'position_offset': self.tcp_offset,
+            'get_gpio_digital': self.get_tgpio_digital,
+            'set_gpio_digital': self.set_tgpio_digital,
+            'get_gpio_analog': self.get_tgpio_analog,
         }
 
     def __getattr__(self, item):
@@ -1155,47 +1158,68 @@ class XArmAPI(object):
         """
         return self._arm.clean_gripper_error()
 
-    # def set_gpio_addr_16(self, addr, value):
-    #     return self._arm.set_gpio_addr_16(addr, value)
+    # def set_tgpio_addr_16(self, addr, value):
+    #     return self._arm.set_tgpio_addr_16(addr, value)
     #
-    # def get_gpio_addr_16(self, addr):
-    #     return self._arm.get_gpio_addr_16(addr)
+    # def get_tgpio_addr_16(self, addr):
+    #     return self._arm.get_tgpio_addr_16(addr)
     #
-    # def set_gpio_addr_32(self, addr, value):
-    #     return self._arm.set_gpio_addr_32(addr, value)
+    # def set_tgpio_addr_32(self, addr, value):
+    #     return self._arm.set_tgpio_addr_32(addr, value)
     #
-    # def get_gpio_addr_32(self, addr):
-    #     return self._arm.get_gpio_addr_32(addr)
+    # def get_tgpio_addr_32(self, addr):
+    #     return self._arm.get_tgpio_addr_32(addr)
 
-    def get_gpio_digital(self, ionum=None):
+    def get_tgpio_digital(self, ionum=None):
         """
-        Get the digital value of the specified GPIO
+        Get the digital value of the specified Tool GPIO
         
         :param ionum: 1 or 2 or None(both 1 and 2), default is None
         :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """
-        return self._arm.get_gpio_digital(ionum)
+        return self._arm.get_tgpio_digital(ionum)
 
-    def set_gpio_digital(self, ionum, value):
+    def set_tgpio_digital(self, ionum, value):
         """
-        Set the digital value of the specified GPIO
+        Set the digital value of the specified Tool GPIO
         
         :param ionum: 1 or 2
         :param value: value
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_gpio_digital(ionum, value)
+        return self._arm.set_tgpio_digital(ionum, value)
 
-    def get_gpio_analog(self, ionum=None):
+    def get_tgpio_analog(self, ionum=None):
         """
-        Get the analog value of the specified GPIO
+        Get the analog value of the specified Tool GPIO
         :param ionum: 1 or 2 or None(both 1 and 2), default is None
         :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """
-        return self._arm.get_gpio_analog(ionum)
+        return self._arm.get_tgpio_analog(ionum)
+
+    def get_cgpio_digital(self, ionum=None):
+        return self._arm.get_cgpio_digital(ionum=ionum)
+
+    def get_cgpio_analog(self, ionum=None):
+        return self._arm.get_cgpio_analog(ionum=ionum)
+
+    def set_cgpio_digital(self, ionum, value):
+        return self._arm.set_cgpio_digital(ionum=ionum, value=value)
+
+    def set_cgpio_analog(self, ionum, value):
+        return self._arm.set_cgpio_analog(ionum=ionum, value=value)
+
+    def set_cgpio_digital_input_function(self, ionum, fun):
+        return self._arm.set_cgpio_digital_input_function(ionum=ionum, fun=fun)
+
+    def set_cgpio_digital_output_function(self, ionum, fun):
+        return self._arm.set_cgpio_digital_output_function(ionum=ionum, fun=fun)
+
+    def get_cgpio_state(self):
+        return self._arm.get_cgpio_state()
 
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,
                                  report_state=True, report_error_code=True, report_warn_code=True,

@@ -200,6 +200,16 @@ class XCONF(object):
         GRIPP_W32B = 129
         GRIPP_R32B = 130
 
+        CGPIO_GET_DIGIT = 131
+        CGPIO_GET_ANALOG1 = 132
+        CGPIO_GET_ANALOG2 = 133
+        CGPIO_SET_DIGIT = 134
+        CGPIO_SET_ANALOG1 = 135
+        CGPIO_SET_ANALOG2 = 136
+        CGPIO_SET_IN_FUN = 137
+        CGPIO_SET_OUT_FUN = 138
+        CGPIO_GET_STATE = 139
+
     class UxbusConf:
         SET_TIMEOUT = 1000  # ms
         GET_TIMEOUT = 1000  # ms

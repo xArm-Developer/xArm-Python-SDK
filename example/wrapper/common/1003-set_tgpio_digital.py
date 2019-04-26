@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 """
-Example: Set GPIO Digital
+Example: Set Tool GPIO Digital
 """
 
 import os
@@ -26,14 +26,14 @@ if arm.error_code != 0:
     arm.clean_error()
 
 print('set IO1 high level')
-arm.set_gpio_digital(1, 1)
+arm.set_tgpio_digital(1, 1)
 time.sleep(2)
 print('set IO2 high level')
-arm.set_gpio_digital(2, 1)
+arm.set_tgpio_digital(2, 1)
 time.sleep(2)
 print('set IO1 low level')
-arm.set_gpio_digital(1, 0)
+arm.set_tgpio_digital(1, 0)
 print('set IO2 low level')
-arm.set_gpio_digital(2, 0)
+arm.set_tgpio_digital(2, 0)
 
 

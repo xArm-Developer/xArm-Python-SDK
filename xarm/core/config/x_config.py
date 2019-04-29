@@ -144,7 +144,7 @@ class XCONF(object):
         TCP_CONTROL_BUF_SIZE = 1024
         TCP_REPORT_REAL_BUF_SIZE = 87
         TCP_REPORT_NORMAL_BUF_SIZE = 133
-        TCP_REPORT_RICH_BUF_SIZE = 233
+        TCP_REPORT_RICH_BUF_SIZE = 245
 
     class UxbusReg:
         GET_VERSION = 1

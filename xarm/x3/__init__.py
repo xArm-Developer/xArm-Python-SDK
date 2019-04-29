@@ -506,8 +506,6 @@ class XArm(Gripper, Servo, GPIO, Events):
                 else:
                     pretty_print('Error had clean', color='blue')
                 if self._warn_code != 0:
-                    # print(rx_data)
-                    # print('length:', convert.bytes_to_u32(rx_data[0:4]))
                     pretty_print('WarnCode: {}'.format(self._error_code), color='yellow')
                 else:
                     pretty_print('Warnning had clean', color='blue')
@@ -684,6 +682,8 @@ class XArm(Gripper, Servo, GPIO, Events):
                 else:
                     pretty_print('Error had clean', color='blue')
                 if self._warn_code != 0:
+                    print(len(rx_data), rx_data)
+                    print('length:', convert.bytes_to_u32(rx_data[0:4]))
                     pretty_print('WarnCode: {}'.format(self._error_code), color='yellow')
                 else:
                     pretty_print('Warnning had clean', color='blue')

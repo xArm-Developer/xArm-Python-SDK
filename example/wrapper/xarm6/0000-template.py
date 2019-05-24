@@ -17,9 +17,18 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 
 from xarm.wrapper import XArmAPI
 from xarm.core import ControllerError, ControllerWarn
+from configparser import ConfigParser
+parser = ConfigParser()
+parser.read('../robot.conf')
+try:
+    ip = parser.get('xArm', 'ip')
+except:
+    ip = input('Please input the xArm ip address[192.168.1.194]:')
+    if not ip:
+        ip = '192.168.1.194'
 
 
-arm = XArmAPI('192.168.1.113', do_not_open=True, is_radian=False)
+arm = XArmAPI(ip, do_not_open=True, is_radian=False)
 
 
 def hangle_err_warn_changed(item):

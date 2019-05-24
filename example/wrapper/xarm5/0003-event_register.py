@@ -18,6 +18,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 
 from xarm.wrapper import XArmAPI
 
+from configparser import ConfigParser
+parser = ConfigParser()
+parser.read('../robot.conf')
+try:
+    ip = parser.get('xArm', 'ip')
+except:
+    ip = input('Please input the xArm ip address[192.168.1.194]:')
+    if not ip:
+        ip = '192.168.1.194'
+
 
 def callback_cmdnum_changed(item):
     print('cmdnum changed:', item)
@@ -42,7 +52,7 @@ def callback_maable_mtbrake_changed(item):
 def callback_report_location(item):
     print('location report:', item)
 
-arm = XArmAPI('192.168.1.113', do_not_open=True)
+arm = XArmAPI(ip, do_not_open=True)
 arm.register_cmdnum_changed_callback(callback=callback_cmdnum_changed)
 arm.register_state_changed_callback(callback=callback_state_changed)
 arm.register_connect_changed_callback(callback=callback_connect_changed)

@@ -11,6 +11,7 @@ try:
 except ImportError:
   import xml.etree.ElementTree as ET
 import re
+import sys
 import json
 
 
@@ -26,6 +27,14 @@ class BlocklyTool(object):
             'LTE': '<=',
             'GT': '>',
             'GTE': '>='
+        }
+        self._ops2 = {
+            '===': '==',
+            '!==': '!=',
+            '>=': '>=',
+            '>': '>',
+            '<=': '<=',
+            '<': '<',
         }
         self._code_list = []
         self._hasEvent = False
@@ -203,23 +212,39 @@ class BlocklyTool(object):
         #         print('block {} can\'t convert to python code'.format(block.attrib['type']))
 
     def _handle_set_speed(self, block, prefix=''):
-        value = self.get_node('value', root=block)
-        value = self.get_nodes('field', root=value, descendant=True)[0].text
+        field = self.get_node('field', root=block)
+        if not field:
+            value = self.get_node('value', root=block)
+            value = self.get_nodes('field', root=value, descendant=True)[0].text
+        else:
+            value = field.text
         self._append_to_file('{}params[\'speed\'] = {}'.format(prefix, value))
 
     def _handle_set_acceleration(self, block, prefix=''):
-        value = self.get_node('value', root=block)
-        value = self.get_nodes('field', root=value, descendant=True)[0].text
+        field = self.get_node('field', root=block)
+        if not field:
+            value = self.get_node('value', root=block)
+            value = self.get_nodes('field', root=value, descendant=True)[0].text
+        else:
+            value = field.text
         self._append_to_file('{}params[\'acc\'] = {}'.format(prefix, value))
 
     def _handle_set_angle_speed(self, block, prefix=''):
-        value = self.get_node('value', root=block)
-        value = self.get_nodes('field', root=value, descendant=True)[0].text
+        field = self.get_node('field', root=block)
+        if not field:
+            value = self.get_node('value', root=block)
+            value = self.get_nodes('field', root=value, descendant=True)[0].text
+        else:
+            value = field.text
         self._append_to_file('{}params[\'angle_speed\'] = {}'.format(prefix, value))
 
     def _handle_set_angle_acceleration(self, block, prefix=''):
-        value = self.get_node('value', root=block)
-        value = self.get_nodes('field', root=value, descendant=True)[0].text
+        field = self.get_node('field', root=block)
+        if not field:
+            value = self.get_node('value', root=block)
+            value = self.get_nodes('field', root=value, descendant=True)[0].text
+        else:
+            value = field.text
         self._append_to_file('{}params[\'angle_acc\'] = {}'.format(prefix, value))
 
     def _handle_reset(self, block, prefix=''):
@@ -353,19 +378,66 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', block)
         message = json.loads(json.dumps(fields[-1].text))
         self._append_to_file('{}print(\'{}\')'.format(prefix, message))
+        # self._append_to_file('{}print(\'{{}}\'.format(\'{}\'))'.format(prefix, message))
 
     def _handle_wait(self, block, prefix=''):
         value = self.get_node('value', root=block)
         value = self.get_nodes('field', root=value, descendant=True)[0].text
         self._append_to_file('{}time.sleep({})'.format(prefix, value))
 
+    def _handle_gpio_get_digital(self, block, prefix=''):
+        io = self.get_node('field', block).text
+        if self._show_comment:
+            self._append_to_file('{}# get tgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}arm.get_tgpio_digital({})'.format(prefix, io))
+
+    def _handle_gpio_get_analog(self, block, prefix=''):
+        io = self.get_node('field', block).text
+        if self._show_comment:
+            self._append_to_file('{}# get tgpio-{} analog'.format(prefix, io))
+        self._append_to_file('{}arm.get_tgpio_analog({})'.format(prefix, io))
+
     def _handle_gpio_set_digital(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        io = fields[0].text
+        value = 0 if fields[1].text == 'LOW' else 1
+        # io = self.get_node('field', block).text
+        # value = self.get_node('value', root=block)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set tgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}arm.set_tgpio_digital({}, {})'.format(prefix, io, value))
+
+    def _handle_gpio_get_controller_digital(self, block, prefix=''):
+        io = self.get_node('field', block).text
+        if self._show_comment:
+            self._append_to_file('{}# get cgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}arm.get_cgpio_digital({})'.format(prefix, io))
+
+    def _handle_gpio_get_controller_analog(self, block, prefix=''):
+        io = self.get_node('field', block).text
+        if self._show_comment:
+            self._append_to_file('{}# get cgpio-{} analog'.format(prefix, io))
+        self._append_to_file('{}arm.get_cgpio_analog({})'.format(prefix, io))
+
+    def _handle_gpio_set_controller_digital(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        io = fields[0].text
+        value = 0 if fields[1].text == 'LOW' else 1
+        # io = self.get_node('field', block).text
+        # value = self.get_node('value', root=block)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set cgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}arm.set_cgpio_digital({}, {})'.format(prefix, io, value))
+
+    def _handle_gpio_set_controller_analog(self, block, prefix=''):
         io = self.get_node('field', block).text
         value = self.get_node('value', root=block)
         value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
-            self._append_to_file('{}# set gpio-{} digital'.format(prefix, io))
-        self._append_to_file('{}arm.set_gpio_digital({}, {})'.format(prefix, io, value))
+            self._append_to_file('{}# set cgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}arm.set_cgpio_analog({}, {})'.format(prefix, io, value))
 
     def _handle_set_collision_sensitivity(self, block, prefix=''):
         value = self.get_node('value', root=block)
@@ -411,7 +483,7 @@ class BlocklyTool(object):
             self._append_to_file('{}# set gripper position and '.format(prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True)'.format(prefix, pos, wait, speed))
 
-    def _handle_event_gpio_digital(self, block, prefix=''):
+    def __handle_gpio_event(self, gpio_type, block, prefix=''):
         fields = self.get_nodes('field', root=block)
         io = fields[0].text
         trigger = fields[1].text
@@ -419,9 +491,25 @@ class BlocklyTool(object):
         if 'gpio' not in self._events:
             num = 1
         else:
-            num = self._events['gpio'] + 1
-        name = '{}_io{}_is_{}_{}'.format(block.attrib['type'], io, trigger.lower(), num)
-        self._append_to_file('\n\n{}# Define GPIO-{} is {} callback'.format(prefix, io, trigger))
+            if gpio_type not in self._events['gpio']:
+                num = 1
+            else:
+                num = self._events['gpio'][gpio_type] + 1
+
+        if gpio_type == 'tgpio_digital':
+            name = 'tool_gpio_{}_digital_is_changed_callback_{}'.format(io, num)
+            self._append_to_file('\n\n{}# Define Tool GPIO-{} DIGITAL is changed callback'.format(prefix, io))
+        elif gpio_type == 'tgpio_analog':
+            name = 'tool_gpio_{}_analog_is_changed_callback_{}'.format(io, num)
+            self._append_to_file('\n\n{}# Define Tool GPIO-{} ANALOG is changed callback'.format(prefix, io))
+        elif gpio_type == 'cgpio_digital':
+            name = 'controller_gpio_{}_digital_is_changed_callback_{}'.format(io, num)
+            self._append_to_file('\n\n{}# Define Contoller GPIO-{} DIGITAL is {} callback'.format(prefix, io, trigger))
+        elif gpio_type == 'cgpio_analog':
+            name = 'controller_gpio_{}_digital_is_changed_callback_{}'.format(io, num)
+            self._append_to_file('\n\n{}# Define Contoller GPIO-{} ANALOG is changed callback'.format(prefix, io))
+        else:
+            return
         self._append_to_file('{}def {}():'.format(prefix, name))
         old_prefix = prefix
         prefix = '    ' + prefix
@@ -430,44 +518,176 @@ class BlocklyTool(object):
             self.parse(statement, prefix)
         else:
             self._append_to_file('{}pass'.format(prefix))
-        self._append_to_file('\n{}params[\'events\'][\'gpio\'].callbacks[\'IO{}\'][{}].append({})'.format(
-            old_prefix, io, 1 if trigger == 'HIGH' else 0, name))
+
+        if gpio_type == 'tgpio_digital':
+            self._append_to_file(
+                '\n{}params[\'events\'][\'gpio\'].tgpio_digital_callbacks.append({{'
+                '\'io\': {}, \'trigger\': {}, \'op\': \'==\', \'callback\': {}}})'.format(
+                    old_prefix, io, 1 if trigger == 'HIGH' else 0, name))
+        elif gpio_type == 'tgpio_analog':
+            op = self._ops2.get(trigger)
+            trigger = fields[2].text
+            self._append_to_file(
+                '\n{}params[\'events\'][\'gpio\'].tgpio_analog_callbacks.append({{'
+                '\'io\': {}, \'trigger\': {}, \'op\': \'{}\', \'callback\': {}}})'.format(
+                    old_prefix, io, trigger, op, name))
+        elif gpio_type == 'cgpio_digital':
+            self._append_to_file(
+                '\n{}params[\'events\'][\'gpio\'].cgpio_callbacks.append({{'
+                '\'type\': \'digital\', \'io\': {}, \'trigger\': {}, \'op\': \'{}\', \'callback\': {}}})'.format(
+                    old_prefix, io, 1 if trigger == 'HIGH' else 0, '==', name))
+        elif gpio_type == 'cgpio_analog':
+            op = self._ops2.get(trigger)
+            trigger = fields[2].text
+            self._append_to_file(
+                '\n{}params[\'events\'][\'gpio\'].cgpio_callbacks.append({{'
+                '\'type\': \'analog\', \'io\': {}, \'trigger\': {}, \'op\': \'{}\', \'callback\': {}}})'.format(
+                    old_prefix, io, trigger, op, name))
+        else:
+            return
         self._append_to_file('{}if not params[\'events\'][\'gpio\'].alive:'.format(old_prefix))
         self._append_to_file('{}    params[\'events\'][\'gpio\'].start()'.format(old_prefix))
 
         if 'gpio' not in self._events:
-            name2 = 'EventGPIOThread'.format(io, trigger.capitalize())
+            name2 = 'EventGPIOThread'
             self._insert_to_file(self.index, '\n\n# Define GPIO callback handle thread')
             self._insert_to_file(self.index, 'class {}(threading.Thread):'.format(name2))
             self._insert_to_file(self.index, '    def __init__(self, *args, **kwargs):'
                                              '\n        threading.Thread.__init__(self, *args, **kwargs)')
             self._insert_to_file(self.index, '        self.daemon = True')
             self._insert_to_file(self.index, '        self.alive = False')
-            self._insert_to_file(self.index, '        self.digital = [-1, -1]')
-            self._insert_to_file(self.index, '        self.callbacks = {\'IO1\': {0: [], 1: []}, '
-                                             '\'IO2\': {0: [], 1: []}}')
+
+            self._insert_to_file(self.index, '        self.values = {'
+                                             '\'tgpio\': {\'digital\': [-1] * 2, \'analog\': [-1] * 2},'
+                                             '\'cgpio\': {\'digital\': [-1] * 8, \'analog\': [-1] * 2}}')
+
+            self._insert_to_file(self.index, '        self.tgpio_digital_callbacks = []')
+            self._insert_to_file(self.index, '        self.tgpio_analog_callbacks = []')
+            self._insert_to_file(self.index, '        self.cgpio_callbacks = []')
+
             self._insert_to_file(self.index, '\n    def run(self):')
             self._insert_to_file(self.index, '        self.alive = True')
             self._insert_to_file(self.index, '        while arm.connected and arm.error_code == 0:')
-            self._insert_to_file(self.index, '            _, digital = arm.get_gpio_digital()')
-            self._insert_to_file(self.index, '            if _ == 0:')
-            self._insert_to_file(self.index, '                if digital[0] != self.digital[0]:')
-            self._insert_to_file(self.index, '                    for callback in self.callbacks[\'IO1\'][digital[0]]:')
-            self._insert_to_file(self.index, '                        callback()')
-            self._insert_to_file(self.index, '                if digital[1] != self.digital[1]:')
-            self._insert_to_file(self.index, '                    for callback in self.callbacks[\'IO2\'][digital[1]]:')
-            self._insert_to_file(self.index, '                        callback()')
-            self._insert_to_file(self.index, '            if _ == 0:')
-            self._insert_to_file(self.index, '                self.digital = digital')
+
+            self._insert_to_file(self.index, '            if len(self.tgpio_digital_callbacks) > 0:')
+            self._insert_to_file(self.index, '                _, values = arm.get_tgpio_digital()')
+            self._insert_to_file(self.index, '                if _ == 0:')
+            self._insert_to_file(self.index, '                    for item in self.tgpio_digital_callbacks:')
+            self._insert_to_file(self.index, '                        for io in range(2):')
+            self._insert_to_file(self.index, '                            if item[\'io\'] == io and eval(\'{} {} {}\'.format(values[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self.values[\'tgpio\'][\'digital\'][io], item[\'op\'], item[\'trigger\'])):')
+            # self._insert_to_file(self.index, '                            if item[\'io\'] == io and values[io] {op} item[\'trigger\'] and not (values[io] {op} self.values[\'tgpio\'][\'digital\'][io]):'.format(op='item[\'op\']'))
+            self._insert_to_file(self.index, '                                item[\'callback\']()')
+            self._insert_to_file(self.index, '                    self.values[\'tgpio\'][\'digital\'] = values')
+
+            self._insert_to_file(self.index, '            if len(self.tgpio_analog_callbacks) > 0:')
+            self._insert_to_file(self.index, '                _, values = arm.get_tgpio_analog()')
+            self._insert_to_file(self.index, '                if _ == 0:')
+            self._insert_to_file(self.index, '                    for item in self.tgpio_analog_callbacks:')
+            self._insert_to_file(self.index, '                        for io in range(2):')
+            self._insert_to_file(self.index, '                            if item[\'io\'] == io and eval(\'{} {} {}\'.format(values[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self.values[\'tgpio\'][\'analog\'][io], item[\'op\'], item[\'trigger\'])):')
+            # self._insert_to_file(self.index, '                            if item[\'io\'] == io and values[io] {op} item[\'trigger\'] and not (values[io] {op} self.values[\'tgpio\'][\'analog\'][io]):'.format(op='item[\'op\']'))
+            self._insert_to_file(self.index, '                                item[\'callback\']()')
+            self._insert_to_file(self.index, '                    self.values[\'tgpio\'][\'analog\'] = values')
+
+            self._insert_to_file(self.index, '            if len(self.cgpio_callbacks) > 0:')
+            self._insert_to_file(self.index, '                _, values = arm.get_cgpio_state()')
+            self._insert_to_file(self.index, '                if _ == 0:')
+            self._insert_to_file(self.index, '                    digitals = [values[3] >> i & 0x01 for i in range(8)]')
+            self._insert_to_file(self.index, '                    analogs = [values[6], values[7]]')
+            self._insert_to_file(self.index, '                    for item in self.cgpio_callbacks:')
+            self._insert_to_file(self.index, '                        if item[\'type\'] == \'digital\':')
+            self._insert_to_file(self.index, '                            for io in range(8):')
+            self._insert_to_file(self.index, '                                if item[\'io\'] == io and eval(\'{} {} {}\'.format(digitals[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self.values[\'cgpio\'][\'digital\'][io], item[\'op\'], item[\'trigger\'])):')
+            # self._insert_to_file(self.index, '                                if item[\'io\'] == io and values[io] {op} item[\'trigger\'] and not (values[io] {op} self.values[\'cgpio\'][\'digital\'][io]):'.format(op='item[\'op\']'))
+            self._insert_to_file(self.index, '                                    item[\'callback\']()')
+            self._insert_to_file(self.index, '                        elif item[\'type\'] == \'analog\':')
+            self._insert_to_file(self.index, '                            for io in range(2):')
+            self._insert_to_file(self.index, '                                if item[\'io\'] == io and eval(\'{} {} {}\'.format(analogs[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self.values[\'cgpio\'][\'analog\'][io], item[\'op\'], item[\'trigger\'])):')
+            # self._insert_to_file(self.index, '                                if item[\'io\'] == io and values[io] {op} item[\'trigger\'] and not (values[io] {op} self.values[\'cgpio\'][\'analog\'][io]):'.format(op='item[\'op\']'))
+            self._insert_to_file(self.index, '                                    item[\'callback\']()')
+            self._insert_to_file(self.index, '                    self.values[\'cgpio\'][\'digital\'] = digitals')
+            self._insert_to_file(self.index, '                    self.values[\'cgpio\'][\'analog\'] = analogs')
+
             self._insert_to_file(self.index, '            time.sleep(0.1)')
             self._insert_to_file(self.index, '\nparams[\'events\'][\'gpio\'] = {}()'.format(name2))
+            self._events['gpio'] = {}
 
-        if 'gpio' not in self._events:
-            self._events['gpio'] = 2
+        if gpio_type not in self._events['gpio']:
+            self._events['gpio'][gpio_type] = 2
         else:
-            self._events['gpio'] += 1
+            self._events['gpio'][gpio_type] += 1
 
         self._hasEvent = True
+
+    def _handle_event_gpio_digital(self, block, prefix=''):
+        self.__handle_gpio_event('tgpio_digital', block, prefix)
+
+    def _handle_event_gpio_analog(self, block, prefix=''):
+        self.__handle_gpio_event('tgpio_analog', block, prefix)
+
+    def _handle_event_gpio_controller_digital(self, block, prefix):
+        self.__handle_gpio_event('cgpio_digital', block, prefix)
+
+    def _handle_event_gpio_controller_analog(self, block, prefix):
+        self.__handle_gpio_event('cgpio_analog', block, prefix)
+
+    # def _handle_event_gpio_digital(self, block, prefix=''):
+    #     fields = self.get_nodes('field', root=block)
+    #     io = fields[0].text
+    #     trigger = fields[1].text
+    #
+    #     if 'gpio' not in self._events:
+    #         num = 1
+    #     else:
+    #         num = self._events['gpio'] + 1
+    #     name = '{}_io{}_is_{}_{}'.format(block.attrib['type'], io, trigger.lower(), num)
+    #     self._append_to_file('\n\n{}# Define TGPIO-{} is {} callback'.format(prefix, io, trigger))
+    #     self._append_to_file('{}def {}():'.format(prefix, name))
+    #     old_prefix = prefix
+    #     prefix = '    ' + prefix
+    #     statement = self.get_node('statement', root=block)
+    #     if statement:
+    #         self.parse(statement, prefix)
+    #     else:
+    #         self._append_to_file('{}pass'.format(prefix))
+    #     self._append_to_file('\n{}params[\'events\'][\'gpio\'].callbacks[\'IO{}\'][{}].append({})'.format(
+    #         old_prefix, io, 1 if trigger == 'HIGH' else 0, name))
+    #     self._append_to_file('{}if not params[\'events\'][\'gpio\'].alive:'.format(old_prefix))
+    #     self._append_to_file('{}    params[\'events\'][\'gpio\'].start()'.format(old_prefix))
+    #
+    #     if 'gpio' not in self._events:
+    #         name2 = 'EventGPIOThread'.format(io, trigger.capitalize())
+    #         self._insert_to_file(self.index, '\n\n# Define GPIO callback handle thread')
+    #         self._insert_to_file(self.index, 'class {}(threading.Thread):'.format(name2))
+    #         self._insert_to_file(self.index, '    def __init__(self, *args, **kwargs):'
+    #                                          '\n        threading.Thread.__init__(self, *args, **kwargs)')
+    #         self._insert_to_file(self.index, '        self.daemon = True')
+    #         self._insert_to_file(self.index, '        self.alive = False')
+    #         self._insert_to_file(self.index, '        self.digital = [-1, -1]')
+    #         self._insert_to_file(self.index, '        self.callbacks = {\'IO0\': {0: [], 1: []}, '
+    #                                          '\'IO1\': {0: [], 1: []}}')
+    #         self._insert_to_file(self.index, '\n    def run(self):')
+    #         self._insert_to_file(self.index, '        self.alive = True')
+    #         self._insert_to_file(self.index, '        while arm.connected and arm.error_code == 0:')
+    #         self._insert_to_file(self.index, '            _, digital = arm.get_tgpio_digital()')
+    #         self._insert_to_file(self.index, '            if _ == 0:')
+    #         self._insert_to_file(self.index, '                if digital[0] != self.digital[0]:')
+    #         self._insert_to_file(self.index, '                    for callback in self.callbacks[\'IO0\'][digital[0]]:')
+    #         self._insert_to_file(self.index, '                        callback()')
+    #         self._insert_to_file(self.index, '                if digital[1] != self.digital[1]:')
+    #         self._insert_to_file(self.index, '                    for callback in self.callbacks[\'IO1\'][digital[1]]:')
+    #         self._insert_to_file(self.index, '                        callback()')
+    #         self._insert_to_file(self.index, '            if _ == 0:')
+    #         self._insert_to_file(self.index, '                self.digital = digital')
+    #         self._insert_to_file(self.index, '            time.sleep(0.1)')
+    #         self._insert_to_file(self.index, '\nparams[\'events\'][\'gpio\'] = {}()'.format(name2))
+    #
+    #     if 'gpio' not in self._events:
+    #         self._events['gpio'] = 2
+    #     else:
+    #         self._events['gpio'] += 1
+    #
+    #     self._hasEvent = True
 
     def _handle_procedures_defnoreturn(self, block, prefix=''):
         if not self._funcs:
@@ -641,10 +861,16 @@ class BlocklyTool(object):
             return 'not ({})'.format(self.__get_condition_expression(value))
         elif block.attrib['type'] == 'gpio_get_digital':
             io = self.get_node('field', block).text
-            return 'arm.gpio_get_digital({})[{}]'.format(io, 1)
+            return 'arm.get_tgpio_digital({})[{}]'.format(io, 1)
         elif block.attrib['type'] == 'gpio_get_analog':
             io = self.get_node('field', block).text
-            return 'arm.get_gpio_analog({})[{}]'.format(io, 1)
+            return 'arm.get_tgpio_analog({})[{}]'.format(io, 1)
+        elif block.attrib['type'] == 'gpio_get_controller_digital':
+            io = self.get_node('field', block).text
+            return 'arm.get_cgpio_digital({})[{}]'.format(io, 1)
+        elif block.attrib['type'] == 'gpio_get_controller_analog':
+            io = self.get_node('field', block).text
+            return 'arm.get_cgpio_analog({})[{}]'.format(io, 1)
         elif block.attrib['type'] == 'math_number':
             val = self.get_node('field', block).text
             return val

@@ -121,6 +121,14 @@ class XArmAPI(object):
         return self._arm.arm_cmd
 
     @property
+    def version_number(self):
+        """
+        Frimware version number
+        :return: (major_version_number, minor_version_number, revision_version_number)
+        """
+        return self._arm.version_number
+
+    @property
     def connected(self):
         """
         Connection status
@@ -330,7 +338,7 @@ class XArmAPI(object):
         """
         The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'
         
-        :return: 0~255
+        :return: 0~5
         """
         return self._arm.collision_sensitivity
 
@@ -339,7 +347,7 @@ class XArmAPI(object):
         """
         The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
         
-        :return: 0~255
+        :return: 0~5
         """
         return self._arm.teach_sensitivity
 
@@ -390,21 +398,21 @@ class XArmAPI(object):
     @property
     def has_warn(self):
         """
-        Controller have an error or not
+        Controller have an warnning or not
         """
         return self._arm.has_warn
 
     @property
     def error_code(self):
         """
-        Controller error code. See the error code documentation for details.
+        Controller error code. See the controller error code documentation for details.
         """
         return self._arm.error_code
 
     @property
     def warn_code(self):
         """
-        Controller warn code. See the warn code documentation for details.
+        Controller warn code. See the controller warn code documentation for details.
         """
         return self._arm.warn_code
 
@@ -943,6 +951,12 @@ class XArmAPI(object):
         """
         Set the max acceleration of Joint space
         
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
+        
         :param acc: max acceleration (°/s^2 or rad/s^2)
         :param is_radian: the jerk in radians or not, default is self.default_is_radian
         :return: code
@@ -953,6 +967,12 @@ class XArmAPI(object):
     def set_tcp_load(self, weight, center_of_gravity):
         """
         Set the load
+        
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
         
         :param weight: load weight (unit: kg)
         :param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]
@@ -965,7 +985,13 @@ class XArmAPI(object):
         """
         Set the sensitivity of collision
         
-        :param value: sensitivity value, 0~255
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
+        
+        :param value: sensitivity value, 0~5
         :return: code
             code: See the API code documentation for details. 
         """
@@ -975,7 +1001,13 @@ class XArmAPI(object):
         """
         Set the sensitivity of drag and teach
         
-        :param value: sensitivity value, 0~255
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
+        
+        :param value: sensitivity value, 0~5
         :return: code
             code: See the API code documentation for details.
         """
@@ -985,11 +1017,35 @@ class XArmAPI(object):
         """
         Set the direction of gravity
         
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
+        
         :param direction: direction of gravity, such as [x(mm), y(mm), z(mm)]
         :return: code
             code: See the API code documentation for details.
         """
         return self._arm.set_gravity_direction(direction=direction)
+
+    def set_mount_direction(self, base_tilt_deg, rotation_deg, is_radian=None):
+        """
+        Set the mount direction
+        
+        Note:
+            1. Do not use if not required
+            2. If not saved, it will be lost after reboot
+            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            4. The clean_conf interface can restore system default settings
+            
+        :param base_tilt_deg: tilt degree
+        :param rotation_deg: rotation degree
+        :param is_radian: the jebase_tilt_deg/rotation_deg in radians or not, default is self.default_is_radian
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_mount_direction(base_tilt_deg, rotation_deg, is_radian=is_radian)
 
     def clean_conf(self):
         """
@@ -1075,25 +1131,13 @@ class XArmAPI(object):
         """
         return self._arm.emergency_stop()
 
-    # def set_gripper_addr_16(self, addr, value):
-    #     return self._arm.set_gripper_addr_16(addr, value)
-    #
-    # def get_gripper_addr_16(self, addr):
-    #     return self._arm.get_gripper_addr_16(addr)
-    #
-    # def set_gripper_addr_32(self, addr, value):
-    #     return self._arm.set_gripper_addr_32(addr, value)
-    #
-    # def get_gripper_addr_32(self, addr):
-    #     return self._arm.get_gripper_addr_32(addr)
-
     def set_gripper_enable(self, enable):
         """
         Set the gripper enable
         
         :param enable: 
         :return: code
-            code: See the API code documentation for details.
+            code: See the Gripper code documentation for details.
         """
         return self._arm.set_gripper_enable(enable)
 
@@ -1103,7 +1147,7 @@ class XArmAPI(object):
         
         :param mode: 1: location mode, 2: speed mode (no use), 3: torque mode (no use)
         :return: code
-            code: See the API code documentation for details.
+            code: See the Gripper code documentation for details.
         """
         return self._arm.set_gripper_mode(mode)
 
@@ -1112,7 +1156,7 @@ class XArmAPI(object):
         Get the gripper position
         
         :return: tuple((code, pos)), only when code is 0, the returned result is correct.
-            code: See the API code documentation for details.
+            code: See the Gripper code documentation for details.
         """
         return self._arm.get_gripper_position()
 
@@ -1126,7 +1170,7 @@ class XArmAPI(object):
         :param auto_enable: auto enable or not, default is False
         :param timeout: second, default is 10s
         :return: code
-            code: See the API code documentation for details.
+            code: See the Gripper code documentation for details.
         """
         return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)
 
@@ -1136,7 +1180,7 @@ class XArmAPI(object):
         
         :param speed: 
         :return: code
-            code: See the API code documentation for details.
+            code: See the Gripper code documentation for details.
         """
         return self._arm.set_gripper_speed(speed)
 
@@ -1146,6 +1190,7 @@ class XArmAPI(object):
         
         :return: tuple((code, err_code)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
+            err_code: See the Gripper code documentation for details.
         """
         return self._arm.get_gripper_err_code()
 
@@ -1154,27 +1199,15 @@ class XArmAPI(object):
         Clean the gripper error
         
         :return: code
-            code: See the API code documentation for details.
+            code: See the Gripper code documentation for details.
         """
         return self._arm.clean_gripper_error()
-
-    # def set_tgpio_addr_16(self, addr, value):
-    #     return self._arm.set_tgpio_addr_16(addr, value)
-    #
-    # def get_tgpio_addr_16(self, addr):
-    #     return self._arm.get_tgpio_addr_16(addr)
-    #
-    # def set_tgpio_addr_32(self, addr, value):
-    #     return self._arm.set_tgpio_addr_32(addr, value)
-    #
-    # def get_tgpio_addr_32(self, addr):
-    #     return self._arm.get_tgpio_addr_32(addr)
 
     def get_tgpio_digital(self, ionum=None):
         """
         Get the digital value of the specified Tool GPIO
         
-        :param ionum: 1 or 2 or None(both 1 and 2), default is None
+        :param ionum: 0 or 1 or None(both 0 and 1), default is None
         :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """
@@ -1184,7 +1217,7 @@ class XArmAPI(object):
         """
         Set the digital value of the specified Tool GPIO
         
-        :param ionum: 1 or 2
+        :param ionum: 0 or 1
         :param value: value
         :return: code
             code: See the API code documentation for details.
@@ -1194,31 +1227,104 @@ class XArmAPI(object):
     def get_tgpio_analog(self, ionum=None):
         """
         Get the analog value of the specified Tool GPIO
-        :param ionum: 1 or 2 or None(both 1 and 2), default is None
+        :param ionum: 0 or 1 or None(both 0 and 1), default is None
         :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """
         return self._arm.get_tgpio_analog(ionum)
 
     def get_cgpio_digital(self, ionum=None):
+        """
+        Get the digital value of the specified Controller GPIO
+
+        :param ionum: 0~7 or None(both 0~7), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
         return self._arm.get_cgpio_digital(ionum=ionum)
 
     def get_cgpio_analog(self, ionum=None):
+        """
+        Get the analog value of the specified Controller GPIO
+        :param ionum: 0 or 1 or None(both 0 and 1), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
         return self._arm.get_cgpio_analog(ionum=ionum)
 
     def set_cgpio_digital(self, ionum, value):
+        """
+        Set the digital value of the specified Controller GPIO
+
+        :param ionum: 0~7
+        :param value: value
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_cgpio_digital(ionum=ionum, value=value)
 
     def set_cgpio_analog(self, ionum, value):
+        """
+        Set the analog value of the specified Controller GPIO
+
+        :param ionum: 0 or 1
+        :param value: value
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_cgpio_analog(ionum=ionum, value=value)
 
     def set_cgpio_digital_input_function(self, ionum, fun):
+        """
+        Set the digital input functional mode of the Controller GPIO
+        :param ionum: 0~7
+        :param fun: functional mode
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_cgpio_digital_input_function(ionum=ionum, fun=fun)
 
     def set_cgpio_digital_output_function(self, ionum, fun):
+        """
+        Set the digital output functional mode of the specified Controller GPIO
+        :param ionum: 0~7
+        :param fun: functionnal mode
+            0: system in stopping
+            1: controller has error
+            2: in motion
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_cgpio_digital_output_function(ionum=ionum, fun=fun)
 
     def get_cgpio_state(self):
+        """
+        Get the state of the Controller GPIO
+        :return: code, states
+            code: See the API code documentation for details.
+            states: [...]
+                states[0]: contorller gpio module state
+                    states[0] == 0: normal
+                    states[0] == 1：wrong
+                    states[0] == 6：communication failure
+                states[1]: controller gpio module error code
+                    states[1] == 0: normal
+                    states[1] != 0：error code
+                states[2]: digital input functional gpio state
+                    Note: digital-i-input functional gpio state = states[2] >> i & 0x01
+                states[3]: digital input configuring gpio state
+                    Note: digital-i-input configuring gpio state = states[3] >> i & 0x01
+                states[4]: digital output functional gpio state
+                    Note: digital-i-output functional gpio state = states[4] >> i & 0x01
+                states[5]: digital output configuring gpio state
+                    Note: digital-i-output configuring gpio state = states[5] >> i & 0x01
+                states[6]: analog-0 input value
+                states[7]: analog-1 input value
+                states[8]: analog-0 output value
+                states[9]: analog-1 output value
+                states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]
+                states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
+        """
         return self._arm.get_cgpio_state()
 
     def register_report_callback(self, callback=None, report_cartesian=True, report_joints=True,

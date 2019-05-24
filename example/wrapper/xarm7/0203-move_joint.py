@@ -21,8 +21,17 @@ import math
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 
 from xarm.wrapper import XArmAPI
+from configparser import ConfigParser
+parser = ConfigParser()
+parser.read('../robot.conf')
+try:
+    ip = parser.get('xArm', 'ip')
+except:
+    ip = input('Please input the xArm ip address[192.168.1.194]:')
+    if not ip:
+        ip = '192.168.1.194'
 
-arm = XArmAPI('192.168.1.113')
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
@@ -33,11 +42,9 @@ speed = math.radians(30)
 
 arm.set_servo_angle(angle=[math.radians(60), 0, 0, 0, 0, 0, 0], speed=speed, is_radian=True, wait=True)
 print(arm.get_servo_angle(is_radian=True))
-arm.set_servo_angle(angle=[math.radians(60), math.radians(-45), 0, 0, 0, 0, 0], speed=speed, is_radian=True, wait=True)
+arm.set_servo_angle(angle=[math.radians(60), math.radians(-60), 0, 0, 0, 0, 0], speed=speed, is_radian=True, wait=True)
 print(arm.get_servo_angle(is_radian=True))
-arm.set_servo_angle(angle=[math.radians(60), math.radians(-45), 0, math.radians(-60), 0, 0, 0], speed=speed, is_radian=True, wait=True)
-print(arm.get_servo_angle(is_radian=True))
-arm.set_servo_angle(angle=[math.radians(45), math.radians(-45), math.radians(-30), math.radians(-60), 0, 0, 0], speed=speed, is_radian=True, wait=True)
+arm.set_servo_angle(angle=[math.radians(45), math.radians(-60), math.radians(-10), 0, 0, 0, 0], speed=speed, is_radian=True, wait=True)
 print(arm.get_servo_angle(is_radian=True))
 arm.set_servo_angle(angle=[math.radians(-45), math.radians(-45), 0, 0, 0, 0, 0], speed=speed, is_radian=True, wait=True)
 print(arm.get_servo_angle(is_radian=True))

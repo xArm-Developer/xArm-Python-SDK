@@ -84,6 +84,7 @@ class Port(threading.Thread):
         logger.debug('{} recv thread start'.format(self.port_type))
         try:
             failed_read_count = 0
+            timeout_count = 0
             while self.connected and self.alive:
                 if self.port_type == 'main-socket':
                     try:
@@ -92,7 +93,7 @@ class Port(threading.Thread):
                         continue
                     if len(rx_data) == 0:
                         failed_read_count += 1
-                        if failed_read_count > 30:
+                        if failed_read_count > 5:
                             self._connected = False
                             break
                         time.sleep(0.1)
@@ -101,6 +102,10 @@ class Port(threading.Thread):
                     try:
                         rx_data = self.com_read(self.buffer_size)
                     except socket.timeout:
+                        timeout_count += 1
+                        if timeout_count > 3:
+                            self._connected = False
+                            break
                         continue
                     if len(rx_data) == 0:
                         failed_read_count += 1
@@ -113,6 +118,7 @@ class Port(threading.Thread):
                     rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
                 else:
                     break
+                timeout_count = 0
                 failed_read_count = 0
                 if -1 == self.rx_parse:
                     if self.rx_que.full():

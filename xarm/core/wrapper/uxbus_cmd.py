@@ -254,42 +254,42 @@ class UxbusCmd(object):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_W16B, txdata, 7)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_W16B, 0, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W16B, 0, XCONF.UxbusConf.GET_TIMEOUT)
         return ret
 
     def gripper_addr_r16(self, addr):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R16B, txdata, 3)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_R16B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R16B, 4, XCONF.UxbusConf.GET_TIMEOUT)
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
 
     def gripper_addr_w32(self, addr, value):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_W32B, txdata, 7)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W32B, txdata, 7)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_W32B, 0, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W32B, 0, XCONF.UxbusConf.GET_TIMEOUT)
         return ret
 
     def gripper_addr_r32(self, addr):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R32B, txdata, 3)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
 
     def gripper_set_en(self, value):
@@ -311,55 +311,55 @@ class UxbusCmd(object):
         return self.gripper_addr_w16(XCONF.ServoConf.POS_SPD, speed)
 
     def gripper_get_errcode(self):
-        ret = self.get_nu8(XCONF.UxbusReg.GPGET_ERR, 2)
+        ret = self.get_nu8(XCONF.UxbusReg.TGPIO_ERR, 2)
         return ret
 
     def gripper_clean_err(self):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
     def tgpio_addr_w16(self, addr, value):
-        txdata = bytes([XCONF.GPIO_ID])
+        txdata = bytes([XCONF.TGPIO_ID])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_W16B, txdata, 7)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_W16B, 0, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W16B, 0, XCONF.UxbusConf.GET_TIMEOUT)
         return ret
 
     def tgpio_addr_r16(self, addr):
-        txdata = bytes([XCONF.GPIO_ID])
+        txdata = bytes([XCONF.TGPIO_ID])
         txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R16B, txdata, 3)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_R16B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R16B, 4, XCONF.UxbusConf.GET_TIMEOUT)
         ret1 = [0] * 2
         ret1[0] = ret[0]
         ret1[1] = convert.bytes_to_long_big(ret[1:5])
         return ret1
 
     def tgpio_addr_w32(self, addr, value):
-        txdata = bytes([XCONF.GPIO_ID])
+        txdata = bytes([XCONF.TGPIO_ID])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_W32B, txdata, 7)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W32B, txdata, 7)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_W32B, 0, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W32B, 0, XCONF.UxbusConf.GET_TIMEOUT)
         return ret
 
     def tgpio_addr_r32(self, addr):
-        txdata = bytes([XCONF.GPIO_ID])
+        txdata = bytes([XCONF.TGPIO_ID])
         txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.GRIPP_R32B, txdata, 3)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.GRIPP_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
         ret1 = [0] * 2
         ret1[0] = ret[0]
         ret1[1] = convert.bytes_to_long_big(ret[1:5])
@@ -400,6 +400,90 @@ class UxbusCmd(object):
         value[0] = ret[0]
         value[1] = ret[1] * 3.3 / 4096.0
         return value
+
+    def tgpio_set_modbus(self, modbus_t, len_t):
+        txdata = bytes([XCONF.TGPIO_ID])
+        txdata += bytes(modbus_t)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_MODBUS, -1, XCONF.UxbusConf.GET_TIMEOUT)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        ret1[1] = ret[1:]
+        return ret
+
+    def gripper_modbus_w16s(self, addr, value, length):
+        txdata = bytes([XCONF.GRIPPER_ID])
+        txdata += bytes([0x10])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.u16_to_bytes(length)
+        txdata += bytes([length * 2])
+        txdata += value
+        ret = self.tgpio_set_modbus(txdata, length * 2 + 7)
+        return ret
+
+    def gripper_modbus_r16s(self, addr, length):
+        txdata = bytes([XCONF.GRIPPER_ID])
+        txdata += bytes([0x03])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.u16_to_bytes(length)
+        ret = self.tgpio_set_modbus(txdata, 6)
+        return ret
+
+    def gripper_modbus_set_en(self, value):
+        value = convert.u16_to_bytes(int(value))
+        return self.gripper_modbus_w16s(XCONF.ServoConf.CON_EN, value, 1)
+
+    def gripper_modbus_set_mode(self, value):
+        value = convert.u16_to_bytes(int(value))
+        return self.gripper_modbus_w16s(XCONF.ServoConf.CON_MODE, value, 1)
+
+    def gripper_modbus_set_zero(self):
+        value = convert.u16_to_bytes(int(1))
+        return self.gripper_modbus_w16s(XCONF.ServoConf.MT_ZERO, value, 1)
+
+    def gripper_modbus_get_pos(self):
+        ret = self.gripper_modbus_r16s(XCONF.ServoConf.CURR_POS, 2)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) == 9:
+            ret1[1] = convert.bytes_to_long_big(ret[5:9])
+        else:
+            if ret1[0] == 0:
+                ret1[0] = XCONF.UxbusState.ERR_LENG
+            # print('gripper_modbus_get_pos:', len(ret), ret)
+        # print(ret1, ret)
+        return ret1
+
+    def gripper_modbus_set_pos(self, pulse):
+        value = bytes([(int(pulse) >> 24) & 0xFF])
+        value += bytes([(int(pulse) >> 16) & 0xFF])
+        value += bytes([(int(pulse) >> 8) & 0xFF])
+        value += bytes([int(pulse) & 0xFF])
+        return self.gripper_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
+
+    def gripper_modbus_set_posspd(self, speed):
+        speed = convert.u16_to_bytes(int(speed))
+        return self.gripper_modbus_w16s(XCONF.ServoConf.POS_SPD, speed, 1)
+
+    def gripper_modbus_get_errcode(self):
+        ret = self.gripper_modbus_r16s(XCONF.ServoConf.ERR_CODE, 1)
+        ret1 = [0] * 2
+        ret1[0] = ret[0]
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) == 7:
+            ret1[1] = convert.bytes_to_u16(ret[5:7])
+        else:
+            if ret1[0] == 0:
+                ret1[0] = XCONF.UxbusState.ERR_LENG
+            # print('gripper_modbus_get_errcode:', len(ret), ret)
+        # print(ret1, ret)
+        return ret1
+
+    def gripper_modbus_clean_err(self):
+        value = convert.u16_to_bytes(int(1))
+        return self.gripper_modbus_w16s(XCONF.ServoConf.RESET_ERR, value, 1)
 
     def servo_set_zero(self, axis_id):
         txdata = [int(axis_id)]

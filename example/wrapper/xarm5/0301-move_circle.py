@@ -27,17 +27,18 @@ except:
     if not ip:
         ip = '192.168.1.194'
 
+
 arm = XArmAPI(ip, is_radian=True)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
 pose = [
-    [300,  0,   100, -3.14, 0.3, 0.5],
-    [300,  100, 100, -3.14, 0.4, 0.1],
-    [400,  100, 100, -3.14, 0.1, 0.2],
-    [400, -100, 100, -3.14, 0.2, 0.2],
-    [300,  0,   300, -3.14, 0.5, 0.3]
+    [300,  0,   100, -3.1416, 0, 0],
+    [300,  100, 100, -3.1416, 0, 0],
+    [400,  100, 100, -3.1416, 0, 0],
+    [400, -100, 100, -3.1416, 0, 0],
+    [300,  0,   300, -3.1416, 0, 0]
 ]
 
 
@@ -50,7 +51,7 @@ print('set_position, ret: {}'.format(ret))
 ret = arm.move_circle(pose1=pose[1], pose2=pose[2], percent=50, speed=50, mvacc=100, wait=True)
 print('move_circle, ret: {}'.format(ret))
 
-ret = arm.move_circle(pose1=pose[3], pose2=pose[4], percent=100, speed=50, mvacc=100, wait=True)
+ret = arm.move_circle(pose1=pose[3], pose2=pose[4], percent=200, speed=50, mvacc=100, wait=True)
 print('move_circle, ret: {}'.format(ret))
 
 

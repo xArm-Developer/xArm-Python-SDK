@@ -12,117 +12,115 @@ import math
 class XCONF(object):
     ARM_AXIS_NUM = 7
     GRIPPER_ID = 8
-    GPIO_ID = 9
+    TGPIO_ID = 9
     MAX_CMD_NUM = 256
 
     def __init__(self):
         pass
 
-    class RobotType:
-        XARM6_X1 = 1
-        XARM7_X2 = 2
-        XARM7_X3 = 3
-        XARM7_X3MIR = 4
-        XARM5_X4 = 5
-        XARM6_X4 = 6
-        XARM7_X4 = 7
+    class Robot:
+        class Axis:
+            XARM5 = 5
+            XARM6 = 6
+            XARM7 = 7
+
+        class Type:
+            XARM6_X1 = 1
+            XARM7_X2 = 2
+            XARM7_X3 = 3
+            XARM7_X3MIR = 4
+            XARM5_X4 = 5
+            XARM6_X4 = 6
+            XARM7_X4 = 7
 
         JOINT_LIMITS = {
-            XARM5_X4: [
-                (-2 * math.pi, 2 * math.pi),
-                (-2.18, 2.18),
-                (-4.01, 0.1),
-                (-1.75, math.pi),
-                (-2 * math.pi, 2 * math.pi)
-            ],
-            XARM6_X4: [
-                (-2 * math.pi, 2 * math.pi),
-                (-2.18, 2.18),
-                (-4.01, 0.1),
-                (-2 * math.pi, 2 * math.pi),
-                (-1.75, math.pi),
-                (-2 * math.pi, 2 * math.pi)
-            ],
-            XARM7_X4: [
-                (-2 * math.pi, 2 * math.pi),
-                (-2.18, 2.18),
-                (-2 * math.pi, 2 * math.pi),
-                (-4.01, 0.1),
-                (-2 * math.pi, 2 * math.pi),
-                (-1.75, math.pi),
-                (-2 * math.pi, 2 * math.pi)
-            ],
-            XARM7_X3: [
-                (-2 * math.pi, 2 * math.pi),
-                (-2.18, 2.18),
-                (-2 * math.pi, 2 * math.pi),
-                (-4.01, 0.1),
-                (-2 * math.pi, 2 * math.pi),
-                (-1.75, math.pi),
-                (-2 * math.pi, 2 * math.pi)
-            ],
-            XARM7_X3MIR: [
-                (-2 * math.pi, 2 * math.pi),
-                (-2.18, 2.18),
-                (-2 * math.pi, 2 * math.pi),
-                (-4.01, 0.1),
-                (-2 * math.pi, 2 * math.pi),
-                (-1.75, math.pi),
-                (-2 * math.pi, 2 * math.pi)
-            ]
+            Axis.XARM5: {
+                Type.XARM5_X4: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.18, 2.18),
+                    (-4.01, 0.1),
+                    (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+            },
+            Axis.XARM6: {
+                Type.XARM6_X4: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.18, 2.18),
+                    (-4.01, 0.1),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+            },
+            Axis.XARM7: {
+                Type.XARM7_X3: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.18, 2.18),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-4.01, 0.1),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+                Type.XARM7_X4: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.18, 2.18),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-0.1, 4.01),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+            }
         }
-
         TCP_LIMITS = {
-            XARM5_X4: [
-                (-750, 750),
-                (-750, 750),
-                (-400, 1000),
-                (math.pi, math.pi),
-                (0, 0),
-                (-math.pi, math.pi)
-            ],
-            XARM6_X4: [
-                (-750, 750),
-                (-750, 750),
-                (-400, 1000),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi)
-            ],
-            XARM7_X4: [
-                (-750, 750),
-                (-750, 750),
-                (-400, 1000),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi)
-            ],
-            XARM7_X3: [
-                (-750, 750),
-                (-750, 750),
-                (-400, 1000),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi)
-            ],
-            XARM7_X3MIR: [
-                (-750, 750),
-                (-750, 750),
-                (-400, 1000),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi),
-                (-math.pi, math.pi)
-            ]
-        }
-
-        AXIS_MAP = {
-            XARM6_X1: 6,
-            XARM7_X2: 7,
-            XARM7_X3: 7,
-            XARM7_X3MIR: 7,
-            XARM5_X4: 5,
-            XARM6_X4: 6,
-            XARM7_X4: 7,
+            Axis.XARM5: {
+                Type.XARM5_X4: [
+                    (-750, 750),
+                    (-750, 750),
+                    (-400, 1000),
+                    (math.pi, math.pi),
+                    (0, 0),
+                    (-math.pi, math.pi)
+                ],
+            },
+            Axis.XARM6: {
+                Type.XARM6_X1: [
+                    (-750, 750),
+                    (-750, 750),
+                    (-400, 1000),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
+                Type.XARM6_X4: [
+                    (-750, 750),
+                    (-750, 750),
+                    (-400, 1000),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
+            },
+            Axis.XARM7: {
+                Type.XARM7_X3: [
+                    (-750, 750),
+                    (-750, 750),
+                    (-400, 1000),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
+                Type.XARM7_X4: [
+                    (-750, 750),
+                    (-750, 750),
+                    (-400, 1000),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
+            }
         }
 
     class SerialConf:
@@ -194,11 +192,12 @@ class XCONF(object):
         SERVO_ZERO = 105
         SERVO_DBMSG = 106
 
-        GPGET_ERR = 125
-        GRIPP_W16B = 127
-        GRIPP_R16B = 128
-        GRIPP_W32B = 129
-        GRIPP_R32B = 130
+        TGPIO_MODBUS = 124
+        TGPIO_ERR = 125
+        TGPIO_W16B = 127
+        TGPIO_R16B = 128
+        TGPIO_W32B = 129
+        TGPIO_R32B = 130
 
         CGPIO_GET_DIGIT = 131
         CGPIO_GET_ANALOG1 = 132
@@ -226,6 +225,7 @@ class XCONF(object):
 
         BRAKE = 0x0104
         GET_TEMP = 0x000E
+        ERR_CODE = 0x000F
         OVER_TEMP = 0x0108
         CURR_CURR = 0x0001
         POS_KP = 0x0200

@@ -43,7 +43,10 @@ class UxbusCmdSer(UxbusCmd):
             return 0
 
     def send_pend(self, funcode, num, timeout):
-        ret = [0] * (num + 1)
+        if num == -1:
+            ret = [0] * 254
+        else:
+            ret = [0] * (num + 1)
         times = int(timeout)
         ret[0] = XCONF.UxbusState.ERR_TOUT
         while times > 0:
@@ -51,6 +54,8 @@ class UxbusCmdSer(UxbusCmd):
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 5:
                 ret[0] = self.check_xbus_prot(rx_data)
+                if num == -1:
+                    num = rx_data[2]
                 for i in range(num):
                     ret[i + 1] = rx_data[i + 4]
                 return ret

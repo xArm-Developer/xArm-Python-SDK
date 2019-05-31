@@ -78,7 +78,7 @@ class Gripper(object):
         is_add = True
         last_pos = 0
         code, ret = self.get_gripper_position()
-        if code == 0 and ret is not None:
+        if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and ret is not None:
             last_pos = int(ret)
             if last_pos == pos:
                 return 0
@@ -91,7 +91,7 @@ class Gripper(object):
                 timeout = 10
             while time.time() - start_time < timeout:
                 ret = self.get_gripper_position()
-                if ret[0] == 0:
+                if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and ret[1] is not None:
                     cur_pos = int(ret[1])
                     if abs(pos - cur_pos) < 1:
                         last_pos = cur_pos

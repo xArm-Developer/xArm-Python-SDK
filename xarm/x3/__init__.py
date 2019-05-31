@@ -23,7 +23,7 @@ from .servo import Servo
 from .events import *
 from . import parse
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_ready, compare_time
+from .utils import xarm_is_connected, xarm_is_ready, compare_time, compare_version
 
 RAD_DEGREE = 57.295779513082320876798154814105
 
@@ -70,6 +70,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._mvtime = 0
 
         self._version = None
+        self._robot_sn = None
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
@@ -130,6 +131,10 @@ class XArm(Gripper, Servo, GPIO, Events):
         if not self._version:
             self.get_version()
         return 'v' + '.'.join(map(str, self.version_number))
+
+    @property
+    def sn(self):
+        return self._robot_sn
 
     @property
     def position(self):
@@ -364,11 +369,19 @@ class XArm(Gripper, Servo, GPIO, Events):
                     self._revision_version_number = 1
                 else:
                     self._major_version_number = 0
-                    self._minor_version_number = 2
+                    self._minor_version_number = 1
                     self._revision_version_number = 0
+            count = 5
+            while not self._robot_sn and count and self.warn_code == 0:
+                self.get_robot_sn()
+                self.get_err_warn_code()
+                time.sleep(0.1)
+                count -= 1
+            if self.warn_code != 0:
+                self.clean_warn()
             print('is_old_protocol: {}'.format(self._is_old_protocol))
-            print('version: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
-                                             self._revision_version_number))
+            print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
+                                                    self._revision_version_number))
         except Exception as e:
             print('compare_time: {}, {}'.format(self._version, e))
 
@@ -767,7 +780,10 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
             self._joints_torque = torque
-            self._tcp_load = [tcp_load[0], [i * 1000 for i in tcp_load[1:]]]
+            if compare_version(self.version_number, (0, 2, 0)):
+                self._tcp_load = [tcp_load[0], [i for i in tcp_load[1:]]]
+            else:
+                self._tcp_load = [tcp_load[0], [i * 1000 for i in tcp_load[1:]]]
             self._collision_sensitivity = collis_sens
             self._teach_sensitivity = teach_sens
 
@@ -1544,6 +1560,16 @@ class XArm(Gripper, Servo, GPIO, Events):
         else:
             return ret[0], self._version
 
+    @xarm_is_connected(_type='get')
+    def get_robot_sn(self):
+        ret = self.arm_cmd.get_robot_sn()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            robot_sn = ''.join(list(map(chr, ret[1:])))
+            self._robot_sn = robot_sn[:robot_sn.find('\0')]
+            ret[0] = 0
+            pass
+        return ret[0], self._robot_sn
+
     @xarm_is_connected(_type='set')
     def shutdown_system(self, value=1):
         ret = self.arm_cmd.shutdown_system(value)
@@ -1725,7 +1751,11 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     @xarm_is_connected(_type='set')
     def set_tcp_load(self, weight, center_of_gravity):
-        ret = self.arm_cmd.set_tcp_load(weight, [item / 1000.0 for item in center_of_gravity])
+        if compare_version(self.version_number, (0, 2, 0)):
+            _center_of_gravity = center_of_gravity
+        else:
+            _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
+        ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
         return ret[0]
 
     @xarm_is_connected(_type='set')

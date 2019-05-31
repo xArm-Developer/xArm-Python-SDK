@@ -120,7 +120,9 @@ class BlocklyTool(object):
         self._insert_to_file(self.index, '# git clone git@github.com:xArm-Developer/xArm-Python-SDK.git')
         self._insert_to_file(self.index, '# cd xArm-Python-SDK')
         self._insert_to_file(self.index, '# python setup.py install')
+        self._insert_to_file(self.index, 'from xarm import version')
         self._insert_to_file(self.index, 'from xarm.wrapper import XArmAPI\n')
+        self._insert_to_file(self.index, 'print(\'xArm-Python-SDK Version:{}\'.format(version.__version__))\n')
         if arm is None:
             self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1])')
         elif isinstance(arm, str):
@@ -213,38 +215,38 @@ class BlocklyTool(object):
 
     def _handle_set_speed(self, block, prefix=''):
         field = self.get_node('field', root=block)
-        if not field:
+        if field is not None:
+            value = field.text
+        else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
-        else:
-            value = field.text
         self._append_to_file('{}params[\'speed\'] = {}'.format(prefix, value))
 
     def _handle_set_acceleration(self, block, prefix=''):
         field = self.get_node('field', root=block)
-        if not field:
+        if field is not None:
+            value = field.text
+        else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
-        else:
-            value = field.text
         self._append_to_file('{}params[\'acc\'] = {}'.format(prefix, value))
 
     def _handle_set_angle_speed(self, block, prefix=''):
         field = self.get_node('field', root=block)
-        if not field:
+        if field is not None:
+            value = field.text
+        else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
-        else:
-            value = field.text
         self._append_to_file('{}params[\'angle_speed\'] = {}'.format(prefix, value))
 
     def _handle_set_angle_acceleration(self, block, prefix=''):
         field = self.get_node('field', root=block)
-        if not field:
+        if field is not None:
+            value = field.text
+        else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
-        else:
-            value = field.text
         self._append_to_file('{}params[\'angle_acc\'] = {}'.format(prefix, value))
 
     def _handle_reset(self, block, prefix=''):
@@ -475,10 +477,16 @@ class BlocklyTool(object):
         self._append_to_file('{}arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
 
     def _handle_gripper_set(self, block, prefix=''):
-        values = self.get_nodes('value', root=block)
-        pos = self.get_nodes('field', root=values[0], descendant=True)[0].text
-        speed = self.get_nodes('field', root=values[1], descendant=True)[0].text
-        wait = self.get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
+        fields = self.get_nodes('field', root=block)
+        if fields is not None and len(fields) >= 3:
+            pos = fields[0].text
+            speed = fields[1].text
+            wait = fields[2].text == 'TRUE'
+        else:
+            values = self.get_nodes('value', root=block)
+            pos = self.get_nodes('field', root=values[0], descendant=True)[0].text
+            speed = self.get_nodes('field', root=values[1], descendant=True)[0].text
+            wait = self.get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
         if self._show_comment:
             self._append_to_file('{}# set gripper position and '.format(prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True)'.format(prefix, pos, wait, speed))

@@ -116,6 +116,9 @@ class UxbusCmd(object):
     def get_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_VERSION, 40)
 
+    def get_robot_sn(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_ROBOT_SN, 40)
+
     def shutdown_system(self, value):
         txdata = [value]
         return self.set_nu8(XCONF.UxbusReg.SHUTDOWN_SYSTEM, txdata, 1)

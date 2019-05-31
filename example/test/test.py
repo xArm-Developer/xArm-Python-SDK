@@ -104,12 +104,25 @@ from xarm.core.utils.log import logger
 
 
 arm = XArmAPI(port='192.168.1.190')
-# print(arm.get_version())
-# print(arm.version_number)
-# print(arm.version)
+# arm.clean_error()
+# arm.motion_enable(True)
+# arm.set_mode(0)
+# arm.set_state(0)
+#
+# import random
+#
+# count = 1
+# while arm.error_code == 0:
+#     # print(count, arm._arm.arm_cmd.gripper_modbus_set_pos(0))
+#     # time.sleep(0.1)
+#     pos = random.randint(0, 800)
+#     print(count, arm.set_gripper_position(pos, wait=True))
+#     # pos = random.randint(0, 500)
+#     # count += 1
+#     # print(count, arm.set_gripper_position(pos, wait=True))
+#     count += 1
 
-print(arm.get_gripper_err_code())
-print(arm.gripper_error_code)
-
+print(arm.sn)
+# time.sleep(2)
 
 arm.disconnect()

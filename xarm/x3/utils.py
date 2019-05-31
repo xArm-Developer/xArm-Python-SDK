@@ -93,3 +93,12 @@ def compare_time(time1, time2):
         return int(s_time) - int(e_time) > 0
     except:
         return False
+
+
+def compare_version(v1, v2):
+    for i in range(3):
+        if v1[i] > v2[i]:
+            return True
+        elif v1[i] < v2[i]:
+            return False
+    return False

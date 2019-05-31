@@ -150,6 +150,13 @@ class XArmAPI(object):
         return self._arm.version
 
     @property
+    def sn(self):
+        """
+        xArm sn
+        """
+        return self._arm.sn
+
+    @property
     def position(self):
         """
         Cartesion position

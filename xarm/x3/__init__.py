@@ -324,6 +324,8 @@ class XArm(Gripper, Servo, GPIO, Events):
                 except:
                     self._stream_report = None
 
+                self._check_version()
+
                 if self._stream.connected and self._enable_report:
                     if self._is_old_protocol:
                         self._report_thread = threading.Thread(target=self._report_thread_handle_old, daemon=True)
@@ -331,7 +333,6 @@ class XArm(Gripper, Servo, GPIO, Events):
                         self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
                     self._report_thread.start()
                 self._report_connect_changed_callback()
-                self._check_version()
             else:
                 self._stream = SerialPort(self._port)
                 if not self.connected:
@@ -347,7 +348,6 @@ class XArm(Gripper, Servo, GPIO, Events):
                     self._report_connect_changed_callback(True, True)
                 else:
                     self._report_connect_changed_callback(True, False)
-                self._check_version()
 
     def _check_version(self):
         self._version = None

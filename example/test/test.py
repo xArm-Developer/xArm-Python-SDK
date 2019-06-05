@@ -15,6 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 from xarm.wrapper import XArmAPI
 from xarm.core.config.x_config import XCONF
 from xarm.core.utils.log import logger
+# logger.setLevel(logger.VERBOSE)
 
 # logger.setLevel(logger.DEBUG)
 
@@ -103,7 +104,8 @@ from xarm.core.utils.log import logger
 # print(arm.get_cgpio_state())
 
 
-arm = XArmAPI(port='192.168.1.190')
+arm = XArmAPI(port='192.168.1.194', check_robot_sn=False)
+
 # arm.clean_error()
 # arm.motion_enable(True)
 # arm.set_mode(0)
@@ -122,7 +124,26 @@ arm = XArmAPI(port='192.168.1.190')
 #     # print(count, arm.set_gripper_position(pos, wait=True))
 #     count += 1
 
-print(arm.sn)
+# print(arm.sn)
 # time.sleep(2)
+
+arm.clean_error()
+arm.motion_enable(True)
+arm.set_mode(0)
+arm.set_state(0)
+
+# time.sleep(2)
+# print(arm.get_version())
+
+arm.move_gohome(wait=True)
+angles = [
+    [i * 0.1, i * -0.1, 0, 0, 0, 0, 0] for i in range(100)
+]
+for angle in angles:
+    arm.set_servo_angle_j(angle)
+    time.sleep(0.01)
+
+time.sleep(0.5)
+print(arm.get_servo_angle())
 
 arm.disconnect()

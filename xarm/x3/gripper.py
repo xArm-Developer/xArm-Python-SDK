@@ -9,6 +9,7 @@
 import time
 from .utils import xarm_is_connected
 from ..core.config.x_config import XCONF
+from ..core.utils.log import logger
 
 
 class Gripper(object):
@@ -39,12 +40,14 @@ class Gripper(object):
     def set_gripper_enable(self, enable):
         ret = self.arm_cmd.gripper_modbus_set_en(int(enable))
         _, err = self.get_gripper_err_code()
+        logger.info('API -> set_gripper_enable -> ret={}, enable={}'.format(ret[0], enable))
         return err if _ == 0 and err != 0 else ret[0]
 
     @xarm_is_connected(_type='set')
     def set_gripper_mode(self, mode):
         ret = self.arm_cmd.gripper_modbus_set_mode(mode)
         _, err = self.get_gripper_err_code()
+        logger.info('API -> set_gripper_mode -> ret={}, mode={}'.format(ret[0], mode))
         return err if _ == 0 and err != 0 else ret[0]
 
     @xarm_is_connected(_type='get')
@@ -84,6 +87,7 @@ class Gripper(object):
                 return 0
             is_add = True if pos > last_pos else False
         code = self.arm_cmd.gripper_modbus_set_pos(pos)
+        logger.info('API -> set_gripper_position -> ret={}, pos={}'.format(code[0], pos))
         if wait:
             count = 0
             start_time = time.time()
@@ -124,6 +128,7 @@ class Gripper(object):
     @xarm_is_connected(_type='set')
     def set_gripper_speed(self, speed):
         ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
+        logger.info('API -> set_gripper_speed -> ret={}, speed={}'.format(ret[0], speed))
         _, err = self.get_gripper_err_code()
         return err if _ == 0 and err != 0 else ret[0]
 
@@ -139,6 +144,7 @@ class Gripper(object):
     @xarm_is_connected(_type='set')
     def clean_gripper_error(self):
         ret = self.arm_cmd.gripper_modbus_clean_err()
+        logger.info('API -> clean_gripper_error -> ret={}'.format(ret[0]))
         _, err = self.get_gripper_err_code()
         return err if _ == 0 and err != 0 else ret[0]
 
@@ -149,5 +155,6 @@ class Gripper(object):
         :return: 
         """
         ret = self.arm_cmd.gripper_modbus_set_zero()
+        logger.info('API -> set_gripper_zero -> ret={}'.format(ret[0]))
         _, err = self.get_gripper_err_code()
         return err if _ == 0 and err != 0 else ret[0]

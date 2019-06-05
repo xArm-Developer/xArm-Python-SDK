@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 from .utils import xarm_is_connected
+from ..core.utils.log import logger
 
 
 class GPIO(object):
@@ -51,6 +52,7 @@ class GPIO(object):
             self.get_err_warn_code()
             if self.error_code != 19:
                 ret[0] = 0
+        logger.info('API -> set_tgpio_digital -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -118,6 +120,7 @@ class GPIO(object):
         #     self.get_err_warn_code()
         #     if self.error_code != 33:
         #         ret[0] = 0
+        logger.info('API -> set_cgpio_digital -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -131,6 +134,7 @@ class GPIO(object):
         #     self.get_err_warn_code()
         #     if self.error_code != 33:
         #         ret[0] = 0
+        logger.info('API -> set_cgpio_analog -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -141,6 +145,7 @@ class GPIO(object):
         #     self.get_err_warn_code()
         #     if self.error_code != 33:
         #         ret[0] = 0
+        logger.info('API -> set_cgpio_infun -> ret={}, io={}, fun={}'.format(ret[0], ionum, fun))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -151,6 +156,7 @@ class GPIO(object):
         #     self.get_err_warn_code()
         #     if self.error_code != 33:
         #         ret[0] = 0
+        logger.info('API -> set_cgpio_outfun -> ret={}, io={}, fun={}'.format(ret[0], ionum, fun))
         return ret[0]
 
     @xarm_is_connected(_type='get')

@@ -9,6 +9,7 @@
 import re
 import math
 import time
+import warnings
 import threading
 from collections import Iterable
 from ..core.comm import SerialPort, SocketPort
@@ -42,6 +43,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._check_tcp_limit = kwargs.get('check_tcp_limit', True)
         self._check_joint_limit = kwargs.get('check_joint_limit', True)
         self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
+        self._check_robot_sn = kwargs.get('check_robot_sn', False)
 
         self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
         self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
@@ -316,7 +318,6 @@ class XArm(Gripper, Servo, GPIO, Events):
 
                 self.arm_cmd = UxbusCmdTcp(self._stream)
                 self._stream_type = 'socket'
-                self._check_version()
 
                 try:
                     self._connect_report()
@@ -330,6 +331,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                         self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
                     self._report_thread.start()
                 self._report_connect_changed_callback()
+                self._check_version()
             else:
                 self._stream = SerialPort(self._port)
                 if not self.connected:
@@ -339,18 +341,18 @@ class XArm(Gripper, Servo, GPIO, Events):
 
                 self.arm_cmd = UxbusCmdSer(self._stream)
                 self._stream_type = 'serial'
-                self._check_version()
                 if self._enable_report:
                     self._report_thread = threading.Thread(target=self._auto_get_report_thread, daemon=True)
                     self._report_thread.start()
                     self._report_connect_changed_callback(True, True)
                 else:
                     self._report_connect_changed_callback(True, False)
+                self._check_version()
 
     def _check_version(self):
         self._version = None
         try:
-            count = 30
+            count = 10
             while not self._version and count:
                 self.get_version()
                 time.sleep(0.1)
@@ -371,12 +373,14 @@ class XArm(Gripper, Servo, GPIO, Events):
                     self._major_version_number = 0
                     self._minor_version_number = 1
                     self._revision_version_number = 0
-            count = 5
-            while not self._robot_sn and count and self.warn_code == 0:
-                self.get_robot_sn()
-                self.get_err_warn_code()
-                time.sleep(0.1)
-                count -= 1
+            if self._check_robot_sn:
+                count = 5
+                while not self._robot_sn and count and self.warn_code == 0:
+                    self.get_robot_sn()
+                    self.get_err_warn_code()
+                    if not self._robot_sn and self.warn_code == 0 and count:
+                        time.sleep(0.1)
+                    count -= 1
             if self.warn_code != 0:
                 self.clean_warn()
             print('is_old_protocol: {}'.format(self._is_old_protocol))
@@ -538,19 +542,22 @@ class XArm(Gripper, Servo, GPIO, Events):
             pose_offset = convert.bytes_to_fp32s(rx_data[63:6 * 4 + 63], 6)
 
             if error_code != self._error_code or warn_code != self._warn_code:
-                self._report_error_warn_changed_callback()
                 if error_code != self._error_code:
                     self._error_code = error_code
                     if self._error_code != 0:
-                        pretty_print('Error, Code: {}'.format(self._error_code), color='red')
+                        pretty_print('Error, code: {}'.format(self._error_code), color='red')
                     else:
                         pretty_print('Error had clean', color='blue')
                 if warn_code != self._warn_code:
                     self._warn_code = warn_code
                     if self._warn_code != 0:
-                        pretty_print('WarnCode: {}'.format(self._warn_code), color='yellow')
+                        pretty_print('Warn, code: {}'.format(self._warn_code), color='yellow')
                     else:
                         pretty_print('Warnning had clean', color='blue')
+                self._report_error_warn_changed_callback()
+                logger.info('OnReport -> err={}, warn={}, state={}, cmdnum={}, mtbrake={}, mtable={}'.format(
+                    error_code, warn_code, state, cmd_num, mtbrake, mtable
+                ))
             elif not self._only_report_err_warn_changed:
                 self._report_error_warn_changed_callback()
 
@@ -575,11 +582,11 @@ class XArm(Gripper, Servo, GPIO, Events):
             if not self._is_first_report:
                 if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     if self._is_ready:
-                        logger.info('[report], xArm is not ready to move', color='orange')
+                        pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
                 else:
                     if not self._is_ready:
-                        logger.info('[report], xArm is ready to move', color='green')
+                        pretty_print('[report], xArm is ready to move', color='green')
                     self._is_ready = True
             else:
                 self._is_ready = False
@@ -721,19 +728,22 @@ class XArm(Gripper, Servo, GPIO, Events):
             # print('collis_sens: {}, teach_sens: {}'.format(collis_sens, teach_sens))
 
             if error_code != self._error_code or warn_code != self._warn_code:
-                self._report_error_warn_changed_callback()
                 if error_code != self._error_code:
                     self._error_code = error_code
                     if self._error_code != 0:
-                        pretty_print('Error, Code: {}'.format(self._error_code), color='red')
+                        pretty_print('Error, code: {}'.format(self._error_code), color='red')
                     else:
                         pretty_print('Error had clean', color='blue')
                 if warn_code != self._warn_code:
                     self._warn_code = warn_code
                     if self._warn_code != 0:
-                        pretty_print('WarnCode: {}'.format(self._warn_code), color='yellow')
+                        pretty_print('Warn, code: {}'.format(self._warn_code), color='yellow')
                     else:
                         pretty_print('Warnning had clean', color='blue')
+                self._report_error_warn_changed_callback()
+                logger.info('OnReport -> err={}, warn={}, state={}, cmdnum={}, mtbrake={}, mtable={}, mode={}'.format(
+                    error_code, warn_code, state, cmd_num, mtbrake, mtable, mode
+                ))
             elif not self._only_report_err_warn_changed:
                 self._report_error_warn_changed_callback()
 
@@ -761,11 +771,11 @@ class XArm(Gripper, Servo, GPIO, Events):
             if not self._is_first_report:
                 if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     if self._is_ready:
-                        logger.info('[report], xArm is not ready to move', color='orange')
+                        pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
                 else:
                     if not self._is_ready:
-                        logger.info('[report], xArm is ready to move', color='green')
+                        pretty_print('[report], xArm is ready to move', color='green')
                     self._is_ready = True
             else:
                 self._is_ready = False
@@ -916,11 +926,11 @@ class XArm(Gripper, Servo, GPIO, Events):
                     self._report_state_changed_callback()
                 if state == 4:
                     if self._is_ready:
-                        logger.info('[report], xArm is not ready to move', color='orange')
+                        pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
                 else:
                     if not self._is_ready:
-                        logger.info('[report], xArm is ready to move', color='green')
+                        pretty_print('[report], xArm is ready to move', color='green')
                     self._is_ready = True
                 if error_code != self._error_code or warn_code != self._warn_code:
                     self._report_error_warn_changed_callback()
@@ -1022,8 +1032,10 @@ class XArm(Gripper, Servo, GPIO, Events):
                 if value == limit[0] or value == limit[0] - 2 * math.pi:
                     return False
                 else:
+                    logger.info('API -> set_position -> ret={}, i={}, value={}'.format(APIState.OUT_OF_RANGE, i, value))
                     return True
             if value < limit[0] or value > limit[1]:
+                logger.info('API -> set_position -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, value))
                 return True
         return False
 
@@ -1048,6 +1060,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                      wait=False, timeout=None, **kwargs):
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
+            logger.info('API -> set_position -> ret={}'.format(ret))
             return ret
 
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1132,27 +1145,15 @@ class XArm(Gripper, Servo, GPIO, Events):
                 return APIState.TCP_LIMIT
         if radius is not None and radius >= 0:
             ret = self.arm_cmd.move_lineb(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius)
-            if ret[0] != 0:
-                logger.debug('exception({}): move arc line: pos={}, mvvelo={}, mvacc={}, mvtime={}, mvradius={}'.format(
-                    ret[0], self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius
-                ))
-            else:
-                logger.debug('move arc line: {}, mvvelo={}, mvacc={}, mvtime={}, mvradius={}'.format(
-                    self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius
-                ))
         else:
             ret = self.arm_cmd.move_line(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
-            if ret[0] != 0:
-                logger.debug('exception({}): move line: pos={}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                    ret[0], self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime
-                ))
-            else:
-                logger.debug('move line: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                    self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime
-                ))
+
+        logger.info('API -> set_position -> ret={}, pos={}, radius={}, velo={}, acc={}'.format(
+            ret[0], self._last_position, radius, self._last_tcp_speed, self._last_tcp_acc
+        ))
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
-                logger.warn('if you want to wait, please enable report')
+                warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
@@ -1183,6 +1184,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         if i < len(joint_limit):
             angle_range = joint_limit[i]
             if angle <= angle_range[0] or angle >= angle_range[1]:
+                logger.info('API -> set_servo_angle -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle))
                 return True
         return False
 
@@ -1194,6 +1196,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             'param servo_id or angle error'
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
+            logger.info('API -> set_servo_angle -> ret={}'.format(ret))
             return ret
 
         last_used_angle = self._last_angles.copy()
@@ -1308,17 +1311,12 @@ class XArm(Gripper, Servo, GPIO, Events):
                 return APIState.JOINT_LIMIT
 
         ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
-        if ret[0] != 0:
-            logger.debug('exception({}): move joint: joint={}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime
-            ))
-        else:
-            logger.debug('move joint: {}, mvvelo={}, mvacc={}, mvtime={}'.format(
-                self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime
-            ))
+        logger.info('API -> set_servo_angle -> ret={}, angles={}, velo={}, acc={}'.format(
+            ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc
+        ))
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
-                logger.warn('if you want to wait, please enable report')
+                warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
@@ -1331,13 +1329,18 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     @xarm_is_ready(_type='set')
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+        logger.info('set_servo_angle_j--begin')
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        if not is_radian:
-            angles = [angle / RAD_DEGREE for angle in angles]
+        _angles = [angle if is_radian else angle / RAD_DEGREE for angle in angles]
         for i in range(self.axis):
-            if self._is_out_of_joint_range(angles[i], i):
+            if self._is_out_of_joint_range(_angles[i], i):
                 return APIState.OUT_OF_RANGE
-        ret = self.arm_cmd.move_servoj(angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
+        while len(_angles) < 7:
+            _angles.append(0)
+        ret = self.arm_cmd.move_servoj(_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
+        logger.debug('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
+            ret[0], _angles, self._last_joint_speed, self._last_joint_acc
+        ))
         return ret[0]
 
     @xarm_is_ready(_type='set')
@@ -1381,18 +1384,13 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._mvtime = mvtime
 
         ret = self.arm_cmd.move_circle(pose_1, pose_2, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, percent)
-        if ret[0] != 0:
-            logger.debug('exception({}): move circle: pos1={}, pos2={}, percent={}'.format(
-                ret[0], pose_1, pose_2, percent
-            ))
-        else:
-            logger.debug('move circle: pos1={}, pos2={}, percent={}'.format(
-                pose_1, pose_2, percent
-            ))
+        logger.info('API -> move_circle -> ret={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
+            ret[0], pose_1, pose_2, percent, self._last_tcp_speed, self._last_tcp_acc
+        ))
 
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
-                logger.warn('if you want to wait, please enable report')
+                print('if you want to wait, please enable report')
             else:
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
@@ -1419,20 +1417,15 @@ class XArm(Gripper, Servo, GPIO, Events):
             mvtime = 0
 
         ret = self.arm_cmd.move_gohome(speed, mvacc, mvtime)
-        if ret[0] != 0:
-            logger.debug('exception({}): move gohome: mvvelo={}, mvacc={}, mvtime={}'.format(
-                ret[0], speed, mvacc, mvtime
-            ))
-        else:
-            logger.debug('move gohome: mvvelo={}, mvacc={}, mvtime={}'.format(
-                speed, mvacc, mvtime
-            ))
+        logger.info('API -> move_gohome -> ret={}, velo={}, acc={}'.format(
+            ret[0], speed, mvacc
+        ))
         if ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]
             self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
-                logger.warn('if you want to wait, please enable report')
+                warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
@@ -1450,7 +1443,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             mvacc = self._last_tcp_acc
         if mvtime is None:
             mvtime = 0
-
+        logger.info('move_arc_lines--begin')
         if automatic_calibration:
             _ = self.set_position(*paths[0], is_radian=is_radian, speed=speed, mvacc=mvacc, mvtime=mvtime, wait=True)
             if _ < 0:
@@ -1465,7 +1458,6 @@ class XArm(Gripper, Servo, GPIO, Events):
             if automatic_calibration:
                 ret = self.set_servo_angle(angle=angles, is_radian=True, speed=0.8726646259971648, wait=False)
                 if ret < 0:
-                    logger.error('set_servo_angle, ret={}'.format(ret))
                     return -1
                 self._last_joint_speed = last_used_joint_speed
             for path in paths:
@@ -1477,7 +1469,6 @@ class XArm(Gripper, Servo, GPIO, Events):
                     return -2
                 ret = self.set_position(*path[:6], radius=radius, is_radian=is_radian, wait=False, speed=speed, mvacc=mvacc, mvtime=mvtime)
                 if ret < 0:
-                    logger.error('set_positon, ret={}'.format(ret))
                     return -1
             return 0
         count = 1
@@ -1527,16 +1518,20 @@ class XArm(Gripper, Servo, GPIO, Events):
             pass
         finally:
             self.release_state_changed_callback(state_changed_callback)
+        logger.info('move_arc_lines--end')
         if wait:
             self._WaitMove(self, 0).start()
+
         self._is_stop = False
 
     @xarm_is_connected(_type='set')
     def set_servo_attach(self, servo_id=None):
         # assert isinstance(servo_id, int) and 1 <= servo_id <= 8
         # ret = self.arm_cmd.set_brake(servo_id, 0)
+        logger.info('set_servo_attach--begin')
         ret = self.motion_enable(servo_id=servo_id, enable=True)
         self.set_state(0)
+        logger.info('set_servo_attach--end')
         return ret
 
     @xarm_is_connected(_type='set')
@@ -1547,6 +1542,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         """
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
         ret = self.arm_cmd.set_brake(servo_id, 1)
+        logger.info('API -> set_servo_detach -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1573,6 +1569,7 @@ class XArm(Gripper, Servo, GPIO, Events):
     @xarm_is_connected(_type='set')
     def shutdown_system(self, value=1):
         ret = self.arm_cmd.shutdown_system(value)
+        logger.info('API -> shutdown_system -> ret={}'.format(ret[0]))
         return ret[0]
 
     def get_is_moving(self):
@@ -1597,12 +1594,13 @@ class XArm(Gripper, Servo, GPIO, Events):
         self.get_state()
         if self._state in [3, 4]:
             if self._is_ready:
-                logger.info('[set_state], xArm is not ready to move', color='orange')
+                pretty_print('[set_state], xArm is not ready to move', color='red')
             self._is_ready = False
         else:
             if not self._is_ready:
-                logger.info('[set_state], xArm is ready to move', color='green')
+                pretty_print('[set_state], xArm is ready to move', color='green')
             self._is_ready = True
+        logger.info('set_state, ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1610,6 +1608,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         ret = self.arm_cmd.set_mode(mode)
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
+        logger.info('API -> set_mode -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1641,17 +1640,19 @@ class XArm(Gripper, Servo, GPIO, Events):
         self.get_state()
         if self._state in [3, 4]:
             if self._is_ready:
-                logger.info('[clean_error], xArm is not ready to move', color='orange')
+                pretty_print('[clean_error], xArm is not ready to move', color='red')
             self._is_ready = False
         else:
             if not self._is_ready:
-                logger.info('[clean_error], xArm is ready to move', color='green')
+                pretty_print('[clean_error], xArm is ready to move', color='green')
             self._is_ready = True
+        logger.info('API -> clean_error -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def clean_warn(self):
         ret = self.arm_cmd.clean_war()
+        logger.info('API -> clean_warn -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1661,20 +1662,22 @@ class XArm(Gripper, Servo, GPIO, Events):
             ret = self.arm_cmd.motion_en(8, int(enable))
         else:
             ret = self.arm_cmd.motion_en(servo_id, int(enable))
-        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #     self._is_ready = bool(enable)
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            self._is_ready = bool(enable)
         self.get_state()
         if self._state in [3, 4]:
             if self._is_ready:
-                logger.info('[motion_enable], xArm is not ready to move', color='orange')
+                pretty_print('[motion_enable], xArm is not ready to move', color='red')
             self._is_ready = False
         else:
             if not self._is_ready:
-                logger.info('[motion_enable], xArm is ready to move', color='green')
+                pretty_print('[motion_enable], xArm is ready to move', color='green')
             self._is_ready = True
+        logger.info('API -> motion_enable -> ret={}'.format(ret[0]))
         return ret[0]
 
     def reset(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
+        logger.info('reset--begin')
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if not self._enable_report or self._stream_type != 'socket':
             self.get_err_warn_code()
@@ -1689,6 +1692,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             self.motion_enable(enable=True, servo_id=8)
             self.set_state(state=0)
         self.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
+        logger.info('reset--end')
 
     @xarm_is_connected(_type='set')
     def set_pause_time(self, sltime, wait=False):
@@ -1701,6 +1705,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self._sleep_finish_time = time.time() + sltime
             else:
                 self._sleep_finish_time += sltime
+        logger.info('API -> set_pause_time -> ret={}, sltime={}'.format(ret[0], sltime))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1719,16 +1724,19 @@ class XArm(Gripper, Servo, GPIO, Events):
                 else:
                     tcp_offset[i] = offset[i]
         ret = self.arm_cmd.set_tcp_offset(tcp_offset)
+        logger.info('API -> set_tcp_offset -> ret={}, offset={}'.format(ret[0], tcp_offset))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_tcp_jerk(self, jerk):
         ret = self.arm_cmd.set_tcp_jerk(jerk)
+        logger.info('API -> set_tcp_jerk -> ret={}, jerk={}'.format(ret[0], jerk))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_tcp_maxacc(self, acc):
         ret = self.arm_cmd.set_tcp_maxacc(acc)
+        logger.info('API -> set_tcp_maxacc -> ret={}, maxacc={}'.format(ret[0], acc))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1738,6 +1746,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         if not is_radian:
             _jerk = _jerk / RAD_DEGREE
         ret = self.arm_cmd.set_joint_jerk(_jerk)
+        logger.info('API -> set_joint_jerk -> ret={}, jerk={}'.format(ret[0], jerk))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1747,6 +1756,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         if not is_radian:
             _acc = acc / RAD_DEGREE
         ret = self.arm_cmd.set_joint_maxacc(_acc)
+        logger.info('API -> set_joint_maxacc -> ret={}, maxacc={}'.format(ret[0], acc))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1756,21 +1766,25 @@ class XArm(Gripper, Servo, GPIO, Events):
         else:
             _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
         ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
+        logger.info('API -> set_tcp_load -> ret={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_collision_sensitivity(self, value):
         ret = self.arm_cmd.set_collis_sens(value)
+        logger.info('API -> set_collision_sensitivity -> ret={}, sensitivity={}'.format(ret[0], value))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_teach_sensitivity(self, value):
         ret = self.arm_cmd.set_teach_sens(value)
+        logger.info('API -> set_teach_sensitivity -> ret={}, sensitivity={}'.format(ret[0], value))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_gravity_direction(self, direction):
         ret = self.arm_cmd.set_gravity_dir(direction)
+        logger.info('API -> set_gravity_direction -> ret={}, direction={}'.format(ret[0], direction))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1803,16 +1817,19 @@ class XArm(Gripper, Servo, GPIO, Events):
             g_new[i] = Rot[i * 3 + 0] * G_normal[0] + Rot[i * 3 + 1] * G_normal[1] + Rot[i * 3 + 2] * G_normal[2]
 
         ret = self.arm_cmd.set_gravity_dir(g_new)
+        logger.info('API -> set_mount_direction -> ret={}, tilt={}, rotation={}, direction={}'.format(ret[0], base_tilt_deg, rotation_deg, g_new))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def clean_conf(self):
         ret = self.arm_cmd.clean_conf()
+        logger.info('API -> clean_conf -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def save_conf(self):
         ret = self.arm_cmd.save_conf()
+        logger.info('API -> save_conf -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1866,6 +1883,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             elif i > 2 and not is_radian:
                 pose[i] = pose[i] / RAD_DEGREE
         ret = self.arm_cmd.is_tcp_limit(pose)
+        logger.info('API -> is_tcp_limit -> ret={}, limit={}'.format(ret[0], ret[1]))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
             return ret[0], bool(ret[1])
@@ -1889,6 +1907,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             new_angles[i] = joint[i]
 
         ret = self.arm_cmd.is_joint_limit(new_angles)
+        logger.info('API -> is_joint_limit -> ret={}, limit={}'.format(ret[0], ret[1]))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
             return ret[0], bool(ret[1])
@@ -1988,6 +2007,7 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     def emergency_stop(self):
         start_time = time.time()
+        logger.info('emergency_stop--begin')
         while self.state != 4 and time.time() - start_time < 3:
             self.set_state(4)
             time.sleep(0.1)
@@ -1998,6 +2018,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             self.set_state(0)
             time.sleep(0.1)
         self._sleep_finish_time = 0
+        logger.info('emergency_stop--end')
 
     def send_cmd_async(self, command, timeout=None):
         pass

@@ -13,6 +13,7 @@ except ImportError:
 import re
 import sys
 import json
+import time
 
 
 class BlocklyTool(object):
@@ -110,16 +111,23 @@ class BlocklyTool(object):
     def _init_py3(self, arm=None, clean_err_warn=True, motion_enable=True, mode=0, state=0, error_exit=True):
         self._insert_to_file(self.index, '#!/usr/bin/env python3')
         self._insert_to_file(self.index, '# Software License Agreement (BSD License)\n#')
-        self._insert_to_file(self.index, '# Copyright (c) 2019, UFACTORY, Inc.')
+        self._insert_to_file(self.index, '# Copyright (c) {}, UFACTORY, Inc.'.format(time.localtime(time.time()).tm_year))
         self._insert_to_file(self.index, '# All rights reserved.\n#')
         self._insert_to_file(self.index, '# Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>\n')
+        self._insert_to_file(self.index, '"""')
+        self._insert_to_file(self.index, '# Notice')
+        self._insert_to_file(self.index, '#   1. Changes to this file on Studio will not be preserved')
+        self._insert_to_file(self.index, '#   2. The next conversion will overwrite the file with the same name')
+        self._insert_to_file(self.index, '"""')
         self._insert_to_file(self.index, 'import sys')
         self._insert_to_file(self.index, 'import time')
         self._insert_to_file(self.index, 'import threading\n')
+        self._insert_to_file(self.index, '"""')
         self._insert_to_file(self.index, '# xArm-Python-SDK: https://github.com/xArm-Developer/xArm-Python-SDK')
         self._insert_to_file(self.index, '# git clone git@github.com:xArm-Developer/xArm-Python-SDK.git')
         self._insert_to_file(self.index, '# cd xArm-Python-SDK')
         self._insert_to_file(self.index, '# python setup.py install')
+        self._insert_to_file(self.index, '"""')
         self._insert_to_file(self.index, 'from xarm import version')
         self._insert_to_file(self.index, 'from xarm.wrapper import XArmAPI\n')
         self._insert_to_file(self.index, 'print(\'xArm-Python-SDK Version:{}\'.format(version.__version__))\n')
@@ -127,7 +135,6 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1])')
         elif isinstance(arm, str):
             self._insert_to_file(self.index, 'arm = XArmAPI(\'{}\')'.format(arm))
-        self._insert_to_file(self.index, 'time.sleep(0.5)')
         if clean_err_warn:
             self._insert_to_file(self.index, 'arm.clean_warn()')
             self._insert_to_file(self.index, 'arm.clean_error()')

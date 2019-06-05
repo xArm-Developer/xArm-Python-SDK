@@ -63,6 +63,7 @@ class Port(threading.Thread):
             return -1
         try:
             with self.write_lock:
+                logger.verbose('send: {}'.format(data))
                 self.com_write(data)
             return 0
         except Exception as e:
@@ -75,6 +76,7 @@ class Port(threading.Thread):
             return -1
         if not self.rx_que.empty():
             buf = self.rx_que.get(timeout=timeout)
+            logger.verbose('recv: {}'.format(buf))
             return buf
         else:
             return -1

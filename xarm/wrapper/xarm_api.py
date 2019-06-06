@@ -1014,7 +1014,7 @@ class XArmAPI(object):
             3. The save_conf interface can record the current settings and will not be lost after the restart.
             4. The clean_conf interface can restore system default settings
         
-        :param value: sensitivity value, 0~5
+        :param value: sensitivity value, 1~5
         :return: code
             code: See the API code documentation for details.
         """

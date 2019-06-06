@@ -1771,12 +1771,14 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     @xarm_is_connected(_type='set')
     def set_collision_sensitivity(self, value):
+        assert isinstance(value, int) and 0 <= value <= 5
         ret = self.arm_cmd.set_collis_sens(value)
         logger.info('API -> set_collision_sensitivity -> ret={}, sensitivity={}'.format(ret[0], value))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_teach_sensitivity(self, value):
+        assert isinstance(value, int) and 1 <= value <= 5
         ret = self.arm_cmd.set_teach_sens(value)
         logger.info('API -> set_teach_sensitivity -> ret={}, sensitivity={}'.format(ret[0], value))
         return ret[0]

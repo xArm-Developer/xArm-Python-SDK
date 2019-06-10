@@ -127,23 +127,23 @@ arm = XArmAPI(port='192.168.1.194', check_robot_sn=False)
 # print(arm.sn)
 # time.sleep(2)
 
-arm.clean_error()
-arm.motion_enable(True)
-arm.set_mode(0)
-arm.set_state(0)
-
-# time.sleep(2)
-# print(arm.get_version())
-
-arm.move_gohome(wait=True)
-angles = [
-    [i * 0.1, i * -0.1, 0, 0, 0, 0, 0] for i in range(100)
-]
-for angle in angles:
-    arm.set_servo_angle_j(angle)
-    time.sleep(0.01)
-
-time.sleep(0.5)
+# arm.clean_error()
+# arm.motion_enable(True)
+# arm.set_mode(0)
+# arm.set_state(0)
+#
+# # time.sleep(2)
+# # print(arm.get_version())
+#
+# arm.move_gohome(wait=True)
+# angles = [
+#     [i * 0.1, i * -0.1, 0, 0, 0, 0, 0] for i in range(100)
+# ]
+# for angle in angles:
+#     arm.set_servo_angle_j(angle)
+#     time.sleep(0.01)
+#
+# time.sleep(0.5)
 print(arm.get_servo_angle())
 
 arm.disconnect()

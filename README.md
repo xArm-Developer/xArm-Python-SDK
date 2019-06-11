@@ -104,11 +104,13 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm = XArmAPI('192.168.1.113', do_not_open=False)
   arm = XArmAPI('192.168.1.113', is_radian=False)
   ```
+
 - #### Connect/Disconnect
   ```python
   arm.connect(...)
   arm.disconnect()
   ```
+
 - #### Move
   ```python
   arm.reset(...)
@@ -119,6 +121,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.move_circle(...)
   arm.emergency_stop()
   ```
+
 - #### Set
   ```python
   arm.set_servo_attach(...)
@@ -128,6 +131,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.motion_enable(...)
   arm.set_pause_time(...)
   ```
+
 - #### Get
   ```python
   arm.get_version()
@@ -138,8 +142,10 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.get_position(...)
   arm.get_servo_angle(...)
   ```
+
 - #### Setting
-```python
+
+  ```python
   arm.set_tcp_offset(...)
   arm.set_tcp_jerk(...)
   arm.set_tcp_maxacc(...)
@@ -151,7 +157,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_gravity_direction(...)
   arm.clean_conf()
   arm.save_conf()
-```
+  ```
 - #### Gripper
   ```python
   arm.set_gripper_enable(...)
@@ -162,13 +168,13 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.get_gripper_err_code()
   arm.clean_gripper_error()
   ```
+
 - #### GPIO
   ```python
   # Tool GPIO
   arm.get_tgpio_digital(...)
   arm.set_tgpio_digital(...)
   arm.get_tgpio_analog(...)
-  
   # Controller GPIO
   arm.get_cgpio_digital(...)
   arm.get_cgpio_analog(...)
@@ -178,13 +184,15 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_cgpio_digital_output_function(...)
   arm.get_cgpio_state()
   ```
+
 - #### Other
-```python
+
+  ```python
   arm.set_pause_time(...)
   arm.shutdown_system(...)
   arm.clean_error()
   arm.clean_warn()
-```
+  ```
 - #### Register/Release
   ```python
   arm.register_report_callback(...)

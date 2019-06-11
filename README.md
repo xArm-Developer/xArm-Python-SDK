@@ -14,11 +14,15 @@ xArm Python SDK
 Install is not necessary, you can run examples without installation.Only Python3 is supported.
 - download
 
-  ``` git clone https://github.com/xArm-Developer/xArm-Python-SDK.git```
+  ```bash
+  git clone https://github.com/xArm-Developer/xArm-Python-SDK.git
+  ```
 
 - install
 
-  ``` python setup.py install ```
+  ```bash
+  python setup.py install
+  ```
 
 ## Doc
 - #### [API Document](doc/api/xarm_api.md)

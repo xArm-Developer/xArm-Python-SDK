@@ -1,137 +1,11 @@
-<!-- vscode-markdown-toc -->
-- [1. <a name='class__XArmAPI__'></a>class __XArmAPI__](#1-a-nameclassxarmapiaclass-xarmapi)
-  - [1.1. <a name='Attributes__'></a>__Attributes__](#11-a-nameattributesaattributes)
-    - [1.1.1. <a name='angles__'></a>__angles__](#111-a-nameanglesaangles)
-    - [1.1.2. <a name='axis__'></a>__axis__](#112-a-nameaxisaaxis)
-    - [1.1.3. <a name='cmd_num__'></a>__cmd_num__](#113-a-namecmdnumacmdnum)
-    - [1.1.4. <a name='collision_sensitivity__'></a>__collision_sensitivity__](#114-a-namecollisionsensitivityacollisionsensitivity)
-    - [1.1.5. <a name='connected__'></a>__connected__](#115-a-nameconnectedaconnected)
-    - [1.1.6. <a name='core__'></a>__core__](#116-a-namecoreacore)
-    - [1.1.7. <a name='default_is_radian__'></a>__default_is_radian__](#117-a-namedefaultisradianadefaultisradian)
-    - [1.1.8. <a name='device_type__'></a>__device_type__](#118-a-namedevicetypeadevicetype)
-    - [1.1.9. <a name='error_code__'></a>__error_code__](#119-a-nameerrorcodeaerrorcode)
-    - [1.1.10. <a name='gravity_direction__'></a>__gravity_direction__](#1110-a-namegravitydirectionagravitydirection)
-    - [1.1.11. <a name='has_err_warn__'></a>__has_err_warn__](#1111-a-namehaserrwarnahaserrwarn)
-    - [1.1.12. <a name='has_error__'></a>__has_error__](#1112-a-namehaserrorahaserror)
-    - [1.1.13. <a name='has_warn__'></a>__has_warn__](#1113-a-namehaswarnahaswarn)
-    - [1.1.14. <a name='joint_acc_limit__'></a>__joint_acc_limit__](#1114-a-namejointacclimitajointacclimit)
-    - [1.1.15. <a name='joint_speed_limit__'></a>__joint_speed_limit__](#1115-a-namejointspeedlimitajointspeedlimit)
-    - [1.1.16. <a name='joints_torque__'></a>__joints_torque__](#1116-a-namejointstorqueajointstorque)
-    - [1.1.17. <a name='last_used_angles__'></a>__last_used_angles__](#1117-a-namelastusedanglesalastusedangles)
-    - [1.1.18. <a name='last_used_joint_acc__'></a>__last_used_joint_acc__](#1118-a-namelastusedjointaccalastusedjointacc)
-    - [1.1.19. <a name='last_used_joint_speed__'></a>__last_used_joint_speed__](#1119-a-namelastusedjointspeedalastusedjointspeed)
-    - [1.1.20. <a name='last_used_position__'></a>__last_used_position__](#1120-a-namelastusedpositionalastusedposition)
-    - [1.1.21. <a name='last_used_tcp_acc__'></a>__last_used_tcp_acc__](#1121-a-namelastusedtcpaccalastusedtcpacc)
-    - [1.1.22. <a name='last_used_tcp_speed__'></a>__last_used_tcp_speed__](#1122-a-namelastusedtcpspeedalastusedtcpspeed)
-    - [1.1.23. <a name='master_id__'></a>__master_id__](#1123-a-namemasteridamasterid)
-    - [1.1.24. <a name='mode__'></a>__mode__](#1124-a-namemodeamode)
-    - [1.1.25. <a name='motor_brake_states__'></a>__motor_brake_states__](#1125-a-namemotorbrakestatesamotorbrakestates)
-    - [1.1.26. <a name='motor_enable_states__'></a>__motor_enable_states__](#1126-a-namemotorenablestatesamotorenablestates)
-    - [1.1.27. <a name='position__'></a>__position__](#1127-a-namepositionaposition)
-    - [1.1.28. <a name='slave_id__'></a>__slave_id__](#1128-a-nameslaveidaslaveid)
-    - [1.1.29. <a name='sn__'></a>__sn__](#1129-a-namesnasn)
-    - [1.1.30. <a name='state__'></a>__state__](#1130-a-namestateastate)
-    - [1.1.31. <a name='tcp_acc_limit__'></a>__tcp_acc_limit__](#1131-a-nametcpacclimitatcpacclimit)
-    - [1.1.32. <a name='tcp_load__'></a>__tcp_load__](#1132-a-nametcploadatcpload)
-    - [1.1.33. <a name='tcp_offset__'></a>__tcp_offset__](#1133-a-nametcpoffsetatcpoffset)
-    - [1.1.34. <a name='tcp_speed_limit__'></a>__tcp_speed_limit__](#1134-a-nametcpspeedlimitatcpspeedlimit)
-    - [1.1.35. <a name='teach_sensitivity__'></a>__teach_sensitivity__](#1135-a-nameteachsensitivityateachsensitivity)
-    - [1.1.36. <a name='version__'></a>__version__](#1136-a-nameversionaversion)
-    - [1.1.37. <a name='version_number__'></a>__version_number__](#1137-a-nameversionnumberaversionnumber)
-    - [1.1.38. <a name='warn_code__'></a>__warn_code__](#1138-a-namewarncodeawarncode)
-  - [1.2. <a name='Methods__'></a>__Methods__](#12-a-namemethodsamethods)
-    - [1.2.1. <a name='def____init____selfportNoneis_radianFalsedo_not_openFalsekwargs:'></a>def __\__init__\__(self, port=None, is_radian=False, do_not_open=False, **kwargs):](#121-a-namedefinitselfportnoneisradianfalsedonotopenfalsekwargsadef-initself-portnone-isradianfalse-donotopenfalse-kwargs)
-    - [1.2.2. <a name='def__clean_conf__self:'></a>def __clean_conf__(self):](#122-a-namedefcleanconfselfadef-cleanconfself)
-    - [1.2.3. <a name='def__clean_error__self:'></a>def __clean_error__(self):](#123-a-namedefcleanerrorselfadef-cleanerrorself)
-    - [1.2.4. <a name='def__clean_gripper_error__self:'></a>def __clean_gripper_error__(self):](#124-a-namedefcleangrippererrorselfadef-cleangrippererrorself)
-    - [1.2.5. <a name='def__clean_warn__self:'></a>def __clean_warn__(self):](#125-a-namedefcleanwarnselfadef-cleanwarnself)
-    - [1.2.6. <a name='def__connect__selfportNonebaudrateNonetimeoutNone:'></a>def __connect__(self, port=None, baudrate=None, timeout=None):](#126-a-namedefconnectselfportnonebaudratenonetimeoutnoneadef-connectself-portnone-baudratenone-timeoutnone)
-    - [1.2.7. <a name='def__disconnect__self:'></a>def __disconnect__(self):](#127-a-namedefdisconnectselfadef-disconnectself)
-    - [1.2.8. <a name='def__emergency_stop__self:'></a>def __emergency_stop__(self):](#128-a-namedefemergencystopselfadef-emergencystopself)
-    - [1.2.9. <a name='def__get_cgpio_analog__selfionumNone:'></a>def __get_cgpio_analog__(self, ionum=None):](#129-a-namedefgetcgpioanalogselfionumnoneadef-getcgpioanalogself-ionumnone)
-    - [1.2.10. <a name='def__get_cgpio_digital__selfionumNone:'></a>def __get_cgpio_digital__(self, ionum=None):](#1210-a-namedefgetcgpiodigitalselfionumnoneadef-getcgpiodigitalself-ionumnone)
-    - [1.2.11. <a name='def__get_cgpio_state__self:'></a>def __get_cgpio_state__(self):](#1211-a-namedefgetcgpiostateselfadef-getcgpiostateself)
-    - [1.2.12. <a name='def__get_cmdnum__self:'></a>def __get_cmdnum__(self):](#1212-a-namedefgetcmdnumselfadef-getcmdnumself)
-    - [1.2.13. <a name='def__get_err_warn_code__selfshowFalse:'></a>def __get_err_warn_code__(self, show=False):](#1213-a-namedefgeterrwarncodeselfshowfalseadef-geterrwarncodeself-showfalse)
-    - [1.2.14. <a name='def__get_forward_kinematics__selfanglesinput_is_radianNonereturn_is_radianNone:'></a>def __get_forward_kinematics__(self, angles, input_is_radian=None, return_is_radian=None):](#1214-a-namedefgetforwardkinematicsselfanglesinputisradiannonereturnisradiannoneadef-getforwardkinematicsself-angles-inputisradiannone-returnisradiannone)
-    - [1.2.15. <a name='def__get_gripper_err_code__self:'></a>def __get_gripper_err_code__(self):](#1215-a-namedefgetgrippererrcodeselfadef-getgrippererrcodeself)
-    - [1.2.16. <a name='def__get_gripper_position__self:'></a>def __get_gripper_position__(self):](#1216-a-namedefgetgripperpositionselfadef-getgripperpositionself)
-    - [1.2.17. <a name='def__get_inverse_kinematics__selfposeinput_is_radianNonereturn_is_radianNone:'></a>def __get_inverse_kinematics__(self, pose, input_is_radian=None, return_is_radian=None):](#1217-a-namedefgetinversekinematicsselfposeinputisradiannonereturnisradiannoneadef-getinversekinematicsself-pose-inputisradiannone-returnisradiannone)
-    - [1.2.18. <a name='def__get_is_moving__self:'></a>def __get_is_moving__(self):](#1218-a-namedefgetismovingselfadef-getismovingself)
-    - [1.2.19. <a name='def__get_position__selfis_radianNone:'></a>def __get_position__(self, is_radian=None):](#1219-a-namedefgetpositionselfisradiannoneadef-getpositionself-isradiannone)
-    - [1.2.20. <a name='def__get_servo_angle__selfservo_idNoneis_radianNone:'></a>def __get_servo_angle__(self, servo_id=None, is_radian=None):](#1220-a-namedefgetservoangleselfservoidnoneisradiannoneadef-getservoangleself-servoidnone-isradiannone)
-    - [1.2.21. <a name='def__get_servo_debug_msg__selfshowFalse:'></a>def __get_servo_debug_msg__(self, show=False):](#1221-a-namedefgetservodebugmsgselfshowfalseadef-getservodebugmsgself-showfalse)
-    - [1.2.22. <a name='def__get_state__self:'></a>def __get_state__(self):](#1222-a-namedefgetstateselfadef-getstateself)
-    - [1.2.23. <a name='def__get_tgpio_analog__selfionumNone:'></a>def __get_tgpio_analog__(self, ionum=None):](#1223-a-namedefgettgpioanalogselfionumnoneadef-gettgpioanalogself-ionumnone)
-    - [1.2.24. <a name='def__get_tgpio_digital__selfionumNone:'></a>def __get_tgpio_digital__(self, ionum=None):](#1224-a-namedefgettgpiodigitalselfionumnoneadef-gettgpiodigitalself-ionumnone)
-    - [1.2.25. <a name='def__get_version__self:'></a>def __get_version__(self):](#1225-a-namedefgetversionselfadef-getversionself)
-    - [1.2.26. <a name='def__is_joint_limit__selfjointis_radianNone:'></a>def __is_joint_limit__(self, joint, is_radian=None):](#1226-a-namedefisjointlimitselfjointisradiannoneadef-isjointlimitself-joint-isradiannone)
-    - [1.2.27. <a name='def__is_tcp_limit__selfposeis_radianNone:'></a>def __is_tcp_limit__(self, pose, is_radian=None):](#1227-a-namedefistcplimitselfposeisradiannoneadef-istcplimitself-pose-isradiannone)
-    - [1.2.28. <a name='def__motion_enable__selfenableTrueservo_idNone:'></a>def __motion_enable__(self, enable=True, servo_id=None):](#1228-a-namedefmotionenableselfenabletrueservoidnoneadef-motionenableself-enabletrue-servoidnone)
-    - [1.2.29. <a name='def__move_arc_lines__selfpathsis_radianNonetimes1first_pause_time0.1repeat_pause_time0automatic_calibrationTruespeedNonemvaccNonemvtimeNonewaitFalse:'></a>def __move_arc_lines__(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0, automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):](#1229-a-namedefmovearclinesselfpathsisradiannonetimes1firstpausetime01repeatpausetime0automaticcalibrationtruespeednonemvaccnonemvtimenonewaitfalseadef-movearclinesself-paths-isradiannone-times1-firstpausetime01-repeatpausetime0-automaticcalibrationtrue-speednone-mvaccnone-mvtimenone-waitfalse)
-    - [1.2.30. <a name='def__move_circle__selfpose1pose2percentspeedNonemvaccNonemvtimeNoneis_radianNonewaitFalsetimeoutNonekwargs:'></a>def __move_circle__(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):](#1230-a-namedefmovecircleselfpose1pose2percentspeednonemvaccnonemvtimenoneisradiannonewaitfalsetimeoutnonekwargsadef-movecircleself-pose1-pose2-percent-speednone-mvaccnone-mvtimenone-isradiannone-waitfalse-timeoutnone-kwargs)
-    - [1.2.31. <a name='def__move_gohome__selfspeedNonemvaccNonemvtimeNoneis_radianNonewaitFalsetimeoutNone:'></a>def __move_gohome__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):](#1231-a-namedefmovegohomeselfspeednonemvaccnonemvtimenoneisradiannonewaitfalsetimeoutnoneadef-movegohomeself-speednone-mvaccnone-mvtimenone-isradiannone-waitfalse-timeoutnone)
-    - [1.2.32. <a name='def__register_cmdnum_changed_callback__selfcallbackNone:'></a>def __register_cmdnum_changed_callback__(self, callback=None):](#1232-a-namedefregistercmdnumchangedcallbackselfcallbacknoneadef-registercmdnumchangedcallbackself-callbacknone)
-    - [1.2.33. <a name='def__register_connect_changed_callback__selfcallbackNone:'></a>def __register_connect_changed_callback__(self, callback=None):](#1233-a-namedefregisterconnectchangedcallbackselfcallbacknoneadef-registerconnectchangedcallbackself-callbacknone)
-    - [1.2.34. <a name='def__register_error_warn_changed_callback__selfcallbackNone:'></a>def __register_error_warn_changed_callback__(self, callback=None):](#1234-a-namedefregistererrorwarnchangedcallbackselfcallbacknoneadef-registererrorwarnchangedcallbackself-callbacknone)
-    - [1.2.35. <a name='def__register_mode_changed_callback__selfcallbackNone:'></a>def __register_mode_changed_callback__(self, callback=None):](#1235-a-namedefregistermodechangedcallbackselfcallbacknoneadef-registermodechangedcallbackself-callbacknone)
-    - [1.2.36. <a name='def__register_mtable_mtbrake_changed_callback__selfcallbackNone:'></a>def __register_mtable_mtbrake_changed_callback__(self, callback=None):](#1236-a-namedefregistermtablemtbrakechangedcallbackselfcallbacknoneadef-registermtablemtbrakechangedcallbackself-callbacknone)
-    - [1.2.37. <a name='def__register_report_callback__selfcallbackNonereport_cartesianTruereport_jointsTruereport_stateTruereport_error_codeTruereport_warn_codeTruereport_mtableTruereport_mtbrakeTruereport_cmd_numTrue:'></a>def __register_report_callback__(self, callback=None, report_cartesian=True, report_joints=True, report_state=True, report_error_code=True, report_warn_code=True, report_mtable=True, report_mtbrake=True, report_cmd_num=True):](#1237-a-namedefregisterreportcallbackselfcallbacknonereportcartesiantruereportjointstruereportstatetruereporterrorcodetruereportwarncodetruereportmtabletruereportmtbraketruereportcmdnumtrueadef-registerreportcallbackself-callbacknone-reportcartesiantrue-reportjointstrue-reportstatetrue-reporterrorcodetrue-reportwarncodetrue-reportmtabletrue-reportmtbraketrue-reportcmdnumtrue)
-    - [1.2.38. <a name='def__register_report_location_callback__selfcallbackNonereport_cartesianTruereport_jointsTrue:'></a>def __register_report_location_callback__(self, callback=None, report_cartesian=True, report_joints=True):](#1238-a-namedefregisterreportlocationcallbackselfcallbacknonereportcartesiantruereportjointstrueadef-registerreportlocationcallbackself-callbacknone-reportcartesiantrue-reportjointstrue)
-    - [1.2.39. <a name='def__register_state_changed_callback__selfcallbackNone:'></a>def __register_state_changed_callback__(self, callback=None):](#1239-a-namedefregisterstatechangedcallbackselfcallbacknoneadef-registerstatechangedcallbackself-callbacknone)
-    - [1.2.40. <a name='def__release_cmdnum_changed_callback__selfcallbackNone:'></a>def __release_cmdnum_changed_callback__(self, callback=None):](#1240-a-namedefreleasecmdnumchangedcallbackselfcallbacknoneadef-releasecmdnumchangedcallbackself-callbacknone)
-    - [1.2.41. <a name='def__release_connect_changed_callback__selfcallbackNone:'></a>def __release_connect_changed_callback__(self, callback=None):](#1241-a-namedefreleaseconnectchangedcallbackselfcallbacknoneadef-releaseconnectchangedcallbackself-callbacknone)
-    - [1.2.42. <a name='def__release_error_warn_changed_callback__selfcallbackNone:'></a>def __release_error_warn_changed_callback__(self, callback=None):](#1242-a-namedefreleaseerrorwarnchangedcallbackselfcallbacknoneadef-releaseerrorwarnchangedcallbackself-callbacknone)
-    - [1.2.43. <a name='def__release_mode_changed_callback__selfcallbackNone:'></a>def __release_mode_changed_callback__(self, callback=None):](#1243-a-namedefreleasemodechangedcallbackselfcallbacknoneadef-releasemodechangedcallbackself-callbacknone)
-    - [1.2.44. <a name='def__release_mtable_mtbrake_changed_callback__selfcallbackNone:'></a>def __release_mtable_mtbrake_changed_callback__(self, callback=None):](#1244-a-namedefreleasemtablemtbrakechangedcallbackselfcallbacknoneadef-releasemtablemtbrakechangedcallbackself-callbacknone)
-    - [1.2.45. <a name='def__release_report_callback__selfcallbackNone:'></a>def __release_report_callback__(self, callback=None):](#1245-a-namedefreleasereportcallbackselfcallbacknoneadef-releasereportcallbackself-callbacknone)
-    - [1.2.46. <a name='def__release_report_location_callback__selfcallbackNone:'></a>def __release_report_location_callback__(self, callback=None):](#1246-a-namedefreleasereportlocationcallbackselfcallbacknoneadef-releasereportlocationcallbackself-callbacknone)
-    - [1.2.47. <a name='def__release_state_changed_callback__selfcallbackNone:'></a>def __release_state_changed_callback__(self, callback=None):](#1247-a-namedefreleasestatechangedcallbackselfcallbacknoneadef-releasestatechangedcallbackself-callbacknone)
-    - [1.2.48. <a name='def__reset__selfspeedNonemvaccNonemvtimeNoneis_radianNonewaitFalsetimeoutNone:'></a>def __reset__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):](#1248-a-namedefresetselfspeednonemvaccnonemvtimenoneisradiannonewaitfalsetimeoutnoneadef-resetself-speednone-mvaccnone-mvtimenone-isradiannone-waitfalse-timeoutnone)
-    - [1.2.49. <a name='def__run_blockly_app__selfpath:'></a>def __run_blockly_app__(self, path):](#1249-a-namedefrunblocklyappselfpathadef-runblocklyappself-path)
-    - [1.2.50. <a name='def__save_conf__self:'></a>def __save_conf__(self):](#1250-a-namedefsaveconfselfadef-saveconfself)
-    - [1.2.51. <a name='def__send_cmd_sync__selfcommandNone:'></a>def __send_cmd_sync__(self, command=None):](#1251-a-namedefsendcmdsyncselfcommandnoneadef-sendcmdsyncself-commandnone)
-    - [1.2.52. <a name='def__set_cgpio_analog__selfionumvalue:'></a>def __set_cgpio_analog__(self, ionum, value):](#1252-a-namedefsetcgpioanalogselfionumvalueadef-setcgpioanalogself-ionum-value)
-    - [1.2.53. <a name='def__set_cgpio_digital__selfionumvalue:'></a>def __set_cgpio_digital__(self, ionum, value):](#1253-a-namedefsetcgpiodigitalselfionumvalueadef-setcgpiodigitalself-ionum-value)
-    - [1.2.54. <a name='def__set_cgpio_digital_input_function__selfionumfun:'></a>def __set_cgpio_digital_input_function__(self, ionum, fun):](#1254-a-namedefsetcgpiodigitalinputfunctionselfionumfunadef-setcgpiodigitalinputfunctionself-ionum-fun)
-    - [1.2.55. <a name='def__set_cgpio_digital_output_function__selfionumfun:'></a>def __set_cgpio_digital_output_function__(self, ionum, fun):](#1255-a-namedefsetcgpiodigitaloutputfunctionselfionumfunadef-setcgpiodigitaloutputfunctionself-ionum-fun)
-    - [1.2.56. <a name='def__set_collision_sensitivity__selfvalue:'></a>def __set_collision_sensitivity__(self, value):](#1256-a-namedefsetcollisionsensitivityselfvalueadef-setcollisionsensitivityself-value)
-    - [1.2.57. <a name='def__set_gravity_direction__selfdirection:'></a>def __set_gravity_direction__(self, direction):](#1257-a-namedefsetgravitydirectionselfdirectionadef-setgravitydirectionself-direction)
-    - [1.2.58. <a name='def__set_gripper_enable__selfenable:'></a>def __set_gripper_enable__(self, enable):](#1258-a-namedefsetgripperenableselfenableadef-setgripperenableself-enable)
-    - [1.2.59. <a name='def__set_gripper_mode__selfmode:'></a>def __set_gripper_mode__(self, mode):](#1259-a-namedefsetgrippermodeselfmodeadef-setgrippermodeself-mode)
-    - [1.2.60. <a name='def__set_gripper_position__selfposwaitFalsespeedNoneauto_enableFalsetimeoutNone:'></a>def __set_gripper_position__(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):](#1260-a-namedefsetgripperpositionselfposwaitfalsespeednoneautoenablefalsetimeoutnoneadef-setgripperpositionself-pos-waitfalse-speednone-autoenablefalse-timeoutnone)
-    - [1.2.61. <a name='def__set_gripper_speed__selfspeed:'></a>def __set_gripper_speed__(self, speed):](#1261-a-namedefsetgripperspeedselfspeedadef-setgripperspeedself-speed)
-    - [1.2.62. <a name='def__set_joint_jerk__selfjerkis_radianNone:'></a>def __set_joint_jerk__(self, jerk, is_radian=None):](#1262-a-namedefsetjointjerkselfjerkisradiannoneadef-setjointjerkself-jerk-isradiannone)
-    - [1.2.63. <a name='def__set_joint_maxacc__selfaccis_radianNone:'></a>def __set_joint_maxacc__(self, acc, is_radian=None):](#1263-a-namedefsetjointmaxaccselfaccisradiannoneadef-setjointmaxaccself-acc-isradiannone)
-    - [1.2.64. <a name='def__set_mode__selfmode0:'></a>def __set_mode__(self, mode=0):](#1264-a-namedefsetmodeselfmode0adef-setmodeself-mode0)
-    - [1.2.65. <a name='def__set_mount_direction__selfbase_tilt_degrotation_degis_radianNone:'></a>def __set_mount_direction__(self, base_tilt_deg, rotation_deg, is_radian=None):](#1265-a-namedefsetmountdirectionselfbasetiltdegrotationdegisradiannoneadef-setmountdirectionself-basetiltdeg-rotationdeg-isradiannone)
-    - [1.2.66. <a name='def__set_pause_time__selfsltimewaitFalse:'></a>def __set_pause_time__(self, sltime, wait=False):](#1266-a-namedefsetpausetimeselfsltimewaitfalseadef-setpausetimeself-sltime-waitfalse)
-    - [1.2.67. <a name='def__set_position__selfxNoneyNonezNonerollNonepitchNoneyawNoneradiusNonespeedNonemvaccNonemvtimeNonerelativeFalseis_radianNonewaitFalsetimeoutNonekwargs:'></a>def __set_position__(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):](#1267-a-namedefsetpositionselfxnoneynoneznonerollnonepitchnoneyawnoneradiusnonespeednonemvaccnonemvtimenonerelativefalseisradiannonewaitfalsetimeoutnonekwargsadef-setpositionself-xnone-ynone-znone-rollnone-pitchnone-yawnone-radiusnone-speednone-mvaccnone-mvtimenone-relativefalse-isradiannone-waitfalse-timeoutnone-kwargs)
-    - [1.2.68. <a name='def__set_servo_angle__selfservo_idNoneangleNonespeedNonemvaccNonemvtimeNonerelativeFalseis_radianNonewaitFalsetimeoutNonekwargs:'></a>def __set_servo_angle__(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):](#1268-a-namedefsetservoangleselfservoidnoneanglenonespeednonemvaccnonemvtimenonerelativefalseisradiannonewaitfalsetimeoutnonekwargsadef-setservoangleself-servoidnone-anglenone-speednone-mvaccnone-mvtimenone-relativefalse-isradiannone-waitfalse-timeoutnone-kwargs)
-    - [1.2.69. <a name='def__set_servo_angle_j__selfanglesspeedNonemvaccNonemvtimeNoneis_radianNonekwargs:'></a>def __set_servo_angle_j__(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):](#1269-a-namedefsetservoanglejselfanglesspeednonemvaccnonemvtimenoneisradiannonekwargsadef-setservoanglejself-angles-speednone-mvaccnone-mvtimenone-isradiannone-kwargs)
-    - [1.2.70. <a name='def__set_servo_attach__selfservo_idNone:'></a>def __set_servo_attach__(self, servo_id=None):](#1270-a-namedefsetservoattachselfservoidnoneadef-setservoattachself-servoidnone)
-    - [1.2.71. <a name='def__set_servo_detach__selfservo_idNone:'></a>def __set_servo_detach__(self, servo_id=None):](#1271-a-namedefsetservodetachselfservoidnoneadef-setservodetachself-servoidnone)
-    - [1.2.72. <a name='def__set_state__selfstate0:'></a>def __set_state__(self, state=0):](#1272-a-namedefsetstateselfstate0adef-setstateself-state0)
-    - [1.2.73. <a name='def__set_tcp_jerk__selfjerk:'></a>def __set_tcp_jerk__(self, jerk):](#1273-a-namedefsettcpjerkselfjerkadef-settcpjerkself-jerk)
-    - [1.2.74. <a name='def__set_tcp_load__selfweightcenter_of_gravity:'></a>def __set_tcp_load__(self, weight, center_of_gravity):](#1274-a-namedefsettcploadselfweightcenterofgravityadef-settcploadself-weight-centerofgravity)
-    - [1.2.75. <a name='def__set_tcp_maxacc__selfacc:'></a>def __set_tcp_maxacc__(self, acc):](#1275-a-namedefsettcpmaxaccselfaccadef-settcpmaxaccself-acc)
-    - [1.2.76. <a name='def__set_tcp_offset__selfoffsetis_radianNone:'></a>def __set_tcp_offset__(self, offset, is_radian=None):](#1276-a-namedefsettcpoffsetselfoffsetisradiannoneadef-settcpoffsetself-offset-isradiannone)
-    - [1.2.77. <a name='def__set_teach_sensitivity__selfvalue:'></a>def __set_teach_sensitivity__(self, value):](#1277-a-namedefsetteachsensitivityselfvalueadef-setteachsensitivityself-value)
-    - [1.2.78. <a name='def__set_tgpio_digital__selfionumvalue:'></a>def __set_tgpio_digital__(self, ionum, value):](#1278-a-namedefsettgpiodigitalselfionumvalueadef-settgpiodigitalself-ionum-value)
-    - [1.2.79. <a name='def__shutdown_system__selfvalue1:'></a>def __shutdown_system__(self, value=1):](#1279-a-namedefshutdownsystemselfvalue1adef-shutdownsystemself-value1)
+xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 
-<!-- vscode-markdown-toc-config
-	numbering=true
-	autoSave=true
-	/vscode-markdown-toc-config -->
-<!-- /vscode-markdown-toc -->xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
-
-##  1. <a name='class__XArmAPI__'></a>class __XArmAPI__
+## class __XArmAPI__
 ****************************************
 
-###  1.1. <a name='Attributes__'></a>__Attributes__
+### __Attributes__
 ****************************************
-####  1.1.1. <a name='angles__'></a>__angles__
+#### __angles__
 ```
 Servo angles
 Note:
@@ -140,29 +14,29 @@ Note:
 :return: [angle1(° or rad), angle2(° or rad), ..., anglen(° or rad)]
 ```
 
-####  1.1.2. <a name='axis__'></a>__axis__
+#### __axis__
 ```
 Axis number, only available in socket way and enable_report is True and report_type is 'rich'
 ```
 
-####  1.1.3. <a name='cmd_num__'></a>__cmd_num__
+#### __cmd_num__
 ```
 Number of command caches in the controller
 ```
 
-####  1.1.4. <a name='collision_sensitivity__'></a>__collision_sensitivity__
+#### __collision_sensitivity__
 ```
 The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'
 
 :return: 0~5
 ```
 
-####  1.1.5. <a name='connected__'></a>__connected__
+#### __connected__
 ```
 Connection status
 ```
 
-####  1.1.6. <a name='core__'></a>__core__
+#### __core__
 ```
 Core layer API, set only for advanced developers, please do not use
 Ex:
@@ -172,45 +46,45 @@ Ex:
     ...
 ```
 
-####  1.1.7. <a name='default_is_radian__'></a>__default_is_radian__
+#### __default_is_radian__
 ```
 The default unit is radians or not
 ```
 
-####  1.1.8. <a name='device_type__'></a>__device_type__
+#### __device_type__
 ```
 Device type, only available in socket way and  enable_report is True and report_type is 'rich'
 ```
 
-####  1.1.9. <a name='error_code__'></a>__error_code__
+#### __error_code__
 ```
 Controller error code. See the controller error code documentation for details.
 ```
 
-####  1.1.10. <a name='gravity_direction__'></a>__gravity_direction__
+#### __gravity_direction__
 ```
 gravity direction, only available in socket way and enable_report is True and report_type is 'rich'
 :return:
 ```
 
-####  1.1.11. <a name='has_err_warn__'></a>__has_err_warn__
+#### __has_err_warn__
 ```
 Contorller have an error or warning or not
 
 :return: True/False
 ```
 
-####  1.1.12. <a name='has_error__'></a>__has_error__
+#### __has_error__
 ```
 Controller have an error or not
 ```
 
-####  1.1.13. <a name='has_warn__'></a>__has_warn__
+#### __has_warn__
 ```
 Controller have an warnning or not
 ```
 
-####  1.1.14. <a name='joint_acc_limit__'></a>__joint_acc_limit__
+#### __joint_acc_limit__
 ```
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 Note:
@@ -219,7 +93,7 @@ Note:
 :return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]
 ```
 
-####  1.1.15. <a name='joint_speed_limit__'></a>__joint_speed_limit__
+#### __joint_speed_limit__
 ```
 Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'
 Note:
@@ -228,14 +102,14 @@ Note:
 :return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]
 ```
 
-####  1.1.16. <a name='joints_torque__'></a>__joints_torque__
+#### __joints_torque__
 ```
 Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'
 
 :return: [joint-1, ....]
 ```
 
-####  1.1.17. <a name='last_used_angles__'></a>__last_used_angles__
+#### __last_used_angles__
 ```
 The last used servo angles, default value of parameter angle of interface set_servo_angle
 Note:
@@ -246,7 +120,7 @@ Note:
 :return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
 ```
 
-####  1.1.18. <a name='last_used_joint_acc__'></a>__last_used_joint_acc__
+#### __last_used_joint_acc__
 ```
 The last used joint acceleration, default value of parameter mvacc of interface set_servo_angle
 Note:
@@ -255,7 +129,7 @@ Note:
 :return: acceleration (°/s^2 or rad/s^2)
 ```
 
-####  1.1.19. <a name='last_used_joint_speed__'></a>__last_used_joint_speed__
+#### __last_used_joint_speed__
 ```
 The last used joint speed, default value of parameter speed of interface set_servo_angle
 Note:
@@ -264,7 +138,7 @@ Note:
 :return: speed (°/s or rad/s)
 ```
 
-####  1.1.20. <a name='last_used_position__'></a>__last_used_position__
+#### __last_used_position__
 ```
 The last used cartesion position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position
 Note:
@@ -275,26 +149,26 @@ Note:
 :return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 ```
 
-####  1.1.21. <a name='last_used_tcp_acc__'></a>__last_used_tcp_acc__
+#### __last_used_tcp_acc__
 ```
 The last used cartesion acceleration, default value of parameter mvacc of interface set_position/move_circle
 
 :return: acceleration (mm/s^2)
 ```
 
-####  1.1.22. <a name='last_used_tcp_speed__'></a>__last_used_tcp_speed__
+#### __last_used_tcp_speed__
 ```
 The last used cartesion speed, default value of parameter speed of interface set_position/move_circle
 
 :return: speed (mm/s)
 ```
 
-####  1.1.23. <a name='master_id__'></a>__master_id__
+#### __master_id__
 ```
 Master id, only available in socket way and enable_report is True and report_type is 'rich'
 ```
 
-####  1.1.24. <a name='mode__'></a>__mode__
+#### __mode__
 ```
 xArm mode，only available in socket way and  enable_report is True
 
@@ -305,7 +179,7 @@ xArm mode，only available in socket way and  enable_report is True
     3: cartesian teaching mode (invalid)
 ```
 
-####  1.1.25. <a name='motor_brake_states__'></a>__motor_brake_states__
+#### __motor_brake_states__
 ```
 Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'
 Note:
@@ -317,7 +191,7 @@ Note:
         1: disable
 ```
 
-####  1.1.26. <a name='motor_enable_states__'></a>__motor_enable_states__
+#### __motor_enable_states__
 ```
 Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'
 Note:
@@ -329,7 +203,7 @@ Note:
         1: enable
 ```
 
-####  1.1.27. <a name='position__'></a>__position__
+#### __position__
 ```
 Cartesion position
 Note:
@@ -338,17 +212,17 @@ Note:
 return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 ```
 
-####  1.1.28. <a name='slave_id__'></a>__slave_id__
+#### __slave_id__
 ```
 Slave id, only available in socket way and enable_report is True and report_type is 'rich'
 ```
 
-####  1.1.29. <a name='sn__'></a>__sn__
+#### __sn__
 ```
 xArm sn
 ```
 
-####  1.1.30. <a name='state__'></a>__state__
+#### __state__
 ```
 xArm state
 
@@ -359,14 +233,14 @@ xArm state
     4: stopping
 ```
 
-####  1.1.31. <a name='tcp_acc_limit__'></a>__tcp_acc_limit__
+#### __tcp_acc_limit__
 ```
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
 ```
 
-####  1.1.32. <a name='tcp_load__'></a>__tcp_load__
+#### __tcp_load__
 ```
 xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
 
@@ -374,7 +248,7 @@ xArm tcp load, only available in socket way and  enable_report is True and repor
     such as: [weight(kg), [x(mm), y(mm), z(mm)]]
 ```
 
-####  1.1.33. <a name='tcp_offset__'></a>__tcp_offset__
+#### __tcp_offset__
 ```
 Cartesion position offset, only available in socket way and enable_report is True 
 Note:
@@ -383,40 +257,40 @@ Note:
 :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
 ```
 
-####  1.1.34. <a name='tcp_speed_limit__'></a>__tcp_speed_limit__
+#### __tcp_speed_limit__
 ```
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s), max_tcp_acc(mm/s)]
 ```
 
-####  1.1.35. <a name='teach_sensitivity__'></a>__teach_sensitivity__
+#### __teach_sensitivity__
 ```
 The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
 
 :return: 0~5
 ```
 
-####  1.1.36. <a name='version__'></a>__version__
+#### __version__
 ```
 xArm version
 ```
 
-####  1.1.37. <a name='version_number__'></a>__version_number__
+#### __version_number__
 ```
 Frimware version number
 :return: (major_version_number, minor_version_number, revision_version_number)
 ```
 
-####  1.1.38. <a name='warn_code__'></a>__warn_code__
+#### __warn_code__
 ```
 Controller warn code. See the controller warn code documentation for details.
 ```
 
 ****************************************
-###  1.2. <a name='Methods__'></a>__Methods__
+### __Methods__
 ****************************************
-####  1.2.1. <a name='def____init____selfportNoneis_radianFalsedo_not_openFalsekwargs:'></a>def __\__init__\__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
+#### def __\__init__\__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
 
 ```
 The API wrapper of xArm
@@ -485,7 +359,7 @@ Note: Orientation of attitude angle
         Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`move_circle`/`move_gohome`/`move_arc_lines`
 ```
 
-####  1.2.2. <a name='def__clean_conf__self:'></a>def __clean_conf__(self):
+#### def __clean_conf__(self):
 
 ```
 Clean current config and restore system default settings
@@ -496,7 +370,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.3. <a name='def__clean_error__self:'></a>def __clean_error__(self):
+#### def __clean_error__(self):
 
 ```
 Clean the error, need to be manually enabled motion and set state after clean error
@@ -505,7 +379,7 @@ Clean the error, need to be manually enabled motion and set state after clean er
     code: See the API code documentation for details.
 ```
 
-####  1.2.4. <a name='def__clean_gripper_error__self:'></a>def __clean_gripper_error__(self):
+#### def __clean_gripper_error__(self):
 
 ```
 Clean the gripper error
@@ -514,7 +388,7 @@ Clean the gripper error
     code: See the Gripper code documentation for details.
 ```
 
-####  1.2.5. <a name='def__clean_warn__self:'></a>def __clean_warn__(self):
+#### def __clean_warn__(self):
 
 ```
 Clean the warn
@@ -523,7 +397,7 @@ Clean the warn
     code: See the API code documentation for details.
 ```
 
-####  1.2.6. <a name='def__connect__selfportNonebaudrateNonetimeoutNone:'></a>def __connect__(self, port=None, baudrate=None, timeout=None):
+#### def __connect__(self, port=None, baudrate=None, timeout=None):
 
 ```
 Connect to xArm
@@ -533,13 +407,13 @@ Connect to xArm
 :param timeout: timeout, only available in serial way, default is the value when initializing an instance
 ```
 
-####  1.2.7. <a name='def__disconnect__self:'></a>def __disconnect__(self):
+#### def __disconnect__(self):
 
 ```
 Disconnect
 ```
 
-####  1.2.8. <a name='def__emergency_stop__self:'></a>def __emergency_stop__(self):
+#### def __emergency_stop__(self):
 
 ```
 Emergency stop (set_state(4) -> motion_enable(True) -> set_state(0))
@@ -547,7 +421,7 @@ Note:
     1. This interface does not automatically clear the error. If there is an error, you need to handle it according to the error code.
 ```
 
-####  1.2.9. <a name='def__get_cgpio_analog__selfionumNone:'></a>def __get_cgpio_analog__(self, ionum=None):
+#### def __get_cgpio_analog__(self, ionum=None):
 
 ```
 Get the analog value of the specified Controller GPIO
@@ -556,7 +430,7 @@ Get the analog value of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.10. <a name='def__get_cgpio_digital__selfionumNone:'></a>def __get_cgpio_digital__(self, ionum=None):
+#### def __get_cgpio_digital__(self, ionum=None):
 
 ```
 Get the digital value of the specified Controller GPIO
@@ -566,7 +440,7 @@ Get the digital value of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.11. <a name='def__get_cgpio_state__self:'></a>def __get_cgpio_state__(self):
+#### def __get_cgpio_state__(self):
 
 ```
 Get the state of the Controller GPIO
@@ -596,7 +470,7 @@ Get the state of the Controller GPIO
         states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
 ```
 
-####  1.2.12. <a name='def__get_cmdnum__self:'></a>def __get_cmdnum__(self):
+#### def __get_cmdnum__(self):
 
 ```
 Get the cmd count in cache
@@ -604,7 +478,7 @@ Get the cmd count in cache
     code: See the API code documentation for details.
 ```
 
-####  1.2.13. <a name='def__get_err_warn_code__selfshowFalse:'></a>def __get_err_warn_code__(self, show=False):
+#### def __get_err_warn_code__(self, show=False):
 
 ```
 Get the controller error and warn code
@@ -616,7 +490,7 @@ Get the controller error and warn code
     warn_code: See the controller warn code documentation for details.
 ```
 
-####  1.2.14. <a name='def__get_forward_kinematics__selfanglesinput_is_radianNonereturn_is_radianNone:'></a>def __get_forward_kinematics__(self, angles, input_is_radian=None, return_is_radian=None):
+#### def __get_forward_kinematics__(self, angles, input_is_radian=None, return_is_radian=None):
 
 ```
 Get forward kinematics
@@ -630,7 +504,7 @@ Get forward kinematics
         Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
 ```
 
-####  1.2.15. <a name='def__get_gripper_err_code__self:'></a>def __get_gripper_err_code__(self):
+#### def __get_gripper_err_code__(self):
 
 ```
 Get the gripper error code
@@ -640,7 +514,7 @@ Get the gripper error code
     err_code: See the Gripper code documentation for details.
 ```
 
-####  1.2.16. <a name='def__get_gripper_position__self:'></a>def __get_gripper_position__(self):
+#### def __get_gripper_position__(self):
 
 ```
 Get the gripper position
@@ -649,7 +523,7 @@ Get the gripper position
     code: See the Gripper code documentation for details.
 ```
 
-####  1.2.17. <a name='def__get_inverse_kinematics__selfposeinput_is_radianNonereturn_is_radianNone:'></a>def __get_inverse_kinematics__(self, pose, input_is_radian=None, return_is_radian=None):
+#### def __get_inverse_kinematics__(self, pose, input_is_radian=None, return_is_radian=None):
 
 ```
 Get inverse kinematics
@@ -664,14 +538,14 @@ Get inverse kinematics
         Note: the returned angle value is radians if return_is_radian is True, else °
 ```
 
-####  1.2.18. <a name='def__get_is_moving__self:'></a>def __get_is_moving__(self):
+#### def __get_is_moving__(self):
 
 ```
 Check xArm is moving or not
 :return: True/False
 ```
 
-####  1.2.19. <a name='def__get_position__selfis_radianNone:'></a>def __get_position__(self, is_radian=None):
+#### def __get_position__(self, is_radian=None):
 
 ```
 Get the cartesian position
@@ -684,7 +558,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.20. <a name='def__get_servo_angle__selfservo_idNoneis_radianNone:'></a>def __get_servo_angle__(self, servo_id=None, is_radian=None):
+#### def __get_servo_angle__(self, servo_id=None, is_radian=None):
 
 ```
 Get the servo angle
@@ -700,7 +574,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.21. <a name='def__get_servo_debug_msg__selfshowFalse:'></a>def __get_servo_debug_msg__(self, show=False):
+#### def __get_servo_debug_msg__(self, show=False):
 
 ```
 Get the servo debug msg, used only for debugging
@@ -710,7 +584,7 @@ Get the servo debug msg, used only for debugging
     code: See the API code documentation for details.
 ```
 
-####  1.2.22. <a name='def__get_state__self:'></a>def __get_state__(self):
+#### def __get_state__(self):
 
 ```
 Get state
@@ -724,7 +598,7 @@ Get state
         4: stopping
 ```
 
-####  1.2.23. <a name='def__get_tgpio_analog__selfionumNone:'></a>def __get_tgpio_analog__(self, ionum=None):
+#### def __get_tgpio_analog__(self, ionum=None):
 
 ```
 Get the analog value of the specified Tool GPIO
@@ -733,7 +607,7 @@ Get the analog value of the specified Tool GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.24. <a name='def__get_tgpio_digital__selfionumNone:'></a>def __get_tgpio_digital__(self, ionum=None):
+#### def __get_tgpio_digital__(self, ionum=None):
 
 ```
 Get the digital value of the specified Tool GPIO
@@ -743,7 +617,7 @@ Get the digital value of the specified Tool GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.25. <a name='def__get_version__self:'></a>def __get_version__(self):
+#### def __get_version__(self):
 
 ```
 Get the xArm version
@@ -752,7 +626,7 @@ Get the xArm version
     code: See the API code documentation for details.
 ```
 
-####  1.2.26. <a name='def__is_joint_limit__selfjointis_radianNone:'></a>def __is_joint_limit__(self, joint, is_radian=None):
+#### def __is_joint_limit__(self, joint, is_radian=None):
 
 ```
 Check the joint is in limit
@@ -764,7 +638,7 @@ Check the joint is in limit
     limit: True/False/None, limit or not, or failed
 ```
 
-####  1.2.27. <a name='def__is_tcp_limit__selfposeis_radianNone:'></a>def __is_tcp_limit__(self, pose, is_radian=None):
+#### def __is_tcp_limit__(self, pose, is_radian=None):
 
 ```
 Check the tcp pose is in limit
@@ -776,7 +650,7 @@ Check the tcp pose is in limit
     limit: True/False/None, limit or not, or failed
 ```
 
-####  1.2.28. <a name='def__motion_enable__selfenableTrueservo_idNone:'></a>def __motion_enable__(self, enable=True, servo_id=None):
+#### def __motion_enable__(self, enable=True, servo_id=None):
 
 ```
 Motion enable
@@ -787,7 +661,7 @@ Motion enable
     code: See the API code documentation for details.
 ```
 
-####  1.2.29. <a name='def__move_arc_lines__selfpathsis_radianNonetimes1first_pause_time0.1repeat_pause_time0automatic_calibrationTruespeedNonemvaccNonemvtimeNonewaitFalse:'></a>def __move_arc_lines__(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0, automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
+#### def __move_arc_lines__(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0, automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
 
 ```
 Continuous linear motion with interpolation
@@ -811,7 +685,7 @@ Note:
 :param wait: whether to wait for the arm to complete, default is False
 ```
 
-####  1.2.30. <a name='def__move_circle__selfpose1pose2percentspeedNonemvaccNonemvtimeNoneis_radianNonewaitFalsetimeoutNonekwargs:'></a>def __move_circle__(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __move_circle__(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
 
 ```
 The motion calculates the trajectory of the space circle according to the three-point coordinates.
@@ -833,7 +707,7 @@ The three-point coordinates are (current starting point, pose1, pose2).
         code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
 ```
 
-####  1.2.31. <a name='def__move_gohome__selfspeedNonemvaccNonemvtimeNoneis_radianNonewaitFalsetimeoutNone:'></a>def __move_gohome__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
+#### def __move_gohome__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
 
 ```
 Move to go home (Back to zero), the API will modify self.last_used_position and self.last_used_angles value
@@ -855,7 +729,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.32. <a name='def__register_cmdnum_changed_callback__selfcallbackNone:'></a>def __register_cmdnum_changed_callback__(self, callback=None):
+#### def __register_cmdnum_changed_callback__(self, callback=None):
 
 ```
 Register the cmdnum changed callback, only available if enable_report is True
@@ -868,7 +742,7 @@ Register the cmdnum changed callback, only available if enable_report is True
 :return: True/False
 ```
 
-####  1.2.33. <a name='def__register_connect_changed_callback__selfcallbackNone:'></a>def __register_connect_changed_callback__(self, callback=None):
+#### def __register_connect_changed_callback__(self, callback=None):
 
 ```
 Register the connect status changed callback
@@ -882,7 +756,7 @@ Register the connect status changed callback
 :return: True/False
 ```
 
-####  1.2.34. <a name='def__register_error_warn_changed_callback__selfcallbackNone:'></a>def __register_error_warn_changed_callback__(self, callback=None):
+#### def __register_error_warn_changed_callback__(self, callback=None):
 
 ```
 Register the error code or warn code changed callback, only available if enable_report is True
@@ -896,7 +770,7 @@ Register the error code or warn code changed callback, only available if enable_
 :return: True/False
 ```
 
-####  1.2.35. <a name='def__register_mode_changed_callback__selfcallbackNone:'></a>def __register_mode_changed_callback__(self, callback=None):
+#### def __register_mode_changed_callback__(self, callback=None):
 
 ```
 Register the mode changed callback, only available if enable_report is True and the connect way is socket
@@ -909,7 +783,7 @@ Register the mode changed callback, only available if enable_report is True and 
 :return: True/False
 ```
 
-####  1.2.36. <a name='def__register_mtable_mtbrake_changed_callback__selfcallbackNone:'></a>def __register_mtable_mtbrake_changed_callback__(self, callback=None):
+#### def __register_mtable_mtbrake_changed_callback__(self, callback=None):
 
 ```
 Register the motor enable states or motor brake states changed callback, only available if enable_report is True and the connect way is socket
@@ -923,7 +797,7 @@ Register the motor enable states or motor brake states changed callback, only av
 :return: True/False
 ```
 
-####  1.2.37. <a name='def__register_report_callback__selfcallbackNonereport_cartesianTruereport_jointsTruereport_stateTruereport_error_codeTruereport_warn_codeTruereport_mtableTruereport_mtbrakeTruereport_cmd_numTrue:'></a>def __register_report_callback__(self, callback=None, report_cartesian=True, report_joints=True, report_state=True, report_error_code=True, report_warn_code=True, report_mtable=True, report_mtbrake=True, report_cmd_num=True):
+#### def __register_report_callback__(self, callback=None, report_cartesian=True, report_joints=True, report_state=True, report_error_code=True, report_warn_code=True, report_mtable=True, report_mtbrake=True, report_cmd_num=True):
 
 ```
 Register the report callback, only available if enable_report is True
@@ -951,7 +825,7 @@ Register the report callback, only available if enable_report is True
 :return: True/False
 ```
 
-####  1.2.38. <a name='def__register_report_location_callback__selfcallbackNonereport_cartesianTruereport_jointsTrue:'></a>def __register_report_location_callback__(self, callback=None, report_cartesian=True, report_joints=True):
+#### def __register_report_location_callback__(self, callback=None, report_cartesian=True, report_joints=True):
 
 ```
 Register the report location callback, only available if enable_report is True
@@ -967,7 +841,7 @@ Register the report location callback, only available if enable_report is True
 :return: True/False
 ```
 
-####  1.2.39. <a name='def__register_state_changed_callback__selfcallbackNone:'></a>def __register_state_changed_callback__(self, callback=None):
+#### def __register_state_changed_callback__(self, callback=None):
 
 ```
 Register the state status changed callback, only available if enable_report is True
@@ -980,7 +854,7 @@ Register the state status changed callback, only available if enable_report is T
 :return: True/False
 ```
 
-####  1.2.40. <a name='def__release_cmdnum_changed_callback__selfcallbackNone:'></a>def __release_cmdnum_changed_callback__(self, callback=None):
+#### def __release_cmdnum_changed_callback__(self, callback=None):
 
 ```
 Release the cmdnum changed callback
@@ -989,7 +863,7 @@ Release the cmdnum changed callback
 :return: True/False
 ```
 
-####  1.2.41. <a name='def__release_connect_changed_callback__selfcallbackNone:'></a>def __release_connect_changed_callback__(self, callback=None):
+#### def __release_connect_changed_callback__(self, callback=None):
 
 ```
 Release the connect changed callback
@@ -998,7 +872,7 @@ Release the connect changed callback
 :return: True/False
 ```
 
-####  1.2.42. <a name='def__release_error_warn_changed_callback__selfcallbackNone:'></a>def __release_error_warn_changed_callback__(self, callback=None):
+#### def __release_error_warn_changed_callback__(self, callback=None):
 
 ```
 Release the error warn changed callback
@@ -1007,7 +881,7 @@ Release the error warn changed callback
 :return: True/False
 ```
 
-####  1.2.43. <a name='def__release_mode_changed_callback__selfcallbackNone:'></a>def __release_mode_changed_callback__(self, callback=None):
+#### def __release_mode_changed_callback__(self, callback=None):
 
 ```
 Release the mode changed callback
@@ -1016,7 +890,7 @@ Release the mode changed callback
 :return: True/False
 ```
 
-####  1.2.44. <a name='def__release_mtable_mtbrake_changed_callback__selfcallbackNone:'></a>def __release_mtable_mtbrake_changed_callback__(self, callback=None):
+#### def __release_mtable_mtbrake_changed_callback__(self, callback=None):
 
 ```
 Release the motor enable states or motor brake states changed callback
@@ -1025,7 +899,7 @@ Release the motor enable states or motor brake states changed callback
 :return: True/False
 ```
 
-####  1.2.45. <a name='def__release_report_callback__selfcallbackNone:'></a>def __release_report_callback__(self, callback=None):
+#### def __release_report_callback__(self, callback=None):
 
 ```
 Release the report callback
@@ -1034,7 +908,7 @@ Release the report callback
 :return: True/False
 ```
 
-####  1.2.46. <a name='def__release_report_location_callback__selfcallbackNone:'></a>def __release_report_location_callback__(self, callback=None):
+#### def __release_report_location_callback__(self, callback=None):
 
 ```
 Release the location report callback
@@ -1043,7 +917,7 @@ Release the location report callback
 :return: True/False
 ```
 
-####  1.2.47. <a name='def__release_state_changed_callback__selfcallbackNone:'></a>def __release_state_changed_callback__(self, callback=None):
+#### def __release_state_changed_callback__(self, callback=None):
 
 ```
 Release the state changed callback
@@ -1052,7 +926,7 @@ Release the state changed callback
 :return: True/False
 ```
 
-####  1.2.48. <a name='def__reset__selfspeedNonemvaccNonemvtimeNoneis_radianNonewaitFalsetimeoutNone:'></a>def __reset__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
+#### def __reset__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
 
 ```
 Reset the xArm
@@ -1072,14 +946,14 @@ Note:
 :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
 ```
 
-####  1.2.49. <a name='def__run_blockly_app__selfpath:'></a>def __run_blockly_app__(self, path):
+#### def __run_blockly_app__(self, path):
 
 ```
 Run the app generated by xArmStudio software
 :param path: app path
 ```
 
-####  1.2.50. <a name='def__save_conf__self:'></a>def __save_conf__(self):
+#### def __save_conf__(self):
 
 ```
 Save config
@@ -1091,7 +965,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.51. <a name='def__send_cmd_sync__selfcommandNone:'></a>def __send_cmd_sync__(self, command=None):
+#### def __send_cmd_sync__(self, command=None):
 
 ```
 Send cmd and wait (only waiting the cmd response, not waiting for the movement)
@@ -1130,7 +1004,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.52. <a name='def__set_cgpio_analog__selfionumvalue:'></a>def __set_cgpio_analog__(self, ionum, value):
+#### def __set_cgpio_analog__(self, ionum, value):
 
 ```
 Set the analog value of the specified Controller GPIO
@@ -1141,7 +1015,7 @@ Set the analog value of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.53. <a name='def__set_cgpio_digital__selfionumvalue:'></a>def __set_cgpio_digital__(self, ionum, value):
+#### def __set_cgpio_digital__(self, ionum, value):
 
 ```
 Set the digital value of the specified Controller GPIO
@@ -1152,7 +1026,7 @@ Set the digital value of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.54. <a name='def__set_cgpio_digital_input_function__selfionumfun:'></a>def __set_cgpio_digital_input_function__(self, ionum, fun):
+#### def __set_cgpio_digital_input_function__(self, ionum, fun):
 
 ```
 Set the digital input functional mode of the Controller GPIO
@@ -1162,7 +1036,7 @@ Set the digital input functional mode of the Controller GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.55. <a name='def__set_cgpio_digital_output_function__selfionumfun:'></a>def __set_cgpio_digital_output_function__(self, ionum, fun):
+#### def __set_cgpio_digital_output_function__(self, ionum, fun):
 
 ```
 Set the digital output functional mode of the specified Controller GPIO
@@ -1175,7 +1049,7 @@ Set the digital output functional mode of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.56. <a name='def__set_collision_sensitivity__selfvalue:'></a>def __set_collision_sensitivity__(self, value):
+#### def __set_collision_sensitivity__(self, value):
 
 ```
 Set the sensitivity of collision
@@ -1191,7 +1065,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.57. <a name='def__set_gravity_direction__selfdirection:'></a>def __set_gravity_direction__(self, direction):
+#### def __set_gravity_direction__(self, direction):
 
 ```
 Set the direction of gravity
@@ -1207,7 +1081,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.58. <a name='def__set_gripper_enable__selfenable:'></a>def __set_gripper_enable__(self, enable):
+#### def __set_gripper_enable__(self, enable):
 
 ```
 Set the gripper enable
@@ -1217,7 +1091,7 @@ Set the gripper enable
     code: See the Gripper code documentation for details.
 ```
 
-####  1.2.59. <a name='def__set_gripper_mode__selfmode:'></a>def __set_gripper_mode__(self, mode):
+#### def __set_gripper_mode__(self, mode):
 
 ```
 Set the gripper mode
@@ -1227,7 +1101,7 @@ Set the gripper mode
     code: See the Gripper code documentation for details.
 ```
 
-####  1.2.60. <a name='def__set_gripper_position__selfposwaitFalsespeedNoneauto_enableFalsetimeoutNone:'></a>def __set_gripper_position__(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+#### def __set_gripper_position__(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
 
 ```
 Set the gripper position
@@ -1241,7 +1115,7 @@ Set the gripper position
     code: See the Gripper code documentation for details.
 ```
 
-####  1.2.61. <a name='def__set_gripper_speed__selfspeed:'></a>def __set_gripper_speed__(self, speed):
+#### def __set_gripper_speed__(self, speed):
 
 ```
 Set the gripper speed
@@ -1251,7 +1125,7 @@ Set the gripper speed
     code: See the Gripper code documentation for details.
 ```
 
-####  1.2.62. <a name='def__set_joint_jerk__selfjerkis_radianNone:'></a>def __set_joint_jerk__(self, jerk, is_radian=None):
+#### def __set_joint_jerk__(self, jerk, is_radian=None):
 
 ```
 Set the jerk of Joint space
@@ -1267,7 +1141,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.63. <a name='def__set_joint_maxacc__selfaccis_radianNone:'></a>def __set_joint_maxacc__(self, acc, is_radian=None):
+#### def __set_joint_maxacc__(self, acc, is_radian=None):
 
 ```
 Set the max acceleration of Joint space
@@ -1284,7 +1158,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.64. <a name='def__set_mode__selfmode0:'></a>def __set_mode__(self, mode=0):
+#### def __set_mode__(self, mode=0):
 
 ```
 Set the xArm mode
@@ -1300,7 +1174,7 @@ Set the xArm mode
     code: See the API code documentation for details.
 ```
 
-####  1.2.65. <a name='def__set_mount_direction__selfbase_tilt_degrotation_degis_radianNone:'></a>def __set_mount_direction__(self, base_tilt_deg, rotation_deg, is_radian=None):
+#### def __set_mount_direction__(self, base_tilt_deg, rotation_deg, is_radian=None):
 
 ```
 Set the mount direction
@@ -1318,7 +1192,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.66. <a name='def__set_pause_time__selfsltimewaitFalse:'></a>def __set_pause_time__(self, sltime, wait=False):
+#### def __set_pause_time__(self, sltime, wait=False):
 
 ```
 Set the arm pause time, xArm will pause sltime second
@@ -1329,7 +1203,7 @@ Set the arm pause time, xArm will pause sltime second
     code: See the API code documentation for details.
 ```
 
-####  1.2.67. <a name='def__set_position__selfxNoneyNonezNonerollNonepitchNoneyawNoneradiusNonespeedNonemvaccNonemvtimeNonerelativeFalseis_radianNonewaitFalsetimeoutNonekwargs:'></a>def __set_position__(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __set_position__(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
 
 ```
 Set the cartesian position, the API will modify self.last_used_position value
@@ -1366,7 +1240,7 @@ Note:
         code >= 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified
 ```
 
-####  1.2.68. <a name='def__set_servo_angle__selfservo_idNoneangleNonespeedNonemvaccNonemvtimeNonerelativeFalseis_radianNonewaitFalsetimeoutNonekwargs:'></a>def __set_servo_angle__(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __set_servo_angle__(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
 
 ```
 Set the servo angle, the API will modify self.last_used_angles value
@@ -1401,7 +1275,7 @@ Note:
         code >= 0: the last_used_angles/last_used_joint_speed/last_used_joint_acc will be modified
 ```
 
-####  1.2.69. <a name='def__set_servo_angle_j__selfanglesspeedNonemvaccNonemvtimeNoneis_radianNonekwargs:'></a>def __set_servo_angle_j__(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+#### def __set_servo_angle_j__(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
 
 ```
 Set the servo angle, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
@@ -1418,7 +1292,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.70. <a name='def__set_servo_attach__selfservo_idNone:'></a>def __set_servo_attach__(self, servo_id=None):
+#### def __set_servo_attach__(self, servo_id=None):
 
 ```
 Attach the servo
@@ -1432,7 +1306,7 @@ Attach the servo
     code: See the API code documentation for details.
 ```
 
-####  1.2.71. <a name='def__set_servo_detach__selfservo_idNone:'></a>def __set_servo_detach__(self, servo_id=None):
+#### def __set_servo_detach__(self, servo_id=None):
 
 ```
 Detach the servo, be sure to do protective work before unlocking to avoid injury or damage.
@@ -1446,7 +1320,7 @@ Detach the servo, be sure to do protective work before unlocking to avoid injury
     code: See the API code documentation for details.
 ```
 
-####  1.2.72. <a name='def__set_state__selfstate0:'></a>def __set_state__(self, state=0):
+#### def __set_state__(self, state=0):
 
 ```
 Set the xArm state
@@ -1459,7 +1333,7 @@ Set the xArm state
     code: See the API code documentation for details.
 ```
 
-####  1.2.73. <a name='def__set_tcp_jerk__selfjerk:'></a>def __set_tcp_jerk__(self, jerk):
+#### def __set_tcp_jerk__(self, jerk):
 
 ```
 Set the translational jerk of Cartesian space
@@ -1474,7 +1348,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.74. <a name='def__set_tcp_load__selfweightcenter_of_gravity:'></a>def __set_tcp_load__(self, weight, center_of_gravity):
+#### def __set_tcp_load__(self, weight, center_of_gravity):
 
 ```
 Set the load
@@ -1491,7 +1365,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.75. <a name='def__set_tcp_maxacc__selfacc:'></a>def __set_tcp_maxacc__(self, acc):
+#### def __set_tcp_maxacc__(self, acc):
 
 ```
 Set the max translational acceleration of Cartesian space
@@ -1506,7 +1380,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.76. <a name='def__set_tcp_offset__selfoffsetis_radianNone:'></a>def __set_tcp_offset__(self, offset, is_radian=None):
+#### def __set_tcp_offset__(self, offset, is_radian=None):
 
 ```
 Set the tool coordinate system offset at the end
@@ -1523,7 +1397,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.77. <a name='def__set_teach_sensitivity__selfvalue:'></a>def __set_teach_sensitivity__(self, value):
+#### def __set_teach_sensitivity__(self, value):
 
 ```
 Set the sensitivity of drag and teach
@@ -1539,7 +1413,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-####  1.2.78. <a name='def__set_tgpio_digital__selfionumvalue:'></a>def __set_tgpio_digital__(self, ionum, value):
+#### def __set_tgpio_digital__(self, ionum, value):
 
 ```
 Set the digital value of the specified Tool GPIO
@@ -1550,7 +1424,7 @@ Set the digital value of the specified Tool GPIO
     code: See the API code documentation for details.
 ```
 
-####  1.2.79. <a name='def__shutdown_system__selfvalue1:'></a>def __shutdown_system__(self, value=1):
+#### def __shutdown_system__(self, value=1):
 
 ```
 Shutdown the xArm controller system

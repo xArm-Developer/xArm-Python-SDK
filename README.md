@@ -144,7 +144,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   ```
 
 - #### Setting
-
   ```python
   arm.set_tcp_offset(...)
   arm.set_tcp_jerk(...)
@@ -158,6 +157,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.clean_conf()
   arm.save_conf()
   ```
+
 - #### Gripper
   ```python
   arm.set_gripper_enable(...)
@@ -186,13 +186,13 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   ```
 
 - #### Other
-
   ```python
   arm.set_pause_time(...)
   arm.shutdown_system(...)
   arm.clean_error()
   arm.clean_warn()
   ```
+
 - #### Register/Release
   ```python
   arm.register_report_callback(...)
@@ -212,6 +212,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.release_error_warn_changed_callback(callback)
   arm.release_cmdnum_changed_callback(callback)
   ```
+
 - #### Property
   ```python
   arm.connected

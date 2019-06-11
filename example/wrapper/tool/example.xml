@@ -1,0 +1,66 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <variables>
+    <variable type="" id="so!GG(TNad5I8#cUgjs^">i</variable>
+  </variables>
+  <block type="reset" id="~c5%7BuucD^j$I^s;dNs" x="182" y="284">
+    <next>
+      <block type="move" id="RyK%AV/KHBUxveo!#cN7">
+        <field name="orientation">forward</field>
+        <field name="wait">TRUE</field>
+        <field name="value">100</field>
+        <next>
+          <block type="move" id="81k@?a*FYVPpW`zuJ@RN">
+            <field name="orientation">left</field>
+            <field name="wait">TRUE</field>
+            <field name="value">100</field>
+            <next>
+              <block type="move" id="=BYE|5shbR|Li`Jay2Xr">
+                <field name="orientation">forward</field>
+                <field name="wait">TRUE</field>
+                <field name="value">100</field>
+                <next>
+                  <block type="move" id="0wl}vQO?F3u_)CzP@X$[">
+                    <field name="orientation">right</field>
+                    <field name="wait">TRUE</field>
+                    <field name="value">200</field>
+                    <next>
+                      <block type="move" id="Dc1]!Au=N}O!:ve1_#g@">
+                        <field name="orientation">up</field>
+                        <field name="wait">TRUE</field>
+                        <field name="value">100</field>
+                        <next>
+                          <block type="move" id="KGx9#?2:_aXuiG:/;u+Y">
+                            <field name="orientation">left</field>
+                            <field name="wait">TRUE</field>
+                            <field name="value">100</field>
+                            <next>
+                              <block type="move" id=",u*L7Qq!:4VMcfH=mu%w">
+                                <field name="orientation">down</field>
+                                <field name="wait">TRUE</field>
+                                <field name="value">100</field>
+                                <next>
+                                  <block type="move" id="`^L_I_g~Y`ACsYB72:`a">
+                                    <field name="orientation">backward</field>
+                                    <field name="wait">TRUE</field>
+                                    <field name="value">100</field>
+                                    <next>
+                                      <block type="reset" id="l+v4BPpTp/AaWOj.LvN."/>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>

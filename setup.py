@@ -12,7 +12,7 @@ try:
 except ImportError:
     from distutils.core import setup
     def find_packages():
-        return ['xarm', 'xarm.core', 'xarm.core.comm', 'xarm.core.utils', 'xarm.core.wrapper']
+        return ['xarm', 'xarm.__version__', 'xarm.core', 'xarm.core.comm', 'xarm.core.utils', 'xarm.core.wrapper', 'xarm.wrapper']
 import os
 from distutils.util import convert_path
 
@@ -35,7 +35,7 @@ setup(
     author='Vinman',
     description='Python SDK for xArm',
     packages=find_packages(),
-    author_email='developer@ufactory.cc',
+    author_email='vinman@ufactory.cc',
     install_requires=requirements,
     long_description=long_description,
     license='MIT',

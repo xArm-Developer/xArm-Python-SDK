@@ -1,32 +1,31 @@
 #!/usr/bin/env python3
-# -*- coding: UTF-8 -*-
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2018, UFACTORY, Inc.
+# All rights reserved.
+#
+# Author: Jimy Zhang <jimy.zhang@ufactory.cc> <jimy92@163.com>
+# Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-#
-#  ./communat_port/ux2_hex_protocol.py
-#  Copyright (C) 2018.4 -  UFactory.
-#  Author: Jimy Zhang   <jimy.zhang@ufactory.cc>
-#                       <jimy92@163.com>
-#
 
 from ..utils import crc16
 from ..utils.log import logger
 
 # ux2_hex_protocol define
-UX2HEX_RXSTART_FROMID   = 0
-UX2HEX_RXSTART_TOID     = 1
-UX2HEX_RXSTATE_LEN      = 2
-UX2HEX_RXSTATE_DATA     = 3
-UX2HEX_RXSTATE_CRC1     = 4
-UX2HEX_RXSTATE_CRC2     = 5
-UX2HEX_RXLEN_MAX        = 50
+UX2HEX_RXSTART_FROMID = 0
+UX2HEX_RXSTART_TOID = 1
+UX2HEX_RXSTATE_LEN = 2
+UX2HEX_RXSTATE_DATA = 3
+UX2HEX_RXSTATE_CRC1 = 4
+UX2HEX_RXSTATE_CRC2 = 5
+UX2HEX_RXLEN_MAX = 50
 
 
-class UX2HexProtocol(object):
+class Ux2HexProtocol(object):
     """
     fromid and toid: broadcast address is 0xFF
     """
     def __init__(self, rx_que, fromid, toid):
-        self.DB_FLG = '[ux2 ptcl] '
         self.rx_que = rx_que
         self.rxstate = UX2HEX_RXSTART_FROMID
         self.data_idx = 0
@@ -40,16 +39,16 @@ class UX2HexProtocol(object):
         self.rxstate = UX2HEX_RXSTART_FROMID
         self.data_idx = 0
         self.len = 0
-        if not(-1 == fromid):
+        if fromid != -1:
             self.fromid = fromid
-        if not(-1 == toid):
+        if toid != -1:
             self.toid = toid
 
     def put(self, rxstr, length=0):
-        if 0 == length:
+        if length == 0:
             length = len(rxstr)
         if len(rxstr) < length:
-            logger.error(self.DB_FLG + "error: len(rxstr) < length")
+            logger.error('len(rxstr) < length')
 
         for i in range(length):
             rxch = bytes([rxstr[i]])
@@ -61,7 +60,7 @@ class UX2HexProtocol(object):
                     self.rxstate = UX2HEX_RXSTART_TOID
 
             elif UX2HEX_RXSTART_TOID == self.rxstate:
-                if self.fromid == rxch[0] or 0xFF == self.fromid:
+                if self.fromid == rxch[0] or self.fromid == 0xFF:
                     self.rxbuf += rxch
                     self.rxstate = UX2HEX_RXSTATE_LEN
                 else:

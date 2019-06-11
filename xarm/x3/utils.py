@@ -33,16 +33,17 @@ def xarm_is_ready(_type='set'):
                 args[0].motion_enable(enable=True)
                 args[0].set_mode(0)
                 args[0].set_state(0)
-            if args[0].connected and args[0].ready:
-                return func(*args, **kwargs)
-            elif not args[0].connected:
+            if args[0].connected:
+                if not args[0]._check_is_ready or args[0].ready:
+                    return func(*args, **kwargs)
+                else:
+                    logger.error('xArm is not ready')
+                    logger.info('Please check the arm for errors. If so, please clear the error first. '
+                                'Then enable the motor, set the mode and set the state')
+                    return APIState.NOT_READY if _type == 'set' else (APIState.NOT_READY, 'xArm is not ready')
+            else:
                 logger.error('xArm is not connect')
                 return APIState.NOT_CONNECTED if _type == 'set' else (APIState.NOT_CONNECTED, 'xArm is not connect')
-            else:
-                logger.error('xArm is not ready')
-                logger.info('Please check the arm for errors. If so, please clear the error first. '
-                            'Then enable the motor, set the mode and set the state')
-                return APIState.NOT_READY if _type == 'set' else (APIState.NOT_READY, 'xArm is not ready')
         return decorator
     return _xarm_is_ready
 

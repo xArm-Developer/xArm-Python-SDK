@@ -44,6 +44,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._check_joint_limit = kwargs.get('check_joint_limit', True)
         self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
         self._check_robot_sn = kwargs.get('check_robot_sn', False)
+        self._check_is_ready = kwargs.get('check_is_ready', True)
 
         self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
         self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
@@ -999,7 +1000,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                     continue
                 if self.owner.angles == base_joint_pos or self.owner.state != 1:
                     count += 1
-                    if count >= 6:
+                    if count >= 10:
                         break
                 else:
                     base_joint_pos = self.owner._angles.copy()
@@ -1345,6 +1346,10 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     @xarm_is_ready(_type='set')
     def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+        ret = self._wait_until_cmdnum_lt_max()
+        if ret is not None:
+            logger.info('API -> move_circle -> ret={}'.format(ret))
+            return ret
         last_used_tcp_speed = self._last_tcp_speed
         last_used_tcp_acc = self._last_tcp_acc
         is_radian = self._default_is_radian if is_radian is None else is_radian

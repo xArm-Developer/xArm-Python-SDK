@@ -24,7 +24,7 @@ class XArmAPI(object):
             pitch: rotate around the Y axis
             yaw: rotate around the Z axis
         
-        :param port: port name(such as 'COM5'/'/dev/ttyUSB0') or ip-address(such as '192.168.1.185')
+        :param port: ip-address(such as '192.168.1.185')
             Note: this parameter is required if parameter do_not_open is False
         :param is_radian: set the default unit is radians or not, default is False
             Note: (aim of design)
@@ -41,7 +41,7 @@ class XArmAPI(object):
                 * 1 rad/s^3 == 57.29577951308232 °/s^3
                 * 1 °/s^3 == 0.017453292519943295 rad/s^3
             Note: This parameter determines the value of the property self.default_is_radian 
-            Note: This parameter determines the default value of the interface with the is_radian(input_is_radian/return_is_radian) parameter
+            Note: This parameter determines the default value of the interface with the is_radian/input_is_radian/return_is_radian parameter
                The list of affected interfaces is as follows:
                     1. method: get_position
                     2. method: set_position
@@ -71,21 +71,17 @@ class XArmAPI(object):
                     7. property: tcp_offset
         :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
         :param kwargs: keyword parameters, generally do not need to set
-            baudrate: baudrate, only available in serial way, default is 2000000
-            timeout: timeout, only available in serial way, default is None
+            baudrate: serial baudrate, invalid, reserved.
+            timeout: serial timeout, invalid, reserved.
             filters: serial port filters, invalid, reserved.
-            enable_report: whether to enable report, default is True
-                Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
-            report_type: report type('normal'/'rich'), only available in socket way, default is 'rich'
-                Note:
-                    'normal': Reported at a frequency of 10 Hz
-                    'rich': Reported at a frequency of 10 Hz, more reported content than normal
             check_tcp_limit: check the tcp param value out of limit or not, default is True
-                Note: only check the param roll/pitch/yaw of the interface `set_position`
+                Note: only check the param roll/pitch/yaw of the interface `set_position`/`move_arc_lines`
             check_joint_limit: check the joint param value out of limit or not, default is True
                 Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
             check_cmdnum_limit: check the cmdnum out of limit or not, default is True
-                Note: only available in the interface `set_position` and `set_servo_angle`
+                Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
+            check_is_ready: check if the arm is in motion, default is True
+                Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`move_circle`/`move_gohome`/`move_arc_lines`
         """
         self._arm = XArm(port=port,
                          is_radian=is_radian,
@@ -630,7 +626,7 @@ class XArmAPI(object):
 
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
         """
-        Set the servo angle, execute only the last instruction, need to be set to servo motion mode
+        Set the servo angle, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
         Note:
             1. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
         
@@ -804,7 +800,9 @@ class XArmAPI(object):
         :param mode: default is 0
             0: position control mode
             1: servo motion mode
+                Note: the use of the set_servo_angle_j interface must first be set to this mode 
             2: joint teaching mode
+                Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
             3: cartesian teaching mode (invalid)
         :return: code
             code: See the API code documentation for details.
@@ -1552,67 +1550,6 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.get_servo_debug_msg(show=show)
-
-    # def clean_servo_error(self, servo_id=None):
-    #     """
-    #     Danger, do not use, used only for debugging
-    #     :param servo_id:
-    #     :return:
-    #     """
-    #     return self._arm.clean_servo_error(servo_id)
-    #
-    # def set_gripper_zero(self):
-    #     """
-    #     Warning: do not use, used only for debugging
-    #     :return:
-    #     """
-    #     return self._arm.set_gripper_zero()
-    #
-    # def set_servo_zero(self, servo_id=None):
-    #     """
-    #     Danger, do not use, used only for debugging
-    #     :param servo_id: 1~7, 8
-    #     :return:
-    #     """
-    #     return self._arm.set_servo_zero(servo_id=servo_id)
-    #
-    # def set_servo_addr_16(self, servo_id=None, addr=None, value=None):
-    #     """
-    #     Danger, do not use, used only for debugging
-    #     :param servo_id:
-    #     :param addr:
-    #     :param value:
-    #     :return:
-    #     """
-    #     return self._arm.set_servo_addr_16(servo_id=servo_id, addr=addr, value=value)
-    #
-    # def get_servo_addr_16(self, servo_id=None, addr=None):
-    #     """
-    #     Danger, do not use, used only for debugging
-    #     :param servo_id:
-    #     :param addr:
-    #     :return:
-    #     """
-    #     return self._arm.get_servo_addr_16(servo_id=servo_id, addr=addr)
-    #
-    # def set_servo_addr_32(self, servo_id=None, addr=None, value=None):
-    #     """
-    #     Danger, do not use, used only for debugging
-    #     :param servo_id:
-    #     :param addr:
-    #     :param value:
-    #     :return:
-    #     """
-    #     return self._arm.set_servo_addr_32(servo_id=servo_id, addr=addr, value=value)
-    #
-    # def get_servo_addr_32(self, servo_id=None, addr=None):
-    #     """
-    #     Danger, do not use, used only for debugging
-    #     :param servo_id:
-    #     :param addr:
-    #     :return:
-    #     """
-    #     return self._arm.get_servo_addr_32(servo_id=servo_id, addr=addr)
 
     def run_blockly_app(self, path):
         """

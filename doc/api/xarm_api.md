@@ -29,15 +29,16 @@
     - [1.1.26. <a name='motor_enable_states__'></a>__motor_enable_states__](#1126-a-namemotorenablestatesamotorenablestates)
     - [1.1.27. <a name='position__'></a>__position__](#1127-a-namepositionaposition)
     - [1.1.28. <a name='slave_id__'></a>__slave_id__](#1128-a-nameslaveidaslaveid)
-    - [1.1.29. <a name='state__'></a>__state__](#1129-a-namestateastate)
-    - [1.1.30. <a name='tcp_acc_limit__'></a>__tcp_acc_limit__](#1130-a-nametcpacclimitatcpacclimit)
-    - [1.1.31. <a name='tcp_load__'></a>__tcp_load__](#1131-a-nametcploadatcpload)
-    - [1.1.32. <a name='tcp_offset__'></a>__tcp_offset__](#1132-a-nametcpoffsetatcpoffset)
-    - [1.1.33. <a name='tcp_speed_limit__'></a>__tcp_speed_limit__](#1133-a-nametcpspeedlimitatcpspeedlimit)
-    - [1.1.34. <a name='teach_sensitivity__'></a>__teach_sensitivity__](#1134-a-nameteachsensitivityateachsensitivity)
-    - [1.1.35. <a name='version__'></a>__version__](#1135-a-nameversionaversion)
-    - [1.1.36. <a name='version_number__'></a>__version_number__](#1136-a-nameversionnumberaversionnumber)
-    - [1.1.37. <a name='warn_code__'></a>__warn_code__](#1137-a-namewarncodeawarncode)
+    - [1.1.29. <a name='sn__'></a>__sn__](#1129-a-namesnasn)
+    - [1.1.30. <a name='state__'></a>__state__](#1130-a-namestateastate)
+    - [1.1.31. <a name='tcp_acc_limit__'></a>__tcp_acc_limit__](#1131-a-nametcpacclimitatcpacclimit)
+    - [1.1.32. <a name='tcp_load__'></a>__tcp_load__](#1132-a-nametcploadatcpload)
+    - [1.1.33. <a name='tcp_offset__'></a>__tcp_offset__](#1133-a-nametcpoffsetatcpoffset)
+    - [1.1.34. <a name='tcp_speed_limit__'></a>__tcp_speed_limit__](#1134-a-nametcpspeedlimitatcpspeedlimit)
+    - [1.1.35. <a name='teach_sensitivity__'></a>__teach_sensitivity__](#1135-a-nameteachsensitivityateachsensitivity)
+    - [1.1.36. <a name='version__'></a>__version__](#1136-a-nameversionaversion)
+    - [1.1.37. <a name='version_number__'></a>__version_number__](#1137-a-nameversionnumberaversionnumber)
+    - [1.1.38. <a name='warn_code__'></a>__warn_code__](#1138-a-namewarncodeawarncode)
   - [1.2. <a name='Methods__'></a>__Methods__](#12-a-namemethodsamethods)
     - [1.2.1. <a name='def____init____selfportNoneis_radianFalsedo_not_openFalsekwargs:'></a>def __\__init__\__(self, port=None, is_radian=False, do_not_open=False, **kwargs):](#121-a-namedefinitselfportnoneisradianfalsedonotopenfalsekwargsadef-initself-portnone-isradianfalse-donotopenfalse-kwargs)
     - [1.2.2. <a name='def__clean_conf__self:'></a>def __clean_conf__(self):](#122-a-namedefcleanconfselfadef-cleanconfself)
@@ -342,7 +343,12 @@ return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 Slave id, only available in socket way and enable_report is True and report_type is 'rich'
 ```
 
-####  1.1.29. <a name='state__'></a>__state__
+####  1.1.29. <a name='sn__'></a>__sn__
+```
+xArm sn
+```
+
+####  1.1.30. <a name='state__'></a>__state__
 ```
 xArm state
 
@@ -353,14 +359,14 @@ xArm state
     4: stopping
 ```
 
-####  1.1.30. <a name='tcp_acc_limit__'></a>__tcp_acc_limit__
+####  1.1.31. <a name='tcp_acc_limit__'></a>__tcp_acc_limit__
 ```
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
 ```
 
-####  1.1.31. <a name='tcp_load__'></a>__tcp_load__
+####  1.1.32. <a name='tcp_load__'></a>__tcp_load__
 ```
 xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
 
@@ -368,7 +374,7 @@ xArm tcp load, only available in socket way and  enable_report is True and repor
     such as: [weight(kg), [x(mm), y(mm), z(mm)]]
 ```
 
-####  1.1.32. <a name='tcp_offset__'></a>__tcp_offset__
+####  1.1.33. <a name='tcp_offset__'></a>__tcp_offset__
 ```
 Cartesion position offset, only available in socket way and enable_report is True 
 Note:
@@ -377,32 +383,32 @@ Note:
 :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
 ```
 
-####  1.1.33. <a name='tcp_speed_limit__'></a>__tcp_speed_limit__
+####  1.1.34. <a name='tcp_speed_limit__'></a>__tcp_speed_limit__
 ```
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s), max_tcp_acc(mm/s)]
 ```
 
-####  1.1.34. <a name='teach_sensitivity__'></a>__teach_sensitivity__
+####  1.1.35. <a name='teach_sensitivity__'></a>__teach_sensitivity__
 ```
 The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
 
 :return: 0~5
 ```
 
-####  1.1.35. <a name='version__'></a>__version__
+####  1.1.36. <a name='version__'></a>__version__
 ```
 xArm version
 ```
 
-####  1.1.36. <a name='version_number__'></a>__version_number__
+####  1.1.37. <a name='version_number__'></a>__version_number__
 ```
 Frimware version number
 :return: (major_version_number, minor_version_number, revision_version_number)
 ```
 
-####  1.1.37. <a name='warn_code__'></a>__warn_code__
+####  1.1.38. <a name='warn_code__'></a>__warn_code__
 ```
 Controller warn code. See the controller warn code documentation for details.
 ```
@@ -419,7 +425,7 @@ Note: Orientation of attitude angle
     pitch: rotate around the Y axis
     yaw: rotate around the Z axis
 
-:param port: port name(such as 'COM5'/'/dev/ttyUSB0') or ip-address(such as '192.168.1.185')
+:param port: ip-address(such as '192.168.1.185')
     Note: this parameter is required if parameter do_not_open is False
 :param is_radian: set the default unit is radians or not, default is False
     Note: (aim of design)
@@ -436,7 +442,7 @@ Note: Orientation of attitude angle
         * 1 rad/s^3 == 57.29577951308232 °/s^3
         * 1 °/s^3 == 0.017453292519943295 rad/s^3
     Note: This parameter determines the value of the property self.default_is_radian 
-    Note: This parameter determines the default value of the interface with the is_radian(input_is_radian/return_is_radian) parameter
+    Note: This parameter determines the default value of the interface with the is_radian/input_is_radian/return_is_radian parameter
        The list of affected interfaces is as follows:
             1. method: get_position
             2. method: set_position
@@ -466,21 +472,17 @@ Note: Orientation of attitude angle
             7. property: tcp_offset
 :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
 :param kwargs: keyword parameters, generally do not need to set
-    baudrate: baudrate, only available in serial way, default is 2000000
-    timeout: timeout, only available in serial way, default is None
+    baudrate: serial baudrate, invalid, reserved.
+    timeout: serial timeout, invalid, reserved.
     filters: serial port filters, invalid, reserved.
-    enable_report: whether to enable report, default is True
-        Note: if enable_report is True, the self.last_used_position and self.last_used_angles value is the current position of robot
-    report_type: report type('normal'/'rich'), only available in socket way, default is 'rich'
-        Note:
-            'normal': Reported at a frequency of 10 Hz
-            'rich': Reported at a frequency of 10 Hz, more reported content than normal
     check_tcp_limit: check the tcp param value out of limit or not, default is True
-        Note: only check the param roll/pitch/yaw of the interface `set_position`
+        Note: only check the param roll/pitch/yaw of the interface `set_position`/`move_arc_lines`
     check_joint_limit: check the joint param value out of limit or not, default is True
         Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
     check_cmdnum_limit: check the cmdnum out of limit or not, default is True
-        Note: only available in the interface `set_position` and `set_servo_angle`
+        Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
+    check_is_ready: check if the arm is in motion, default is True
+        Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`move_circle`/`move_gohome`/`move_arc_lines`
 ```
 
 ####  1.2.2. <a name='def__clean_conf__self:'></a>def __clean_conf__(self):
@@ -1290,7 +1292,9 @@ Set the xArm mode
 :param mode: default is 0
     0: position control mode
     1: servo motion mode
+        Note: the use of the set_servo_angle_j interface must first be set to this mode 
     2: joint teaching mode
+        Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
     3: cartesian teaching mode (invalid)
 :return: code
     code: See the API code documentation for details.
@@ -1400,7 +1404,7 @@ Note:
 ####  1.2.69. <a name='def__set_servo_angle_j__selfanglesspeedNonemvaccNonemvtimeNoneis_radianNonekwargs:'></a>def __set_servo_angle_j__(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
 
 ```
-Set the servo angle, execute only the last instruction, need to be set to servo motion mode
+Set the servo angle, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
 Note:
     1. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
 
@@ -1530,7 +1534,7 @@ Note:
     3. The save_conf interface can record the current settings and will not be lost after the restart.
     4. The clean_conf interface can restore system default settings
 
-:param value: sensitivity value, 0~5
+:param value: sensitivity value, 1~5
 :return: code
     code: See the API code documentation for details.
 ```

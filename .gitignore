@@ -6,3 +6,4 @@ build/
 dist/
 *.egg-info/
 example/test/
+example/wrapper/bak/

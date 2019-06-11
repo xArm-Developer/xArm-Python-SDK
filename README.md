@@ -27,115 +27,69 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
-- > ### 0.3.0
+- > ### 1.0.0
 
+  - Support for the latest firmware 1.0.0, compatible with old firmware
+  - Support mount angle setting interface
+  - Support controller IO interface
   - Modify clip and Tool GPIO communication protocol, compatible with standard modbus
-  - Modify the interface name and parameters of the tool GPIO, note that the value of the parameter ionum is changed from [1, 2] to [0, 1]
+  - __Modify the interface name and parameters of the Tool GPIO, note that the value of the parameter ionum is changed from [1, 2] to [0, 1]__
+  - Support for blocky code conversion and operation of xArmStudio1.0.0
 
-- >### 0.2.1
-
-  - Added GPIO example
-  - Compatible with old reporting protocols using new reporting protocols
-  - New tools to convert xArmStudio's app code into Python code
+- >### [More](ReleaseNotes.md)
 
 
-- >### 0.2.0
+## [Example](example/wrapper/)
 
-  - Support torque detection
-  - Support drag teaching mode
+__Note: Before running the example, please modify the ip value in the [robot.conf](example/wrapper/robot.conf) file to the robot arm you want to control.__
 
-- >### 0.1.1
+- #### [0000-template](example/wrapper/common/0000-template.py)
 
-  - Support GPIO interface
+- ##### [0001-event_register](example/wrapper/common/0001-event_register.py)
 
-- >### 0.1.0
+- ##### [0002-get_property](example/wrapper/common/0002-get_property.py)
 
-  - Compatible with 5, 6, and 7 axis robot arms
+- ##### [0003-api_get](example/wrapper/common/0003-api_get.py)
 
-- >### 0.0.13
+- ##### [0004-servo_attach_detach](example/wrapper/common/0004-servo_attach_detach.py)
 
-  - Supports trajectory repeat motion interface with circular interpolation, supports repetition times, calibration
-  - Increase joint limits, attitude angle limits and cmd cache limits
-  - Exchange the parameters of the attitude angle yaw and the attitude angle pitch, but retain the parameter position
+- ##### [1001-move_line](example/wrapper/common/1001-move_line.py)
 
-- >### 0.0.12
+- #####  [1002-move_line](example/wrapper/common/1002-move_line.py)
 
-  - By specifying the value of the default parameter of the interface in the instantiation parameter, using angle or radians
-  - Unify all interfaces by default using angle or radians
-  - More interface routines
-  - More detailed interface documentation
-  - Richer interface
-  - Set interface alias
-  - Modified the default values of the default parameters of some interfaces, but support the use of parameters to be compatible when instantiating
+- #####  [1003-relative_move_line](example/wrapper/common/1003-relative_move_line.py)
 
-- >### 0.0.11
+- #####  [1004-move_arc_line](example/wrapper/common/1004-move_arc_line.py)
 
-  - Support serial port and TCP connection
-  - Support parameter to enable reporting
-  - Support callback register and release
-  - Support Gripper setting
-  - Support servo setting (Some interfaces are limited to professional debugging)
-  - Unified return value
-  - Snaps an exception and returns the specified return value
+- #####  [1005-move_arc_line](example/wrapper/common/1005-move_arc_line.py)
 
-## Example
-- #### [xArm](example/wrapper/)
+- ##### 2001-move_joint --> [xarm5](example/wrapper/xarm5/2001-move_joint.py) --- [xarm6](example/wrapper/xarm6/2001-move_joint.py) --- [xarm7](example/wrapper/xarm7/2001-move_joint.py)
 
-- ##### 0002-connect_with_socket --> [xarm5](example/wrapper/xarm5/0002-connect_with_socket.py) --- [xarm6](example/wrapper/xarm6/0002-connect_with_socket.py) --- [xarm7](example/wrapper/xarm7/0002-connect_with_socket.py)
+- ##### 2002-move_joint --> [xarm5](example/wrapper/xarm5/2002-move_joint.py) --- [xarm6](example/wrapper/xarm6/2002-move_joint.py) --- [xarm7](example/wrapper/xarm7/2002-move_joint.py)
 
-- ##### 0003-event_register --> [xarm5](example/wrapper/xarm5/0003-event_register.py) --- [xarm6](example/wrapper/xarm6/0003-event_register.py) --- [xarm7](example/wrapper/xarm7/0003-event_register.py)
+- ##### 2003-move_joint --> [xarm5](example/wrapper/xarm5/2003-move_joint.py) --- [xarm6](example/wrapper/xarm6/2003-move_joint.py) --- [xarm7](example/wrapper/xarm7/2003-move_joint.py)
 
-- ##### 0005-get_property --> [xarm5](example/wrapper/xarm5/0005-get_property.py) --- [xarm6](example/wrapper/xarm6/0005-get_property.py) --- [xarm7](example/wrapper/xarm7/0005-get_property.py)
+- ##### 2004-move_joint --> [xarm5](example/wrapper/xarm5/2004-move_joint.py) --- [xarm6](example/wrapper/xarm6/2004-move_joint.py) --- [xarm7](example/wrapper/xarm7/2004-move_joint.py)
 
-- ##### 0006-get --> [xarm5](example/wrapper/xarm5/0006-get.py) --- [xarm6](example/wrapper/xarm6/0006-get.py) --- [xarm7](example/wrapper/xarm7/0006-get.py)
+- #####  [3001-move_circle](example/wrapper/common/3001-move_circle.py)
 
-- ##### 0007-servo_attach_detach --> [xarm5](example/wrapper/xarm5/0007-servo_attach_detach.py) --- [xarm6](example/wrapper/xarm6/0007-servo_attach_detach.py) --- [xarm7](example/wrapper/xarm7/0007-servo_attach_detach.py)
+- ##### [5001-get_tgpio_digital](example/wrapper/common/5001-get_tgpio_digital.py)
 
-- ##### 0008-send_cmd --> [xarm5](example/wrapper/xarm5/0008-send_cmd.py) --- [xarm6](example/wrapper/xarm6/0008-send_cmd.py) --- [xarm7](example/wrapper/xarm7/0008-send_cmd.py)
+- ##### [5002-get_tgpio_analog](example/wrapper/common/5002-get_tgpio_analog.py)
 
-- ##### 0101-move_line --> [xarm5](example/wrapper/xarm5/0101-move_line.py) --- [xarm6](example/wrapper/xarm6/0101-move_line.py) --- [xarm7](example/wrapper/xarm7/0101-move_line.py)
+- ##### [5003-set_tgpio_digital](example/wrapper/common/5003-set_tgpio_digital.py)
 
-- ##### 0102-move_line --> [xarm5](example/wrapper/xarm5/0102-move_line.py) --- [xarm6](example/wrapper/xarm6/0102-move_line.py) --- [xarm7](example/wrapper/xarm7/0102-move_line.py)
+- ##### [5004-set_gripper](example/wrapper/common/5004-set_gripper.py)
 
-- ##### 0103-move_line --> [xarm5](example/wrapper/xarm5/0103-move_line.py) --- [xarm6](example/wrapper/xarm6/0103-move_line.py) --- [xarm7](example/wrapper/xarm7/0103-move_line.py)
+- ##### [5005-get_cgpio_digital_analog](example/wrapper/common/5005-get_cgpio_digital_analog.py)
 
-- ##### 0104-move_line --> [xarm5](example/wrapper/xarm5/0104-move_line.py) --- [xarm6](example/wrapper/xarm6/0104-move_line.py) --- [xarm7](example/wrapper/xarm7/0104-move_line.py)
+- ##### [5006-set_cgpio_dialog_analog](example/wrapper/common/5006-set_cgpio_dialog_analog.py)
 
-- ##### 0105-relative_move_line --> [xarm5](example/wrapper/xarm5/0105-relative_move_line.py) --- [xarm6](example/wrapper/xarm6/0105-relative_move_line.py) --- [xarm7](example/wrapper/xarm7/0105-relative_move_line.py)
+- ##### [5007-set_cgpio_input_output_function](example/wrapper/common/5007-set_cgpio_input_output_function.py)
 
-- ##### 0106-move_arc_line --> [xarm5](example/wrapper/xarm5/0106-move_arc_line.py) --- [xarm6](example/wrapper/xarm6/0106-move_arc_line.py) --- [xarm7](example/wrapper/xarm7/0106-move_arc_line.py)
+- ##### [5008-get_cgpio_state](example/wrapper/common/5008-get_cgpio_state.py)
 
-- ##### 0107-move_arc_line --> [xarm5](example/wrapper/xarm5/0107-move_arc_line.py) --- [xarm6](example/wrapper/xarm6/0107-move_arc_line.py) --- [xarm7](example/wrapper/xarm7/0107-move_arc_line.py)
-
-- ##### 0201-move_joint --> [xarm5](example/wrapper/xarm5/0201-move_joint.py) --- [xarm6](example/wrapper/xarm6/0201-move_joint.py) --- [xarm7](example/wrapper/xarm7/0201-move_joint.py)
-
-- ##### 0202-move_joint --> [xarm5](example/wrapper/xarm5/0202-move_joint.py) --- [xarm6](example/wrapper/xarm6/0202-move_joint.py) --- [xarm7](example/wrapper/xarm7/0202-move_joint.py)
-
-- ##### 0203-move_joint --> [xarm5](example/wrapper/xarm5/0203-move_joint.py) --- [xarm6](example/wrapper/xarm6/0203-move_joint.py) --- [xarm7](example/wrapper/xarm7/0203-move_joint.py)
-
-- ##### 0204-move_joint --> [xarm5](example/wrapper/xarm5/0204-move_joint.py) --- [xarm6](example/wrapper/xarm6/0204-move_joint.py) --- [xarm7](example/wrapper/xarm7/0204-move_joint.py)
-
-- ##### 0205-move_joint --> [xarm5](example/wrapper/xarm5/0205-move_joint.py) --- [xarm6](example/wrapper/xarm6/0205-move_joint.py) --- [xarm7](example/wrapper/xarm7/0205-move_joint.py)
-
-- ##### 0301-move_circle --> [xarm5](example/wrapper/xarm5/0301-move_circle.py) -- [xarm6](example/wrapper/xarm6/0301-move_circle.py) --- [xarm7](example/wrapper/xarm7/0301-move_circle.py)
-
-- [1001-get_tgpio_digital](example/wrapper/common/1001-get_tgpio_digital.py)
-
-- [1002-get_tgpio_analog](example/wrapper/common/1002-get_tgpio_analog.py)
-
-- [1003-set_tgpio_digital](example/wrapper/common/1003-set_tgpio_digital.py)
-
-- [1004-set_gripper](example/wrapper/common/1004-set_gripper.py)
-
-- [1005-get_cgpio_digital_analog](example/wrapper/common/1005-get_cgpio_digital_analog.py)
-
-- [1006-set_cgpio_dialog_analog](example/wrapper/common/1006-set_cgpio_dialog_analog.py)
-
-- [1007-set_cgpio_input_output_function](example/wrapper/common/1007-set_cgpio_input_output_function.py)
-
-- [1008-get_cgpio_state](example/wrapper/common/1008-get_cgpio_state.py)
-
-- [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
+- ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 
 
 - #### Import
@@ -143,9 +97,7 @@ Install is not necessary, you can run examples without installation.Only Python3
   from xarm.wrapper import XArmAPI
   arm = XArmAPI('COM5')
   arm = XArmAPI('192.168.1.113')
-  arm = XArmAPI('192.168.1.113', enable_report=True)
   arm = XArmAPI('192.168.1.113', do_not_open=False)
-  arm = XArmAPI('192.168.1.113', report='rich')
   arm = XArmAPI('192.168.1.113', is_radian=False)
   ```
 - #### Connect/Disconnect

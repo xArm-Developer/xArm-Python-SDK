@@ -30,20 +30,25 @@
 - 14: command has no solution
 
 ## Controller error code
-- 10: servo error
-- 11: servo-1 error
-- 12: servo-2 error
-- 13: servo-3 error
-- 14: servo-4 error
-- 15: servo-5 error
-- 16: servo-6 error
-- 17: servo-7 error
-- 21: inverse kinematics
-- 22: collision limit
-- 23: angle limit
-- 24: angle speed limit
-- 25: planning error
-- 26: rtlinux set timing error
-- 27: reply command failed
-- 28: gripper error
-- 29: other error
+- 10: Servo motor error
+- 11: Servo motor 1 error
+- 12: Servo motor 2 error
+- 13: Servo motor 3 error
+- 14: Servo motor 4 error
+- 15: Servo motor 5 error
+- 16: Servo motor 6 error
+- 17: Servo motor 7 error
+- 19: Tool GPIO error
+- 21: Kinematic Error
+- 22: Collision Error
+- 23: Joints Angle Exceed Limit
+- 24: Speed Exceeds Limit
+- 25: Planning Error
+- 26: Linux RT Error
+- 27: Command Reply Error
+- 28: Gripper error
+- 29: Other Errors
+- 30: Teach Mode Current Abnormality
+- 31: Collision Caused Abnormal Current
+- 33: Controller GPIO error
+

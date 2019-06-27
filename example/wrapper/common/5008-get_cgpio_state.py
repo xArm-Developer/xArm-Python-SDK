@@ -36,11 +36,16 @@ if arm.error_code != 0:
 
 code, states = arm.get_cgpio_state()
 print('get_cgpio_state, code={}'.format(code))
-print('state: {} {}'.format(states[0], states[1]))
-print('digit_io: {:x} {:x} {:x} {:x}'.format(*states[2:6]))
-print('analog: {:f} {:f} {:f} {:f}'.format(*states[6:10]))
-print('input_conf: {}'.format(states[10]))
-print('output_conf: {}'.format(states[11]))
+print('GPIO state: {}'.format(states[0]))
+print('GPIO error code: {}'.format(states[1]))
+print('Digital->Input->FunctionalIO: {}'.format([states[2] >> i & 0x0001 for i in range(8)]))
+print('Digital->Input->ConfiguringIO: {}'.format([states[3] >> i & 0x0001 for i in range(8)]))
+print('Digital->Output->FunctionalIO: {}'.format([states[4] >> i & 0x0001 for i in range(8)]))
+print('Digital->Output->ConfiguringIO: {}'.format([states[5] >> i & 0x0001 for i in range(8)]))
+print('Analog->Input: {}'.format(states[6:8]))
+print('Analog->Output: {}'.format(states[8:10]))
+print('Digital->Input->Conf: {}'.format(states[10]))
+print('Digital->Output->Conf: {}'.format(states[11]))
 
 
 

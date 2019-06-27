@@ -48,6 +48,13 @@ class UxbusCmd(object):
         return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
 
     @lock_require
+    def set_get_nu8(self, funcode, datas, num_send, num_get):
+        ret = self.send_xbus(funcode, datas, num_send)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(funcode, num_get, XCONF.UxbusConf.SET_TIMEOUT)
+
+    @lock_require
     def get_nu8(self, funcode, num):
         ret = self.send_xbus(funcode, 0, 0)
         if ret != 0:
@@ -118,6 +125,10 @@ class UxbusCmd(object):
 
     def get_robot_sn(self):
         return self.get_nu8(XCONF.UxbusReg.GET_ROBOT_SN, 40)
+
+    def check_verification(self):
+        # txdata = signature, 175: signature length if use 14-character SN for plain text, do not miss '\n's
+        return self.get_nu8(XCONF.UxbusReg.CHECK_VERIFY, 1)
 
     def shutdown_system(self, value):
         txdata = [value]

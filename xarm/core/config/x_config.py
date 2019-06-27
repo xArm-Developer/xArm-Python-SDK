@@ -147,6 +147,7 @@ class XCONF(object):
     class UxbusReg:
         GET_VERSION = 1
         GET_ROBOT_SN = 2
+        CHECK_VERIFY = 3
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
         SET_STATE = 12

@@ -78,17 +78,17 @@ class Gripper(object):
             self.arm_cmd.gripper_modbus_set_en(True)
         if speed is not None:
             self.arm_cmd.gripper_modbus_set_posspd(speed)
-        is_add = True
-        last_pos = 0
-        code, ret = self.get_gripper_position()
-        if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and ret is not None:
-            last_pos = int(ret)
-            if last_pos == pos:
-                return 0
-            is_add = True if pos > last_pos else False
         code = self.arm_cmd.gripper_modbus_set_pos(pos)
         logger.info('API -> set_gripper_position -> ret={}, pos={}'.format(code[0], pos))
         if wait:
+            is_add = True
+            last_pos = 0
+            code2, ret = self.get_gripper_position()
+            if code2 in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and ret is not None:
+                last_pos = int(ret)
+                if last_pos == pos:
+                    return 0
+                is_add = True if pos > last_pos else False
             count = 0
             start_time = time.time()
             if not timeout or not isinstance(timeout, (int, float)):

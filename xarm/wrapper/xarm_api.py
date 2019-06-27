@@ -749,6 +749,17 @@ class XArmAPI(object):
         """
         return self._arm.get_version()
 
+    def check_verification(self):
+        """
+        check verification
+        :return: tuple((code, status)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            status: 
+                0: verified
+                other: not verified
+        """
+        return self._arm.check_verification()
+
     def shutdown_system(self, value=1):
         """
         Shutdown the xArm controller system

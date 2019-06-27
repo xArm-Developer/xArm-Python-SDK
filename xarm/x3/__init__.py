@@ -109,6 +109,8 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._minor_version_number = 0  # 固件次版本号
         self._revision_version_number = 0  # 固件修正版本号
 
+        self._is_set_move = False
+
         Events.__init__(self)
         if not do_not_open:
             self.connect()
@@ -358,7 +360,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self.get_version()
                 time.sleep(0.1)
                 count -= 1
-            pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)$')
+            pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
             m = re.match(pattern, self._version)
             if m:
                 self._major_version_number, self._minor_version_number, self._revision_version_number = map(int,
@@ -969,12 +971,35 @@ class XArm(Gripper, Servo, GPIO, Events):
                 pass
         self._report_connect_changed_callback(False, False)
 
+    def _sync_tcp(self, index=None):
+        if not self._stream_report or not self._stream_report.connected:
+            self.get_position()
+            self.get_servo_angle()
+        self._last_angles = self._angles
+        if index is None:
+            self._last_position = self._position
+        elif isinstance(index, int) and 0 <= index < 6:
+            self._last_position[index] = self._position[index]
+        print('=============sync_tcp: index={}'.format(index))
+
+    def _sync_joints(self, index=None):
+        if not self._stream_report or not self._stream_report.connected:
+            self.get_position()
+            self.get_servo_angle()
+        self._last_position = self._position
+        if index is None:
+            self._last_angles = self._angles
+        elif isinstance(index, int) and 0 <= index < 7:
+            self._last_angles[index] = self._angles[index]
+        print('**********sync_joint: index={}'.format(index))
+
     def _sync(self):
         if not self._stream_report or not self._stream_report.connected:
             self.get_position()
             self.get_servo_angle()
         self._last_position = self._position
         self._last_angles = self._angles
+        print('>>>>>>>>sync_all')
 
     class _WaitMove:
         def __init__(self, owner, timeout):
@@ -1148,10 +1173,10 @@ class XArm(Gripper, Servo, GPIO, Events):
             ret = self.arm_cmd.move_lineb(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius)
         else:
             ret = self.arm_cmd.move_line(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
-
         logger.info('API -> set_position -> ret={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], self._last_position, radius, self._last_tcp_speed, self._last_tcp_acc
         ))
+        self._is_set_move = True
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
@@ -1315,6 +1340,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         logger.info('API -> set_servo_angle -> ret={}, angles={}, velo={}, acc={}'.format(
             ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc
         ))
+        self._is_set_move = True
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
@@ -1342,6 +1368,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         logger.debug('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
             ret[0], _angles, self._last_joint_speed, self._last_joint_acc
         ))
+        self._is_set_move = True
         return ret[0]
 
     @xarm_is_ready(_type='set')
@@ -1392,6 +1419,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         logger.info('API -> move_circle -> ret={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, self._last_tcp_speed, self._last_tcp_acc
         ))
+        self._is_set_move = True
 
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
@@ -1425,9 +1453,11 @@ class XArm(Gripper, Servo, GPIO, Events):
         logger.info('API -> move_gohome -> ret={}, velo={}, acc={}'.format(
             ret[0], speed, mvacc
         ))
+        self._is_set_move = True
         if ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
-            self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]
-            self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            pass
+            # self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]
+            # self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
@@ -1536,6 +1566,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         logger.info('set_servo_attach--begin')
         ret = self.motion_enable(servo_id=servo_id, enable=True)
         self.set_state(0)
+        self._sync()
         logger.info('set_servo_attach--end')
         return ret
 
@@ -1548,6 +1579,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
         ret = self.arm_cmd.set_brake(servo_id, 1)
         logger.info('API -> set_servo_detach -> ret={}'.format(ret[0]))
+        self._sync()
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1570,6 +1602,13 @@ class XArm(Gripper, Servo, GPIO, Events):
             ret[0] = 0
             pass
         return ret[0], self._robot_sn
+
+    @xarm_is_connected(_type='get')
+    def check_verification(self):
+        ret = self.arm_cmd.check_verification()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+        return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
     def shutdown_system(self, value=1):
@@ -1596,6 +1635,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             # self._last_position[:6] = self.position
             # self._last_angles = self.angles
             self._sleep_finish_time = 0
+            # self._is_sync = False
         self.get_state()
         if self._state in [3, 4]:
             if self._is_ready:
@@ -2018,12 +2058,14 @@ class XArm(Gripper, Servo, GPIO, Events):
         while self.state != 4 and time.time() - start_time < 3:
             self.set_state(4)
             time.sleep(0.1)
+        self.set_state(0)
         self._is_stop = True
-        start_time = time.time()
-        self.motion_enable(enable=True)
-        while self.state in [0, 3, 4] and time.time() - start_time < 3:
-            self.set_state(0)
-            time.sleep(0.1)
+        if not self._is_ready:
+            start_time = time.time()
+            self.motion_enable(enable=True)
+            while self.state in [0, 3, 4] and time.time() - start_time < 3:
+                self.set_state(0)
+                time.sleep(0.1)
         self._sleep_finish_time = 0
         logger.info('emergency_stop--end')
 

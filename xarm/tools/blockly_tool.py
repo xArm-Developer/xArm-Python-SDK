@@ -316,6 +316,7 @@ class BlocklyTool(object):
     def _handle_move_circle(self, block, prefix=''):
         values = self.get_nodes('value', root=block)
         percent = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        percent = float(percent) / 360 * 100
         wait = self.get_nodes('field', root=values[3], descendant=True)[0].text == 'TRUE'
 
         p1_block = self.get_node('block', root=values[0])

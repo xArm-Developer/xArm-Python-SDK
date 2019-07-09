@@ -991,7 +991,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._last_angles = self._angles
         elif isinstance(index, int) and 0 <= index < 7:
             self._last_angles[index] = self._angles[index]
-        print('**********sync_joint: index={}'.format(index))
+        print('=============sync_joint: index={}'.format(index))
 
     def _sync(self):
         if not self._stream_report or not self._stream_report.connected:
@@ -999,7 +999,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             self.get_servo_angle()
         self._last_position = self._position
         self._last_angles = self._angles
-        print('>>>>>>>>sync_all')
+        print('=============sync_all')
 
     class _WaitMove:
         def __init__(self, owner, timeout):
@@ -1053,7 +1053,9 @@ class XArm(Gripper, Servo, GPIO, Events):
             return False
         tcp_range = XCONF.Robot.TCP_LIMITS.get(self.axis).get(self.device_type, [])
         if 2 < i < len(tcp_range):  # only limit rotate
-            limit = tcp_range[i]
+            limit = list(tcp_range[i])
+            limit[0] += self._position_offset[i]
+            limit[1] += self._position_offset[i]
             if limit[0] == limit[1]:
                 if value == limit[0] or value == limit[0] - 2 * math.pi:
                     return False
@@ -2064,7 +2066,9 @@ class XArm(Gripper, Servo, GPIO, Events):
             start_time = time.time()
             self.motion_enable(enable=True)
             while self.state in [0, 3, 4] and time.time() - start_time < 3:
-                self.set_state(0)
+                ret = self.set_state(0)
+                if ret == 1:
+                    break
                 time.sleep(0.1)
         self._sleep_finish_time = 0
         logger.info('emergency_stop--end')

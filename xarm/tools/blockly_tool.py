@@ -467,6 +467,7 @@ class BlocklyTool(object):
         y = fields[3].text
         z = fields[4].text
         self._append_to_file('{}arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
+        self._append_to_file('{}arm.set_state(0)'.format(prefix))
 
         # values = self.get_nodes('value', root=block)
         # weight = self.get_nodes('field', root=values[0], descendant=True)[0].text
@@ -474,6 +475,7 @@ class BlocklyTool(object):
         # y = self.get_nodes('field', root=values[2], descendant=True)[0].text
         # z = self.get_nodes('field', root=values[3], descendant=True)[0].text
         # self._append_to_file('{}arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
+        # self._append_to_file('{}arm.set_state(0)'.format(prefix))
 
     def _handle_set_gravity_direction(self, block, prefix=''):
         values = self.get_nodes('value', root=block)
@@ -491,6 +493,7 @@ class BlocklyTool(object):
         pitch = fields[5].text
         yaw = fields[6].text
         self._append_to_file('{}arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
+        self._append_to_file('{}arm.set_state(0)'.format(prefix))
 
         # values = self.get_nodes('value', root=block)
         # x = self.get_nodes('field', root=values[0], descendant=True)[0].text
@@ -500,6 +503,7 @@ class BlocklyTool(object):
         # pitch = self.get_nodes('field', root=values[4], descendant=True)[0].text
         # yaw = self.get_nodes('field', root=values[5], descendant=True)[0].text
         # self._append_to_file('{}arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
+        # self._append_to_file('{}arm.set_state(0)'.format(prefix))
 
     def _handle_gripper_set(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)

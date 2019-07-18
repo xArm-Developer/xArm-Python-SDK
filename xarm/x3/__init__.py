@@ -1667,17 +1667,31 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0], self._cmd_num
 
     @xarm_is_connected(_type='get')
-    def get_err_warn_code(self, show=False):
+    def get_err_warn_code(self, show=False, lang='en'):
         ret = self.arm_cmd.get_err_code()
+        lang = lang if lang == 'cn' else 'en'
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._error_code, self._warn_code = ret[1:3]
             ret[0] = 0
         if show:
-            pretty_print('*************GetErrorWarnCode, status: {}**************'.format(ret[0]), color='light_blue')
-            controller_error = ControllerError(self._error_code)
-            controller_warn = ControllerWarn(self._warn_code)
-            pretty_print('* ErrorCode: {}, ErrorMsg: {}({})'.format(self._error_code, controller_error.description['cn'], controller_error.description['en']), color='red' if self._error_code != 0 else 'white')
-            pretty_print('* WarnCode: {}, WarnMsg: {}({})'.format(self._warn_code, controller_warn.description['cn'], controller_warn.description['en']), color='yellow' if self._warn_code != 0 else 'white')
+            pretty_print('************* {}, {}: {} **************'.format(
+                         '获取控制器错误警告码' if lang == 'cn' else 'GetErrorWarnCode',
+                         '状态' if lang == 'cn' else 'Status',
+                         ret[0]), color='light_blue')
+            controller_error = ControllerError(self._error_code, status=0)
+            controller_warn = ControllerWarn(self._warn_code, status=0)
+            pretty_print('* {}: {}, {}: {}'.format(
+                '错误码' if lang == 'cn' else 'ErrorCode',
+                controller_error.code,
+                '信息' if lang == 'cn' else 'Info',
+                controller_error.title[lang]),
+                         color='red' if self._error_code != 0 else 'white')
+            pretty_print('* {}: {}, {}: {}'.format(
+                '警告码' if lang == 'cn' else 'WarnCode',
+                controller_warn.code,
+                '信息' if lang == 'cn' else 'Info',
+                controller_warn.title[lang]),
+                         color='yellow' if self._warn_code != 0 else 'white')
             pretty_print('*' * 50, color='light_blue')
         return ret[0], [self._error_code, self._warn_code]
 

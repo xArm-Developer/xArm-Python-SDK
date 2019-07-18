@@ -8,343 +8,751 @@
 
 
 ServoCodeMap = {
-    0x01: {
-        'description': {
-            'cn': '通讯地址无效或参数写入只读地址',
-            'en': 'Invalid communication address or parameter write to read-only address'
+    10: {
+        'en': {
+            'title': 'Current Detection Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['检查通讯地址', '检查通讯地址对应的属性']
+        'cn': {
+            'title': '电流检测异常',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
-    0x02: {
-        'description': {
-            'cn': '写入数值超限或不能写入EEPROM',
-            'en': 'Write value is out of limits or cannot be written to EEPROM'
+    11: {
+        'en': {
+            'title': 'Joint Current Overlimit',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['检查通讯地址对应的参数范围', '检查通讯地址对应的属性']
+        'cn': {
+            'title': '关节电流过大',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
-    0x0A: {
-        'description': {
-            'cn': '电流零点偏置错误',
-            'en': 'Current zero offset error'
+    12: {
+        'en': {
+            'title': 'Joint Speed Overlimit',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['重新上电(如多次上电无效，更新驱动板)']
+        'cn': {
+            'title': '关节速度过大',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
-    0x0B: {
-        'description': {
-            'cn': '过流保护',
-            'en': 'Overcurrent protection'
+    14: {
+        'en': {
+            'title': 'Position Command Overlimit',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['检查相序是否正确', '检查电机类型是否正确', '检查抱闸是否正常打开', '检查是否堵转', '设置的控制命令是否变动很大', '电机零点是否正确']
+        'cn': {
+            'title': '位置指令过大',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
-    0x0C: {
-        'description': {
-            'cn': '电机相序错误或速度输入值大于过速值或速度超调太大或电机零点错误',
-            'en': 'Motor phase sequence error or speed input value is greater than overspeed value or speed overshoot is too large or motor zero error'
+    15: {
+        'en': {
+            'title': 'Joints Overheat',
+            'desc': 'If the robot arm is running for a long time, please stop running and restart the xArm after it\'s cool down. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['检查相序是否正确', '降低速度指令', '降低调节器增益', '设置零点']
+        'cn': {
+            'title': '关节过热',
+            'desc': '如果机械臂长时间运行温度过高，请停并机冷却后重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
-    0x0D: {
-        'description': {
-            'cn': '位置偏差过大',
-            'en': 'Position deviation is too large'
+    16: {
+        'en': {
+            'title': 'Encoder Initialization Error',
+            'desc': 'Please ensure that there is no external force to push the robotic arm when the  it\'s energized. Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['降低位置指令', '加大位置滤波时间', '位置偏差报警值设置过小(Fn308)', '电机是否堵转', '适当加大位置增益']
+        'cn': {
+            'title': '编码器初始化异常',
+            'desc': '请确保机械臂通电时，无外力推动机械臂运动。请通过控制器上的紧急停止按钮重启机械臂，如多次重启无效，请联系技术支持。',
+        }
     },
-    0x0E: {
-        'description': {
-            'cn': '位置指令输入过大',
-            'en': 'Position command input is too large'
+    17: {
+        'en': {
+            'title': 'Single Ring Encoder Error',
+            'desc': 'Please re-enable the robot.',
         },
-        'handle': ['是否未使能', '是否位置设置值太大']
+        'cn': {
+            'title': '单圈编码器故障',
+            'desc': '请重新使能机械臂。',
+        }
     },
-    0x0F: {
-        'description': {
-            'cn': '温度过高报警',
-            'en': '温度过高报警'
+    18: {
+        'en': {
+            'title': 'Multi-turn Encoder Error ',
+            'desc': 'Please contact technical support.',
         },
-        'handle': ['检查温度传感器类型和设置值(Fn830)是否一致', '检查温度报警设置值是否过小', '是否长时间运行温度过高']
+        'cn': {
+            'title': '多圈编码器故障',
+            'desc': '请联系技术支持。',
+        }
     },
-    0x10: {
-        'description': {
-            'cn': '上电时两次读取编码器位置相差超过设定值',
-            'en': 'At the time of power-on, the encoder position is read twice to exceed the set value'
+    19: {
+        'en': {
+            'title': 'Low Battery Voltage',
+            'desc': 'Please contact technical support.',
         },
-        'handle': ['检查MU和PVL参数', '重新上电，多次上电无效，驱动板故障']
+        'cn': {
+            'title': '电池电压过低',
+            'desc': '请联系技术支持。',
+        }
     },
-    0x11: {
-        'description': {
-            'cn': 'iC-MU故障',
-            'en': 'iC-MU failure'
+    20: {
+        'en': {
+            'title': 'Driver IC Hardware Error',
+            'desc': 'Please re-enable the robot. If it appears frequently, please contact technical support.',
         },
-        'handle': ['根据故障码(EP1命令)处理']
+        'cn': {
+            'title': '驱动IC硬件异常',
+            'desc': '请重新使能机械臂。如频繁出现，请联系技术支持。',
+        }
     },
-    0x12: {
-        'description': {
-            'cn': 'iC-PVL故障',
-            'en': 'iC-PVL failure'
+    21: {
+        'en': {
+            'title': 'Driver IC Initialization Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.If multiple reboots are invalid, please contact technical support.',
         },
-        'handle': ['检查电池是否正常', '复位iC-PVL，重新上电', 'iC-PVL故障']
+        'cn': {
+            'title': '驱动IC初始化异常',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂，如多次重启无效，请联系技术支持。',
+        }
     },
-    0x13: {
-        'description': {
-            'cn': '电池电压过低警告',
-            'en': 'Battery voltage is too low warning'
+    22: {
+        'en': {
+            'title': 'Encoder Configuration Error',
+            'desc': 'Please contact technical support.',
         },
-        'handle': ['更换电池']
+        'cn': {
+            'title': '编码器配置错误',
+            'desc': '请联系技术支持。',
+        }
     },
-    0x14: {
-        'description': {
-            'cn': '编码器故障',
-            'en': 'Encoder failure'
+    23: {
+        'en': {
+            'title': 'Large Motor Position Deviation',
+            'desc': 'Please check whether the xArm movement is blocked, whether the payload exceeds the rated payload of xArm, and whether the acceleration value is too large. If it appears frequently, please contact technical support.',
         },
-        'handle': ['是否堵转', '检查电机相序', '减小调节器增益']
+        'cn': {
+            'title': '电机位置偏差过大',
+            'desc': '请检查机械臂运动是否受阻，末端负载是否超过机械臂额定负载，机械臂加速度值是否设置过大。如频繁出现，请联系技术支持。',
+        }
     },
-    0x15: {
-        'description': {
-            'cn': '编码器故障',
-            'en': 'Encoder failure'
+    26: {
+        'en': {
+            'title': 'Joint N Positive Overrun',
+            'desc': 'Please check if angle value of the joint N is too large.',
         },
-        'handle': ['检查DRV8323']
+        'cn': {
+            'title': '第N关节正向超限',
+            'desc': '请检测N关节角度值是否设置过大。',
+        }
     },
-    0x16: {
-        'description': {
-            'cn': 'iC-MU、iC-PVL配置参数错误',
-            'en': 'iC-MU, iC-PVL configuration parameters are incorrect'
+    27: {
+        'en': {
+            'title': 'Joint N Negative Overrun',
+            'desc': 'Please check if the angle value of  joint N is too large, if so, please click Clear Error and manually unlock the joint and rotate the joint to the allowed range of motion.',
         },
-        'handle': ['写入配置，重新校准iC-MU和iC-PVL', '重新上电']
+        'cn': {
+            'title': '第N关节负向超限',
+            'desc': '请检测第N关节角度值是否设置过大，如果是，请点击清除报错后，手动解锁该关节并转动该关节至其运动范围内。',
+        }
     },
-    0x17: {
-        'description': {
-            'cn': '位置命令值和电机反馈值相差过大',
-            'en': 'The position command value and the motor feedback value are too different'
+    28: {
+        'en': {
+            'title': 'Joint Commands Error',
+            'desc': 'The xArm is not enabled, please click Enable Robot.',
         },
-        'handle': ['是否堵转', '适当增大调节器增益', '减小位置命令输入值']
+        'cn': {
+            'title': '关节指令错误',
+            'desc': '机械臂未使能,请点击“使能机械臂”。',
+        }
     },
-    0x23: {
-        'description': {
-            'cn': '电机类型错误',
-            'en': 'Motor type error'
+    33: {
+        'en': {
+            'title': 'Drive Overloaded',
+            'desc': 'Please make sure the payload is within the rated load.',
         },
-        'handle': ['重新设置电机类型']
+        'cn': {
+            'title': '驱动器过载',
+            'desc': '请确保机械臂负载处于额定负载内。',
+        }
     },
-    0x24: {
-        'description': {
-            'cn': '驱动器类型错误',
-            'en': 'Drive type error'
+    34: {
+        'en': {
+            'title': 'Motor Overload',
+            'desc': 'Please make sure the payload is within the rated load.',
         },
-        'handle': ['重新设置驱动器类型']
+        'cn': {
+            'title': '电机过载',
+            'desc': '请确保机械臂负载处于额定负载内。',
+        }
     },
-    0x31: {
-        'description': {
-            'cn': 'EEPROM读写错误',
-            'en': 'EEPROM read and write error'
+    35: {
+        'en': {
+            'title': 'Motor Type Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['是否频繁写入EEPROM', '多次上电无效，EEPROM故障']
+        'cn': {
+            'title': '电机类型错误',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
-    0x34: {
-        'description': {
-            'cn': '电机角度初始化失败',
-            'en': 'Motor angle initialization failed'
+    36: {
+        'en': {
+            'title': 'Driver Type Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
-        'handle': ['重新上电，多次上电无效，寻找支持']
+        'cn': {
+            'title': '驱动器类型错误',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
     },
+    39: {
+        'en': {
+            'title': 'Joint Voltage Overload',
+            'desc': 'Please reduce the acceleration value in the Motion Settings.',
+        },
+        'cn': {
+            'title': '关节过压',
+            'desc': '请在运动设置中减少加速度值。',
+        }
+    },
+    40: {
+        'en': {
+            'title': 'Joint Voltage Insufficient',
+            'desc': 'Please reduce the acceleration value in the Motion Settings.Please check if the controller emergency stop switch is released.',
+        },
+        'cn': {
+            'title': '关节欠压',
+            'desc': '请在运动设置中减少加速度值。请检查控制器紧急停止开关是否松开。',
+        }
+    },
+    49: {
+        'en': {
+            'title': 'EEPROM Read and Write Error.',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
+        },
+        'cn': {
+            'title': 'EEPROM读写错误',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
+    },
+    52: {
+        'en': {
+            'title': 'Motor Angle Initialization Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
+        },
+        'cn': {
+            'title': '电机角度初始化失败',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Joint Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
+        },
+        'cn': {
+            'title': '关节异常',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
+    },
+    'failed': {
+        'en': {
+            'title': 'Joint Communication failure',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
+        },
+        'cn': {
+            'title': '关节通信失败',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
+    }
+}
+
+GripperErrorCodeMap = {
+    9: {
+        'en': {
+            'title': 'Gripper Current Detection Error',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪电流检测异常',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
+        }
+      },
+    11: {
+        'en': {
+            'title': 'Gripper Current Overlimit',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪电流过大',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    12: {
+        'en': {
+            'title': 'Gripper Speed Overlimit',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪速度过大',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    14: {
+        'en': {
+            'title': 'Gripper Position Command Overlimit',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪位置指令过大',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    15: {
+        'en': {
+            'title': 'Gripper EEPROM Read and Write Error',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪EEPROM读写错误',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    20: {
+        'en': {
+            'title': 'Gripper Driver IC Hardware Error',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪驱动IC硬件异常',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    21: {
+        'en': {
+            'title': 'Gripper Driver IC Initialization Error',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪驱动IC初始化异常',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    23: {
+        'en': {
+            'title': 'Gripper Large Motor Position Deviation',
+            'desc': 'Please check if the movement of the Gripper is blocked, if not, please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪电机位置偏差过大',
+            'desc': '请检查机械爪运动是否受阻，如机械爪运动未受阻，请点击“确认”重新使能机械爪。如频繁出现，请联系技术支持。',
+        }
+    },
+    25: {
+        'en': {
+            'title': 'Gripper Command Over Software Limit',
+            'desc': 'Please check if the gripper command is set beyond the software limit. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪指令超软件限位',
+            'desc': '请检测机械爪指令是否设置超出软件限制。如频繁出现，请联系技术支持。',
+        }
+    },
+    26: {
+        'en': {
+            'title': 'Gripper Feedback Position Software Limit',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪反馈位置超限软件限位',
+            'desc': '请联系技术支持。',
+        }
+    },
+    33: {
+        'en': {
+            'title': 'Gripper Drive Overloaded',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪驱动器过载',
+            'desc': '请联系技术支持。',
+        }
+    },
+    34: {
+        'en': {
+            'title': 'Gripper Motor Overload',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪电机过载',
+            'desc': '请联系技术支持。',
+        }
+    },
+    36: {
+        'en': {
+            'title': 'Gripper Driver Type Error',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪驱动器类型错误',
+            'desc': '请点击“确认”重新使能机械爪。如频繁出现，请联系技术支持。',
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Gripper Error',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '机械爪异常',
+            'desc': '请点击“确认”重新使能机械爪。如频繁出现，请联系技术支持。',
+        }
+    },
+    'failed': {
+        'en': {
+            'title': 'Gripper Communication failure',
+            'desc': 'Please confirm that the mechanical grip is properly installed, or cancel the installation of the mechanical claws on the software.',
+        },
+        'cn': {
+            'title': '机械爪通信失败',
+            'desc': '请确认机械爪正确安装，或在软件上取消机械爪的安装',
+        }
+    }
 }
 
 ControllerErrorCodeMap = {
     10: {
-        'description': {
-            'cn': '伺服电机报错',
-            'en': 'Servo motor error'
+        'en': {
+            'title': 'Servo motor error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节错误',
+            'desc': ''
         }
     },
     11: {
-        'description': {
-            'cn': '伺服电机1报错',
-            'en': 'Servo motor 1 error'
+        'en': {
+            'title': 'Servo motor 1 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节1错误',
+            'desc': ''
         }
     },
     12: {
-        'description': {
-            'cn': '伺服电机2报错',
-            'en': 'Servo motor 2 error'
+        'en': {
+            'title': 'Servo motor 2 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节2错误',
+            'desc': ''
         }
     },
     13: {
-        'description': {
-            'cn': '伺服电机3报错',
-            'en': 'Servo motor 3 error'
+        'en': {
+            'title': 'Servo motor 3 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节3错误',
+            'desc': ''
         }
     },
     14: {
-        'description': {
-            'cn': '伺服电机4报错',
-            'en': 'Servo motor 4 error'
+        'en': {
+            'title': 'Servo motor 4 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节4错误',
+            'desc': ''
         }
     },
     15: {
-        'description': {
-            'cn': '伺服电机5报错',
-            'en': 'Servo motor 5 error'
+        'en': {
+            'title': 'Servo motor 5 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节5错误',
+            'desc': ''
         }
     },
     16: {
-        'description': {
-            'cn': '伺服电机6报错',
-            'en': 'Servo motor 6 error'
+        'en': {
+            'title': 'Servo motor 6 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节6错误',
+            'desc': ''
         }
     },
     17: {
-        'description': {
-            'cn': '伺服电机7报错',
-            'en': 'Servo motor 7 error'
+        'en': {
+            'title': 'Servo motor 7 error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '关节7错误',
+            'desc': ''
+        }
+    },
+    19: {
+        'en': {
+            'title': 'Tool GPIO error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '末端工具IO出错',
+            'desc': ''
         }
     },
     21: {
-        'description': {
-            'cn': '逆解错误',
-            'en': 'Inverse kinematics error'
+        'en': {
+            'title': 'Kinematic Error',
+            'desc': 'Please re-plan the path.'
+        },
+        'cn': {
+            'title': '运动学错误',
+            'desc': '请重新规划路径。'
         }
     },
     22: {
-        'description': {
-            'cn': '机械臂碰撞限位',
-            'en': 'Collision limit'
+        'en': {
+            'title': 'Collision Error',
+            'desc': 'Please click the "ZERO" button to return to the zero pozition.'
+        },
+        'cn': {
+            'title': '自碰撞错误',
+            'desc': '请点击”零点“按钮回到关节零点。'
         }
     },
     23: {
-        'description': {
-            'cn': '机械臂角度限位',
-            'en': 'Arm angle limit'
+        'en': {
+            'title': 'Joints Angle Exceed Limit',
+            'desc': 'Please click the "ZERO" button to return to the zero pozition.'
+        },
+        'cn': {
+            'title': '关节角度超出限制',
+            'desc': '请点击”零点“按钮回到关节零点。'
         }
     },
     24: {
-        'description': {
-            'cn': '机械臂关节输出速度限位',
-            'en': 'Arm joint output speed limit'
+        'en': {
+            'title': 'Speed Exceeds Limit',
+            'desc': 'Please reduce the speed and acceleration values.'
+        },
+        'cn': {
+            'title': '速度超出限制',
+            'desc': '请减小运动速度和加速度值。'
         }
     },
     25: {
-        'description': {
-            'cn': '速度规划错误',
-            'en': 'Speed planning error'
+        'en': {
+            'title': 'Planning Error',
+            'desc': 'Please re-plan the path or reduce the speed.'
+        },
+        'cn': {
+            'title': '规划错误',
+            'desc': '请重新规划路径或者减小运动速度。'
         }
     },
     26: {
-        'description': {
-            'cn': 'Rtlinux设置定时错误',
-            'en': 'Rtlinux set timing error'
+        'en': {
+            'title': 'Linux RT Error',
+            'desc': 'Please contact technical support.'
+        },
+        'cn': {
+            'title': 'Linux RT 错误',
+            'desc': '请联系技术支持。'
         }
     },
     27: {
-        'description': {
-            'cn': '指令回复错误',
-            'en': 'Command reply error'
+        'en': {
+            'title': 'Command Reply Error',
+            'desc': 'Pleas retry, or restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.'
+        },
+        'cn': {
+            'title': '回复指令错误 ',
+            'desc': '请重试，或通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。'
         }
     },
     28: {
-        'description': {
-            'cn': '机械爪错误',
-            'en': 'Gripper error'
-        }
-    },
-    29: {
-        'description': {
-            'cn': '其它错误',
-            'en': 'Other error'
+        'en': {
+            'title': 'Gripper error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '机械爪错误',
+            'desc': ''
         }
     },
     30: {
-        'description': {
-            'cn': '示教模式电流异常',
-            'en': 'Teach mode current abnormality'
+        'en': {
+            'title': 'Teach Mode Current Abnormality',
+            'desc': 'Please check for collisions, check that the payload settings are correct, and that the collision sensitivity matches the speed.'
+        },
+        'cn': {
+            'title': '示教模式电流异常',
+            'desc': '请检查是否碰撞、负载设置是否正确，示教灵敏度与速度是否匹配。'
         }
     },
     31: {
-        'description': {
-            'cn': '碰撞导致电流异常',
-            'en': 'Collision causes abnormal current'
+        'en': {
+            'title': 'Collision Caused Abnormal Current',
+            'desc': 'Please check for collisions, check that the payload settings are correct, and that the collision sensitivity matches the speed.'
+        },
+        'cn': {
+            'title': '碰撞导致电流异常',
+            'desc': '请检查是否碰撞、负载设置是否正确，碰撞灵敏度与速度是否匹配。'
         }
     },
     32: {
-        'description': {
-            'cn': '三点圆弧指令计算出错',
-            'en': 'Three-point arc command calculation error'
+        'en': {
+            'title': 'Three-point drawing circle calculation error',
+            'desc': 'Three-point drawing circle calculation error, please reset the arc command.'
+        },
+        'cn': {
+            'title': '三点圆弧指令计算出错',
+            'desc': '三点圆弧指令计算出错，请重新设置圆弧指令。'
         }
     },
     33: {
-        'description': {
-            'cn': '控制器gpio模块报错',
-            'en': 'Controller gpio module error'
+        'en': {
+            'title': 'Controller GPIO Error',
+            'desc': 'Please check the connection of the controller GPIO module and power on and off again. If the error occurs repeatedly, please contact technical support.'
+        },
+        'cn': {
+            'title': '控制器GPIO模块报错',
+            'desc': '请检查控制器GPIO模块的连接，并重新上下电。如该错误反复出现，请联系技术支持。'
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Other Errors',
+            'desc': ''
+        },
+        'cn': {
+            'title': '其他错误',
+            'desc': ''
         }
     },
 }
 
 ControllerWarnCodeMap = {
     11: {
-        'description': {
-            'cn': '当前控制器缓存已满',
-            'en': 'Current controller cache is full'
+        'en': {
+            'title': 'Current controller cache is full',
+            'desc': ''
+        },
+        'cn': {
+            'title': '当前控制器缓存已满',
+            'desc': ''
         }
     },
     12: {
-        'description': {
-            'cn': '用户指令参数错误',
-            'en': 'User instruction parameter error'
+        'en': {
+            'title': 'User instruction parameter error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '用户指令参数错误',
+            'desc': ''
         }
     },
     13: {
-        'description': {
-            'cn': '用户指令控制码不存在',
-            'en': 'User command control code does not exist'
+        'en': {
+            'title': 'User command control code does not exist',
+            'desc': ''
+        },
+        'cn': {
+            'title': '用户指令控制码不存在',
+            'desc': ''
         }
     },
     14: {
-        'description': {
-            'cn': '用户指令和参数无解',
-            'en': 'User instructions and parameters have no solution'
+        'en': {
+            'title': 'User instructions and parameters have no solution',
+            'desc': ''
+        },
+        'cn': {
+            'title': '用户指令和参数无解',
+            'desc': ''
         }
-    }
+    },
+    'other': {
+        'en': {
+            'title': 'Other Warnings',
+            'desc': ''
+        },
+        'cn': {
+            'title': '其它警告',
+            'desc': ''
+        }
+    },
 }
 
 
 class BaseCode(object):
-    def __init__(self, code):
+    def __init__(self, code, status=0):
         self._code = code
-        self._description = None
+        self._status = status
+        if status == 3:
+            self.info = self._code_map.get('failed', self._code_map.get('other'))
+        elif code != 0:
+            self.info = self._code_map.get(code, self._code_map.get('other'))
+        else:
+            self.info = {'en': {'title': 'Normal', 'desc': ''}, 'cn': {'title': '正常', 'desc': ''}}
+
+    @property
+    def status(self):
+        return self._status
 
     @property
     def code(self):
         return self._code
 
     @property
-    def description(self):
-        if self._description is None:
-            self._description = self._code_map.get(self.code, {}).get('description', {'cn': '', 'en': ''})
-        return self._description
-
-    @description.setter
-    def description(self, desc):
-        self._description = desc
+    def title(self):
+        return {
+            'en': self.info['en']['title'],
+            'cn': self.info['cn']['title']
+        }
 
     @property
-    def handle(self):
-        return self._code_map.get(self.code, {}).get('handle', [])
+    def description(self):
+        return {
+            'en': self.info['en']['desc'],
+            'cn': self.info['cn']['desc']
+        }
 
 
 class ControllerError(BaseCode):
-    def __init__(self, code):
+    def __init__(self, code, status=0):
         self._code_map = ControllerErrorCodeMap
-        super(ControllerError, self).__init__(code)
+        super(ControllerError, self).__init__(code, status=status)
 
 
 class ControllerWarn(BaseCode):
-    def __init__(self, code):
+    def __init__(self, code, status=0):
         self._code_map = ControllerWarnCodeMap
-        super(ControllerWarn, self).__init__(code)
+        super(ControllerWarn, self).__init__(code, status=status)
 
 
 class ServoError(BaseCode):
-    def __init__(self, code):
+    def __init__(self, code, status=0):
         self._code_map = ServoCodeMap
-        super(ServoError, self).__init__(code)
+        super(ServoError, self).__init__(code, status=status)
 
+
+class GripperError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = GripperError
+        super(GripperError, self).__init__(code, status=status)

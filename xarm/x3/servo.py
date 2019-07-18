@@ -17,62 +17,39 @@ class Servo(object):
         pass
 
     @xarm_is_connected(_type='get')
-    def get_servo_debug_msg(self, show=False):
+    def get_servo_debug_msg(self, show=False, lang='en'):
         ret = self.arm_cmd.servo_get_dbmsg()
         dbmsg = []
+        lang = lang if lang == 'cn' else 'en'
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             for i in range(1, 9):
-                servo_error = ServoError(ret[i * 2])
+                servo_error = ServoError(ret[i * 2], status=ret[i * 2 - 1])
+                name = ('伺服-{}'.format(i) if lang == 'cn' else 'Servo-{}'.format(i)) if i < 8 else ('机械爪' if lang == 'cn' else 'Gripper')
                 dbmsg.append({
-                    'name': '伺服(Servo)-{}'.format(i) if i < 8 else '机械爪(Gripper)',
+                    'name': name,
                     'servo_id': i,
-                    'status': ret[i * 2 - 1],
-                    'error': {
-                        'code': ret[i * 2],
-                        'desc': servo_error.description if ret[i * 2 - 1] != 3 else {'cn': '通信错误', 'en': 'Communication error'},
-                        'handle': servo_error.handle if ret[i * 2 - 1] != 3 else ['检查连接，重新上电']
-                    }
+                    'status': servo_error.status,
+                    'code': servo_error.code,
+                    'title': servo_error.title[lang],
+                    'desc': servo_error.description[lang]
                 })
         if show:
-            pretty_print('************GetServoDebugMsg, Status: {}*************'.format(ret[0]), color='light_blue')
+            pretty_print('************* {}, {}: {} **************'.format(
+                '获取伺服信息' if lang == 'cn' else 'GetServoDebugMsg',
+                '状态' if lang == 'cn' else 'Status',
+                ret[0]), color='light_blue')
             for servo_info in dbmsg:
-                color = 'red' if servo_info['error']['code'] != 0 or servo_info['status'] != 0 else 'white'
-                pretty_print('* {}, Status: {}, Code: {:#x}({})'.format(
-                    servo_info['name'], servo_info['status'],
-                    servo_info['error']['code'], servo_info['error']['code']), color=color)
-                if servo_info['error']['desc']:
-                    pretty_print('*  Description: {}({})'.format(servo_info['error']['desc']['cn'], servo_info['error']['desc']['en']), color=color)
-                if servo_info['error']['handle']:
-                    pretty_print('*  Handle: {}'.format(servo_info['error']['handle']), color=color)
+                color = 'red' if servo_info['code'] != 0 or servo_info['status'] != 0 else 'white'
+                pretty_print('* {}, {}: {}, {}: {}, {}: {}'.format(
+                    servo_info['name'],
+                    '状态' if lang == 'cn' else 'Status',
+                    servo_info['status'],
+                    '错误码' if lang == 'cn' else 'Code',
+                    servo_info['code'],
+                    '信息' if lang == 'cn' else 'Info',
+                    servo_info['title']), color=color)
             pretty_print('*' * 50, color='light_blue')
         return ret[0], dbmsg
-
-        # if show:
-        #     if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #         print('=' * 50)
-        #         for i in range(1, 8):
-        #             if ret[i * 2 - 1] != 0:
-        #                 servo_error = ServoError(ret[i * 2])
-        #                 if ret[i * 2 - 1] == 3:
-        #                     servo_error.description = '通信错误'
-        #                 err_code = '{} ({})'.format(hex(ret[i * 2]), ret[i * 2])
-        #                 print('伺服{}, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-        #                     i, ret[i * 2 - 1], err_code, servo_error.description))
-        #                 print('处理方法: {}'.format(servo_error.handle))
-        #             else:
-        #                 print('伺服{}, 状态: {}, 错误码: 0'.format(i, ret[i * 2 - 1]))
-        #         if ret[15] != 0:
-        #             servo_error = ServoError(ret[16])
-        #             if ret[15] == 3:
-        #                 servo_error.description = '通信错误'
-        #             err_code = '{} ({})'.format(hex(ret[16]), ret[16])
-        #             print('机械爪, 状态: {}, 错误码: {}, 错误信息: {}'.format(
-        #                 ret[15], err_code, servo_error.description))
-        #             print('处理方法: {}'.format(servo_error.handle))
-        #         else:
-        #             print('机械爪, 状态: {}, 错误码: 0'.format(ret[15]))
-        #         print('=' * 50)
-        # return ret
 
     @xarm_is_connected(_type='set')
     def set_servo_zero(self, servo_id=None):

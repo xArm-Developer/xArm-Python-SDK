@@ -828,17 +828,18 @@ class XArmAPI(object):
         """
         return self._arm.get_cmdnum()
 
-    def get_err_warn_code(self, show=False):
+    def get_err_warn_code(self, show=False, lang='en'):
         """
         Get the controller error and warn code
         
         :param show: show the detail info if True
+        :param lang: show language, en/cn, degault is en, only available if show is True
         :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
             error_code: See the controller error code documentation for details.
             warn_code: See the controller warn code documentation for details.
         """
-        return self._arm.get_err_warn_code(show=show)
+        return self._arm.get_err_warn_code(show=show, lang=lang)
 
     def clean_error(self):
         """
@@ -1565,15 +1566,16 @@ class XArmAPI(object):
         """
         return self._arm.release_cmdnum_changed_callback(callback)
 
-    def get_servo_debug_msg(self, show=False):
+    def get_servo_debug_msg(self, show=False, lang='en'):
         """
         Get the servo debug msg, used only for debugging
         
         :param show: show the detail info if True
+        :param lang: language, en/cn, degault is en
         :return: tuple((code, servo_info_list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """
-        return self._arm.get_servo_debug_msg(show=show)
+        return self._arm.get_servo_debug_msg(show=show, lang=lang)
 
     def run_blockly_app(self, path, **kwargs):
         """

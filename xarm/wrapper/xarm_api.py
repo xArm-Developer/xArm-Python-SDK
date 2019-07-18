@@ -1295,6 +1295,14 @@ class XArmAPI(object):
         Set the digital input functional mode of the Controller GPIO
         :param ionum: 0~7
         :param fun: functional mode
+            0: general input
+            1: external emergency stop
+            2: reversed, protection reset
+            3: reversed, reduced mode
+            4: reversed, operating mode
+            5: reversed, three-state switching signal
+            11: offline task
+            12: teaching mode
         :return: code
             code: See the API code documentation for details.
         """
@@ -1305,9 +1313,14 @@ class XArmAPI(object):
         Set the digital output functional mode of the specified Controller GPIO
         :param ionum: 0~7
         :param fun: functionnal mode
-            0: system in stopping
-            1: controller has error
+            0: general output
+            1: emergency stop
             2: in motion
+            11: has error
+            12: has warn
+            13: in collision
+            14: in teaching
+            15: in offline task
         :return: code
             code: See the API code documentation for details.
         """

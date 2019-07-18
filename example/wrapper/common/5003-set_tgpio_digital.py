@@ -27,7 +27,7 @@ except:
         ip = '192.168.1.194'
 
 
-arm = XArmAPI(ip)
+arm = XArmAPI(ip, check_robot_sn=False)
 time.sleep(0.5)
 if arm.warn_code != 0:
     arm.clean_warn()

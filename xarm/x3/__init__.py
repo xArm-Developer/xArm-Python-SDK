@@ -584,12 +584,12 @@ class XArm(Gripper, Servo, GPIO, Events):
 
             if not self._is_first_report:
                 if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
-                    if self._is_ready:
-                        pretty_print('[report], xArm is not ready to move', color='red')
+                    # if self._is_ready:
+                    #     pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
                 else:
-                    if not self._is_ready:
-                        pretty_print('[report], xArm is ready to move', color='green')
+                    # if not self._is_ready:
+                    #     pretty_print('[report], xArm is ready to move', color='green')
                     self._is_ready = True
             else:
                 self._is_ready = False
@@ -773,12 +773,12 @@ class XArm(Gripper, Servo, GPIO, Events):
 
             if not self._is_first_report:
                 if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
-                    if self._is_ready:
-                        pretty_print('[report], xArm is not ready to move', color='red')
+                    # if self._is_ready:
+                    #     pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
                 else:
-                    if not self._is_ready:
-                        pretty_print('[report], xArm is ready to move', color='green')
+                    # if not self._is_ready:
+                    #     pretty_print('[report], xArm is ready to move', color='green')
                     self._is_ready = True
             else:
                 self._is_ready = False
@@ -928,12 +928,12 @@ class XArm(Gripper, Servo, GPIO, Events):
                 if state != self._state:
                     self._report_state_changed_callback()
                 if state == 4:
-                    if self._is_ready:
-                        pretty_print('[report], xArm is not ready to move', color='red')
+                    # if self._is_ready:
+                    #     pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
                 else:
-                    if not self._is_ready:
-                        pretty_print('[report], xArm is ready to move', color='green')
+                    # if not self._is_ready:
+                    #     pretty_print('[report], xArm is ready to move', color='green')
                     self._is_ready = True
                 if error_code != self._error_code or warn_code != self._warn_code:
                     self._report_error_warn_changed_callback()

@@ -38,6 +38,7 @@ value = 2
 for i in range(4):
     code = arm.set_cgpio_digital_input_function(i, value)
     print('set_cgpio_digital_input_function({}, {}), code={}'.format(i, value, code))
+# Reset: 255
 for i in range(4):
     code = arm.set_cgpio_digital_input_function(i, 255)
     print('set_cgpio_digital_input_function({}, {}), code={}'.format(i, value, code))
@@ -47,6 +48,7 @@ value = 0
 for i in range(4, 8):
     code = arm.set_cgpio_digital_output_function(i, value)
     print('set_cgpio_digital_output_function({}, {}), code={}'.format(i, value, code))
+# Reset: 255
 for i in range(4, 8):
     code = arm.set_cgpio_digital_output_function(i, 255)
     print('set_cgpio_digital_output_function({}, {}), code={}'.format(i, value, code))

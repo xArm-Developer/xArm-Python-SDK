@@ -37,6 +37,13 @@ value = 1
 for i in range(8):
     code = arm.set_cgpio_digital(i, value)
     print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
+    time.sleep(0.5)
+
+value = 0
+for i in range(8):
+    code = arm.set_cgpio_digital(i, value)
+    print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
+    time.sleep(0.5)
 
 value = 2.6
 code = arm.set_cgpio_analog(0, value)

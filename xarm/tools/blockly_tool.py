@@ -108,7 +108,7 @@ class BlocklyTool(object):
                 nodes.append(node)
         return nodes
 
-    def _init_py3(self, arm=None, clean_err_warn=True, motion_enable=True, mode=0, state=0, error_exit=True):
+    def _init_py3(self, arm=None, init=True, wait_seconds=1, mode=0, state=0, error_exit=True):
         self._insert_to_file(self.index, '#!/usr/bin/env python3')
         self._insert_to_file(self.index, '# Software License Agreement (BSD License)\n#')
         self._insert_to_file(self.index, '# Copyright (c) {}, UFACTORY, Inc.'.format(time.localtime(time.time()).tm_year))
@@ -135,14 +135,15 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1])')
         elif isinstance(arm, str):
             self._insert_to_file(self.index, 'arm = XArmAPI(\'{}\')'.format(arm))
-        if clean_err_warn:
+        if init:
             self._insert_to_file(self.index, 'arm.clean_warn()')
             self._insert_to_file(self.index, 'arm.clean_error()')
-        if motion_enable:
             self._insert_to_file(self.index, 'arm.motion_enable(True)')
-        self._insert_to_file(self.index, 'arm.set_mode({})'.format(mode))
-        self._insert_to_file(self.index, 'arm.set_state({})'.format(state))
-        self._insert_to_file(self.index, 'time.sleep(1)\n')
+
+            self._insert_to_file(self.index, 'arm.set_mode({})'.format(mode))
+            self._insert_to_file(self.index, 'arm.set_state({})'.format(state))
+        if wait_seconds > 0:
+            self._insert_to_file(self.index, 'time.sleep({})\n'.format(wait_seconds))
         self._insert_to_file(self.index, 'params = {\'speed\': 100, \'acc\': 2000, '
                                          '\'angle_speed\': 20, \'angle_acc\': 500, '
                                          '\'events\': {}, \'variables\': {}}')
@@ -166,11 +167,11 @@ class BlocklyTool(object):
             self._append_to_file('while arm.connected and arm.error_code == 0:')
             self._append_to_file('    time.sleep(1)')
 
-    def to_python(self, path=None, arm=None, clean_err_warn=True, motion_enable=True, mode=0, state=0,
+    def to_python(self, path=None, arm=None, init=True, wait_seconds=1, mode=0, state=0,
                   error_exit=True, show_comment=False):
         self._show_comment = show_comment
         self._succeed = True
-        self._init_py3(arm, clean_err_warn, motion_enable, mode, state, error_exit)
+        self._init_py3(arm=arm, init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit)
         self.parse()
         self._finish_py3()
         self.codes = '\n'.join(self._code_list)
@@ -316,6 +317,7 @@ class BlocklyTool(object):
     def _handle_move_circle(self, block, prefix=''):
         values = self.get_nodes('value', root=block)
         percent = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        percent = float(percent) / 360 * 100
         wait = self.get_nodes('field', root=values[3], descendant=True)[0].text == 'TRUE'
 
         p1_block = self.get_node('block', root=values[0])
@@ -459,12 +461,21 @@ class BlocklyTool(object):
         self._append_to_file('{}arm.set_teach_sensitivity({})'.format(prefix, value))
 
     def _handle_set_tcp_load(self, block, prefix=''):
-        values = self.get_nodes('value', root=block)
-        weight = self.get_nodes('field', root=values[0], descendant=True)[0].text
-        x = self.get_nodes('field', root=values[1], descendant=True)[0].text
-        y = self.get_nodes('field', root=values[2], descendant=True)[0].text
-        z = self.get_nodes('field', root=values[3], descendant=True)[0].text
+        fields = self.get_nodes('field', root=block)
+        weight = fields[1].text
+        x = fields[2].text
+        y = fields[3].text
+        z = fields[4].text
         self._append_to_file('{}arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
+        self._append_to_file('{}arm.set_state(0)'.format(prefix))
+
+        # values = self.get_nodes('value', root=block)
+        # weight = self.get_nodes('field', root=values[0], descendant=True)[0].text
+        # x = self.get_nodes('field', root=values[1], descendant=True)[0].text
+        # y = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        # z = self.get_nodes('field', root=values[3], descendant=True)[0].text
+        # self._append_to_file('{}arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
+        # self._append_to_file('{}arm.set_state(0)'.format(prefix))
 
     def _handle_set_gravity_direction(self, block, prefix=''):
         values = self.get_nodes('value', root=block)
@@ -474,14 +485,25 @@ class BlocklyTool(object):
         self._append_to_file('{}arm.set_gravity_direction([{}, {}, {}])'.format(prefix, x, y, z))
 
     def _handle_set_tcp_offset(self, block, prefix=''):
-        values = self.get_nodes('value', root=block)
-        x = self.get_nodes('field', root=values[0], descendant=True)[0].text
-        y = self.get_nodes('field', root=values[1], descendant=True)[0].text
-        z = self.get_nodes('field', root=values[2], descendant=True)[0].text
-        roll = self.get_nodes('field', root=values[3], descendant=True)[0].text
-        pitch = self.get_nodes('field', root=values[4], descendant=True)[0].text
-        yaw = self.get_nodes('field', root=values[5], descendant=True)[0].text
+        fields = self.get_nodes('field', root=block)
+        x = fields[1].text
+        y = fields[2].text
+        z = fields[3].text
+        roll = fields[4].text
+        pitch = fields[5].text
+        yaw = fields[6].text
         self._append_to_file('{}arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
+        self._append_to_file('{}arm.set_state(0)'.format(prefix))
+
+        # values = self.get_nodes('value', root=block)
+        # x = self.get_nodes('field', root=values[0], descendant=True)[0].text
+        # y = self.get_nodes('field', root=values[1], descendant=True)[0].text
+        # z = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        # roll = self.get_nodes('field', root=values[3], descendant=True)[0].text
+        # pitch = self.get_nodes('field', root=values[4], descendant=True)[0].text
+        # yaw = self.get_nodes('field', root=values[5], descendant=True)[0].text
+        # self._append_to_file('{}arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
+        # self._append_to_file('{}arm.set_state(0)'.format(prefix))
 
     def _handle_gripper_set(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)

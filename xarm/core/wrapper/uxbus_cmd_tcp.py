@@ -76,6 +76,10 @@ class UxbusCmdTcp(UxbusCmd):
             times -= 1
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 7:
+                # print('recv:',  end=' ')
+                # for i in range(len(rx_data)):
+                #     print(hex(rx_data[i]), end=',')
+                # print()
                 ret[0] = self.check_xbus_prot(rx_data, funcode)
                 if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
                     if num == -1:
@@ -96,10 +100,16 @@ class UxbusCmdTcp(UxbusCmd):
         send_data += convert.u16_to_bytes(self.prot_flag)
         send_data += convert.u16_to_bytes(num + 1)
         send_data += bytes([funcode])
-        for i in range(num):
-            send_data += bytes([datas[i]])
-
+        if type(datas) == str:
+            send_data += datas.encode()
+        else:
+            for i in range(num):
+                send_data += bytes([datas[i]])
         self.arm_port.flush()
+        # print('send:', end=' ')
+        # for i in range(len(send_data)):
+        #     print(hex(send_data[i]), end=',')
+        # print()
         ret = self.arm_port.write(send_data)
         if ret != 0:
             return -1

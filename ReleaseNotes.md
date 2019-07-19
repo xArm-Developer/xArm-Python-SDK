@@ -2,6 +2,12 @@
 
 ## Update Summary
 
+- > ### 1.1.0
+
+  - Modify the claw interface
+  - Modify error code and error message
+  - Support for blocky code conversion and operation of xArmStudio1.1.0
+
 - > ### 1.0.0
 
   - Support for the latest firmware 1.0.0, compatible with old firmware

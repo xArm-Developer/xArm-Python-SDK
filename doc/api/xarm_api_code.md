@@ -50,5 +50,49 @@
 - 29: Other Errors
 - 30: Teach Mode Current Abnormality
 - 31: Collision Caused Abnormal Current
+- 32: Three-point drawing circle calculation error
 - 33: Controller GPIO error
+
+## Servo Error Code
+
+- 10: Current Detection Error
+- 11: Joint Current Overlimit
+- 12: Joint Speed Overlimit
+- 14: Position Command Overlimit
+- 15: Joints Overheat
+- 16: Encoder Initialization Error
+- 17: Single Ring Encoder Error
+- 18: Multi-turn Encoder Error
+- 19: Low Battery Voltage
+- 20: Driver IC Hardware Error
+- 21: Driver IC Initialization Error
+- 22: Encoder Configuration Error
+- 23: Large Motor Position Deviation
+- 26: Joint N Positive Overrun
+- 27: Joint N Negative Overrun
+- 28: Joint Commands Error
+- 33: Drive Overloaded
+- 34: Motor Overload
+- 35: Motor Type Error
+- 36: Driver Type Error
+- 39: Joint Voltage Overload
+- 40: Joint Voltage Insufficient
+- 49: EEPROM Read and Write Error
+- 52: Motor Angle Initialization Error
+
+## Gripper Error Code
+
+- 9: Gripper Current Detection Error
+- 11: Gripper Current Overlimit
+- 12: Gripper Speed Overlimit
+- 14: Gripper Position Command Overlimit
+- 15: Gripper EEPROM Read and Write Error
+- 20: Gripper Driver IC Hardware Error
+- 21: Gripper Driver IC Initialization Error
+- 23: Gripper Large Motor Position Deviation
+- 25: Gripper Command Over Software Limit
+- 26: Gripper Feedback Position Software Limit
+- 33: Gripper Drive Overloaded
+- 34: Gripper Motor Overload
+- 36: Gripper Driver Type Error
 

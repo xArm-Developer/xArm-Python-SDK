@@ -31,14 +31,11 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
-- > ### 1.0.0
+- > ### 1.1.0
 
-  - Support for the latest firmware 1.0.0, compatible with old firmware
-  - Support mount angle setting interface
-  - Support controller IO interface
-  - Modify clip and Tool GPIO communication protocol, compatible with standard modbus
-  - __Modify the interface name and parameters of the Tool GPIO, note that the value of the parameter ionum is changed from [1, 2] to [0, 1]__
-  - Support for blocky code conversion and operation of xArmStudio1.0.0
+  - Modify the claw interface
+  - Modify error code and error message
+  - Support for blocky code conversion and operation of xArmStudio1.1.0
 
 - >### [More](ReleaseNotes.md)
 

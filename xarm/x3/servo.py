@@ -129,4 +129,3 @@ class Servo(object):
         :return: 
         """
         return self.set_servo_addr_16(servo_id, 0x0109, 1)
-

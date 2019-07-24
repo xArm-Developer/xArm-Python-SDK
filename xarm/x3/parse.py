@@ -8,111 +8,94 @@
 
 import re
 
-GCODE_PARAM_X = 'X'
-GCODE_PARAM_Y = 'Y'
-GCODE_PARAM_Z = 'Z'
-GCODE_PARAM_A = 'A'
-GCODE_PARAM_B = 'B'
-GCODE_PARAM_C = 'C'
-GCODE_PARAM_R = 'R'
-GCODE_PARAM_I = 'I'
-GCODE_PARAM_J = 'J'
-GCODE_PARAM_K = 'K'
-GCODE_PARAM_L = 'L'
-GCODE_PARAM_M = 'M'
-GCODE_PARAM_N = 'N'
-GCODE_PARAM_O = 'O'
-GCODE_PARAM_F = 'F'
-GCODE_PARAM_Q = 'Q'
-GCODE_PARAM_T = 'T'
-GCODE_PARAM_E = 'E'
-GCODE_PARAM_V = 'V'
-GCODE_PARAM_W = 'W'
-GCODE_PARAM_S = 'S'
-
-RAD_DEGREE = 57.295779513082320876798154814105
+GCODE_PARAM_X = 'X'  # TCP-X
+GCODE_PARAM_Y = 'Y'  # TCP-Y
+GCODE_PARAM_Z = 'Z'  # TCP-Z
+GCODE_PARAM_A = 'A'  # TCP-Roll
+GCODE_PARAM_B = 'B'  # TCP-Pitch
+GCODE_PARAM_C = 'C'  # TCP-Yaw
+GCODE_PARAM_R = 'R'  # TCP-Radius
+GCODE_PARAM_I = 'I'  # Joint-1
+GCODE_PARAM_J = 'J'  # Joint-2
+GCODE_PARAM_K = 'K'  # Joint-3
+GCODE_PARAM_L = 'L'  # Joint-4
+GCODE_PARAM_M = 'M'  # Joint-5
+GCODE_PARAM_N = 'N'  # Joint-6
+GCODE_PARAM_O = 'O'  # Joint-7
+GCODE_PARAM_F = 'F'  # Move-Speed
+GCODE_PARAM_Q = 'Q'  # Move-Acc
+GCODE_PARAM_T = 'T'  # Move-Time
+GCODE_PARAM_V = 'V'  # Value
+GCODE_PARAM_D = 'D'  # Addr
 
 
-def gcode_get_chfp(str, ch):
-    relink2 = ch + '\d+\.?\d*'
-    data = re.findall(relink2, str)
-    if len(data) > 0:
-        return (float(data[0].split(ch)[1]))
-    else:
-        return 0.0
+class GcodeParser:
+    @staticmethod
+    def __get_value(string, ch, return_type, default=None):
+        pattern = '{}(\-?\d+\.?\d*)'.format(ch)
+        data = re.findall(pattern, string)
+        if len(data) > 0:
+            return return_type(data[0])
+        return default
 
+    @staticmethod
+    def __get_hex_value(string, ch, default=None):
+        pattern = '{}(-?\w{{3,4}})'.format(ch)
+        data = re.findall(pattern, string)
+        if len(data) > 0:
+            return int(data[0])
+        return default
 
-def gcode_get_chint(str, ch):
-    relink2 = ch + '\-?\d+\.?\d*'
-    data = re.findall(relink2, str)
-    if len(data) > 0:
-        return (int(data[0].split(ch)[1]))
-    else:
-        return -1
+    def _get_int_value(self, string, ch, default=None):
+        return self.__get_value(string, ch, int, default=default)
 
+    def _get_float_value(self, string, ch, default=None):
+        return self.__get_value(string, ch, float, default=default)
 
-def __gcode_get_numfp(str, param):
-    relink2 = param + '\-?\d+\.?\d*' if param != GCODE_PARAM_Q else '[QE]\-?\d+\.?\d*'
-    data = re.findall(relink2, str)
-    if len(data) > 0:
-        if 'E' in data[0]:
-            value = (float(data[0].split('E')[1]))
-        else:
-            value = (float(data[0].split(param)[1]))
-        return value
-    else:
-        return None
+    def get_int_value(self, string, default=0):
+        return self._get_int_value(string, GCODE_PARAM_V, default=default)
 
+    def get_float_value(self, string, default=0):
+        return self._get_float_value(string, GCODE_PARAM_V, default=default)
 
-def gcode_get_mvvelo(str):
-    return __gcode_get_numfp(str, GCODE_PARAM_F)
+    def get_addr(self, string, default=0):
+        return self.__get_hex_value(string, GCODE_PARAM_D, default=default)
 
+    def get_gcode_cmd_num(self, string, ch):
+        return self._get_int_value(string, ch, default=-1)
 
-def gcode_get_mvacc(str):
-    return __gcode_get_numfp(str, GCODE_PARAM_Q)
+    def get_mvvelo(self, string, default=None):
+        return self._get_float_value(string, GCODE_PARAM_F, default=default)
 
+    def get_mvacc(self, string, default=None):
+        return self._get_float_value(string, GCODE_PARAM_Q, default=default)
 
-def gcode_get_mvtime(str):
-    return __gcode_get_numfp(str, GCODE_PARAM_T)
+    def get_mvtime(self, string, default=None):
+        return self._get_float_value(string, GCODE_PARAM_T, default=default)
 
+    def get_mvradius(self, string, default=None):
+        return self._get_float_value(string, GCODE_PARAM_R, default=default)
 
-def gcode_get_mvradii(str):
-    return __gcode_get_numfp(str, GCODE_PARAM_R)
+    def get_id_num(self, string, default=None):
+        return self._get_int_value(string, GCODE_PARAM_I, default=default)
 
+    def get_poses(self, string, default=None):
+        pose = [None] * 6
+        pose[0] = self._get_float_value(string[2:], GCODE_PARAM_X, default=default)
+        pose[1] = self._get_float_value(string[2:], GCODE_PARAM_Y, default=default)
+        pose[2] = self._get_float_value(string[2:], GCODE_PARAM_Z, default=default)
+        pose[3] = self._get_float_value(string[2:], GCODE_PARAM_A, default=default)
+        pose[4] = self._get_float_value(string[2:], GCODE_PARAM_B, default=default)
+        pose[5] = self._get_float_value(string[2:], GCODE_PARAM_C, default=default)
+        return pose
 
-def gcode_get_value(str):
-    return __gcode_get_numfp(str, GCODE_PARAM_V)
-
-
-def gcode_get_servo(str):
-    servo_id = gcode_get_chint(str, GCODE_PARAM_S)
-    if servo_id < 1:
-        servo_id = None
-    return servo_id
-
-
-def gcode_get_wait(str):
-    return gcode_get_chint(str, GCODE_PARAM_W) > 0
-
-
-def gcode_get_mvcarts(str):
-    pose = [0, 0, 0, 0, 0, 0]
-    pose[0] = __gcode_get_numfp(str[2:], GCODE_PARAM_X)
-    pose[1] = __gcode_get_numfp(str[2:], GCODE_PARAM_Y)
-    pose[2] = __gcode_get_numfp(str[2:], GCODE_PARAM_Z)
-    pose[3] = __gcode_get_numfp(str[2:], GCODE_PARAM_A)  # / RAD_DEGREE
-    pose[4] = __gcode_get_numfp(str[2:], GCODE_PARAM_B)  # / RAD_DEGREE
-    pose[5] = __gcode_get_numfp(str[2:], GCODE_PARAM_C)  # / RAD_DEGREE
-    return pose
-
-
-def gcode_get_mvjoints(str):
-    joint = [0, 0, 0, 0, 0, 0, 0]
-    joint[0] = __gcode_get_numfp(str[2:], GCODE_PARAM_I)  # / RAD_DEGREE
-    joint[1] = __gcode_get_numfp(str[2:], GCODE_PARAM_J)  # / RAD_DEGREE
-    joint[2] = __gcode_get_numfp(str[2:], GCODE_PARAM_K)  # / RAD_DEGREE
-    joint[3] = __gcode_get_numfp(str[2:], GCODE_PARAM_L)  # / RAD_DEGREE
-    joint[4] = __gcode_get_numfp(str[2:], GCODE_PARAM_M)  # / RAD_DEGREE
-    joint[5] = __gcode_get_numfp(str[2:], GCODE_PARAM_N)  # / RAD_DEGREE
-    joint[6] = __gcode_get_numfp(str[2:], GCODE_PARAM_O)  # / RAD_DEGREE
-    return joint
+    def get_joints(self, string, default=None):
+        joints = [None] * 7
+        joints[0] = self._get_float_value(string[2:], GCODE_PARAM_I, default=default)
+        joints[1] = self._get_float_value(string[2:], GCODE_PARAM_J, default=default)
+        joints[2] = self._get_float_value(string[2:], GCODE_PARAM_K, default=default)
+        joints[3] = self._get_float_value(string[2:], GCODE_PARAM_L, default=default)
+        joints[4] = self._get_float_value(string[2:], GCODE_PARAM_M, default=default)
+        joints[5] = self._get_float_value(string[2:], GCODE_PARAM_N, default=default)
+        joints[6] = self._get_float_value(string[2:], GCODE_PARAM_O, default=default)
+        return joints

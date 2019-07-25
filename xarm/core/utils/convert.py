@@ -15,6 +15,18 @@ def fp32_to_bytes(data):
     return bytes(struct.pack("f", data))
 
 
+def int32_to_bytes(data):
+    return bytes(struct.pack("i", data))
+
+
+def int32s_to_bytes(data, n):
+    assert n > 0
+    ret = int32_to_bytes(data[0])
+    for i in range(1, n):
+        ret += int32_to_bytes(data[i])
+    return ret
+
+
 def bytes_to_fp32(data):
     byte = bytes([data[0]])
     byte += bytes([data[1]])

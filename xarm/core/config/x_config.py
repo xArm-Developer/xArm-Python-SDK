@@ -187,6 +187,11 @@ class XCONF(object):
 
         SET_GRAVITY_DIR = 51
 
+        SET_TRAJ_RECORD = 61
+        SAVE_TRAJ = 62
+        LOAD_TRAJ = 63
+        PLAY_TRAJ = 64
+
         SERVO_W16B = 101
         SERVO_R16B = 102
         SERVO_W32B = 103
@@ -278,6 +283,7 @@ class XCONF(object):
         ERR_FUN = 7  # TCP回复指令和发送指令不匹配
         ERR_NOTTCP = 8  # 发送错误
         ERR_OTHER = 11  # 其它错误
+        ERR_PARAM = 12  # 参数错误
 
 
 

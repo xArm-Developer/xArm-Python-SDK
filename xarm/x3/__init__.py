@@ -22,6 +22,7 @@ from .gripper import Gripper
 from .gpio import GPIO
 from .servo import Servo
 from .events import *
+from .record import Record
 from .parse import GcodeParser
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_time, compare_version
@@ -29,7 +30,7 @@ from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_time
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, GPIO, Events):
+class XArm(Gripper, Servo, GPIO, Events, Record):
     def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         super(XArm, self).__init__()
         self._port = port
@@ -1210,6 +1211,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
                 self._is_stop = False
+                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_position = last_used_position
             self._last_tcp_speed = last_used_tcp_speed
@@ -1375,6 +1377,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
                 self._is_stop = False
+                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_angles = last_used_angle
             self._last_joint_speed = last_used_joint_speed
@@ -1456,6 +1459,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
                 self._is_stop = False
+                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_tcp_speed = last_used_tcp_speed
             self._last_tcp_acc = last_used_tcp_acc
@@ -1494,6 +1498,7 @@ class XArm(Gripper, Servo, GPIO, Events):
                 self._is_stop = False
                 self._WaitMove(self, timeout).start()
                 self._is_stop = False
+                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         return ret[0]
 
     @xarm_is_ready(_type='set')
@@ -1585,7 +1590,6 @@ class XArm(Gripper, Servo, GPIO, Events):
         logger.info('move_arc_lines--end')
         if wait:
             self._WaitMove(self, 0).start()
-
         self._is_stop = False
 
     @xarm_is_connected(_type='set')

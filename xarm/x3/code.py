@@ -30,5 +30,6 @@ class APIState(object):
     FUN_ERROR = XCONF.UxbusState.ERR_FUN  # TCP回复指令和发送指令不匹配
     NO_TCP = XCONF.UxbusState.ERR_NOTTCP  # 写数据异常
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
+    PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
 
 

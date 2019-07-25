@@ -43,7 +43,7 @@ class GcodeParser:
         pattern = '{}(-?\w{{3,4}})'.format(ch)
         data = re.findall(pattern, string)
         if len(data) > 0:
-            return int(data[0])
+            return int(data[0], base=16)
         return default
 
     def _get_int_value(self, string, ch, default=None):

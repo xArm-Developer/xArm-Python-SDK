@@ -24,7 +24,7 @@ from .servo import Servo
 from .events import *
 from .parse import GcodeParser
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_ready, compare_time, compare_version
+from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_time, compare_version
 
 gcode_p = GcodeParser()
 
@@ -45,6 +45,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
         self._check_robot_sn = kwargs.get('check_robot_sn', False)
         self._check_is_ready = kwargs.get('check_is_ready', True)
+        self._check_is_pause = kwargs.get('check_is_pause', True)
 
         self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
         self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
@@ -110,10 +111,19 @@ class XArm(Gripper, Servo, GPIO, Events):
         self._revision_version_number = 0  # 固件修正版本号
 
         self._is_set_move = False
+        self._cond_pause = threading.Condition()
 
         Events.__init__(self)
         if not do_not_open:
             self.connect()
+
+    def check_is_pause(self):
+        if self._check_is_pause:
+            if self.state == 3 and self._enable_report:
+                print('waiting')
+                with self._cond_pause:
+                    self._cond_pause.wait()
+                print('continue')
 
     @property
     def version_number(self):
@@ -601,6 +611,9 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._warn_code = warn_code
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
             self._state = state
+            if self.state != 3:
+                with self._cond_pause:
+                    self._cond_pause.notifyAll()
             self._cmd_num = cmd_num
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
@@ -790,6 +803,9 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._warn_code = warn_code
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
             self._state = state
+            if self.state != 3:
+                with self._cond_pause:
+                    self._cond_pause.notifyAll()
             self._mode = mode
             self._cmd_num = cmd_num
             self._arm_motor_brake_states = mtbrake
@@ -925,6 +941,9 @@ class XArm(Gripper, Servo, GPIO, Events):
                 time.sleep(0.01)
                 self.get_position()
 
+                if self.state != 3:
+                    with self._cond_pause:
+                        self._cond_pause.notifyAll()
                 if cmd_num != self._cmd_num:
                     self._report_cmdnum_changed_callback()
                 if state != self._state:
@@ -972,6 +991,8 @@ class XArm(Gripper, Servo, GPIO, Events):
             except:
                 pass
         self._report_connect_changed_callback(False, False)
+        with self._cond_pause:
+            self._cond_pause.notifyAll()
 
     def _sync_tcp(self, index=None):
         if not self._stream_report or not self._stream_report.connected:
@@ -1085,6 +1106,7 @@ class XArm(Gripper, Servo, GPIO, Events):
             time.sleep(0.2)
 
     @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
@@ -1219,6 +1241,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return False
 
     @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
                         relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
@@ -1376,6 +1399,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
     def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
@@ -1438,6 +1462,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if speed is None:
@@ -1634,6 +1659,7 @@ class XArm(Gripper, Servo, GPIO, Events):
 
     @xarm_is_connected(_type='set')
     def set_state(self, state=0):
+        _state = self._state
         ret = self.arm_cmd.set_state(state)
         if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             # self._last_position[:6] = self.position
@@ -1641,6 +1667,11 @@ class XArm(Gripper, Servo, GPIO, Events):
             self._sleep_finish_time = 0
             # self._is_sync = False
         self.get_state()
+        if _state != self._state:
+            self._report_state_changed_callback()
+        if self._state != 3:
+            with self._cond_pause:
+                self._cond_pause.notifyAll()
         if self._state in [4]:
             if self._is_ready:
                 pretty_print('[set_state], xArm is not ready to move', color='red')
@@ -1664,6 +1695,8 @@ class XArm(Gripper, Servo, GPIO, Events):
     def get_cmdnum(self):
         ret = self.arm_cmd.get_cmdnum()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            if ret[1] != self._cmd_num:
+                self._report_cmdnum_changed_callback()
             self._cmd_num = ret[1]
             ret[0] = 0
         return ret[0], self._cmd_num
@@ -1772,6 +1805,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_tcp_offset(self, offset, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         assert isinstance(offset, Iterable) and len(offset) >= 6
@@ -1823,6 +1857,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_tcp_load(self, weight, center_of_gravity):
         if compare_version(self.version_number, (0, 2, 0)):
             _center_of_gravity = center_of_gravity
@@ -1833,6 +1868,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_collision_sensitivity(self, value):
         assert isinstance(value, int) and 0 <= value <= 5
         ret = self.arm_cmd.set_collis_sens(value)
@@ -1840,6 +1876,7 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_teach_sensitivity(self, value):
         assert isinstance(value, int) and 1 <= value <= 5
         ret = self.arm_cmd.set_teach_sens(value)
@@ -1847,12 +1884,14 @@ class XArm(Gripper, Servo, GPIO, Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_gravity_direction(self, direction):
         ret = self.arm_cmd.set_gravity_dir(direction)
         logger.info('API -> set_gravity_direction -> ret={}, direction={}'.format(ret[0], direction))
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_mount_direction(self, base_tilt_deg, rotation_deg, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         t1 = base_tilt_deg
@@ -2076,16 +2115,16 @@ class XArm(Gripper, Servo, GPIO, Events):
         while self.state != 4 and time.time() - start_time < 3:
             self.set_state(4)
             time.sleep(0.1)
-        self.set_state(0)
         self._is_stop = True
-        if not self._is_ready:
-            start_time = time.time()
-            self.motion_enable(enable=True)
-            while self.state in [0, 3, 4] and time.time() - start_time < 3:
-                ret = self.set_state(0)
-                if ret == 1:
-                    break
-                time.sleep(0.1)
+        # self.set_state(0)
+        # if not self._is_ready:
+        #     start_time = time.time()
+        #     self.motion_enable(enable=True)
+        #     while self.state in [0, 3, 4] and time.time() - start_time < 3:
+        #         ret = self.set_state(0)
+        #         if ret == 1:
+        #             break
+        #         time.sleep(0.1)
         self._sleep_finish_time = 0
         logger.info('emergency_stop--end')
 

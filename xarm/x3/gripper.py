@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
-from .utils import xarm_is_connected
+from .utils import xarm_is_connected, xarm_is_pause
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 
@@ -69,6 +69,7 @@ class Gripper(object):
             return _ if err == 0 else XCONF.UxbusState.ERR_CODE, None
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
         if auto_enable:
             self.arm_cmd.gripper_modbus_set_en(True)

@@ -6,7 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-from .utils import xarm_is_connected
+from .utils import xarm_is_connected, xarm_is_pause
 from ..core.utils.log import logger
 
 
@@ -45,6 +45,7 @@ class GPIO(object):
         return ret[0], ret[1:] if ionum is None else ret[ionum+1]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_tgpio_digital(self, ionum, value):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
         ret = self.arm_cmd.tgpio_set_digital(ionum+1, value)
@@ -113,6 +114,7 @@ class GPIO(object):
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_cgpio_digital(self, ionum, value):
         assert isinstance(ionum, int) and 7 >= ionum >= 0
         ret = self.arm_cmd.cgpio_set_auxdigit(ionum, value)
@@ -124,6 +126,7 @@ class GPIO(object):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_cgpio_analog(self, ionum, value):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
         if ionum == 1:

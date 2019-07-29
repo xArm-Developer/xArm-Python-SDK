@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import re
+import os
 import math
 import time
 import warnings
@@ -26,6 +27,12 @@ from .record import Record
 from .parse import GcodeParser
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_time, compare_version
+try:
+    from ..tools.blockly_tool import BlocklyTool
+except:
+    print('import BlocklyTool module failed')
+    BlocklyTool = None
+
 
 gcode_p = GcodeParser()
 
@@ -2197,14 +2204,14 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             if num == 1:  # H1 get_version, ex: H1
                 ret = self.get_version()
             elif num == 10:  # H10 shutdown_system, ex: H10 V{}
-                value = gcode_p.get_int_value(command)
+                value = gcode_p.get_int_value(command, default=0)
                 ret = self.shutdown_system(value)
             elif num == 11:  # H11 motion_enable, ex: H11 I{id} V{enable}
                 value = gcode_p.get_int_value(command)
-                servo_id = gcode_p.get_id_num(command)
+                servo_id = gcode_p.get_id_num(command, default=0)
                 ret = self.motion_enable(enable=value, servo_id=servo_id)
             elif num == 12:  # H12 set_state, ex: H12 V{state}
-                value = gcode_p.get_int_value(command)
+                value = gcode_p.get_int_value(command, default=0)
                 ret = self.set_state(value)
             elif num == 13:  # H13 get_state, ex: H13
                 ret = self.get_state()
@@ -2221,7 +2228,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 servo_id = gcode_p.get_id_num(command, default=0)
                 ret = self.arm_cmd.set_brake(servo_id, value)[0]
             elif num == 19:  # H19 set_mode, ex: H19 V{mode}
-                value = gcode_p.get_int_value(command)
+                value = gcode_p.get_int_value(command, default=0)
                 ret = self.set_mode(value)
             elif num == 31:  # H31 set_tcp_jerk, ex: H31 V{jerk}
                 value = gcode_p.get_float_value(command, default=-1)
@@ -2242,10 +2249,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 values = gcode_p.get_joints(command, default=0)
                 ret = self.set_tcp_load(values[0], values[1:4])
             elif num == 37:  # H37 set_collision_sensitivity, ex: H37 V{sensitivity}
-                value = gcode_p.get_int_value(command)
+                value = gcode_p.get_int_value(command, default=0)
                 ret = self.set_collision_sensitivity(value)
             elif num == 38:  # H38 set_teach_sensitivity, ex: H38 V{sensitivity}
-                value = gcode_p.get_int_value(command)
+                value = gcode_p.get_int_value(command, default=0)
                 ret = self.set_teach_sensitivity(value)
             elif num == 39:  # H39 clean_conf, ex: H39
                 ret = self.clean_conf()
@@ -2337,32 +2344,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             return ret
 
         def __handle_gcode_d(num):
-            def get_errcode():
-                errcode = [0] * 7
-                for i in range(1, 8):
-                    self.clean_error()
-                    self.clean_warn()
-                    _, data = self.get_servo_addr_32(i, XCONF.ServoConf.CURR_POS)
-                    if _ == XCONF.UxbusState.ERR_CODE:
-                        _, err_warn = self.get_err_warn_code()
-                        if err_warn[0] == i + 10:
-                            errcode[i - 1] = data
-                        else:
-                            logger.error('get_err_warn_code, ret={}, err_warn={}'.format(_, err_warn))
-                    else:
-                        pass
-                return errcode
-
-            def clean_pvlerr():
-                errcode = get_errcode()
-                for i in range(0, 7):
-                    if errcode[i] == 0x12:
-                        self.set_servo_addr_16(i + 1, XCONF.ServoConf.RESET_PVL, 0x0002)
-                        self.set_servo_addr_16(i + 1, XCONF.ServoConf.RESET_ERR, 1)
-
-            if num == 11:  # D11
-                ret = 0, get_errcode()
-            elif num == 12:  # D12
+            if num == 11:  # D11 I{id}
+                id_num = gcode_p.get_id_num(command, default=None)
+                ret = self.get_servo_error_code(id_num)
+            elif num == 12:  # D12 I{id}
                 id_num = gcode_p.get_id_num(command, default=None)
                 if id_num == 0:
                     id_num = 8
@@ -2370,41 +2355,25 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self.clean_warn()
                 self.motion_enable(id_num, False)
                 ret = self.set_servo_detach(id_num)
-            elif num == 13:  # D13
+            elif num == 13:  # D13 I{id}
                 id_num = gcode_p.get_id_num(command, default=None)
                 if id_num == 0:
                     id_num = 8
                 self.set_servo_zero(id_num)
                 ret = self.motion_enable(id_num, True)
-            elif num == 21:  # D21
-                clean_pvlerr()
-                ret = 0, get_errcode()
+            elif num == 21:  # D21 I{id}
+                id_num = gcode_p.get_id_num(command, default=None)
+                self.clean_servo_pvl_err(id_num)
+                ret = self.get_servo_error_code(id_num)
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
             return ret
 
         def __handle_gcode_s(num):
-            def get_all_pid():
-                values = [9999] * 280
-                self.clean_error()
-                self.clean_warn()
-                addrs = [
-                    XCONF.ServoConf.POS_KP, XCONF.ServoConf.POS_FWDKP, XCONF.ServoConf.POS_PWDTC,
-                    XCONF.ServoConf.SPD_KP, XCONF.ServoConf.SPD_KI, XCONF.ServoConf.CURR_KP,
-                    XCONF.ServoConf.CURR_KI, XCONF.ServoConf.SPD_IFILT, XCONF.ServoConf.SPD_OFILT,
-                    XCONF.ServoConf.CURR_IFILT, XCONF.ServoConf.POS_KD, XCONF.ServoConf.POS_CMDILT,
-                    XCONF.ServoConf.GET_TEMP, XCONF.ServoConf.OVER_TEMP
-                ]
-                for i in range(0, 7):
-                    for j, addr in enumerate(addrs):
-                        _, data = self.get_servo_addr_16(i + 1, addr)
-                        if _ == 0:
-                            values[j * 7 + i] = data
-                return 0, values
-
-            if num == 44:  # S44
-                ret = 0, get_all_pid()
+            if num == 44:  # S44 I{id}
+                id_num = gcode_p.get_id_num(command, default=None)
+                ret = self.get_servo_all_pids(id_num)
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
@@ -2466,3 +2435,69 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             return __handle_gcode_c(cmd_num)
         logger.debug('command {} is not exist'.format(command))
         return APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
+
+    @xarm_is_connected(_type='set')
+    def run_gcode_file(self, path, **kwargs):
+        times = kwargs.get('times', 1)
+        init = kwargs.get('init', False)
+        mode = kwargs.get('mode', 0)
+        state = kwargs.get('state', 0)
+        wait_seconds = kwargs.get('wait_seconds', 0)
+        try:
+            abs_path = os.path.abspath(path)
+            if not os.path.exists(abs_path):
+                raise FileNotFoundError
+            with open(abs_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            lines = [line.strip() for line in lines]
+            if init:
+                self.clean_error()
+                self.clean_warn()
+                self.motion_enable(True)
+                self.set_mode(mode)
+                self.set_state(state)
+            if wait_seconds > 0:
+                time.sleep(wait_seconds)
+
+            for i in range(times):
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if not self.connected:
+                        logger.error('xArm is disconnect')
+                        return APIState.NOT_CONNECTED
+                    ret = self.send_cmd_sync(line)
+                    if isinstance(ret, int) and ret < 0:
+                        return ret
+            return APIState.NORMAL
+        except Exception as e:
+            logger.error(e)
+            return APIState.API_EXCEPTION
+
+    @xarm_is_connected(_type='set')
+    def run_blockly_app(self, path, **kwargs):
+        """
+        Run the app generated by xArmStudio software
+        :param path: app path
+        """
+        try:
+            if not os.path.exists(path):
+                path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', 'xarm{}'.format(self.axis), 'app', 'myapp', path)
+            if os.path.isdir(path):
+                path = os.path.join(path, 'app.xml')
+            if not os.path.exists(path):
+                raise FileNotFoundError
+            blockly_tool = BlocklyTool(path)
+            succeed = blockly_tool.to_python(arm=self, **kwargs)
+            if succeed:
+                times = kwargs.get('times', 1)
+                for i in range(times):
+                    exec(blockly_tool.codes, {'arm': self})
+                return APIState.NORMAL
+            else:
+                logger.error('The conversion is incomplete and some blocks are not yet supported.')
+                return APIState.CONVERT_FAILED
+        except Exception as e:
+            logger.error(e)
+            return APIState.API_EXCEPTION

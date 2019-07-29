@@ -168,7 +168,7 @@ class BlocklyTool(object):
             self._append_to_file('    time.sleep(1)')
 
     def to_python(self, path=None, arm=None, init=True, wait_seconds=1, mode=0, state=0,
-                  error_exit=True, show_comment=False):
+                  error_exit=True, show_comment=False, **kwargs):
         self._show_comment = show_comment
         self._succeed = True
         self._init_py3(arm=arm, init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit)

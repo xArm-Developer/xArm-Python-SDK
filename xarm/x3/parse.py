@@ -30,6 +30,10 @@ GCODE_PARAM_D = 'D'  # Addr
 
 
 class GcodeParser:
+    def __init__(self):
+        self._int_val = 0
+        self._float_val = 0.0
+
     @staticmethod
     def __get_value(string, ch, return_type, default=None):
         pattern = '{}(\-?\d+\.?\d*)'.format(ch)
@@ -52,8 +56,13 @@ class GcodeParser:
     def _get_float_value(self, string, ch, default=None):
         return self.__get_value(string, ch, float, default=default)
 
-    def get_int_value(self, string, default=0):
-        return self._get_int_value(string, GCODE_PARAM_V, default=default)
+    def get_int_value(self, string, default=None):
+        if default is None:
+            default = self._int_val
+            self._int_val = self._get_int_value(string, GCODE_PARAM_V, default=default)
+            return self._int_val
+        else:
+            return self._get_int_value(string, GCODE_PARAM_V, default=default)
 
     def get_float_value(self, string, default=0):
         return self._get_float_value(string, GCODE_PARAM_V, default=default)

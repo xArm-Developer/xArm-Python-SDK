@@ -82,11 +82,11 @@ class GPIO(object):
     def get_cgpio_digital(self, ionum=None):
         assert ionum is None or (isinstance(ionum, int) and 7 >= ionum >= 0)
         ret = self.arm_cmd.cgpio_get_auxdigit()
-        if ret[0] != 0:
-            self.get_err_warn_code()
-            if self.error_code != 33:
-                ret[0] = 0
-        digitals = [0]
+        # if ret[0] != 0:
+        #     self.get_err_warn_code()
+        #     if self.error_code != 33:
+        #         ret[0] = 0
+        digitals = [ret[0]]
         for i in range(8):
             digitals.append(ret[1] >> i & 0x0001)
         return digitals[0], digitals[1:] if ionum is None else digitals[ionum+1]

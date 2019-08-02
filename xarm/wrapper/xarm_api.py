@@ -66,6 +66,7 @@ class XArmAPI(object):
                     7. property: tcp_offset
         :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
         :param kwargs: keyword parameters, generally do not need to set
+            axis: number of axes, required only when using a serial port connection, default is 7
             baudrate: serial baudrate, invalid, reserved.
             timeout: serial timeout, invalid, reserved.
             filters: serial port filters, invalid, reserved.
@@ -461,15 +462,16 @@ class XArmAPI(object):
         """
         return self._arm.gravity_direction
 
-    def connect(self, port=None, baudrate=None, timeout=None):
+    def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         """
         Connect to xArm
         
         :param port: port name or the ip address, default is the value when initializing an instance
         :param baudrate: baudrate, only available in serial way, default is the value when initializing an instance
         :param timeout: timeout, only available in serial way, default is the value when initializing an instance
+        :param axis: number of axes, required only when using a serial port connection, default is 7
         """
-        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout)
+        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout, axis=axis)
 
     def disconnect(self):
         """
@@ -1175,36 +1177,39 @@ class XArmAPI(object):
         """
         return self._arm.emergency_stop()
 
-    def set_gripper_enable(self, enable):
+    def set_gripper_enable(self, enable, is_modbus=True):
         """
         Set the gripper enable
         
-        :param enable: 
+        :param enable: enable or not
+        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_enable(enable)
+        return self._arm.set_gripper_enable(enable, is_modbus=is_modbus)
 
-    def set_gripper_mode(self, mode):
+    def set_gripper_mode(self, mode, is_modbus=True):
         """
         Set the gripper mode
         
         :param mode: 1: location mode, 2: speed mode (no use), 3: torque mode (no use)
+        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_mode(mode)
+        return self._arm.set_gripper_mode(mode, is_modbus=is_modbus)
 
-    def get_gripper_position(self):
+    def get_gripper_position(self, is_modbus=True):
         """
         Get the gripper position
         
+        :param is_modbus: use modbus or not, default is True
         :return: tuple((code, pos)), only when code is 0, the returned result is correct.
             code: See the Gripper code documentation for details.
         """
-        return self._arm.get_gripper_position()
+        return self._arm.get_gripper_position(is_modbus=is_modbus)
 
-    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, is_modbus=True):
         """
         Set the gripper position
         
@@ -1213,39 +1218,43 @@ class XArmAPI(object):
         :param speed: speed
         :param auto_enable: auto enable or not, default is False
         :param timeout: second, default is 10s
+        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)
+        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, is_modbus=is_modbus)
 
-    def set_gripper_speed(self, speed):
+    def set_gripper_speed(self, speed, is_modbus=True):
         """
         Set the gripper speed
         
         :param speed: 
+        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_speed(speed)
+        return self._arm.set_gripper_speed(speed, is_modbus=is_modbus)
 
-    def get_gripper_err_code(self):
+    def get_gripper_err_code(self, is_modbus=True):
         """
         Get the gripper error code
         
+        :param is_modbus: use modbus or not, default is True
         :return: tuple((code, err_code)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
             err_code: See the Gripper code documentation for details.
         """
-        return self._arm.get_gripper_err_code()
+        return self._arm.get_gripper_err_code(is_modbus=is_modbus)
 
-    def clean_gripper_error(self):
+    def clean_gripper_error(self, is_modbus=True):
         """
         Clean the gripper error
         
+        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.clean_gripper_error()
+        return self._arm.clean_gripper_error(is_modbus=is_modbus)
 
     def get_tgpio_digital(self, ionum=None):
         """

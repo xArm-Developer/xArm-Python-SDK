@@ -349,8 +349,9 @@ class Servo(object):
             'The value of parameter servo_id must be greater than 1 or None.'
         code = 0
         if servo_id is None or servo_id > self.axis:
-            errcodes = [0] * self.axis
-            for i in range(self.axis):
+            count = 7 if servo_id == 8 else self.axis
+            errcodes = [0] * count
+            for i in range(count):
                 ret = self.get_servo_addr_32(i + 1, XCONF.ServoConf.CURR_POS)
                 if ret[0] == XCONF.UxbusState.ERR_CODE:
                     _, err_warn = self.get_err_warn_code()
@@ -384,7 +385,8 @@ class Servo(object):
         assert servo_id is None or (isinstance(servo_id, int) and servo_id >= 1), \
             'The value of parameter servo_id must be greater than 1 or None.'
         if servo_id is None or servo_id > self.axis:
-            ids = range(self.axis)
+            count = 7 if servo_id == 8 else self.axis
+            ids = range(count)
         else:
             ids = [servo_id - 1]
         _, errcode = self.get_servo_error_code()
@@ -408,8 +410,9 @@ class Servo(object):
             XCONF.ServoConf.GET_TEMP, XCONF.ServoConf.OVER_TEMP
         ]
         if servo_id is None or servo_id > self.axis:
-            pids = [[9999] * len(addrs) for _ in range(self.axis)]
-            for i in range(self.axis):
+            count = 7 if servo_id == 8 else self.axis
+            pids = [[9999] * len(addrs) for _ in range(count)]
+            for i in range(count):
                 for j, addr in enumerate(addrs):
                     _, data = self.get_servo_addr_16(i + 1, addr)
                     if _ == 0:

@@ -97,6 +97,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._cmd_num = 0
         self._arm_type = XCONF.Robot.Type.XARM7_X4
         self._arm_axis = XCONF.Robot.Axis.XARM7
+        axis = kwargs.get('axis', self._arm_axis)
+        if axis in [5, 6, 7]:
+            self._arm_axis = axis
         self._arm_master_id = 0
         self._arm_slave_id = 0
         self._arm_motor_tid = 0
@@ -316,9 +319,11 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def gravity_direction(self):
         return self._gravity_direction
 
-    def connect(self, port=None, baudrate=None, timeout=None):
+    def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         if self.connected:
             return
+        if axis in [5, 6, 7]:
+            self._arm_axis = axis
         self._is_ready = True
         self._port = port if port is not None else self._port
         self._baudrate = baudrate if baudrate is not None else self._baudrate
@@ -370,6 +375,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     self._report_connect_changed_callback(True, True)
                 else:
                     self._report_connect_changed_callback(True, False)
+                self._check_version()
 
     def _check_version(self):
         self._version = None
@@ -1476,22 +1482,58 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_pause(_type='set')
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        if speed is None:
-            speed = 0.8726646259971648  # 50 °/s
-        else:
+        # if speed is None:
+        #     speed = 0.8726646259971648  # 50 °/s
+        # else:
+        #     if not is_radian:
+        #         speed = math.radians(speed)
+        # if mvacc is None:
+        #     mvacc = 17.453292519943297  # 1000 °/s^2
+        # else:
+        #     if not is_radian:
+        #         mvacc = math.radians(mvacc)
+        # if mvtime is None:
+        #     mvtime = 0
+
+        if speed is not None:
+            if isinstance(speed, str):
+                if speed.isdigit():
+                    speed = float(speed)
+                else:
+                    speed = self._last_joint_speed if is_radian else math.degrees(self._last_joint_speed)
             if not is_radian:
                 speed = math.radians(speed)
-        if mvacc is None:
-            mvacc = 17.453292519943297  # 1000 °/s^2
-        else:
+            self._last_joint_speed = min(max(speed, self._min_joint_speed), self._max_joint_speed)
+        elif kwargs.get('mvvelo', None) is not None:
+            mvvelo = kwargs.get('mvvelo')
+            if isinstance(mvvelo, str):
+                if mvvelo.isdigit():
+                    mvvelo = float(mvvelo)
+                else:
+                    mvvelo = self._last_joint_speed if is_radian else math.degrees(self._last_joint_speed)
+            if not is_radian:
+                mvvelo = math.radians(mvvelo)
+            self._last_joint_speed = min(max(mvvelo, self._min_joint_speed), self._max_joint_speed)
+        if mvacc is not None:
+            if isinstance(mvacc, str):
+                if mvacc.isdigit():
+                    mvacc = float(mvacc)
+                else:
+                    mvacc = self._last_joint_acc if is_radian else math.degrees(self._last_joint_acc)
             if not is_radian:
                 mvacc = math.radians(mvacc)
-        if mvtime is None:
-            mvtime = 0
+            self._last_joint_acc = min(max(mvacc, self._min_joint_acc), self._max_joint_acc)
+        if mvtime is not None:
+            if isinstance(mvtime, str):
+                if mvacc.isdigit():
+                    mvtime = float(mvtime)
+                else:
+                    mvtime = self._mvtime
+            self._mvtime = mvtime
 
-        ret = self.arm_cmd.move_gohome(speed, mvacc, mvtime)
+        ret = self.arm_cmd.move_gohome(self._last_joint_speed, self._last_joint_acc, self._mvtime)
         logger.info('API -> move_gohome -> ret={}, velo={}, acc={}'.format(
-            ret[0], speed, mvacc
+            ret[0], self._last_joint_speed, self._last_joint_acc
         ))
         self._is_set_move = True
         if ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
@@ -2353,14 +2395,14 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     id_num = 8
                 self.clean_error()
                 self.clean_warn()
-                self.motion_enable(id_num, False)
+                self.motion_enable(enable=False, servo_id=id_num)
                 ret = self.set_servo_detach(id_num)
             elif num == 13:  # D13 I{id}
                 id_num = gcode_p.get_id_num(command, default=None)
                 if id_num == 0:
                     id_num = 8
                 self.set_servo_zero(id_num)
-                ret = self.motion_enable(id_num, True)
+                ret = self.motion_enable(enable=True, servo_id=id_num)
             elif num == 21:  # D21 I{id}
                 id_num = gcode_p.get_id_num(command, default=None)
                 self.clean_servo_pvl_err(id_num)

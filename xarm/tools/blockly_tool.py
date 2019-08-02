@@ -146,25 +146,32 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, 'time.sleep({})\n'.format(wait_seconds))
         self._insert_to_file(self.index, 'params = {\'speed\': 100, \'acc\': 2000, '
                                          '\'angle_speed\': 20, \'angle_acc\': 500, '
-                                         '\'events\': {}, \'variables\': {}}')
+                                         '\'events\': {}, \'variables\': {}, \'quit\': False}')
         if error_exit:
             self._insert_to_file(self.index, '\n\n# Register error/warn changed callback')
             self._insert_to_file(self.index, 'def error_warn_change_callback(data):')
             self._insert_to_file(self.index, '    if data and data[\'error_code\'] != 0:')
             self._insert_to_file(self.index, '        arm.set_state(4)')
-            self._insert_to_file(self.index, '        sys.exit(1)')
+            self._insert_to_file(self.index, '        params[\'quit\'] = True')
+            # self._insert_to_file(self.index, '        sys.exit(1)')
             self._insert_to_file(self.index, 'arm.register_error_warn_changed_callback(error_warn_change_callback)')
             # self._insert_to_file(self.index, '\n\n# Register state changed callback')
             # self._insert_to_file(self.index, 'def state_change_callback(data):')
             # self._insert_to_file(self.index, '    if data and data[\'state\'] == 4:')
             # self._insert_to_file(self.index, '        sys.exit(1)')
             # self._insert_to_file(self.index, 'arm.register_state_changed_callback(state_change_callback)\n')
+        self._insert_to_file(self.index, '\n\n# Register state changed callback')
+        self._insert_to_file(self.index, 'def state_changed_callback(data):')
+        self._insert_to_file(self.index, '    if data and data[\'state\'] == 4:')
+        self._insert_to_file(self.index, '        params[\'quit\'] = True')
+        self._insert_to_file(self.index, 'arm.register_state_changed_callback(state_changed_callback)')
+
         self._first_index = self._index
 
     def _finish_py3(self):
         if self._hasEvent:
             self._append_to_file('\n# Main loop')
-            self._append_to_file('while arm.connected and arm.error_code == 0:')
+            self._append_to_file('while arm.connected and arm.error_code == 0 and not params[\'quit\']:')
             self._append_to_file('    time.sleep(1)')
 
     def to_python(self, path=None, arm=None, init=True, wait_seconds=1, mode=0, state=0,

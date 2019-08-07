@@ -185,7 +185,12 @@ class XCONF(object):
         IS_JOINT_LIMIT = 45
         IS_TCP_LIMIT = 46
 
+        SET_REDUCED_TRSV = 47
+        SET_REDUCED_P2PV = 48
+        GET_REDUCED_MODE = 49
+        SET_REDUCED_MODE = 50
         SET_GRAVITY_DIR = 51
+        SET_LIMIT_XYZ = 52
 
         SET_TRAJ_RECORD = 61
         SAVE_TRAJ = 62

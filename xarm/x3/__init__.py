@@ -1698,6 +1698,35 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         logger.info('API -> shutdown_system -> ret={}'.format(ret[0]))
         return ret[0]
 
+    @xarm_is_connected(_type='set')
+    def set_reduced_mode(self, on_off):
+        ret = self.arm_cmd.set_reduced_mode(on_off)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_reduced_max_linear_speed(self, lspd_mm):
+        ret = self.arm_cmd.set_reduced_linespeed(lspd_mm)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_reduced_max_joint_speed(self, speed, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        speed = speed
+        if not is_radian:
+            speed = math.radians(speed)
+        ret = self.arm_cmd.set_reduced_jointspeed(speed)
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_reduced_mode(self):
+        ret = self.arm_cmd.get_reduced_mode()
+        return ret[0], ret[1]
+
+    @xarm_is_connected(_type='set')
+    def set_xyz_limits(self, xyz_list):
+        ret = self.arm_cmd.set_xyz_limits(xyz_list)
+        return ret[0]
+
     def get_is_moving(self):
         self.get_state()
         return self._state == 1

@@ -161,7 +161,7 @@ class Gripper(object):
                             count2 += 1
                             if count2 >= 10:
                                 break
-                    if count >= 5:
+                    if count >= 7:
                         # print('gripper target: {}, current: {}'.format(pos, cur_pos))
                         break
                     time.sleep(0.2)
@@ -287,8 +287,8 @@ class Gripper(object):
                             count2 += 1
                             if count2 >= 10:
                                 break
-                    if count >= 5:
-                        # print('gripper target: {}, current: {}'.format(pos, cur_pos))
+                    if count >= 7:
+                        print('gripper target: {}, current: {}'.format(pos, cur_pos))
                         break
                     time.sleep(0.2)
                 else:

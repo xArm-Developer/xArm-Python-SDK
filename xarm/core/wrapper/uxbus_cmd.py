@@ -176,6 +176,24 @@ class UxbusCmd(object):
         time.sleep(wait_time)  # Must! or buffer would be flushed if set mode to pos_mode
         return ret
 
+    def set_reduced_mode(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_REDUCED_MODE, txdata, 1)
+
+    def set_reduced_linespeed(self, lspd_mm):
+        txdata = [lspd_mm]
+        return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_TRSV, txdata, 1)
+
+    def set_reduced_jointspeed(self, jspd_rad):
+        txdata = [jspd_rad]
+        return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_P2PV, txdata, 1)
+
+    def get_reduced_mode(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_REDUCED_MODE, 1)
+
+    def set_xyz_limits(self, xyz_list):
+        return self.set_nint32(XCONF.UxbusReg.SET_LIMIT_XYZ, xyz_list, 6)
+
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
         return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2)

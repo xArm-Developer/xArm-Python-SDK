@@ -799,6 +799,68 @@ class XArmAPI(object):
         """
         return self._arm.shutdown_system(value=value)
 
+    def list_trajectories(self, ip=None):
+        return self._arm.list_trajectories(ip=ip)
+
+    def start_record_trajectory(self):
+        return self._arm.start_record_trajectory()
+
+    def stop_record_trajectory(self, filename=None, wait_time=2):
+        return self._arm.stop_record_trajectory(filename=filename, wait_time=wait_time)
+
+    def save_record_trajectory(self, filename, wait_time=2):
+        return self._arm.save_record_trajectory(filename, wait_time=wait_time)
+
+    def load_trajectory(self, filename, wait_time=2):
+        return self._arm.load_trajectory(filename, wait_time=wait_time)
+
+    def playback_trajectory(self, times=1, filename=None, wait_time=2):
+        return self._arm.playback_trajectory(times=times, filename=filename, wait_time=wait_time)
+
+    def get_reduced_mode(self):
+        return self._arm.get_reduced_mode()
+
+    def set_reduced_mode(self, on_off):
+        """
+        Set reduced mode
+        
+        :param on_off: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_mode(on_off)
+
+    def set_reduced_max_linear_speed(self, speed):
+        """
+        Set the reduced mode maximum linear speed
+
+        :param speed: speed (mm/s)
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_max_linear_speed(speed)
+
+    def set_reduced_max_joint_speed(self, speed, is_radian=None):
+        """
+        Set the reduced mode maximum joint speed
+        
+        :param speed: speed (°/s or rad/s)
+        :param is_radian: the speed is in radians or not, default is self.default_is_radian
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_max_joint_speed(speed, is_radian=is_radian)
+
+    def set_xyz_limits(self, xyz_list):
+        """
+        Set the limits of xyz
+        
+        :param xyz_list: [x_max, x_min, y_max, y_min, z_max, z_min]
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_xyz_limits(xyz_list)
+
     def get_is_moving(self):
         """
         Check xArm is moving or not

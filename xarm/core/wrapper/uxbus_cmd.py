@@ -191,6 +191,15 @@ class UxbusCmd(object):
     def get_reduced_mode(self):
         return self.get_nu8(XCONF.UxbusReg.GET_REDUCED_MODE, 1)
 
+    def get_reduced_states(self):
+        ret = self.get_nu8(XCONF.UxbusReg.GET_REDUCED_STATE, 21)
+        msg = [0] * 5
+        msg[0] = ret[0]
+        msg[1] = ret[1]
+        msg[2] = convert.bytes_to_16s(ret[2:14], 6)
+        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)
+        return msg
+
     def set_xyz_limits(self, xyz_list):
         return self.set_nint32(XCONF.UxbusReg.SET_LIMIT_XYZ, xyz_list, 6)
 

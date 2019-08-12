@@ -191,6 +191,7 @@ class XCONF(object):
         SET_REDUCED_MODE = 50
         SET_GRAVITY_DIR = 51
         SET_LIMIT_XYZ = 52
+        GET_REDUCED_STATE = 53
 
         SET_TRAJ_RECORD = 61
         SAVE_TRAJ = 62

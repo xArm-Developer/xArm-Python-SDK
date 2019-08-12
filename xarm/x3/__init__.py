@@ -1704,8 +1704,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def set_reduced_max_linear_speed(self, lspd_mm):
-        ret = self.arm_cmd.set_reduced_linespeed(lspd_mm)
+    def set_reduced_max_tcp_speed(self, speed):
+        ret = self.arm_cmd.set_reduced_linespeed(speed)
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1720,11 +1720,29 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='get')
     def get_reduced_mode(self):
         ret = self.arm_cmd.get_reduced_mode()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
         return ret[0], ret[1]
 
+    @xarm_is_connected(_type='get')
+    def get_reduced_states(self, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        ret = self.arm_cmd.get_reduced_states()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+            if not is_radian:
+                ret[4] = round(math.degrees(ret[4]), 1)
+        return ret[0], ret[1:]
+
     @xarm_is_connected(_type='set')
-    def set_xyz_limits(self, xyz_list):
-        ret = self.arm_cmd.set_xyz_limits(xyz_list)
+    def set_reduced_tcp_boundary(self, boundary):
+        assert len(boundary) >= 6
+        boundary = list(map(int, boundary))
+        limits = [0] * 6
+        limits[0:2] = boundary[0:2] if boundary[0] >= boundary[1] else boundary[0:2][::-1]
+        limits[2:4] = boundary[2:4] if boundary[2] >= boundary[3] else boundary[2:4][::-1]
+        limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
+        ret = self.arm_cmd.set_xyz_limits(limits)
         return ret[0]
 
     def get_is_moving(self):

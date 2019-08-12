@@ -78,6 +78,13 @@ def bytes_to_u16s(data, n):
     return ret
 
 
+def bytes_to_16s(data, n):
+    ret = [0] * n
+    for i in range(n):
+        ret[i] = struct.unpack(">h", bytes(data[i * 2: i * 2 + 2]))[0]
+    return ret
+
+
 def bytes_to_u32(data):
     data_u32 = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]
     return data_u32

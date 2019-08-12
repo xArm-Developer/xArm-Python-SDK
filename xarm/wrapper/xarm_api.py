@@ -799,50 +799,169 @@ class XArmAPI(object):
         """
         return self._arm.shutdown_system(value=value)
 
-    def list_trajectories(self, ip=None):
-        return self._arm.list_trajectories(ip=ip)
+    def list_trajectories(self):
+        """
+        List the trajectories
+        
+        Note: 
+            1. This interface relies on xArmStudio 1.2.0 or above
+            2. This interface relies on Firmware 1.2.0 or above
+        
+        :return: tuple((code, trajectories))
+            code: See the API code documentation for details.
+            trajectories: [{
+                'name': name, # The name of the trajectory
+                'duration': duration, # The duration of the trajectory (seconds)
+            }]
+        """
+        return self._arm.list_trajectories()
 
     def start_record_trajectory(self):
-        return self._arm.start_record_trajectory()
-
-    def stop_record_trajectory(self, filename=None, wait_time=2):
-        return self._arm.stop_record_trajectory(filename=filename, wait_time=wait_time)
-
-    def save_record_trajectory(self, filename, wait_time=2):
-        return self._arm.save_record_trajectory(filename, wait_time=wait_time)
-
-    def load_trajectory(self, filename, wait_time=2):
-        return self._arm.load_trajectory(filename, wait_time=wait_time)
-
-    def playback_trajectory(self, times=1, filename=None, wait_time=2):
-        return self._arm.playback_trajectory(times=times, filename=filename, wait_time=wait_time)
-
-    def get_reduced_mode(self):
-        return self._arm.get_reduced_mode()
-
-    def set_reduced_mode(self, on_off):
         """
-        Set reduced mode
+        Start trajectory recording, only in teach mode, so you need to set joint teaching mode before.
         
-        :param on_off: True/False
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+            
+        Note: 
+            1. set joint teaching mode: set_mode(2);set_state(0)
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_reduced_mode(on_off)
+        return self._arm.start_record_trajectory()
 
-    def set_reduced_max_linear_speed(self, speed):
+    def stop_record_trajectory(self, filename=None, wait_time=2):
         """
-        Set the reduced mode maximum linear speed
+        Stop trajectory recording
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param filename: The name to save
+            1. Only strings consisting of English or numbers are supported, and the length is no more than 50.
+            2. The trajectory is saved in the controller box.
+            3. If the tilename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost
+            4. This action will overwrite the trajectory with the same name
+            5. Empty the trajectory in memory after saving
+        :param wait_time: Waiting for save time, only valid when filename is not None
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.stop_record_trajectory(filename=filename, wait_time=wait_time)
+
+    def save_record_trajectory(self, filename, wait_time=2):
+        """
+        Save the trajectory you just recorded
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+         
+        :param filename: The name to save
+            1. Only strings consisting of English or numbers are supported, and the length is no more than 50.
+            2. The trajectory is saved in the controller box.
+            3. This action will overwrite the trajectory with the same name
+            4. Empty the trajectory in memory after saving, so repeated calls will cause the recorded trajectory to be covered by an empty trajectory. 
+        :param wait_time: Waiting for save time
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.save_record_trajectory(filename, wait_time=wait_time)
+
+    def load_trajectory(self, filename, wait_time=2):
+        """
+        Load the trajectory
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param filename: The name of the trajectory to load
+        :param wait_time: Waiting for load time
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.load_trajectory(filename, wait_time=wait_time)
+
+    def playback_trajectory(self, times=1, filename=None, wait_time=2):
+        """
+        Playback trajectory
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param times: Number of playbacks,
+            1. Only valid when the current position of the arm is the end position of the track, otherwise it will only be played once.
+        :param filename: The name of the trajectory to play back
+            1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
+        :param wait_time: Waiting for load time，only valid when filename is not None
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.playback_trajectory(times=times, filename=filename, wait_time=wait_time)
+
+    def get_reduced_mode(self):
+        """
+        Get reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :return: tuple((code, mode))
+            code: See the API code documentation for details.
+            mode: 0 or 1, 1 means that the reduced mode is turned on.
+        """
+        return self._arm.get_reduced_mode()
+
+    def get_reduced_states(self, is_radian=None):
+        """
+        Get states of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
+        :return: tuple((code, states))
+            code: See the API code documentation for details.
+            states: [
+                reduced_mode_is_on,
+                [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
+                reduced_max_tcp_speed,
+                reduced_max_joint_speed,
+            ]
+        """
+        return self._arm.get_reduced_states(is_radian=is_radian)
+
+    def set_reduced_mode(self, on):
+        """
+        Turn on/off reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param on: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_mode(on)
+
+    def set_reduced_max_tcp_speed(self, speed):
+        """
+        Set the maximum tcp speed of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
 
         :param speed: speed (mm/s)
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_reduced_max_linear_speed(speed)
+        return self._arm.set_reduced_max_tcp_speed(speed)
 
     def set_reduced_max_joint_speed(self, speed, is_radian=None):
         """
-        Set the reduced mode maximum joint speed
+        Set the maximum joint speed of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
         
         :param speed: speed (°/s or rad/s)
         :param is_radian: the speed is in radians or not, default is self.default_is_radian
@@ -851,15 +970,18 @@ class XArmAPI(object):
         """
         return self._arm.set_reduced_max_joint_speed(speed, is_radian=is_radian)
 
-    def set_xyz_limits(self, xyz_list):
+    def set_reduced_tcp_boundary(self, boundary):
         """
-        Set the limits of xyz
+        Set the boundary of the reduced mode
         
-        :param xyz_list: [x_max, x_min, y_max, y_min, z_max, z_min]
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param boundary: [x_max, x_min, y_max, y_min, z_max, z_min]
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_xyz_limits(xyz_list)
+        return self._arm.set_reduced_tcp_boundary(boundary)
 
     def get_is_moving(self):
         """

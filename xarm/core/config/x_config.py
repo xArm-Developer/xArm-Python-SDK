@@ -13,7 +13,7 @@ class XCONF(object):
     ARM_AXIS_NUM = 7
     GRIPPER_ID = 8
     TGPIO_ID = 9
-    MAX_CMD_NUM = 256
+    MAX_CMD_NUM = 1000
 
     def __init__(self):
         pass
@@ -193,10 +193,16 @@ class XCONF(object):
         SET_LIMIT_XYZ = 52
         GET_REDUCED_STATE = 53
 
+        SET_SERVOT = 54
+        GET_JOINT_TAU = 55
+        SET_SAFE_LEVEL = 56
+        GET_SAFE_LEVEL = 57
+
         SET_TRAJ_RECORD = 61
         SAVE_TRAJ = 62
         LOAD_TRAJ = 63
         PLAY_TRAJ = 64
+        GET_TRAJ_RW_STATUS = 65
 
         SERVO_W16B = 101
         SERVO_R16B = 102
@@ -290,6 +296,15 @@ class XCONF(object):
         ERR_NOTTCP = 8  # 发送错误
         ERR_OTHER = 11  # 其它错误
         ERR_PARAM = 12  # 参数错误
+
+    class TrajState:
+        IDLE = 0
+        LOADING = 1
+        LOAD_SUCCESS = 2
+        LOAD_FAIL = 3
+        SAVING = 4
+        SAVE_SUCCESS = 5
+        SAVE_FAIL = 6
 
 
 

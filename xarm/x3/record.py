@@ -7,9 +7,12 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import json
+import time
 from urllib import request
 from .utils import xarm_is_connected
 from .code import APIState
+from ..core.config.x_config import XCONF
+from ..core.utils.log import logger
 
 
 class Record(object):
@@ -17,7 +20,7 @@ class Record(object):
         pass
 
     @xarm_is_connected(_type='get')
-    def list_trajectories(self, ip=None):
+    def get_trajectories(self, ip=None):
         if ip is None:
             url = 'http://{}:18333/cmd'.format(self._port)
         else:
@@ -37,43 +40,108 @@ class Record(object):
     @xarm_is_connected(_type='set')
     def start_record_trajectory(self):
         ret = self.arm_cmd.set_record_traj(1)
-        print('record start: ret={}'.format(ret))
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def stop_record_trajectory(self, filename=None, wait_time=2):
+    def stop_record_trajectory(self, filename=None):
         ret = self.arm_cmd.set_record_traj(0)
-        print('record stop: ret={}'.format(ret))
         if isinstance(filename, str) and filename.strip():
-            self.save_record_trajectory(filename, wait_time=wait_time)
+            ret2 = self.save_record_trajectory(filename, wait=True, timeout=10)
+            if ret2 != 0:
+                return ret2
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def save_record_trajectory(self, filename, wait_time=2):
+    def save_record_trajectory(self, filename, wait=True, timeout=2):
         assert isinstance(filename, str) and filename.strip()
         filename = filename.strip()
         if not filename.endswith('.traj'):
-            filename = '{}.traj'.format(filename)
-        ret = self.arm_cmd.save_traj(filename.strip(), wait_time=wait_time)
-        print('record save: ret={}'.format(ret))
+            full_filename = '{}.traj'.format(filename)
+        else:
+            full_filename = filename
+        ret = self.arm_cmd.save_traj(full_filename, wait_time=0)
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            if wait:
+                start_time = time.time()
+                while time.time() - start_time < timeout:
+                    code, status = self.get_trajectory_rw_status()
+                    if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+                        if status == XCONF.TrajState.IDLE:
+                            logger.info('Save {} failed'.format(filename))
+                            return APIState.TRAJ_RW_FAILED
+                        elif status == XCONF.TrajState.SAVE_SUCCESS:
+                            logger.info('Save {} success'.format(filename))
+                            return 0
+                        elif status == XCONF.TrajState.SAVE_FAIL:
+                            logger.error('Save {} failed'.format(filename))
+                            return APIState.TRAJ_RW_FAILED
+                    time.sleep(0.1)
+                logger.warning('Save {} timeout'.format(filename))
+                return APIState.TRAJ_RW_TOUT
+            else:
+                return ret[0]
+        logger.error('Save {} failed, ret={}'.format(filename, ret))
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def load_trajectory(self, filename, wait_time=2):
+    def load_trajectory(self, filename, wait=True, timeout=2):
         assert isinstance(filename, str) and filename.strip()
         filename = filename.strip()
         if not filename.endswith('.traj'):
-            filename = '{}.traj'.format(filename)
-        ret = self.arm_cmd.load_traj(filename, wait_time=wait_time)
-        print('record load: ret={}'.format(ret))
+            full_filename = '{}.traj'.format(filename)
+        else:
+            full_filename = filename
+        ret = self.arm_cmd.load_traj(full_filename, wait_time=0)
+        if ret[0] == 0:
+            if wait:
+                start_time = time.time()
+                while time.time() - start_time < timeout:
+                    code, status = self.get_trajectory_rw_status()
+                    if code == 0:
+                        if status == XCONF.TrajState.IDLE:
+                            logger.info('Load {} failed'.format(filename))
+                            return APIState.TRAJ_RW_FAILED
+                        elif status == XCONF.TrajState.LOAD_SUCCESS:
+                            logger.info('Load {} success'.format(filename))
+                            return 0
+                        elif status == XCONF.TrajState.LOAD_FAIL:
+                            logger.error('Load {} failed'.format(filename))
+                            return APIState.TRAJ_RW_FAILED
+                    time.sleep(0.1)
+                logger.warning('Load {} timeout'.format(filename))
+                return APIState.TRAJ_RW_TOUT
+            else:
+                return ret[0]
+        logger.error('Load {} failed, ret={}'.format(filename, ret))
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def playback_trajectory(self, times=1, filename=None, wait_time=2):
+    def playback_trajectory(self, times=1, filename=None, wait=False):
         assert isinstance(times, int)
         times = times if times > 0 else -1
         if isinstance(filename, str) and filename.strip():
-            self.load_trajectory(filename, wait_time=wait_time)
+            ret = self.load_trajectory(filename, wait=True, timeout=10)
+            if ret != 0:
+                return ret
         ret = self.arm_cmd.playback_traj(times)
-        print('record play: ret={}'.format(ret))
+        if ret[0] == 0 and wait:
+            start_time = time.time()
+            while self.state != 1:
+                if time.time() - start_time > 2:
+                    break
+            start_time = time.time()
+            while self.mode != 11:
+                if time.time() - start_time > 5:
+                    break
+                time.sleep(0.1)
+            while self.state != 4 and self.state != 2:
+                time.sleep(0.1)
+            if self.state != 4:
+                self.set_mode(0)
+                self.set_state(0)
         return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_trajectory_rw_status(self):
+        ret = self.arm_cmd.get_traj_rw_status()
+        return ret[0], ret[1]

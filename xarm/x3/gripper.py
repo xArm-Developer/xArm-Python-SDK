@@ -16,6 +16,10 @@ class Gripper(object):
     def __init__(self):
         self._gripper_error_code = 0
 
+    @property
+    def gripper_error_code(self):
+        return self._gripper_error_code
+
     @xarm_is_connected(_type='set')
     def set_gripper_enable(self, enable, is_modbus=True):
         if is_modbus:
@@ -208,21 +212,24 @@ class Gripper(object):
         ret = self.arm_cmd.gripper_modbus_set_en(int(enable))
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_enable -> ret={}, enable={}, ret2={}, err={}'.format(ret[0], enable, _, err))
-        return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        return ret[0]
 
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_mode(self, mode):
         ret = self.arm_cmd.gripper_modbus_set_mode(mode)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_mode -> ret={}, mode={}, ret2={}, err={}'.format(ret[0], mode, _, err))
-        return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        return ret[0]
 
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_speed(self, speed):
         ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_speed -> ret={}, speed={}, ret2={}, err={}'.format(ret[0], speed, _, err))
-        return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        return ret[0]
 
     @xarm_is_connected(_type='get')
     def _get_modbus_gripper_position(self):
@@ -233,7 +240,8 @@ class Gripper(object):
         elif _ == 0 and err == 0:
             return ret[0], int(ret[1])
         else:
-            return _ if err == 0 else XCONF.UxbusState.ERR_CODE, None
+            return ret[0], None
+            # return _ if err == 0 else XCONF.UxbusState.ERR_CODE, None
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
@@ -287,28 +295,28 @@ class Gripper(object):
                             count2 += 1
                             if count2 >= 10:
                                 break
-                    if count >= 7:
-                        print('gripper target: {}, current: {}'.format(pos, cur_pos))
+                    if count >= 8:
+                        # print('gripper target: {}, current: {}'.format(pos, cur_pos))
                         break
-                    time.sleep(0.2)
                 else:
-                    return _
+                    break
+                time.sleep(0.2)
             # print('gripper, pos: {}, last: {}'.format(pos, last_pos))
             return ret[0]
         else:
             _, err = self._get_modbus_gripper_err_code()
-            return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
-            # return err if _ == 0 and err != 0 else ret[0]
+            # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+            return ret[0]
 
     @xarm_is_connected(_type='get')
     def _get_modbus_gripper_err_code(self):
         ret = self.arm_cmd.gripper_modbus_get_errcode()
+        logger.info('API -> _get_modbus_gripper_err_code -> ret={}'.format(ret))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._gripper_error_code = ret[1]
             if ret[0] == XCONF.UxbusState.ERR_CODE:
                 self.get_err_warn_code()
                 if self.error_code == 19 or self.error_code == 28:
-                    print('gripper/tgpio error, code=C{}, G{}'.format(self.error_code, ret[1]))
                     return ret[0], ret[1]
             ret[0] = 0
             return ret[0], ret[1]
@@ -319,8 +327,8 @@ class Gripper(object):
         ret = self.arm_cmd.gripper_modbus_clean_err()
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> clean_modbus_gripper_error -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
-        return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
-        # return err if _ == 0 and err != 0 else ret[0]
+        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        return ret[0]
 
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_zero(self):
@@ -331,5 +339,5 @@ class Gripper(object):
         ret = self.arm_cmd.gripper_modbus_set_zero()
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_zero -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
-        return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
-        # return err if _ == 0 and err != 0 else ret[0]
+        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        return ret[0]

@@ -76,6 +76,9 @@ class XArmAPI(object):
                 Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
             check_cmdnum_limit: check the cmdnum out of limit or not, default is True
                 Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
+            max_cmdnum: max cmdnum, default is 256
+                Note: only available in the param `check_cmdnum_limit` is True
+                Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
             check_is_ready: check if the arm is in motion, default is True
                 Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`move_circle`/`move_gohome`/`move_arc_lines`
         """
@@ -799,9 +802,9 @@ class XArmAPI(object):
         """
         return self._arm.shutdown_system(value=value)
 
-    def list_trajectories(self):
+    def get_trajectories(self):
         """
-        List the trajectories
+        get the trajectories
         
         Note: 
             1. This interface relies on xArmStudio 1.2.0 or above
@@ -814,7 +817,7 @@ class XArmAPI(object):
                 'duration': duration, # The duration of the trajectory (seconds)
             }]
         """
-        return self._arm.list_trajectories()
+        return self._arm.get_trajectories()
 
     def start_record_trajectory(self):
         """
@@ -830,7 +833,7 @@ class XArmAPI(object):
         """
         return self._arm.start_record_trajectory()
 
-    def stop_record_trajectory(self, filename=None, wait_time=2):
+    def stop_record_trajectory(self, filename=None):
         """
         Stop trajectory recording
         
@@ -843,13 +846,12 @@ class XArmAPI(object):
             3. If the tilename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost
             4. This action will overwrite the trajectory with the same name
             5. Empty the trajectory in memory after saving
-        :param wait_time: Waiting for save time, only valid when filename is not None
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.stop_record_trajectory(filename=filename, wait_time=wait_time)
+        return self._arm.stop_record_trajectory(filename=filename)
 
-    def save_record_trajectory(self, filename, wait_time=2):
+    def save_record_trajectory(self, filename, wait=True, timeout=2):
         """
         Save the trajectory you just recorded
         
@@ -861,13 +863,14 @@ class XArmAPI(object):
             2. The trajectory is saved in the controller box.
             3. This action will overwrite the trajectory with the same name
             4. Empty the trajectory in memory after saving, so repeated calls will cause the recorded trajectory to be covered by an empty trajectory. 
-        :param wait_time: Waiting for save time
+        :param wait: Whether to wait for saving, default is True
+        :param timeout: Timeout waiting for saving to complete
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.save_record_trajectory(filename, wait_time=wait_time)
+        return self._arm.save_record_trajectory(filename, wait=wait, timeout=timeout)
 
-    def load_trajectory(self, filename, wait_time=2):
+    def load_trajectory(self, filename, wait=True, timeout=2):
         """
         Load the trajectory
         
@@ -875,13 +878,14 @@ class XArmAPI(object):
             1. This interface relies on Firmware 1.2.0 or above
         
         :param filename: The name of the trajectory to load
-        :param wait_time: Waiting for load time
+        :param wait: Whether to wait for loading, default is True
+        :param timeout: Timeout waiting for loading to complete
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.load_trajectory(filename, wait_time=wait_time)
+        return self._arm.load_trajectory(filename, wait=wait, timeout=timeout)
 
-    def playback_trajectory(self, times=1, filename=None, wait_time=2):
+    def playback_trajectory(self, times=1, filename=None, wait=False):
         """
         Playback trajectory
         
@@ -892,11 +896,28 @@ class XArmAPI(object):
             1. Only valid when the current position of the arm is the end position of the track, otherwise it will only be played once.
         :param filename: The name of the trajectory to play back
             1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
-        :param wait_time: Waiting for load time，only valid when filename is not None
+        :param wait: whether to wait for the arm to complete, default is False
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.playback_trajectory(times=times, filename=filename, wait_time=wait_time)
+        return self._arm.playback_trajectory(times=times, filename=filename, wait=wait)
+
+    def get_trajectory_rw_status(self):
+        """
+        Get trajectory read/write status
+
+        :return: (code, status)
+            code: See the API code documentation for details.
+            status:
+                0: no read/write
+                1: loading
+                2: load success
+                3: load failed
+                4: saving
+                5: save success
+                6: save failed
+        """
+        return self._arm.get_trajectory_rw_status()
 
     def get_reduced_mode(self):
         """
@@ -1361,39 +1382,36 @@ class XArmAPI(object):
         """
         return self._arm.emergency_stop()
 
-    def set_gripper_enable(self, enable, is_modbus=True):
+    def set_gripper_enable(self, enable, **kwargs):
         """
         Set the gripper enable
         
         :param enable: enable or not
-        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_enable(enable, is_modbus=is_modbus)
+        return self._arm.set_gripper_enable(enable, **kwargs)
 
-    def set_gripper_mode(self, mode, is_modbus=True):
+    def set_gripper_mode(self, mode, **kwargs):
         """
         Set the gripper mode
         
         :param mode: 1: location mode, 2: speed mode (no use), 3: torque mode (no use)
-        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_mode(mode, is_modbus=is_modbus)
+        return self._arm.set_gripper_mode(mode, **kwargs)
 
-    def get_gripper_position(self, is_modbus=True):
+    def get_gripper_position(self, **kwargs):
         """
         Get the gripper position
         
-        :param is_modbus: use modbus or not, default is True
         :return: tuple((code, pos)), only when code is 0, the returned result is correct.
             code: See the Gripper code documentation for details.
         """
-        return self._arm.get_gripper_position(is_modbus=is_modbus)
+        return self._arm.get_gripper_position(**kwargs)
 
-    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, is_modbus=True):
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
         """
         Set the gripper position
         
@@ -1402,43 +1420,39 @@ class XArmAPI(object):
         :param speed: speed
         :param auto_enable: auto enable or not, default is False
         :param timeout: second, default is 10s
-        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, is_modbus=is_modbus)
+        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
 
-    def set_gripper_speed(self, speed, is_modbus=True):
+    def set_gripper_speed(self, speed, **kwargs):
         """
         Set the gripper speed
         
         :param speed: 
-        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_speed(speed, is_modbus=is_modbus)
+        return self._arm.set_gripper_speed(speed, **kwargs)
 
-    def get_gripper_err_code(self, is_modbus=True):
+    def get_gripper_err_code(self, **kwargs):
         """
         Get the gripper error code
         
-        :param is_modbus: use modbus or not, default is True
         :return: tuple((code, err_code)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
             err_code: See the Gripper code documentation for details.
         """
-        return self._arm.get_gripper_err_code(is_modbus=is_modbus)
+        return self._arm.get_gripper_err_code(**kwargs)
 
-    def clean_gripper_error(self, is_modbus=True):
+    def clean_gripper_error(self, **kwargs):
         """
         Clean the gripper error
         
-        :param is_modbus: use modbus or not, default is True
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.clean_gripper_error(is_modbus=is_modbus)
+        return self._arm.clean_gripper_error(**kwargs)
 
     def get_tgpio_digital(self, ionum=None):
         """
@@ -1469,6 +1483,18 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.get_tgpio_analog(ionum)
+
+    def set_suction_cup(self, on):
+        """
+        Set suction cup
+        
+        :param on: open or not
+            on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
+            on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_suction_cup(on)
 
     def get_cgpio_digital(self, ionum=None):
         """

@@ -153,6 +153,7 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '    if data and data[\'error_code\'] != 0:')
             self._insert_to_file(self.index, '        arm.set_state(4)')
             self._insert_to_file(self.index, '        params[\'quit\'] = True')
+            self._insert_to_file(self.index, '        print(\'err={}, quit\'.format(data[\'error_code\']))')
             # self._insert_to_file(self.index, '        sys.exit(1)')
             self._insert_to_file(self.index, 'arm.register_error_warn_changed_callback(error_warn_change_callback)')
         if stop_exit:
@@ -160,6 +161,7 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, 'def state_changed_callback(data):')
             self._insert_to_file(self.index, '    if data and data[\'state\'] == 4:')
             self._insert_to_file(self.index, '        params[\'quit\'] = True')
+            self._insert_to_file(self.index, '        print(\'state=4, quit\')')
             # self._insert_to_file(self.index, '        sys.exit(1)')
             self._insert_to_file(self.index, 'arm.register_state_changed_callback(state_changed_callback)')
 
@@ -299,8 +301,10 @@ class BlocklyTool(object):
             self._append_to_file('{}# relative move'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file(
-            '{}    arm.set_position({}={}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
-            'relative=True, wait={})'.format(prefix, param, value, wait))
+            '{}    if arm.set_position({}={}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+            'relative=True, wait={}) < 0:'.format(prefix, param, value, wait))
+        self._append_to_file(
+            '{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_move_arc_to(self, block, prefix=''):
         value = self.get_node('value', root=block)
@@ -315,8 +319,9 @@ class BlocklyTool(object):
             self._append_to_file('{}# move{}line and {}'.format(
                 prefix, ' arc ' if float(radius) >= 0 else ' ', 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
-                             'radius={}, wait={})'.format(prefix, values, radius, wait))
+        self._append_to_file('{}    if arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'radius={}, wait={}) < 0:'.format(prefix, values, radius, wait))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_move_circle(self, block, prefix=''):
         values = self.get_nodes('value', root=block)
@@ -339,8 +344,9 @@ class BlocklyTool(object):
             self._append_to_file('{}# move circle and {}'.format(
                 prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.move_circle({}, {}, {}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
-                             'wait={})'.format(prefix, pose1, pose2, percent, wait))
+        self._append_to_file('{}    if arm.move_circle({}, {}, {}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'wait={}) < 0:'.format(prefix, pose1, pose2, percent, wait))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_move_7(self, block, prefix=''):
         value = self.get_node('value', root=block)
@@ -367,8 +373,10 @@ class BlocklyTool(object):
             self._append_to_file('{}# move joint and {}'.format(prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file(
-            '{}    arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
-            'mvacc=params[\'angle_acc\'], wait={})'.format(prefix, values, wait))
+            '{}    if arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
+            'mvacc=params[\'angle_acc\'], wait={}) < 0:'.format(prefix, values, wait))
+        self._append_to_file(
+            '{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_move_cartesian(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)
@@ -381,19 +389,50 @@ class BlocklyTool(object):
             self._append_to_file('{}# move{}line and {}'.format(
                 prefix, ' arc ' if float(radius) >= 0 else ' ', 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
-                             'radius={}, wait={})'.format(prefix, values, radius, wait))
+        self._append_to_file('{}    if arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'radius={}, wait={}) < 0:'.format(prefix, values, radius, wait))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_motion_stop(self, block, prefix=''):
         if self._show_comment:
             self._append_to_file('{}# emergency stop'.format(prefix))
         self._append_to_file('{}arm.emergency_stop()'.format(prefix))
 
+    def _handle_studio_run_traj(self, block, prefix=''):
+        filename = self.get_node('field', root=block).text
+        value = self.get_node('value', root=block)
+        times = self.get_nodes('field', root=value, descendant=True)[0].text
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    if arm.playback_trajectory(times={}, filename=\'{}\', wait=True) != 0:'.format(prefix, times, filename))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+
     def _handle_tool_message(self, block, prefix=''):
         fields = self.get_nodes('field', block)
-        message = json.loads(json.dumps(fields[-1].text))
-        self._append_to_file('{}print(\'{}\')'.format(prefix, message))
+        msg = json.dumps(fields[-1].text, ensure_ascii=False)
+        self._append_to_file('{}print({})'.format(prefix, msg))
+        # msg = fields[-1].text
+        # self._append_to_file('{}print(\'{}\')'.format(prefix, message))
         # self._append_to_file('{}print(\'{{}}\'.format(\'{}\'))'.format(prefix, message))
+
+    def _handle_tool_console(self, block, prefix=''):
+        fields = self.get_nodes('field', block)
+        msg = json.dumps(fields[1].text, ensure_ascii=False)
+        self._append_to_file('{}print({})'.format(prefix, msg))
+        # msg = fields[1].text
+        # self._append_to_file('{}print(\'{}\')'.format(prefix, msg))
+
+    def _handle_tool_console_with_variable(self, block, prefix=''):
+        fields = self.get_nodes('field', block)
+        msg = fields[1].text
+        # msg = json.dumps(fields[1].text, ensure_ascii=False)
+        value = self.get_node('value', block)
+        expression = self.__get_condition_expression(value)
+        # self._append_to_file('{}value = {}'.format(prefix, expression))
+        if msg:
+            self._append_to_file('{}print({}.format({}))'.format(prefix, json.dumps(msg+'{}', ensure_ascii=False), expression))
+            # self._append_to_file('{}print(\'{}{{}}\'.format({}))'.format(prefix, msg, expression))
+        else:
+            self._append_to_file('{}print(\'{{}}\'.format({}))'.format(prefix, expression))
 
     def _handle_wait(self, block, prefix=''):
         value = self.get_node('value', root=block)
@@ -426,6 +465,17 @@ class BlocklyTool(object):
             self._append_to_file('{}# set tgpio-{} digital'.format(prefix, io))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.set_tgpio_digital({}, {})'.format(prefix, io, value))
+
+    def _handle_set_suction_cup(self, block, prefix=''):
+        field = self.get_node('field', root=block)
+        on = True if field.text == 'ON' else False
+        # io = self.get_node('field', block).text
+        # value = self.get_node('value', root=block)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set_suction_cup({})'.format(prefix, on))
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.set_suction_cup({})'.format(prefix, on))
 
     def _handle_gpio_get_controller_digital(self, block, prefix=''):
         io = self.get_node('field', block).text
@@ -820,7 +870,7 @@ class BlocklyTool(object):
         value = self.get_node('value', root=block)
         shadow = self.get_node('shadow', root=value)
         val = self.get_node('field', root=shadow).text
-        self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, val))
+        self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
     def _handle_controls_repeat_ext(self, block, prefix=''):
         value = self.get_node('value', root=block)

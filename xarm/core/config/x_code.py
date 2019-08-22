@@ -704,7 +704,7 @@ class BaseCode(object):
     def __init__(self, code, status=0):
         self._code = code
         self._status = status
-        if status == 3:
+        if status != 0:
             self.info = self._code_map.get('failed', self._code_map.get('other'))
         elif code != 0:
             self.info = self._code_map.get(code, self._code_map.get('other'))

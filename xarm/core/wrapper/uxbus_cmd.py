@@ -176,6 +176,9 @@ class UxbusCmd(object):
         time.sleep(wait_time)  # Must! or buffer would be flushed if set mode to pos_mode
         return ret
 
+    def get_traj_rw_status(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_TRAJ_RW_STATUS, 1)
+
     def set_reduced_mode(self, on_off):
         txdata = [on_off]
         return self.set_nu8(XCONF.UxbusReg.SET_REDUCED_MODE, txdata, 1)
@@ -257,6 +260,20 @@ class UxbusCmd(object):
         txdata = [mvjoint[i] for i in range(7)]
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_SERVOJ, txdata, 10)
+
+    def set_servot(self, jnt_taus):
+        txdata = [jnt_taus[i] for i in range(7)]
+        return self.set_nfp32(XCONF.UxbusReg.SET_SERVOT, txdata, 7)
+
+    def get_joint_tau(self):
+        return self.get_nfp32(XCONF.UxbusReg.GET_JOINT_TAU, 7)
+
+    def set_safe_level(self, level):
+        txdata = [level]
+        return self.set_nu8(XCONF.UxbusReg.SET_SAFE_LEVEL, txdata, 1)
+
+    def get_safe_level(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_SAFE_LEVEL, 1)
 
     def sleep_instruction(self, sltime):
         txdata = [sltime]

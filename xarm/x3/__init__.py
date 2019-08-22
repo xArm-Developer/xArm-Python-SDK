@@ -51,6 +51,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._check_tcp_limit = kwargs.get('check_tcp_limit', True)
         self._check_joint_limit = kwargs.get('check_joint_limit', True)
         self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
+        self._max_cmd_num = kwargs.get('max_cmdnum', 256)
+        if not isinstance(self._max_cmd_num, int):
+            self._max_cmd_num = 256
+        self._max_cmd_num = min(XCONF.MAX_CMD_NUM, self._max_cmd_num)
         self._check_robot_sn = kwargs.get('check_robot_sn', False)
         self._check_is_ready = kwargs.get('check_is_ready', True)
         self._check_is_pause = kwargs.get('check_is_pause', True)
@@ -131,10 +135,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def check_is_pause(self):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
-                print('waiting')
                 with self._cond_pause:
                     self._cond_pause.wait()
-                print('continue')
 
     @property
     def version_number(self):
@@ -350,7 +352,6 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     self._connect_report()
                 except:
                     self._stream_report = None
-
                 self._check_version()
 
                 if self._stream.connected and self._enable_report:
@@ -381,29 +382,30 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._version = None
         self._robot_sn = None
         try:
-            count = 10
+            count = 2
             while not self._version and count:
                 self.get_version()
                 time.sleep(0.1)
                 count -= 1
-            pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
-            m = re.match(pattern, self._version)
-            if m:
-                self._major_version_number, self._minor_version_number, self._revision_version_number = map(int,
-                                                                                                            m.groups())
-            else:
-                version_date = '-'.join(self._version.split('-')[-3:])
-                self._is_old_protocol = compare_time('2019-02-01', version_date)
-                if self._is_old_protocol:
-                    self._major_version_number = 0
-                    self._minor_version_number = 0
-                    self._revision_version_number = 1
+            if self._version and isinstance(self._version, str):
+                pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+                m = re.match(pattern, self._version)
+                if m:
+                    self._major_version_number, self._minor_version_number, self._revision_version_number = map(int,
+                                                                                                                m.groups())
                 else:
-                    self._major_version_number = 0
-                    self._minor_version_number = 1
-                    self._revision_version_number = 0
+                    version_date = '-'.join(self._version.split('-')[-3:])
+                    self._is_old_protocol = compare_time('2019-02-01', version_date)
+                    if self._is_old_protocol:
+                        self._major_version_number = 0
+                        self._minor_version_number = 0
+                        self._revision_version_number = 1
+                    else:
+                        self._major_version_number = 0
+                        self._minor_version_number = 1
+                        self._revision_version_number = 0
             if self._check_robot_sn:
-                count = 5
+                count = 2
                 while not self._robot_sn and count and self.warn_code == 0:
                     self.get_robot_sn()
                     self.get_err_warn_code()
@@ -745,6 +747,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
+            if state != self._state or mode != self._mode:
+                print('mode: {}, state={}'.format(mode, state))
             cmd_num = convert.bytes_to_u16(rx_data[5:7])
             angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
@@ -763,15 +767,15 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 if error_code != self._error_code:
                     self._error_code = error_code
                     if self._error_code != 0:
-                        pretty_print('Error, code: {}'.format(self._error_code), color='red')
+                        pretty_print('ControllerError, code: {}'.format(self._error_code), color='red')
                     else:
-                        pretty_print('Error had clean', color='blue')
+                        pretty_print('ControllerError had clean', color='blue')
                 if warn_code != self._warn_code:
                     self._warn_code = warn_code
                     if self._warn_code != 0:
-                        pretty_print('Warn, code: {}'.format(self._warn_code), color='yellow')
+                        pretty_print('ControllerWarning, code: {}'.format(self._warn_code), color='yellow')
                     else:
-                        pretty_print('Warnning had clean', color='blue')
+                        pretty_print('ControllerWarning had clean', color='blue')
                 self._report_error_warn_changed_callback()
                 logger.info('OnReport -> err={}, warn={}, state={}, cmdnum={}, mtbrake={}, mtable={}, mode={}'.format(
                     error_code, warn_code, state, cmd_num, mtbrake, mtable, mode
@@ -978,7 +982,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self._report_location_callback()
                 self._report_callback()
 
-                if self._cmd_num >= XCONF.MAX_CMD_NUM:
+                if self._cmd_num >= self._max_cmd_num:
                     time.sleep(1)
 
                 time.sleep(0.1)
@@ -1108,7 +1112,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not self._check_cmdnum_limit:
             return
         self._is_stop = False
-        while self.cmd_num >= XCONF.MAX_CMD_NUM:
+        while self.cmd_num >= self._max_cmd_num:
             if not self.connected:
                 return APIState.NOT_CONNECTED
             elif not self.ready:
@@ -1890,6 +1894,35 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
         logger.info('reset--end')
 
+    @xarm_is_ready(_type='set')
+    def set_joint_torque(self, jnt_taus):
+        ret = self.arm_cmd.set_servot(jnt_taus)
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_joint_torque(self, servo_id=None):
+        ret = self.arm_cmd.get_joint_tau()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 7:
+            self._joints_torque = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]
+            ret[0] = 0
+        if servo_id is None or servo_id == 8 or len(self._joints_torque) < servo_id:
+            return ret[0], list(self._joints_torque)
+        else:
+            return ret[0], self._joints_torque[servo_id - 1]
+
+    @xarm_is_connected(_type='get')
+    def get_safe_level(self):
+        ret = self.arm_cmd.get_safe_level()
+        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        #     self._state = ret[1]
+        #     ret[0] = 0
+        return ret[0], ret[1]
+
+    @xarm_is_connected(_type='set')
+    def set_safe_level(self, level=4):
+        ret = self.arm_cmd.set_safe_level(level)
+        return ret[0]
+
     @xarm_is_connected(_type='set')
     def set_pause_time(self, sltime, wait=False):
         assert isinstance(sltime, (int, float))
@@ -1986,7 +2019,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
     def set_gravity_direction(self, direction):
-        ret = self.arm_cmd.set_gravity_dir(direction)
+        ret = self.arm_cmd.set_gravity_dir(direction[:3])
         logger.info('API -> set_gravity_direction -> ret={}, direction={}'.format(ret[0], direction))
         return ret[0]
 
@@ -2380,7 +2413,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 addr = gcode_p.get_addr(command)
                 value = gcode_p.get_int_value(command)
                 ret = self.set_servo_addr_32(servo_id=servo_id, addr=addr, value=value)
-            elif num == 104:  # H104 get_servo_addr_16, ex: H104 I{id} D{addr}
+            elif num == 104:  # H104 get_servo_addr_32, ex: H104 I{id} D{addr}
                 servo_id = gcode_p.get_id_num(command, default=0)
                 addr = gcode_p.get_addr(command)
                 ret = self.get_servo_addr_32(servo_id=servo_id, addr=addr)

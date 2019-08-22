@@ -547,11 +547,11 @@ ControllerErrorCodeMap = {
     24: {
         'en': {
             'title': 'Speed Exceeds Limit',
-            'desc': 'Please reduce the speed and acceleration values.'
+            'desc': 'Please check if the xArm is out of working range, or reduce the speed and acceleration values.'
         },
         'cn': {
             'title': '速度超出限制',
-            'desc': '请减小运动速度和加速度值。'
+            'desc': '请检查机械臂是否超出运动范围，或减小运动速度和加速度值。'
         }
     },
     25: {
@@ -596,12 +596,12 @@ ControllerErrorCodeMap = {
     },
     30: {
         'en': {
-            'title': 'Teach Mode Current Abnormality',
-            'desc': 'Please check for collisions, check that the payload settings are correct, and that the collision sensitivity matches the speed.'
+            'title': 'Feedback Speed Exceeds limit',
+            'desc': 'Please contact technical support.'
         },
         'cn': {
-            'title': '示教模式电流异常',
-            'desc': '请检查是否碰撞、负载设置是否正确，示教灵敏度与速度是否匹配。'
+            'title': '反馈速度超出限制',
+            'desc': '请联系技术支持。'
         }
     },
     31: {
@@ -632,6 +632,26 @@ ControllerErrorCodeMap = {
         'cn': {
             'title': '控制器GPIO模块报错',
             'desc': '请检查控制器GPIO模块的连接，并重新上下电。如该错误反复出现，请联系技术支持。'
+        }
+    },
+    34: {
+        'en': {
+            'title': 'Recording Timeout',
+            'desc': 'The track recording duration exceeds the maximum duration limit of 5 minutes. It is recommended to re-record.'
+        },
+        'cn': {
+            'title': '轨迹录制超时',
+            'desc': '轨迹录制时间超过最大限制5分钟，建议重新录制。'
+        }
+    },
+    35: {
+        'en': {
+            'title': 'Safety Boundary Limit',
+            'desc': 'The xArm reaches the safety boundary. Please move the xArm to the safety boundary after turning on the Manual mode on the Live Control interface.'
+        },
+        'cn': {
+            'title': '机械臂到达安全边界',
+            'desc': '机械臂到达安全边界，请到实时控制界面开启手动模式后将机械臂移动到安全边界内。'
         }
     },
     'other': {

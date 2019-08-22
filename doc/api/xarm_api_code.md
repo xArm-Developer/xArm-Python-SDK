@@ -22,6 +22,9 @@
 - 9: reversed, no use
 - 10: reversed, no use
 - 11: other error
+- 12: parameter error
+- 31: trajectory read/write failed
+- 32: trajectory read/write timeout
 
 ## Controller warning code
 - 11: uxbux que is full
@@ -48,10 +51,12 @@
 - 27: Command Reply Error
 - 28: Gripper error
 - 29: Other Errors
-- 30: Teach Mode Current Abnormality
+- 30: Feedback Speed Exceeds limit
 - 31: Collision Caused Abnormal Current
 - 32: Three-point drawing circle calculation error
 - 33: Controller GPIO error
+- 34: Recording Timeout
+- 35: Safety Boundary Limit
 
 ## Servo Error Code
 

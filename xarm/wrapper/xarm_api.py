@@ -1817,7 +1817,7 @@ class XArmAPI(object):
         Get the servo debug msg, used only for debugging
         
         :param show: show the detail info if True
-        :param lang: language, en/cn, degault is en
+        :param lang: language, en/cn, default is en
         :return: tuple((code, servo_info_list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """

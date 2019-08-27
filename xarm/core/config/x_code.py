@@ -724,12 +724,13 @@ class BaseCode(object):
     def __init__(self, code, status=0):
         self._code = code
         self._status = status
-        if status != 0:
-            self.info = self._code_map.get('failed', self._code_map.get('other'))
-        elif code != 0:
-            self.info = self._code_map.get(code, self._code_map.get('other'))
+        if status in [0, 1]:
+            if code != 0:
+                self.info = self._code_map.get(code, self._code_map.get('other'))
+            else:
+                self.info = {'en': {'title': 'Normal', 'desc': ''}, 'cn': {'title': '正常', 'desc': ''}}
         else:
-            self.info = {'en': {'title': 'Normal', 'desc': ''}, 'cn': {'title': '正常', 'desc': ''}}
+            self.info = self._code_map.get('failed', self._code_map.get('other'))
 
     @property
     def status(self):

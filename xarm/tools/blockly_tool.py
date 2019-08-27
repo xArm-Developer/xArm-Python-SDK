@@ -121,6 +121,7 @@ class BlocklyTool(object):
         self._insert_to_file(self.index, '"""')
         self._insert_to_file(self.index, 'import sys')
         self._insert_to_file(self.index, 'import time')
+        self._insert_to_file(self.index, 'import datetime')
         self._insert_to_file(self.index, 'import threading\n')
         self._insert_to_file(self.index, '"""')
         self._insert_to_file(self.index, '# xArm-Python-SDK: https://github.com/xArm-Developer/xArm-Python-SDK')
@@ -987,6 +988,14 @@ class BlocklyTool(object):
         elif block.attrib['type'] == 'variables_get':
             field = self.get_node('field', block).text
             return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
+        elif block.attrib['type'] == 'tool_get_date':
+            return 'datetime.datetime.now()'
+        elif block.attrib['type'] == 'tool_combination':
+            field = self.get_node('field', block).text
+            values = self.get_nodes('value', block)
+            var1 = self.__get_condition_expression(values[0])
+            var2 = self.__get_condition_expression(values[1])
+            return '\'{{}}{{}}{{}}\'.format({}, \'{}\', {})'.format(var1, field, var2)
         elif block.attrib['type'] == 'procedures_callreturn':
             mutation = self.get_node('mutation', block).attrib['name']
             if not mutation:

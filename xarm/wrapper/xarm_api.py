@@ -870,7 +870,7 @@ class XArmAPI(object):
         """
         return self._arm.save_record_trajectory(filename, wait=wait, timeout=timeout)
 
-    def load_trajectory(self, filename, wait=True, timeout=2):
+    def load_trajectory(self, filename, wait=True, timeout=10):
         """
         Load the trajectory
         
@@ -885,7 +885,7 @@ class XArmAPI(object):
         """
         return self._arm.load_trajectory(filename, wait=wait, timeout=timeout)
 
-    def playback_trajectory(self, times=1, filename=None, wait=False):
+    def playback_trajectory(self, times=1, filename=None, wait=True):
         """
         Playback trajectory
         

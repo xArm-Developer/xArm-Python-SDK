@@ -985,6 +985,32 @@ class BlocklyTool(object):
         elif block.attrib['type'] == 'math_number':
             val = self.get_node('field', block).text
             return val
+        elif block.attrib['type'] == 'math_arithmetic':
+            field = self.get_node('field', block).text
+            values = self.get_nodes('value', block)
+            if len(values) > 1:
+                block_a = self.get_node('block', root=values[0])
+                block_b = self.get_node('block', root=values[1])
+                if block_a is not None:
+                    val_a = self.__get_condition_expression(values[0])
+                else:
+                    shadow = self.get_node('shadow', root=values[0])
+                    val_a = self.get_node('field', root=shadow).text
+                if block_b is not None:
+                    val_b = self.__get_condition_expression(values[1])
+                else:
+                    shadow = self.get_node('shadow', root=values[1])
+                    val_b = self.get_node('field', root=shadow).text
+                if field == 'ADD':
+                    return '{} + {}'.format(val_a, val_b)
+                elif field == 'MINUS':
+                    return '{} - {}'.format(val_a, val_b)
+                elif field == 'MULTIPLY':
+                    return '{} * {}'.format(val_a, val_b)
+                elif field == 'DIVIDE':
+                    return '{} / {}'.format(val_a, val_b)
+                elif field == 'POWER':
+                    return 'pow({}, {})'.format(val_a, val_b)
         elif block.attrib['type'] == 'variables_get':
             field = self.get_node('field', block).text
             return 'params[\'variables\'].get(\'{}\', 0)'.format(field)

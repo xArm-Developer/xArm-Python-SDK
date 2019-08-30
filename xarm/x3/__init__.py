@@ -747,8 +747,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
-            # if state != self._state or mode != self._mode:
-            #     print('mode: {}, state={}'.format(mode, state))
+            if state != self._state or mode != self._mode:
+                print('mode: {}, state={}, time={}'.format(mode, state, time.time()))
             cmd_num = convert.bytes_to_u16(rx_data[5:7])
             angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
@@ -1051,6 +1051,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
         def start(self):
             if self.timeout > 0:
+                if self.owner._sleep_finish_time - time.time() > 0:
+                    self.timeout += self.owner._sleep_finish_time - time.time()
                 self.timer = threading.Timer(self.timeout, self.timeout_cb)
                 self.timer.setDaemon(True)
                 self.timer.start()
@@ -1061,6 +1063,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner._is_stop and self.owner.connected and not self.owner.has_error:
+                if self.owner.state == 4:
+                    self.owner._sleep_finish_time = 0
+                    break
                 if time.time() < self.owner._sleep_finish_time:
                     time.sleep(0.01)
                     continue

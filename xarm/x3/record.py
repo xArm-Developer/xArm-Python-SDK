@@ -84,7 +84,7 @@ class Record(object):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def load_trajectory(self, filename, wait=True, timeout=2):
+    def load_trajectory(self, filename, wait=True, timeout=10):
         assert isinstance(filename, str) and filename.strip()
         filename = filename.strip()
         if not filename.endswith('.traj'):
@@ -123,19 +123,44 @@ class Record(object):
             ret = self.load_trajectory(filename, wait=True, timeout=10)
             if ret != 0:
                 return ret
+        if self.state == 4:
+            return APIState.NOT_READY
         ret = self.arm_cmd.playback_traj(times)
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:
-                if time.time() - start_time > 2:
-                    break
+                if self.state == 4:
+                    return APIState.NOT_READY
+                if time.time() - start_time > 5:
+                    return APIState.TRAJ_PLAYBACK_TOUT
+                time.sleep(0.1)
+            max_count = int((time.time() - start_time) / 0.1)
+            max_count = max_count if max_count > 10 else 10
             start_time = time.time()
             while self.mode != 11:
+                if self.state == 1:
+                    start_time = time.time()
+                    time.sleep(0.1)
+                    continue
+                if self.state == 4:
+                    return APIState.NOT_READY
                 if time.time() - start_time > 5:
+                    return APIState.TRAJ_PLAYBACK_TOUT
+                time.sleep(0.1)
+            time.sleep(0.1)
+            count = 0
+            while self.state != 4:
+                if self.state == 2:
+                    if times == 1:
+                        break
+                    count += 1
+                else:
+                    count = 0
+                if count > max_count:
                     break
                 time.sleep(0.1)
-            while self.state != 4 and self.state != 2:
-                time.sleep(0.1)
+            # while self.state != 4 and self.state != 2:
+            #     time.sleep(0.1)
             if self.state != 4:
                 self.set_mode(0)
                 self.set_state(0)

@@ -272,9 +272,9 @@ class BlocklyTool(object):
     def _handle_sleep(self, block, prefix=''):
         value = self.get_node('value', root=block)
         value = self.get_nodes('field', root=value, descendant=True)[0].text
-        self._append_to_file('{}# set sleep time'.format(prefix))
+        self._append_to_file('{}# set pause time'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.set_sleep_time({})'.format(prefix, value))
+        self._append_to_file('{}    arm.set_pause_time({})'.format(prefix, value))
 
     def _handle_move(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)

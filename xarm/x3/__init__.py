@@ -1942,6 +1942,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         logger.info('API -> set_pause_time -> ret={}, sltime={}'.format(ret[0], sltime))
         return ret[0]
 
+    def set_sleep_time(self, sltime, wait=False):
+        return self.set_pause_time(sltime, wait)
+
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
     def set_tcp_offset(self, offset, is_radian=None):

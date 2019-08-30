@@ -747,8 +747,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
-            if state != self._state or mode != self._mode:
-                print('mode: {}, state={}, time={}'.format(mode, state, time.time()))
+            # if state != self._state or mode != self._mode:
+            #     print('mode: {}, state={}, time={}'.format(mode, state, time.time()))
             cmd_num = convert.bytes_to_u16(rx_data[5:7])
             angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)

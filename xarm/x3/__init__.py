@@ -58,6 +58,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._check_robot_sn = kwargs.get('check_robot_sn', False)
         self._check_is_ready = kwargs.get('check_is_ready', True)
         self._check_is_pause = kwargs.get('check_is_pause', True)
+        self._timed_comm = kwargs.get('timed_comm', True)
+        self._timed_comm_interval = kwargs.get('timed_comm_interval', 180)
+        self._timed_comm_t = None
+        self._timed_comm_t_alive = False
 
         self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
         self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
@@ -321,6 +325,15 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def gravity_direction(self):
         return self._gravity_direction
 
+    def _timed_comm_thread(self):
+        self._timed_comm_t_alive = True
+        while self.connected and self._timed_comm_t_alive:
+            try:
+                self.get_cmdnum()
+            except:
+                pass
+            time.sleep(self._timed_comm_interval)
+
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         if self.connected:
             return
@@ -332,6 +345,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._timeout = timeout if timeout is not None else self._timeout
         if not self._port:
             raise Exception('can not connect to port/ip {}'.format(self._port))
+        if self._timed_comm_t is not None:
+            try:
+                self._timed_comm_t_alive = False
+                self._timed_comm_t.join()
+                self._timed_comm_t = None
+            except:
+                pass
         if isinstance(self._port, (str, bytes)):
             if self._port == 'localhost' or re.match(
                     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -341,6 +361,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                                           buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE)
                 if not self.connected:
                     raise Exception('connect socket failed')
+
+                try:
+                    if self._timed_comm:
+                        self._timed_comm_t = threading.Thread(target=self._timed_comm_thread, daemon=True)
+                        self._timed_comm_t.start()
+                except:
+                    pass
 
                 self._report_error_warn_changed_callback()
 

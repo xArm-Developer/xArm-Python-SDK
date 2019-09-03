@@ -25,6 +25,7 @@
 - 12: parameter error
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
+- 33: playback trajectory timeout
 
 ## Controller warning code
 - 11: uxbux que is full

@@ -784,6 +784,7 @@ class XArmAPI(object):
     def check_verification(self):
         """
         check verification
+        
         :return: tuple((code, status)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
             status: 
@@ -825,9 +826,8 @@ class XArmAPI(object):
         
         Note: 
             1. This interface relies on Firmware 1.2.0 or above
+            2. set joint teaching mode: set_mode(2);set_state(0)
             
-        Note: 
-            1. set joint teaching mode: set_mode(2);set_state(0)
         :return: code
             code: See the API code documentation for details.
         """
@@ -970,6 +970,7 @@ class XArmAPI(object):
         
         Note: 
             1. This interface relies on Firmware 1.2.0 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
 
         :param speed: speed (mm/s)
         :return: code
@@ -983,6 +984,7 @@ class XArmAPI(object):
         
         Note: 
             1. This interface relies on Firmware 1.2.0 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
         
         :param speed: speed (°/s or rad/s)
         :param is_radian: the speed is in radians or not, default is self.default_is_radian
@@ -997,6 +999,7 @@ class XArmAPI(object):
         
         Note: 
             1. This interface relies on Firmware 1.2.0 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
         
         :param boundary: [x_max, x_min, y_max, y_min, z_max, z_min]
         :return: code

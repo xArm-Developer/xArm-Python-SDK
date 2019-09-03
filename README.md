@@ -31,11 +31,14 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
-- > ### 1.1.0
+- > ### 1.2.0
 
-  - Modify the claw interface
-  - Modify error code and error message
-  - Support for blocky code conversion and operation of xArmStudio1.1.0
+  - Fix the parameters of the control box GPIO analog signal
+  - Support for more Gcode commands
+  - Support trajectory recording
+  - Support for reduced mode settings
+  - Optimize some interfaces and bug fixes
+  - Support for blocky code conversion and operation of xArmStudio1.2.0
 
 - >### [More](ReleaseNotes.md)
 
@@ -72,7 +75,11 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### 2004-move_joint --> [xarm5](example/wrapper/xarm5/2004-move_joint.py) --- [xarm6](example/wrapper/xarm6/2004-move_joint.py) --- [xarm7](example/wrapper/xarm7/2004-move_joint.py)
 
-- #####  [3001-move_circle](example/wrapper/common/3001-move_circle.py)
+- ##### [3001-move_circle](example/wrapper/common/3001-move_circle.py)
+
+- ##### [3002-record_trajectory](example/wrapper/common/3002-record_trajectory.py)
+
+- ##### [3003-playback_trajectory](example/wrapper/common/3003-playback_trajectory.py)
 
 - ##### [5001-get_tgpio_digital](example/wrapper/common/5001-get_tgpio_digital.py)
 
@@ -89,6 +96,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - ##### [5007-set_cgpio_input_output_function](example/wrapper/common/5007-set_cgpio_input_output_function.py)
 
 - ##### [5008-get_cgpio_state](example/wrapper/common/5008-get_cgpio_state.py)
+
+- ##### [6001-set_reduced_mode](example/wrapper/common/6001-set_reduced_mode.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 

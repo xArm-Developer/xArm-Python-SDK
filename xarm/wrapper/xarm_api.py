@@ -8,11 +8,6 @@
 
 import os
 from ..x3 import XArm
-try:
-    from ..tools.blockly_tool import BlocklyTool
-except:
-    print('import BlocklyTool module failed')
-    BlocklyTool = None
 
 
 class XArmAPI(object):
@@ -71,6 +66,7 @@ class XArmAPI(object):
                     7. property: tcp_offset
         :param do_not_open: do not open, default is False, if true, you need to manually call the connect interface.
         :param kwargs: keyword parameters, generally do not need to set
+            axis: number of axes, required only when using a serial port connection, default is 7
             baudrate: serial baudrate, invalid, reserved.
             timeout: serial timeout, invalid, reserved.
             filters: serial port filters, invalid, reserved.
@@ -79,6 +75,9 @@ class XArmAPI(object):
             check_joint_limit: check the joint param value out of limit or not, default is True
                 Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
             check_cmdnum_limit: check the cmdnum out of limit or not, default is True
+                Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
+            max_cmdnum: max cmdnum, default is 256
+                Note: only available in the param `check_cmdnum_limit` is True
                 Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
             check_is_ready: check if the arm is in motion, default is True
                 Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`move_circle`/`move_gohome`/`move_arc_lines`
@@ -103,6 +102,10 @@ class XArmAPI(object):
         if item in self.__attr_alias_map.keys():
             return self.__attr_alias_map[item]
         raise AttributeError('\'{}\' has not attribute \'{}\''.format(self.__class__.__name__, item))
+
+    @property
+    def arm(self):
+        return self._arm
 
     @property
     def core(self):
@@ -462,15 +465,16 @@ class XArmAPI(object):
         """
         return self._arm.gravity_direction
 
-    def connect(self, port=None, baudrate=None, timeout=None):
+    def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         """
         Connect to xArm
         
         :param port: port name or the ip address, default is the value when initializing an instance
         :param baudrate: baudrate, only available in serial way, default is the value when initializing an instance
         :param timeout: timeout, only available in serial way, default is the value when initializing an instance
+        :param axis: number of axes, required only when using a serial port connection, default is 7
         """
-        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout)
+        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout, axis=axis)
 
     def disconnect(self):
         """
@@ -485,33 +489,61 @@ class XArmAPI(object):
             1. Some command depends on self.default_is_radian
         
         :param command: 
-            'G1': 'set_position(MoveLine): G1 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}'
-            'G4': 'set_pause_time: G4 V{sltime(second)}'
-            'G7': 'set_servo_angle: G7 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)} F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}'
-            'G8': 'move_gohome: G8 F{speed(°/s or rad/s)} Q{acc(°/s^2 or rad/s^2)} T{mvtime} W{wait}'
-            'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{pitch(° or rad)} C{yaw(° or rad)} R{radius(mm)} F{speed(mm/s)} Q{acc(mm/s^2)} T{mvtime} W{wait}'
+            'G1': 'set_position(MoveLine): G1 X{x} Y{y} Z{z} A{roll} B{pitch} C{yaw} F{speed} Q{acc} T{mvtime}'
+            'G2': 'move_circle: G2 X{x1} Y{y1} Z{z1} A{roll1} B{pitch1} C{yaw1} I{x2} J{y2} K{z2} L{roll2} M{pitch2} N{yaw2} F{speed} Q{acc} T{mvtime}'
+            'G4': 'set_pause_time: G4 T{second}'
+            'G7': 'set_servo_angle: G7 I{servo_1} J{servo_2} K{servo_3} L{servo_4} M{servo_5} N{servo_6} O{servo_7} F{speed} Q{acc} T{mvtime}'
+            'G8': 'move_gohome: G8 F{speed} Q{acc} T{mvtime}'
+            'G9': 'set_position(MoveArcLine): G9 X{x} Y{y} Z{z} A{roll} B{pitch} C{yaw} R{radius} F{speed} Q{acc} T{mvtime}'
+            'G11': 'set_servo_angle_j: G11 I{servo_1} J{servo_2} K{servo_3} L{servo_4} M{servo_5} N{servo_6} O{servo_7} F{speed} Q{acc} T{mvtime}'
             'H1': 'get_version: H1'
-            'H11': 'motion_enable: H11 S{servo_id} V{enable}'
+            'H11': 'motion_enable: H11 I{servo_id} V{enable}'
             'H12': 'set_state: H12 V{state}'
             'H13': 'get_state: H13'
             'H14': 'get_cmdnum: H14'
             'H15': 'get_err_warn_code: H15'
             'H16': 'clean_error: H16'
             'H17': 'clean_warn: H17'
-            'H18': 'set_servo_attach/set_servo_detach: H18 S{servo_id} V{1: enable(detach), 0: disable(attach)}'
+            'H18': 'set_servo_attach/set_servo_detach: H18 I{servo_id} V{1: enable(detach), 0: disable(attach)}'
+            'H19': 'set_mode: H19 V{mode}'
             'H31': 'set_tcp_jerk: H31 V{jerk(mm/s^3)}'
             'H32': 'set_tcp_maxacc: H32 V{maxacc(mm/s^2)}'
             'H33': 'set_joint_jerk: H33 V{jerk(°/s^3 or rad/s^3)}'
             'H34': 'set_joint_maxacc: H34 {maxacc(°/s^2 or rad/s^2)}'
+            'H35': 'set_tcp_offset: H35 X{x} Y{y} Z{z} A{roll} B{pitch} C{yaw}'
+            'H36': 'set_tcp_load: H36 I{weight} J{center_x} K{center_y} L{center_z}'
+            'H37': 'set_collision_sensitivity: H37 V{sensitivity}'
+            'H38': 'set_teach_sensitivity: H38 V{sensitivity}'
             'H39': 'clean_conf: H39'
             'H40': 'save_conf: H40'
             'H41': 'get_position: H41'
             'H42': 'get_servo_angle: H42'
-            'H43': 'get_inverse_kinematics: H43 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}'
-            'H44': 'get_forward_kinematics: H44 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}'
-            'H45': 'is_joint_limit: H45 I{servo_1(° or rad)} J{servo_2(° or rad)} K{servo_3(° or rad)} L{servo_4(° or rad)} M{servo_5(° or rad)} N{servo_6(° or rad)} O{servo_7(° or rad)}'
-            'H46': 'is_tcp_limit: H46 X{x(mm)} Y{y(mm)} Z{z(mm)} A{roll(° or rad)} B{pitch(° or rad)} C{yaw(° or rad)}'
+            'H43': 'get_inverse_kinematics: H43 X{x} Y{y} Z{z} A{roll} B{pitch} C{yaw}'
+            'H44': 'get_forward_kinematics: H44 I{servo_1} J{servo_2} K{servo_3} L{servo_4} M{servo_5} N{servo_6} O{servo_7}'
+            'H45': 'is_joint_limit: H45 I{servo_1} J{servo_2} K{servo_3} L{servo_4} M{servo_5} N{servo_6} O{servo_7}'
+            'H46': 'is_tcp_limit: H46 X{x} Y{y} Z{z} A{roll} B{pitch} C{yaw}'
+            'H51': 'set_gravity_direction: H51 X{x} Y{y} Z{z}'
             'H106': 'get_servo_debug_msg: H106'
+            'M116': 'set_gripper_enable: M116 V{enable}'
+            'M117': 'set_gripper_mode: M117 V{mode}'
+            'M119': 'get_gripper_position: M119'
+            'M120': 'set_gripper_position: M120 V{pos}'
+            'M121': 'set_gripper_speed: M116 V{speed}'
+            'M125': 'get_gripper_err_code: M125'
+            'M126': 'clean_gripper_error: M126'
+            'M131': 'get_tgpio_digital: M131'
+            'M132': 'set_tgpio_digital: M132 I{ionum} V{value}'
+            'M133': 'get_tgpio_analog, default ionum=0: M133 I{ionum=0}'
+            'M134': 'get_tgpio_analog, default ionum=1: M134 I{ionum=1}'
+            'C131': 'get_cgpio_digital: C131'
+            'C132': 'get_cgpio_analog, default ionum=0: C132 I{ionum=0}'
+            'C133': 'get_cgpio_analog, default ionum=1: C133 I{ionum=1}'
+            'C134': 'set_cgpio_digital: C134 I{ionum} V{value}'
+            'C135': 'set_cgpio_analog, default ionum=0: C135 I{ionum=0} V{value}'
+            'C136': 'set_cgpio_analog, default ionum=1: C136 I{ionum=1} V{value}'
+            'C137': 'set_cgpio_digital_input_function: C137 I{ionum} V{fun}'
+            'C138': 'set_cgpio_digital_output_function: C138 I{ionum} V{fun}'
+            'C139': 'get_cgpio_state: C139'
         :return: code or tuple((code, ...))
             code: See the API code documentation for details.
         """
@@ -752,6 +784,7 @@ class XArmAPI(object):
     def check_verification(self):
         """
         check verification
+        
         :return: tuple((code, status)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
             status: 
@@ -769,6 +802,210 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.shutdown_system(value=value)
+
+    def get_trajectories(self):
+        """
+        get the trajectories
+        
+        Note: 
+            1. This interface relies on xArmStudio 1.2.0 or above
+            2. This interface relies on Firmware 1.2.0 or above
+        
+        :return: tuple((code, trajectories))
+            code: See the API code documentation for details.
+            trajectories: [{
+                'name': name, # The name of the trajectory
+                'duration': duration, # The duration of the trajectory (seconds)
+            }]
+        """
+        return self._arm.get_trajectories()
+
+    def start_record_trajectory(self):
+        """
+        Start trajectory recording, only in teach mode, so you need to set joint teaching mode before.
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+            2. set joint teaching mode: set_mode(2);set_state(0)
+            
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.start_record_trajectory()
+
+    def stop_record_trajectory(self, filename=None):
+        """
+        Stop trajectory recording
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param filename: The name to save
+            1. Only strings consisting of English or numbers are supported, and the length is no more than 50.
+            2. The trajectory is saved in the controller box.
+            3. If the tilename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost
+            4. This action will overwrite the trajectory with the same name
+            5. Empty the trajectory in memory after saving
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.stop_record_trajectory(filename=filename)
+
+    def save_record_trajectory(self, filename, wait=True, timeout=2):
+        """
+        Save the trajectory you just recorded
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+         
+        :param filename: The name to save
+            1. Only strings consisting of English or numbers are supported, and the length is no more than 50.
+            2. The trajectory is saved in the controller box.
+            3. This action will overwrite the trajectory with the same name
+            4. Empty the trajectory in memory after saving, so repeated calls will cause the recorded trajectory to be covered by an empty trajectory. 
+        :param wait: Whether to wait for saving, default is True
+        :param timeout: Timeout waiting for saving to complete
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.save_record_trajectory(filename, wait=wait, timeout=timeout)
+
+    def load_trajectory(self, filename, wait=True, timeout=10):
+        """
+        Load the trajectory
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param filename: The name of the trajectory to load
+        :param wait: Whether to wait for loading, default is True
+        :param timeout: Timeout waiting for loading to complete
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.load_trajectory(filename, wait=wait, timeout=timeout)
+
+    def playback_trajectory(self, times=1, filename=None, wait=True):
+        """
+        Playback trajectory
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param times: Number of playbacks,
+            1. Only valid when the current position of the arm is the end position of the track, otherwise it will only be played once.
+        :param filename: The name of the trajectory to play back
+            1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
+        :param wait: whether to wait for the arm to complete, default is False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.playback_trajectory(times=times, filename=filename, wait=wait)
+
+    def get_trajectory_rw_status(self):
+        """
+        Get trajectory read/write status
+
+        :return: (code, status)
+            code: See the API code documentation for details.
+            status:
+                0: no read/write
+                1: loading
+                2: load success
+                3: load failed
+                4: saving
+                5: save success
+                6: save failed
+        """
+        return self._arm.get_trajectory_rw_status()
+
+    def get_reduced_mode(self):
+        """
+        Get reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :return: tuple((code, mode))
+            code: See the API code documentation for details.
+            mode: 0 or 1, 1 means that the reduced mode is turned on.
+        """
+        return self._arm.get_reduced_mode()
+
+    def get_reduced_states(self, is_radian=None):
+        """
+        Get states of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
+        :return: tuple((code, states))
+            code: See the API code documentation for details.
+            states: [
+                reduced_mode_is_on,
+                [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
+                reduced_max_tcp_speed,
+                reduced_max_joint_speed,
+            ]
+        """
+        return self._arm.get_reduced_states(is_radian=is_radian)
+
+    def set_reduced_mode(self, on):
+        """
+        Turn on/off reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+        
+        :param on: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_mode(on)
+
+    def set_reduced_max_tcp_speed(self, speed):
+        """
+        Set the maximum tcp speed of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
+
+        :param speed: speed (mm/s)
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_max_tcp_speed(speed)
+
+    def set_reduced_max_joint_speed(self, speed, is_radian=None):
+        """
+        Set the maximum joint speed of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
+        
+        :param speed: speed (°/s or rad/s)
+        :param is_radian: the speed is in radians or not, default is self.default_is_radian
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_max_joint_speed(speed, is_radian=is_radian)
+
+    def set_reduced_tcp_boundary(self, boundary):
+        """
+        Set the boundary of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.0 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
+        
+        :param boundary: [x_max, x_min, y_max, y_min, z_max, z_min]
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_reduced_tcp_boundary(boundary)
 
     def get_is_moving(self):
         """
@@ -1148,17 +1385,17 @@ class XArmAPI(object):
         """
         return self._arm.emergency_stop()
 
-    def set_gripper_enable(self, enable):
+    def set_gripper_enable(self, enable, **kwargs):
         """
         Set the gripper enable
         
-        :param enable: 
+        :param enable: enable or not
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_enable(enable)
+        return self._arm.set_gripper_enable(enable, **kwargs)
 
-    def set_gripper_mode(self, mode):
+    def set_gripper_mode(self, mode, **kwargs):
         """
         Set the gripper mode
         
@@ -1166,18 +1403,18 @@ class XArmAPI(object):
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_mode(mode)
+        return self._arm.set_gripper_mode(mode, **kwargs)
 
-    def get_gripper_position(self):
+    def get_gripper_position(self, **kwargs):
         """
         Get the gripper position
         
         :return: tuple((code, pos)), only when code is 0, the returned result is correct.
             code: See the Gripper code documentation for details.
         """
-        return self._arm.get_gripper_position()
+        return self._arm.get_gripper_position(**kwargs)
 
-    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
         """
         Set the gripper position
         
@@ -1189,9 +1426,9 @@ class XArmAPI(object):
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)
+        return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
 
-    def set_gripper_speed(self, speed):
+    def set_gripper_speed(self, speed, **kwargs):
         """
         Set the gripper speed
         
@@ -1199,9 +1436,9 @@ class XArmAPI(object):
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.set_gripper_speed(speed)
+        return self._arm.set_gripper_speed(speed, **kwargs)
 
-    def get_gripper_err_code(self):
+    def get_gripper_err_code(self, **kwargs):
         """
         Get the gripper error code
         
@@ -1209,16 +1446,16 @@ class XArmAPI(object):
             code: See the API code documentation for details.
             err_code: See the Gripper code documentation for details.
         """
-        return self._arm.get_gripper_err_code()
+        return self._arm.get_gripper_err_code(**kwargs)
 
-    def clean_gripper_error(self):
+    def clean_gripper_error(self, **kwargs):
         """
         Clean the gripper error
         
         :return: code
             code: See the Gripper code documentation for details.
         """
-        return self._arm.clean_gripper_error()
+        return self._arm.clean_gripper_error(**kwargs)
 
     def get_tgpio_digital(self, ionum=None):
         """
@@ -1249,6 +1486,18 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.get_tgpio_analog(ionum)
+
+    def set_suction_cup(self, on):
+        """
+        Set suction cup
+        
+        :param on: open or not
+            on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
+            on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_suction_cup(on)
 
     def get_cgpio_digital(self, ionum=None):
         """
@@ -1571,7 +1820,7 @@ class XArmAPI(object):
         Get the servo debug msg, used only for debugging
         
         :param show: show the detail info if True
-        :param lang: language, en/cn, degault is en
+        :param lang: language, en/cn, default is en
         :return: tuple((code, servo_info_list)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
         """
@@ -1582,18 +1831,11 @@ class XArmAPI(object):
         Run the app generated by xArmStudio software
         :param path: app path
         """
-        try:
-            if not os.path.exists(path):
-                path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', 'xarm{}'.format(self.axis), 'app', 'myapp', path)
-            if os.path.isdir(path):
-                path = os.path.join(path, 'app.xml')
-            if not os.path.exists(path):
-                raise FileNotFoundError
-            blockly_tool = BlocklyTool(path)
-            succeed = blockly_tool.to_python(arm=self, **kwargs)
-            if succeed:
-                exec(blockly_tool.codes, {'arm': self})
-            else:
-                print('The conversion is incomplete and some blocks are not yet supported.')
-        except Exception as e:
-            print(e)
+        return self._arm.run_blockly_app(path, **kwargs)
+
+    def run_gcode_file(self, path, **kwargs):
+        """
+        Run the gcode file
+        :param path: gcode file path
+        """
+        return self._arm.run_gcode_file(path, **kwargs)

@@ -20,6 +20,7 @@ class APIState(object):
     OUT_OF_RANGE = -8  # 超出范围
     EMERGENCY_STOP = -9  # 紧急停止
     SERVO_NOT_EXIST = -10  # 不存在此ID的关节
+    CONVERT_FAILED = -11  # 转换Blockly失败
     NORMAL = 0  # 正常
     HAS_ERROR = XCONF.UxbusState.ERR_CODE  # 有尚未清除的错误
     HAS_WARN = XCONF.UxbusState.WAR_CODE  # 有尚未清除的警告
@@ -30,5 +31,9 @@ class APIState(object):
     FUN_ERROR = XCONF.UxbusState.ERR_FUN  # TCP回复指令和发送指令不匹配
     NO_TCP = XCONF.UxbusState.ERR_NOTTCP  # 写数据异常
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
+    PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
+    TRAJ_RW_FAILED = 31  # 读写轨迹失败(加载轨迹或保存轨迹)
+    TRAJ_RW_TOUT = 32  # 读写轨迹等待超时(加载轨迹或保存轨迹)
+    TRAJ_PLAYBACK_TOUT = 33  # 回放轨迹超时(多种情况)
 
 

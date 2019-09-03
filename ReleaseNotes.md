@@ -2,6 +2,15 @@
 
 ## Update Summary
 
+- > ### 1.2.0
+
+  - Fix the parameters of the control box GPIO analog signal
+  - Support for more Gcode commands
+  - Support trajectory recording
+  - Support for reduced mode settings
+  - Optimize some interfaces and bug fixes
+  - Support for blocky code conversion and operation of xArmStudio1.2.0
+
 - > ### 1.1.0
 
   - Modify the claw interface

@@ -130,3 +130,296 @@ class Servo(object):
         """
         return self.set_servo_addr_16(servo_id, 0x0109, 1)
 
+    @xarm_is_connected(_type='get')
+    def get_servo_state(self, servo_id):
+        """
+        获取运行状态
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0000)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_rotate_speed(self, servo_id):
+        """
+        获取转速
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0001)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_current_percentage(self, servo_id):
+        """
+        获取电流百分比
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0002)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_current(self, servo_id):
+        """
+        获取电流
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0003)
+        return ret[0], ret[1] / 100
+
+    @xarm_is_connected(_type='get')
+    def get_servo_command_position(self, servo_id):
+        """
+        获取指令位置
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_32(servo_id, 0x0004)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_position(self, servo_id):
+        """
+        获取电机位置
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_32(servo_id, 0x0006)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_position_deviation(self, servo_id):
+        """
+        获取位置误差
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_32(servo_id, 0x0008)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_electrical_angle(self, servo_id):
+        """
+        获取电角度
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x000B)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_drv8323_sr0_register(self, servo_id):
+        """
+        获取DRV8323_SR0状态寄存器
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x000C)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_drv8323_sr1_register(self, servo_id):
+        """
+        获取DRV8323_SR1状态寄存器
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x000D)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_temperature(self, servo_id):
+        """
+        获取当前温度
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x000E)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_alarm_code(self, servo_id):
+        """
+        获取当前报警代码
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x000F)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_alarm_current(self, servo_id):
+        """
+        获取报警发生时的电流值
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0010)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_alarm_speed(self, servo_id):
+        """
+        获取报警发生时的速度值
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0011)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_alarm_voltage(self, servo_id):
+        """
+        获取报警发生时的输入电压值
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0012)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_bus_voltage(self, servo_id):
+        """
+        获取母线电压
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x0018)
+        return ret[0], ret[1] / 100
+
+    @xarm_is_connected(_type='get')
+    def get_servo_mu_state(self, servo_id):
+        """
+        获取MU当前状态
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x001E)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_mu_alarm_count(self, servo_id):
+        """
+        获取MU上电后报警次数
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_16(servo_id, 0x001F)
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_feedback_position(self, servo_id):
+        """
+        获取关节反馈位置
+        :param servo_id: 
+        :return: 
+        """
+        ret = self.get_servo_addr_32(servo_id, 0x0040)
+        return ret
+
+    # @xarm_is_connected(_type='get')
+    # def get_servo_current(self, servo_id):
+    #     """
+    #     获取电流
+    #     :param servo_id:
+    #     :return:
+    #     """
+    #     ret = self.get_servo_addr_16(servo_id, 0x0042)
+    #     return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_version(self, servo_id):
+        """
+        获取关节版本
+        :param servo_id: 
+        :return: 
+        """
+        ret1 = self.get_servo_addr_16(servo_id, 0x0801)
+        ret2 = self.get_servo_addr_16(servo_id, 0x0802)
+        ret3 = self.get_servo_addr_16(servo_id, 0x0803)
+        ret = ret1[0] or ret2[0] or ret3[0], '{}.{}.{}'.format(ret1[1], ret2[1], ret3[1])
+        return ret
+
+    @xarm_is_connected(_type='get')
+    def get_servo_error_code(self, servo_id=None):
+        assert servo_id is None or (isinstance(servo_id, int) and servo_id >= 1), \
+            'The value of parameter servo_id must be greater than 1 or None.'
+        code = 0
+        if servo_id is None or servo_id > self.axis:
+            count = 7 if servo_id == 8 else self.axis
+            errcodes = [0] * count
+            for i in range(count):
+                ret = self.get_servo_addr_32(i + 1, XCONF.ServoConf.CURR_POS)
+                if ret[0] == XCONF.UxbusState.ERR_CODE:
+                    _, err_warn = self.get_err_warn_code()
+                    if _ == 0:
+                        if i + 11 == err_warn[0]:
+                            errcodes[i] = ret[1]
+                        else:
+                            errcodes[i] = 0
+                    else:
+                        code = _
+                        logger.error('Get controller errwarn: ret={}, errwarn={}'.format(code, err_warn))
+                        errcodes[i] = ret[1]
+        else:
+            errcodes = 0
+            ret = self.get_servo_addr_32(servo_id, XCONF.ServoConf.CURR_POS)
+            if ret[0] == XCONF.UxbusState.ERR_CODE:
+                _, err_warn = self.get_err_warn_code()
+                if _ == 0:
+                    if servo_id + 10 == err_warn[0]:
+                        errcodes = ret[1]
+                    else:
+                        errcodes = 0
+                else:
+                    code = _
+                    logger.error('Get controller errwarn: ret={}, errwarn={}'.format(code, err_warn))
+                    errcodes = ret[1]
+        return code, errcodes
+
+    @xarm_is_connected(_type='set')
+    def clean_servo_pvl_err(self, servo_id=None):
+        assert servo_id is None or (isinstance(servo_id, int) and servo_id >= 1), \
+            'The value of parameter servo_id must be greater than 1 or None.'
+        if servo_id is None or servo_id > self.axis:
+            count = 7 if servo_id == 8 else self.axis
+            ids = range(count)
+        else:
+            ids = [servo_id - 1]
+        _, errcode = self.get_servo_error_code()
+        for i in ids:
+            if errcode[i] == 0x12:
+                self.set_servo_addr_16(i + 1, XCONF.ServoConf.RESET_PVL, 0x0002)
+                self.set_servo_addr_16(i + 1, XCONF.ServoConf.RESET_ERR, 1)
+        return 0
+
+    @xarm_is_connected(_type='get')
+    def get_servo_all_pids(self, servo_id=None):
+        assert servo_id is None or (isinstance(servo_id, int) and servo_id >= 1), \
+            'The value of parameter servo_id must be greater than 1 or None.'
+        self.clean_error()
+        self.clean_warn()
+        addrs = [
+            XCONF.ServoConf.POS_KP, XCONF.ServoConf.POS_FWDKP, XCONF.ServoConf.POS_PWDTC,
+            XCONF.ServoConf.SPD_KP, XCONF.ServoConf.SPD_KI, XCONF.ServoConf.CURR_KP,
+            XCONF.ServoConf.CURR_KI, XCONF.ServoConf.SPD_IFILT, XCONF.ServoConf.SPD_OFILT,
+            XCONF.ServoConf.CURR_IFILT, XCONF.ServoConf.POS_KD, XCONF.ServoConf.POS_CMDILT,
+            XCONF.ServoConf.GET_TEMP, XCONF.ServoConf.OVER_TEMP
+        ]
+        if servo_id is None or servo_id > self.axis:
+            count = 7 if servo_id == 8 else self.axis
+            pids = [[9999] * len(addrs) for _ in range(count)]
+            for i in range(count):
+                for j, addr in enumerate(addrs):
+                    _, data = self.get_servo_addr_16(i + 1, addr)
+                    if _ == 0:
+                        pids[i][j] = data
+        else:
+            pids = [9999] * len(addrs)
+            for j, addr in enumerate(addrs):
+                _, data = self.get_servo_addr_16(servo_id, addr)
+                pids[j] = data
+        return 0, pids

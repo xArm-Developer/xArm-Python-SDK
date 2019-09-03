@@ -7,7 +7,7 @@
 # Author: Jimy Zhang <jimy.zhang@ufactory.cc> <jimy92@163.com>
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-
+import time
 import threading
 import functools
 from ..utils import convert
@@ -90,6 +90,14 @@ class UxbusCmd(object):
         return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
 
     @lock_require
+    def set_nint32(self, funcode, datas, num):
+        hexdata = convert.int32s_to_bytes(datas, num)
+        ret = self.send_xbus(funcode, hexdata, num * 4)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    @lock_require
     def get_nfp32(self, funcode, num):
         ret = self.send_xbus(funcode, 0, 0)
         if ret != 0:
@@ -133,6 +141,70 @@ class UxbusCmd(object):
     def shutdown_system(self, value):
         txdata = [value]
         return self.set_nu8(XCONF.UxbusReg.SHUTDOWN_SYSTEM, txdata, 1)
+
+    def set_record_traj(self, value):
+        txdata = [value]
+        return self.set_nu8(XCONF.UxbusReg.SET_TRAJ_RECORD, txdata, 1)
+
+    def playback_traj(self, value):
+        txdata = [value]
+        return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, 1)
+
+    def save_traj(self, filename, wait_time=2):
+        char_list = list(filename)
+        txdata = [ord(i) for i in char_list]
+        name_len = len(txdata)
+        if name_len > 80:
+            print("name length should not exceed 80 characters!")
+            return [XCONF.UxbusState.ERR_PARAM]
+        txdata = txdata + [0] * (81 - name_len)
+
+        ret = self.set_nu8(XCONF.UxbusReg.SAVE_TRAJ, txdata, 81)
+        time.sleep(wait_time)  # Must! or buffer would be flushed if set mode to pos_mode
+        return ret
+
+    def load_traj(self, filename, wait_time=2):
+        char_list = list(filename)
+        txdata = [ord(i) for i in char_list]
+        name_len = len(txdata)
+        if name_len > 80:
+            print("name length should not exceed 80 characters!")
+            return [XCONF.UxbusState.ERR_PARAM]
+        txdata = txdata + [0] * (81 - name_len)
+
+        ret = self.set_nu8(XCONF.UxbusReg.LOAD_TRAJ, txdata, 81)
+        time.sleep(wait_time)  # Must! or buffer would be flushed if set mode to pos_mode
+        return ret
+
+    def get_traj_rw_status(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_TRAJ_RW_STATUS, 1)
+
+    def set_reduced_mode(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_REDUCED_MODE, txdata, 1)
+
+    def set_reduced_linespeed(self, lspd_mm):
+        txdata = [lspd_mm]
+        return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_TRSV, txdata, 1)
+
+    def set_reduced_jointspeed(self, jspd_rad):
+        txdata = [jspd_rad]
+        return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_P2PV, txdata, 1)
+
+    def get_reduced_mode(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_REDUCED_MODE, 1)
+
+    def get_reduced_states(self):
+        ret = self.get_nu8(XCONF.UxbusReg.GET_REDUCED_STATE, 21)
+        msg = [0] * 5
+        msg[0] = ret[0]
+        msg[1] = ret[1]
+        msg[2] = convert.bytes_to_16s(ret[2:14], 6)
+        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)
+        return msg
+
+    def set_xyz_limits(self, xyz_list):
+        return self.set_nint32(XCONF.UxbusReg.SET_LIMIT_XYZ, xyz_list, 6)
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
@@ -188,6 +260,20 @@ class UxbusCmd(object):
         txdata = [mvjoint[i] for i in range(7)]
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_SERVOJ, txdata, 10)
+
+    def set_servot(self, jnt_taus):
+        txdata = [jnt_taus[i] for i in range(7)]
+        return self.set_nfp32(XCONF.UxbusReg.SET_SERVOT, txdata, 7)
+
+    def get_joint_tau(self):
+        return self.get_nfp32(XCONF.UxbusReg.GET_JOINT_TAU, 7)
+
+    def set_safe_level(self, level):
+        txdata = [level]
+        return self.set_nu8(XCONF.UxbusReg.SET_SAFE_LEVEL, txdata, 1)
+
+    def get_safe_level(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_SAFE_LEVEL, 1)
 
     def sleep_instruction(self, sltime):
         txdata = [sltime]

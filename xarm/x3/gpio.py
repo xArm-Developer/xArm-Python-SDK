@@ -6,7 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-from .utils import xarm_is_connected
+from .utils import xarm_is_connected, xarm_is_pause
 from ..core.utils.log import logger
 
 
@@ -45,6 +45,7 @@ class GPIO(object):
         return ret[0], ret[1:] if ionum is None else ret[ionum+1]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_tgpio_digital(self, ionum, value):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
         ret = self.arm_cmd.tgpio_set_digital(ionum+1, value)
@@ -81,11 +82,11 @@ class GPIO(object):
     def get_cgpio_digital(self, ionum=None):
         assert ionum is None or (isinstance(ionum, int) and 7 >= ionum >= 0)
         ret = self.arm_cmd.cgpio_get_auxdigit()
-        if ret[0] != 0:
-            self.get_err_warn_code()
-            if self.error_code != 33:
-                ret[0] = 0
-        digitals = [0]
+        # if ret[0] != 0:
+        #     self.get_err_warn_code()
+        #     if self.error_code != 33:
+        #         ret[0] = 0
+        digitals = [ret[0]]
         for i in range(8):
             digitals.append(ret[1] >> i & 0x0001)
         return digitals[0], digitals[1:] if ionum is None else digitals[ionum+1]
@@ -113,6 +114,7 @@ class GPIO(object):
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_cgpio_digital(self, ionum, value):
         assert isinstance(ionum, int) and 7 >= ionum >= 0
         ret = self.arm_cmd.cgpio_set_auxdigit(ionum, value)
@@ -124,9 +126,10 @@ class GPIO(object):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_cgpio_analog(self, ionum, value):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
-        if ionum == 1:
+        if ionum == 0:
             ret = self.arm_cmd.cgpio_set_analog1(value)
         else:
             ret = self.arm_cmd.cgpio_set_analog2(value)
@@ -200,3 +203,12 @@ class GPIO(object):
         # print('cgpio_digital_output_fun:', ret[12])
         return ret[0], ret[1:]
 
+    @xarm_is_connected(_type='set')
+    def set_suction_cup(self, on):
+        if on:
+            code1 = self.set_tgpio_digital(ionum=0, value=1)
+            code2 = self.set_tgpio_digital(ionum=1, value=0)
+        else:
+            code1 = self.set_tgpio_digital(ionum=0, value=0)
+            code2 = self.set_tgpio_digital(ionum=1, value=1)
+        return code1 if code2 == 0 else code2

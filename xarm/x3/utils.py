@@ -30,9 +30,10 @@ def xarm_is_ready(_type='set'):
         @functools.wraps(func)
         def decorator(*args, **kwargs):
             if args[0].connected and kwargs.get('auto_enable', False):
-                args[0].motion_enable(enable=True)
-                args[0].set_mode(0)
-                args[0].set_state(0)
+                if not args[0].ready:
+                    args[0].motion_enable(enable=True)
+                    args[0].set_mode(0)
+                    args[0].set_state(0)
             if args[0].connected:
                 if not args[0]._check_is_ready or args[0].ready:
                     return func(*args, **kwargs)
@@ -46,6 +47,25 @@ def xarm_is_ready(_type='set'):
                 return APIState.NOT_CONNECTED if _type == 'set' else (APIState.NOT_CONNECTED, 'xArm is not connect')
         return decorator
     return _xarm_is_ready
+
+
+def xarm_is_pause(_type='set'):
+    def _xarm_is_pause(func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            args[0].check_is_pause()
+            return func(*args, **kwargs)
+            # try:
+            #     if args[0].connected:
+            #         return func(*args, **kwargs)
+            #     else:
+            #         logger.error('xArm is not connect')
+            #         return APIState.NOT_CONNECTED if _type == 'set' else APIState.NOT_CONNECTED, 'xArm is not connect'
+            # except Exception as e:
+            #     logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
+            #     return APIState.API_EXCEPTION if _type == 'set' else APIState.API_EXCEPTION, str(e)
+        return decorator
+    return _xarm_is_pause
 
 
 # def xarm_is_connected(_type='set'):

@@ -134,6 +134,7 @@ class Port(threading.Thread):
         finally:
             self.close()
         logger.debug('{} recv thread had stopped'.format(self.port_type))
+        self._connected = False
         # if self.heartbeat_thread:
         #     try:
         #         self.heartbeat_thread.join()

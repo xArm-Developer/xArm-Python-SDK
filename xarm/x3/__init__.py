@@ -1072,7 +1072,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     class _WaitMove:
         def __init__(self, owner, timeout):
             self.owner = owner
-            self.timeout = timeout if timeout is not None else 10
+            # self.timeout = timeout if timeout is not None else 10
+            self.timeout = timeout if timeout is not None else -1
             self.timer = None
             self.is_timeout = False
 
@@ -1086,7 +1087,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             self.check_stop_move()
 
         def check_stop_move(self):
-            base_joint_pos = self.owner.angles.copy()
+            # base_joint_pos = self.owner.angles.copy()
             time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner._is_stop and self.owner.connected and not self.owner.has_error:
@@ -1094,14 +1095,16 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     self.owner._sleep_finish_time = 0
                     break
                 if time.time() < self.owner._sleep_finish_time:
-                    time.sleep(0.01)
+                    time.sleep(0.02)
+                    count = 0
                     continue
-                if self.owner.angles == base_joint_pos or self.owner.state != 1:
+                # if self.owner.angles == base_joint_pos or self.owner.state != 1:
+                if self.owner.state != 1:
                     count += 1
-                    if count >= 10:
+                    if count >= 6:
                         break
                 else:
-                    base_joint_pos = self.owner._angles.copy()
+                    # base_joint_pos = self.owner._angles.copy()
                     count = 0
                 time.sleep(0.05)
             # if not self.is_timeout:

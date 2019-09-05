@@ -592,7 +592,7 @@ class XArmAPI(object):
         :param relative: relative move or not
         :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
-        :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param kwargs: reserved
         :return: code
             code: See the API code documentation for details.
@@ -646,7 +646,7 @@ class XArmAPI(object):
         :param relative: relative move or not
         :param is_radian: the angle in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
-        :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param kwargs: reserved
         :return: code
             code: See the API code documentation for details.
@@ -686,7 +686,7 @@ class XArmAPI(object):
         :param mvtime: 0, reserved
         :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
-        :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param kwargs: reserved
         :return: code
             code: See the API code documentation for details.
@@ -711,7 +711,7 @@ class XArmAPI(object):
         :param mvtime: reserved
         :param is_radian: the speed and acceleration are in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
-        :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :return: code
             code: See the API code documentation for details.
         """
@@ -1123,7 +1123,7 @@ class XArmAPI(object):
         :param mvtime: reserved
         :param is_radian: the speed and acceleration are in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
-        :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         """
         return self._arm.reset(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
 

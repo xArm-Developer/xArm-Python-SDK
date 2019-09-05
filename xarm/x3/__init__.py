@@ -1101,7 +1101,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 # if self.owner.angles == base_joint_pos or self.owner.state != 1:
                 if self.owner.state != 1:
                     count += 1
-                    if count >= 6:
+                    if count >= 10:
                         break
                 else:
                     # base_joint_pos = self.owner._angles.copy()

@@ -1098,6 +1098,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     time.sleep(0.02)
                     count = 0
                     continue
+                if self.owner.state == 3:
+                    time.sleep(0.02)
+                    count = 0
+                    continue
                 # if self.owner.angles == base_joint_pos or self.owner.state != 1:
                 if self.owner.state != 1:
                     count += 1

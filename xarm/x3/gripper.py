@@ -313,7 +313,10 @@ class Gripper(object):
         ret = self.arm_cmd.gripper_modbus_get_errcode()
         logger.info('API -> get_modbus_gripper_err_code -> ret={}'.format(ret))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            self._gripper_error_code = ret[1]
+            if ret[1] < 128:
+                self._gripper_error_code = ret[1]
+            if ret[1] != 0:
+                logger.error('gripper error: {}'.format(ret[1]))
             if ret[0] == XCONF.UxbusState.ERR_CODE:
                 self.get_err_warn_code()
                 if self.error_code == 19 or self.error_code == 28:

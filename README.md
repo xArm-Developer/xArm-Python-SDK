@@ -31,6 +31,12 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.2.2
+
+  - Fix mechanical claw false positive error
+  - Modify the wait logic of a motion instruction
+  - Support for blocky code conversion and operation of xArmStudio1.2.2
+
 - > ### 1.2.0
 
   - Fix the parameters of the control box GPIO analog signal

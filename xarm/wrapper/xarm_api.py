@@ -781,6 +781,15 @@ class XArmAPI(object):
         """
         return self._arm.get_version()
 
+    def get_robot_sn(self):
+        """
+        Get the sn
+        
+        :return: tuple((code, sn)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_robot_sn()
+
     def check_verification(self):
         """
         check verification
@@ -1839,3 +1848,18 @@ class XArmAPI(object):
         :param path: gcode file path
         """
         return self._arm.run_gcode_file(path, **kwargs)
+
+    def get_gripper_version(self):
+        return self._arm.get_gripper_version()
+
+    def get_servo_version(self, servo_id=1):
+        return self._arm.get_servo_version(servo_id=servo_id)
+
+    def get_tgpio_version(self):
+        return self._arm.get_tgpio_version()
+
+    def get_harmonic_type(self, servo_id=1):
+        return self._arm.get_harmonic_type(servo_id=servo_id)
+
+    def get_hd_types(self):
+        return self._arm.get_hd_types()

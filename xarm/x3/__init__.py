@@ -120,6 +120,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._is_stop = False
         self._is_sync = False
         self._is_first_report = True
+        self._first_report_over = False
         self._default_is_radian = is_radian
 
         self._sleep_finish_time = time.time()
@@ -332,7 +333,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self.get_cmdnum()
             except:
                 pass
-            time.sleep(self._timed_comm_interval)
+            count = self._timed_comm_interval * 10
+            while count > 0:
+                count -= 1
+                time.sleep(0.1)
+                if not self._timed_comm_t_alive or not self.connected:
+                    break
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         if self.connected:
@@ -352,6 +358,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self._timed_comm_t = None
             except:
                 pass
+        self._is_first_report = True
+        self._first_report_over = False
         if isinstance(self._port, (str, bytes)):
             if self._port == 'localhost' or re.match(
                     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -743,6 +751,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
             sv3_msg = convert.bytes_to_u16s(rx_data[171:187], 8)
+            self._first_report_over = True
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -938,6 +947,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
             sv3_msg = rx_data[229:245]
+            self._first_report_over = True
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -2490,6 +2500,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 ret = self.get_gripper_err_code()
             elif num == 126:  # M126 clean_gripper_error, ex: M126
                 ret = self.clean_gripper_error()
+            elif num == 127:
+                ret = self.get_gripper_version()
             elif num == 131:  # M131 get_tgpio_digital, ex: M131
                 ret = self.get_tgpio_digital()
             elif num == 132:  # M132 set_tgpio_digital, ex: M132 I{ionum} V{}
@@ -2502,6 +2514,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             elif num == 134:  # M134 get_tgpio_analog(1), ex: M134 I{ionum=1}
                 ionum = gcode_p.get_id_num(command, default=0)
                 ret = self.get_tgpio_analog(ionum=ionum)
+            elif num == 135:
+                return self.get_tgpio_version()
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
@@ -2538,6 +2552,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             if num == 44:  # S44 I{id}
                 id_num = gcode_p.get_id_num(command, default=None)
                 ret = self.get_servo_all_pids(id_num)
+            elif num == 45:
+                id_num = gcode_p.get_id_num(command, default=1)
+                ret = self.get_servo_version(servo_id=id_num)
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
@@ -2665,3 +2682,16 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         except Exception as e:
             logger.error(e)
             return APIState.API_EXCEPTION
+
+    @xarm_is_connected(_type='get')
+    def get_hd_types(self):
+        ret = self.arm_cmd.get_hd_types()
+        return ret[0], ret[1:]
+
+    @xarm_is_connected(_type='set')
+    def reload_dynamics(self):
+        ret = self.arm_cmd.reload_dynamics()
+        if ret in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret = 0
+        return ret
+

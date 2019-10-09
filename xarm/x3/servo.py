@@ -331,17 +331,66 @@ class Servo(object):
     #     return ret
 
     @xarm_is_connected(_type='get')
-    def get_servo_version(self, servo_id):
+    def get_servo_version(self, servo_id=1):
         """
         获取关节版本
         :param servo_id: 
         :return: 
         """
-        ret1 = self.get_servo_addr_16(servo_id, 0x0801)
-        ret2 = self.get_servo_addr_16(servo_id, 0x0802)
-        ret3 = self.get_servo_addr_16(servo_id, 0x0803)
-        ret = ret1[0] or ret2[0] or ret3[0], '{}.{}.{}'.format(ret1[1], ret2[1], ret3[1])
-        return ret
+        assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
+
+        def _get_servo_version(id_num):
+            versions = ['*', '*', '*']
+            ret1 = self.get_servo_addr_16(id_num, 0x0801)
+            ret2 = self.get_servo_addr_16(id_num, 0x0802)
+            ret3 = self.get_servo_addr_16(id_num, 0x0803)
+            code = 0
+            if ret1[0] == 0:
+                versions[0] = ret1[1]
+            else:
+                code = ret1[0]
+            if ret2[0] == 0:
+                versions[1] = ret2[1]
+            else:
+                code = ret2[0]
+            if ret3[0] == 0:
+                versions[2] = ret3[1]
+            else:
+                code = ret3[0]
+            return code, '.'.join(map(str, versions))
+
+        if servo_id > self.axis:
+            code = 0
+            versions = []
+            for i in range(1, self.axis + 1):
+                ret = _get_servo_version(i)
+                if ret[0] != 0:
+                    code = ret[0]
+                versions.append(ret[1])
+            return code, versions
+        else:
+            return _get_servo_version(servo_id)
+
+    @xarm_is_connected(_type='get')
+    def get_harmonic_type(self, servo_id=1):
+        """
+        获取关节版本
+        :param servo_id: 
+        :return: 
+        """
+        assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
+
+        if servo_id > self.axis:
+            code = 0
+            types = []
+            for i in range(1, self.axis + 1):
+                ret = self.get_servo_addr_16(i, 0x081F)
+                if ret[0] != 0:
+                    code = ret[0]
+                types.append(ret[1])
+            return code, types
+        else:
+            return self.get_servo_addr_16(servo_id, 0x081F)
 
     @xarm_is_connected(_type='get')
     def get_servo_error_code(self, servo_id=None):

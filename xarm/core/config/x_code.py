@@ -506,11 +506,11 @@ ControllerErrorCodeMap = {
     },
     19: {
         'en': {
-            'title': 'Tool GPIO error',
+            'title': 'Gripper Communication Error',
             'desc': ''
         },
         'cn': {
-            'title': '末端工具IO出错',
+            'title': '机械爪通信失败',
             'desc': ''
         }
     },
@@ -586,11 +586,11 @@ ControllerErrorCodeMap = {
     },
     28: {
         'en': {
-            'title': 'Gripper error',
+            'title': 'End Module Communication Error',
             'desc': ''
         },
         'cn': {
-            'title': '机械爪错误',
+            'title': '末端通信失败',
             'desc': ''
         }
     },

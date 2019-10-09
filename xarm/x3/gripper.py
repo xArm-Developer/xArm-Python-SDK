@@ -10,6 +10,7 @@ import time
 from .utils import xarm_is_connected, xarm_is_pause
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
+from ..core.utils import convert
 
 
 class Gripper(object):
@@ -19,6 +20,32 @@ class Gripper(object):
     @property
     def gripper_error_code(self):
         return self._gripper_error_code
+
+    @xarm_is_connected(_type='get')
+    def get_gripper_version(self):
+        versions = ['*', '*', '*']
+        ret1 = self.arm_cmd.gripper_modbus_r16s(0x0801, 1)
+        ret2 = self.arm_cmd.gripper_modbus_r16s(0x0802, 1)
+        ret3 = self.arm_cmd.gripper_modbus_r16s(0x0803, 1)
+
+        code = 0
+
+        if ret1[0] == 0 and len(ret1) == 7:
+            versions[0] = convert.bytes_to_u16(ret1[5:7])
+        else:
+            code = ret1[0]
+
+        if ret2[0] == 0 and len(ret2) == 7:
+            versions[1] = convert.bytes_to_u16(ret2[5:7])
+        else:
+            code = ret2[0]
+
+        if ret3[0] == 0 and len(ret3) == 7:
+            versions[2] = convert.bytes_to_u16(ret3[5:7])
+        else:
+            code = ret3[0]
+
+        return code, '.'.join(map(str, versions))
 
     @xarm_is_connected(_type='set')
     def set_gripper_enable(self, enable, is_modbus=True):

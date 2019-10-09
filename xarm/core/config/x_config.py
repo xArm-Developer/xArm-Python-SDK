@@ -148,6 +148,7 @@ class XCONF(object):
         GET_VERSION = 1
         GET_ROBOT_SN = 2
         CHECK_VERIFY = 3
+        RELOAD_DYNAMICS = 4
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
         SET_STATE = 12
@@ -227,6 +228,8 @@ class XCONF(object):
         CGPIO_SET_IN_FUN = 137
         CGPIO_SET_OUT_FUN = 138
         CGPIO_GET_STATE = 139
+
+        GET_HD_TYPES = 141
 
     class UxbusConf:
         SET_TIMEOUT = 1000  # ms

@@ -395,6 +395,45 @@ class BlocklyTool(object):
                              'radius={}, wait={}) < 0:'.format(prefix, values, radius, wait))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
+    def _handle_move_joints_var(self, block, prefix=''):
+        field = self.get_node('field', root=block)
+        wait = field.text == 'TRUE'
+        value_nodes = self.get_nodes('value', root=block)
+        values = []
+        for val_node in value_nodes:
+            val = self.__get_condition_expression(val_node)
+            values.append(val)
+        values = '[{}]'.format(','.join(values))
+        if self._show_comment:
+            self._append_to_file('{}# move joint and {}'.format(prefix, 'wait' if wait else 'no wait'))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file(
+            '{}    if arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
+            'mvacc=params[\'angle_acc\'], wait={}) < 0:'.format(prefix, values, wait))
+        self._append_to_file(
+            '{}        params[\'quit\'] = True'.format(prefix))
+
+    def _handle_move_cartesian_var(self, block, prefix=''):
+        field = self.get_node('field', root=block)
+        wait = field.text == 'TRUE'
+        value_nodes = self.get_nodes('value', root=block)
+        values = []
+        for val_node in value_nodes:
+            val = self.__get_condition_expression(val_node)
+            values.append(val)
+        radius = values.pop()
+        values = '[{}]'.format(','.join(values))
+        if self._show_comment:
+            try:
+                self._append_to_file('{}# move{}line and {}'.format(
+                    prefix, ' arc ' if float(radius) >= 0 else ' ', 'wait' if wait else 'no wait'))
+            except:
+                pass
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    if arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'radius={}, wait={}) < 0:'.format(prefix, values, radius, wait))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+
     def _handle_motion_stop(self, block, prefix=''):
         if self._show_comment:
             self._append_to_file('{}# emergency stop'.format(prefix))
@@ -945,6 +984,9 @@ class BlocklyTool(object):
 
     def __get_condition_expression(self, value_block):
         block = self.get_node('block', value_block)
+        if block is None:
+            shadow = self.get_node('shadow', root=value_block)
+            return self.get_node('field', root=shadow).text
         if block.attrib['type'] == 'logic_boolean':
             return str(self.get_node('field', block).text == 'TRUE')
         elif block.attrib['type'] == 'logic_compare':
@@ -1014,6 +1056,9 @@ class BlocklyTool(object):
         elif block.attrib['type'] == 'variables_get':
             field = self.get_node('field', block).text
             return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
+        elif block.attrib['type'] == 'move_var':
+            val = self.get_node('field', block).text
+            return val
         elif block.attrib['type'] == 'tool_get_date':
             return 'datetime.datetime.now()'
         elif block.attrib['type'] == 'tool_combination':

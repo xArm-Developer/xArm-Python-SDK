@@ -7,7 +7,9 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 from .utils import xarm_is_connected, xarm_is_pause
+from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
+from ..core.utils import convert
 
 
 class GPIO(object):
@@ -35,13 +37,39 @@ class GPIO(object):
     #     return ret[0], ret[1]
 
     @xarm_is_connected(_type='get')
+    def get_tgpio_version(self):
+        versions = ['*', '*', '*']
+        ret1 = self.arm_cmd.tgpio_addr_r16(0x0801)
+        ret2 = self.arm_cmd.tgpio_addr_r16(0x0802)
+        ret3 = self.arm_cmd.tgpio_addr_r16(0x0803)
+
+        code = 0
+
+        if ret1[0] == 0 and len(ret1) == 2:
+            versions[0] = ret1[1]
+        else:
+            code = ret1[0]
+
+        if ret2[0] == 0 and len(ret2) == 2:
+            versions[1] = ret2[1]
+        else:
+            code = ret2[0]
+
+        if ret3[0] == 0 and len(ret3) == 2:
+            versions[2] = ret3[1]
+        else:
+            code = ret3[0]
+
+        return code, '.'.join(map(str, versions))
+
+    @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
         ret = self.arm_cmd.tgpio_get_digital()
-        if ret[0] != 0:
-            self.get_err_warn_code()
-            if self.error_code != 19:
-                ret[0] = 0
+        # if ret[0] != 0:
+        #     self.get_err_warn_code()
+        #     if self.error_code != 19:
+        #         ret[0] = 0
         return ret[0], ret[1:] if ionum is None else ret[ionum+1]
 
     @xarm_is_connected(_type='set')
@@ -72,10 +100,10 @@ class GPIO(object):
                 ret = self.arm_cmd.tgpio_get_analog1()
             else:
                 ret = self.arm_cmd.tgpio_get_analog2()
-        if ret[0] != 0:
-            self.get_err_warn_code()
-            if self.error_code != 19:
-                ret[0] = 0
+        # if ret[0] != 0:
+        #     self.get_err_warn_code()
+        #     if self.error_code != 19:
+        #         ret[0] = 0
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='get')
@@ -188,7 +216,7 @@ class GPIO(object):
         #     }
         # }
         # import json
-        # print(json.dumps(data, sort_keys=True, indent=4, skipkeys=True, separators=(',', ':'), ensure_ascii=False))
+        # # print(json.dumps(data, sort_keys=True, indent=4, skipkeys=True, separators=(',', ':'), ensure_ascii=False))
         # print('cgpio_state:', ret[1])
         # print('cgpio_err_code:', ret[2])
         # print('cgpio_digital_input_fun_state:', bin(ret[3]))

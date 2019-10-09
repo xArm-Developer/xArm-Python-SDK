@@ -6,15 +6,28 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc>
 
-
+import os
+from distutils.util import convert_path
 try:
     from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup
-    def find_packages():
-        return ['xarm', 'xarm.x3', 'xarm.core', 'xarm.core.comm', 'xarm.core.utils', 'xarm.core.wrapper', 'xarm.wrapper']
-import os
-from distutils.util import convert_path
+
+    def find_packages(base_path='.'):
+        base_path = convert_path(base_path)
+        found = []
+        for root, dirs, files in os.walk(base_path, followlinks=True):
+            dirs[:] = [d for d in dirs if d[0] != '.' and d not in ('ez_setup', '__pycache__')]
+            relpath = os.path.relpath(root, base_path)
+            parent = relpath.replace(os.sep, '.').lstrip('.')
+            if relpath != '.' and parent not in found:
+                # foo.bar package but no foo package, skip
+                continue
+            for dir in dirs:
+                if os.path.isfile(os.path.join(root, dir, '__init__.py')):
+                    package = '.'.join((parent, dir)) if parent else dir
+                    found.append(package)
+        return found
 
 main_ns = {}
 ver_path = convert_path('xarm/version.py')

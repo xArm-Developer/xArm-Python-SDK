@@ -223,6 +223,12 @@ class UxbusCmd(object):
     def get_err_code(self):
         return self.get_nu8(XCONF.UxbusReg.GET_ERROR, 2)
 
+    def get_hd_types(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_HD_TYPES, 2)
+
+    def reload_dynamics(self):
+        return self.set_nu8(XCONF.UxbusReg.RELOAD_DYNAMICS, 0, 0)
+
     def clean_err(self):
         return self.set_nu8(XCONF.UxbusReg.CLEAN_ERR, 0, 0)
 

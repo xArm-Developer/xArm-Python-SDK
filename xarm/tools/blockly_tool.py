@@ -155,6 +155,7 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '        arm.set_state(4)')
             self._insert_to_file(self.index, '        params[\'quit\'] = True')
             self._insert_to_file(self.index, '        print(\'err={}, quit\'.format(data[\'error_code\']))')
+            self._insert_to_file(self.index, '        arm.release_error_warn_changed_callback(error_warn_change_callback)')
             # self._insert_to_file(self.index, '        sys.exit(1)')
             self._insert_to_file(self.index, 'arm.register_error_warn_changed_callback(error_warn_change_callback)')
         if stop_exit:
@@ -164,6 +165,7 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '        if arm.version_number[0] >= 1 and arm.version_number[1] >= 1 and arm.version_number[2] > 0:')
             self._insert_to_file(self.index, '            params[\'quit\'] = True')
             self._insert_to_file(self.index, '            print(\'state=4, quit\')')
+            self._insert_to_file(self.index, '            arm.release_state_changed_callback(state_changed_callback)')
             # self._insert_to_file(self.index, '        sys.exit(1)')
             self._insert_to_file(self.index, 'arm.register_state_changed_callback(state_changed_callback)')
 

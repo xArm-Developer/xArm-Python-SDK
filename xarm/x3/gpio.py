@@ -6,10 +6,11 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import time
 from .utils import xarm_is_connected, xarm_is_pause
-from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
-from ..core.utils import convert
+from ..core.config.x_config import XCONF
+from .code import APIState
 
 
 class GPIO(object):
@@ -77,10 +78,10 @@ class GPIO(object):
     def set_tgpio_digital(self, ionum, value):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
         ret = self.arm_cmd.tgpio_set_digital(ionum+1, value)
-        if ret[0] != 0:
-            self.get_err_warn_code()
-            if self.error_code != 19:
-                ret[0] = 0
+        # if ret[0] != 0:
+        #     self.get_err_warn_code()
+        #     if self.error_code != 19 and self.error_code != 28:
+        #         ret[0] = 0
         logger.info('API -> set_tgpio_digital -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
         return ret[0]
 
@@ -232,11 +233,32 @@ class GPIO(object):
         return ret[0], ret[1:]
 
     @xarm_is_connected(_type='set')
-    def set_suction_cup(self, on):
+    def set_suction_cup(self, on, wait=True, timeout=3):
         if on:
             code1 = self.set_tgpio_digital(ionum=0, value=1)
             code2 = self.set_tgpio_digital(ionum=1, value=0)
         else:
             code1 = self.set_tgpio_digital(ionum=0, value=0)
             code2 = self.set_tgpio_digital(ionum=1, value=1)
-        return code1 if code2 == 0 else code2
+        code = code1 if code2 == 0 else code2
+        if code == 0 and wait:
+            start = time.time()
+            code = APIState.SUCTION_CUP_TOUT
+            while time.time() - start < timeout:
+                ret = self.get_suction_cup_state()
+                if ret[0] == XCONF.UxbusState.ERR_CODE:
+                    code = XCONF.UxbusState.ERR_CODE
+                if ret[0] == 0:
+                    if on and ret[1] == 1:
+                        code = 0
+                        break
+                    if not on and ret[1] == 0:
+                        code = 0
+                        break
+                time.sleep(0.2)
+        logger.info('API -> set_suction_cup -> ret={}, on={}, wait={}'.format(code, on, wait))
+        return code
+
+    @xarm_is_connected(_type='get')
+    def get_suction_cup_state(self):
+        return self.get_tgpio_digital(ionum=0)

@@ -1496,17 +1496,31 @@ class XArmAPI(object):
         """
         return self._arm.get_tgpio_analog(ionum)
 
-    def set_suction_cup(self, on):
+    def get_suction_cup_state(self):
+        """
+        Get suction cup state
+        
+        :return: tuple((code, state)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            state: suction cup state
+                0: suction cup is off
+                1: suction cup is on
+        """
+        return self._arm.get_suction_cup_state()
+
+    def set_suction_cup(self, on, wait=True, timeout=3):
         """
         Set suction cup
         
         :param on: open or not
             on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
             on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
+        :param wait: wait or not, default is True
+        :param timeout: second, default is 3s
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_suction_cup(on)
+        return self._arm.set_suction_cup(on, wait=wait, timeout=timeout)
 
     def get_cgpio_digital(self, ionum=None):
         """

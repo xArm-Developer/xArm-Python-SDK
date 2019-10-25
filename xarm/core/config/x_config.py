@@ -142,7 +142,7 @@ class XCONF(object):
         TCP_CONTROL_BUF_SIZE = 1024
         TCP_REPORT_REAL_BUF_SIZE = 87
         TCP_REPORT_NORMAL_BUF_SIZE = 133
-        TCP_REPORT_RICH_BUF_SIZE = 245
+        TCP_REPORT_RICH_BUF_SIZE = 233
 
     class UxbusReg:
         GET_VERSION = 1
@@ -205,6 +205,10 @@ class XCONF(object):
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
 
+        SET_TIMER = 71
+        CANCEL_TIMER = 72
+        SET_WORLD_OFFSET = 73
+
         SERVO_W16B = 101
         SERVO_R16B = 102
         SERVO_W32B = 103
@@ -212,6 +216,7 @@ class XCONF(object):
         SERVO_ZERO = 105
         SERVO_DBMSG = 106
 
+        TGPIO_MB_TIOUT = 123
         TGPIO_MODBUS = 124
         TGPIO_ERR = 125
         TGPIO_W16B = 127
@@ -268,6 +273,7 @@ class XCONF(object):
         POS_SPD = 0x0303
         MT_ID = 0x1600
         BAUDRATE = 0x0601
+        SOFT_REBOOT = 0x0607
         TAGET_TOQ = 0x050a
         CURR_TOQ = 0x050c
         TOQ_SPD = 0x050e
@@ -283,6 +289,8 @@ class XCONF(object):
         RESET_ERR = 0x0109
         SV3_BRO_ID = 0xFF
 
+        MODBUS_BAUDRATE = 0x0A0B
+        TOOL_MB_TIMEOUT = 0x0A0E
         DIGITAL_IN = 0x0A14
         DIGITAL_OUT = 0x0A15
         ANALOG_IO1 = 0x0A16

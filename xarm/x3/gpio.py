@@ -245,9 +245,10 @@ class GPIO(object):
             start = time.time()
             code = APIState.SUCTION_CUP_TOUT
             while time.time() - start < timeout:
-                ret = self.get_suction_cup_state()
+                ret = self.get_suction_cup()
                 if ret[0] == XCONF.UxbusState.ERR_CODE:
                     code = XCONF.UxbusState.ERR_CODE
+                    break
                 if ret[0] == 0:
                     if on and ret[1] == 1:
                         code = 0
@@ -260,5 +261,5 @@ class GPIO(object):
         return code
 
     @xarm_is_connected(_type='get')
-    def get_suction_cup_state(self):
+    def get_suction_cup(self):
         return self.get_tgpio_digital(ionum=0)

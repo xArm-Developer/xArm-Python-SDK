@@ -116,7 +116,7 @@ class Record(object):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def playback_trajectory(self, times=1, filename=None, wait=False):
+    def playback_trajectory(self, times=1, filename=None, wait=False, double_speed=1):
         assert isinstance(times, int)
         times = times if times > 0 else -1
         if isinstance(filename, str) and filename.strip():
@@ -125,7 +125,7 @@ class Record(object):
                 return ret
         if self.state == 4:
             return APIState.NOT_READY
-        ret = self.arm_cmd.playback_traj(times)
+        ret = self.arm_cmd.playback_traj(times, double_speed)
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:

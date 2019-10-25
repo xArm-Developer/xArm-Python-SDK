@@ -510,6 +510,12 @@ class BlocklyTool(object):
         self._append_to_file('{}    if arm.set_tgpio_digital({}, {}) != 0:'.format(prefix, io, value))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
+    def _handle_get_suction_cup(self, block, prefix=''):
+        if self._show_comment:
+            self._append_to_file('{}# get suction cup status'.format(prefix))
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.get_suction_cup()'.format(prefix))
+
     def _handle_set_suction_cup(self, block, prefix=''):
         fields = self.get_nodes('field', root=block, name='trigger')
         on = True if fields[0].text == 'ON' else False
@@ -865,7 +871,12 @@ class BlocklyTool(object):
         self._is_insert = True
         try:
             self._append_to_file('\n    @classmethod')
-            self._append_to_file('    def {}(cls):'.format(name))
+            args = self.get_nodes('arg', root=self.get_node('mutation', block))
+            if not args:
+                self._append_to_file('    def {}(cls):'.format(name))
+            else:
+                self._append_to_file('    def {}(cls, {}):'.format(name, ','.join([arg.attrib['name'] for arg in args])))
+            # self._append_to_file('    def {}(cls):'.format(name))
             prefix = '        '
             comment = self.get_node('comment', block).text
             self._append_to_file('{}"""'.format(prefix))
@@ -898,7 +909,15 @@ class BlocklyTool(object):
             name = self._funcs[mutation]
         else:
             name = 'function_{}'.format(self.func_index)
-        self._append_to_file('{}MyDef.{}()'.format(prefix, name))
+
+        args = self.get_nodes('arg', root=self.get_node('mutation', block))
+        values = self.get_nodes('value', root=block)
+        if args and values and len(args) == len(values):
+            self._append_to_file('{}MyDef.{}({})'.format(prefix, name, ','.join([self.__get_condition_expression(val) for val in values])))
+        else:
+            self._append_to_file('{}MyDef.{}()'.format(prefix, name))
+
+        # self._append_to_file('{}MyDef.{}()'.format(prefix, name))
         self._funcs[mutation] = name
 
     def _handle_procedures_ifreturn(self, block, prefix=''):
@@ -917,14 +936,24 @@ class BlocklyTool(object):
         field = self.get_node('field', block).text
         value = self.get_node('value', root=block)
         expression = self.__get_condition_expression(value)
-        self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
+        # self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
+
+        self._append_to_file('{}if \'{}\' in locals():'.format(prefix, field))
+        self._append_to_file('{}    {} = {}'.format(prefix, field, expression))
+        self._append_to_file('{}else:'.format(prefix))
+        self._append_to_file('{}    params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
 
     def _handle_math_change(self, block, prefix=''):
         field = self.get_node('field', block).text
         value = self.get_node('value', root=block)
         shadow = self.get_node('shadow', root=value)
         val = self.get_node('field', root=shadow).text
-        self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
+        # self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
+
+        self._append_to_file('{}if \'{}\' in locals():'.format(prefix, field))
+        self._append_to_file('{}    {} += {}'.format(prefix, field, val))
+        self._append_to_file('{}else:'.format(prefix))
+        self._append_to_file('{}    params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
     def _handle_controls_repeat_ext(self, block, prefix=''):
         value = self.get_node('value', root=block)
@@ -988,12 +1017,22 @@ class BlocklyTool(object):
         value = self.get_node('value', root=block)
         expression = self.__get_condition_expression(value)
         self._append_to_file('{}if {}:'.format(prefix, expression))
+        old_prefix = prefix
         prefix = '    ' + prefix
-        statement = self.get_node('statement', root=block)
-        if statement:
-            self.parse(statement, prefix)
+        statement_if = self.get_nodes('statement', root=block, name='DO0')
+        statement_else = self.get_nodes('statement', root=block, name='ELSE')
+        if statement_if:
+            self.parse(statement_if[0], prefix)
+            if statement_else:
+                self._append_to_file('{}else:'.format(old_prefix))
+                self.parse(statement_else[0], prefix)
         else:
             self._append_to_file('{}pass'.format(prefix))
+        # statement = self.get_node('statement', root=block)
+        # if statement:
+        #     self.parse(statement, prefix)
+        # else:
+        #     self._append_to_file('{}pass'.format(prefix))
 
     def __get_condition_expression(self, value_block):
         block = self.get_node('block', value_block)
@@ -1037,6 +1076,8 @@ class BlocklyTool(object):
         elif block.attrib['type'] == 'gpio_get_controller_analog':
             io = self.get_node('field', block).text
             return 'arm.get_cgpio_analog({})[{}]'.format(io, 1)
+        elif block.attrib['type'] == 'get_suction_cup':
+            return 'arm.get_suction_cup()[{}]'.format(1)
         elif block.attrib['type'] == 'math_number':
             val = self.get_node('field', block).text
             return val
@@ -1068,7 +1109,8 @@ class BlocklyTool(object):
                     return 'pow({}, {})'.format(val_a, val_b)
         elif block.attrib['type'] == 'variables_get':
             field = self.get_node('field', block).text
-            return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
+            return '(params[\'variables\'].get(\'{}\', 0) if \'{}\' not in locals() else {})'.format(field, field, field)
+            # return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
         elif block.attrib['type'] == 'move_var':
             val = self.get_node('field', block).text
             return val
@@ -1088,7 +1130,15 @@ class BlocklyTool(object):
                 name = self._funcs[mutation]
             else:
                 name = 'function_{}'.format(self.func_index)
-            return 'MyDef.{}()'.format(name)
+
+            args = self.get_nodes('arg', root=self.get_node('mutation', block))
+            values = self.get_nodes('value', root=block)
+            if args and values and len(args) == len(values):
+                return 'MyDef.{}({})'.format(name, ','.join(
+                    [self.__get_condition_expression(val) for val in values]))
+            else:
+                return 'MyDef.{}()'.format(name)
+            # return 'MyDef.{}()'.format(name)
 
 
 if __name__ == '__main__':

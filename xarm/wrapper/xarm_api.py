@@ -386,6 +386,15 @@ class XArmAPI(object):
         return self._arm.motor_enable_states
 
     @property
+    def temperatures(self):
+        """
+        Motor temperature
+        
+        :return: [motor-1-temperature, ..., motor-7-temperature]
+        """
+        return self._arm.temperatures
+
+    @property
     def has_err_warn(self):
         """
         Contorller have an error or warning or not
@@ -894,7 +903,7 @@ class XArmAPI(object):
         """
         return self._arm.load_trajectory(filename, wait=wait, timeout=timeout)
 
-    def playback_trajectory(self, times=1, filename=None, wait=True):
+    def playback_trajectory(self, times=1, filename=None, wait=True, double_speed=1):
         """
         Playback trajectory
         
@@ -906,10 +915,11 @@ class XArmAPI(object):
         :param filename: The name of the trajectory to play back
             1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
         :param wait: whether to wait for the arm to complete, default is False
+        :param double_speed: double speed, only support 1/2/4, default is 1
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.playback_trajectory(times=times, filename=filename, wait=wait)
+        return self._arm.playback_trajectory(times=times, filename=filename, wait=wait, double_speed=double_speed)
 
     def get_trajectory_rw_status(self):
         """
@@ -1496,7 +1506,7 @@ class XArmAPI(object):
         """
         return self._arm.get_tgpio_analog(ionum)
 
-    def get_suction_cup_state(self):
+    def get_suction_cup(self):
         """
         Get suction cup state
         
@@ -1506,7 +1516,7 @@ class XArmAPI(object):
                 0: suction cup is off
                 1: suction cup is on
         """
-        return self._arm.get_suction_cup_state()
+        return self._arm.get_suction_cup()
 
     def set_suction_cup(self, on, wait=True, timeout=3):
         """
@@ -1766,6 +1776,19 @@ class XArmAPI(object):
         """
         return self._arm.register_cmdnum_changed_callback(callback=callback)
 
+    def register_temperature_changed_callback(self, callback=None):
+        """
+        Register the temperature changed callback, only available if enable_report is True
+
+        :param callback: 
+            callback data:
+            {
+                "temperatures": [servo-1-temperature, ...., servo-7-temperature]
+            }
+        :return: True/False
+        """
+        return self._arm.register_temperature_changed_callback(callback=callback)
+
     def release_report_callback(self, callback=None):
         """
         Release the report callback
@@ -1837,6 +1860,15 @@ class XArmAPI(object):
         :return: True/False
         """
         return self._arm.release_cmdnum_changed_callback(callback)
+
+    def release_temperature_changed_callback(self, callback=None):
+        """
+        Release the temperature changed callback
+
+        :param callback: 
+        :return: True/False
+        """
+        return self._arm.release_temperature_changed_callback(callback=callback)
 
     def get_servo_debug_msg(self, show=False, lang='en'):
         """

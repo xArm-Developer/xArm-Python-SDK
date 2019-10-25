@@ -23,6 +23,8 @@ def lock_require(func):
 
 
 class UxbusCmd(object):
+    BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600,
+                 1000000, 1500000, 2000000, 2500000)
     def __init__(self):
         self._has_error = False
         self._has_warn = False
@@ -146,9 +148,9 @@ class UxbusCmd(object):
         txdata = [value]
         return self.set_nu8(XCONF.UxbusReg.SET_TRAJ_RECORD, txdata, 1)
 
-    def playback_traj(self, value):
-        txdata = [value]
-        return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, 1)
+    def playback_traj(self, value, spdx=1):
+        txdata = [value, spdx]
+        return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, spdx)
 
     def save_traj(self, filename, wait_time=2):
         char_list = list(filename)
@@ -205,6 +207,17 @@ class UxbusCmd(object):
 
     def set_xyz_limits(self, xyz_list):
         return self.set_nint32(XCONF.UxbusReg.SET_LIMIT_XYZ, xyz_list, 6)
+
+    def set_timer(self, sec_later, timer_id, fun_code, param1=0, param2=0):
+        txdata = [sec_later, timer_id, fun_code, param1, param2]
+        return self.set_nint32(XCONF.UxbusReg.SET_TIMER, txdata, 5)
+
+    def cancel_timer(self, timer_id):
+        txdata = [timer_id]
+        return self.set_nint32(XCONF.UxbusReg.CANCEL_TIMER, txdata, 1)
+
+    def set_world_offset(self, pose_offset):
+        return self.set_nfp32(XCONF.UxbusReg.SET_WORLD_OFFSET, pose_offset, 6)
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
@@ -506,6 +519,22 @@ class UxbusCmd(object):
         value[0] = ret[0]
         value[1] = ret[1] * 3.3 / 4096.0
         return value
+
+    def set_modbus_timeout(self, value):
+        txdata = [int(value)]
+        return self.set_nu16(XCONF.UxbusReg.TGPIO_MB_TIOUT, txdata, 1)
+
+    def set_modbus_baudrate(self, baudrate):
+        if baudrate not in self.BAUDRATES:
+            return [-1, -1]
+        ret = self.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
+        if ret[0] != XCONF.UxbusState.ERR_TOUT:
+            baud_val = self.BAUDRATES.index(baudrate)
+            if ret[1] != baud_val:
+                self.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_val)
+                self.tgpio_addr_w16(0x1a0b, baud_val)
+                return self.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
+        return ret[:2]
 
     def tgpio_set_modbus(self, modbus_t, len_t):
         txdata = bytes([XCONF.TGPIO_ID])

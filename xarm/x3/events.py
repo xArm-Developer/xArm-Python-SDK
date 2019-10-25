@@ -14,6 +14,7 @@ REPORT_MODE_CHANGED_ID = 'REPORT_MODE_CHANGED'
 REPORT_MTABLE_MTBRAKE_CHANGED_ID = 'REPORT_MTABLE_MTBRAKE_CHANGED'
 REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
 REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
+REPORT_TEMPERATURE_CHANGED_ID = 'REPORT_TEMPERATURE_CHANGED'
 
 
 class Events(object):
@@ -97,6 +98,9 @@ class Events(object):
     def register_cmdnum_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
 
+    def register_temperature_changed_callback(self, callback=None):
+        return self._register_report_callback(REPORT_TEMPERATURE_CHANGED_ID, callback)
+
     def release_report_callback(self, callback=None):
         return self._release_report_callback(REPORT_ID, callback)
 
@@ -120,3 +124,6 @@ class Events(object):
 
     def release_cmdnum_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_CMDNUM_CHANGED_ID, callback)
+
+    def release_temperature_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_TEMPERATURE_CHANGED_ID, callback)

@@ -130,6 +130,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._minor_version_number = 0  # 固件次版本号
         self._revision_version_number = 0  # 固件修正版本号
 
+        self._temperatures = [0, 0, 0, 0, 0, 0, 0]
+
         self._is_set_move = False
         self._cond_pause = threading.Condition()
 
@@ -267,6 +269,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @property
     def motor_enable_states(self):
         return self._arm_motor_enable_states
+
+    @property
+    def temperatures(self):
+        return self._temperatures
 
     @property
     def error_code(self):
@@ -481,7 +487,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port,
                                              XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE
+                                             buffer_size=1024
                                              if not self._is_old_protocol else 187)
 
     def __connect_report_real(self):
@@ -555,6 +561,16 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     })
                 except Exception as e:
                     logger.error('cmdnum changed callback: {}'.format(e))
+
+    def _report_temperature_changed_callback(self):
+        if REPORT_TEMPERATURE_CHANGED_ID in self._report_callbacks.keys():
+            for callback in self._report_callbacks[REPORT_TEMPERATURE_CHANGED_ID]:
+                try:
+                    callback({
+                        'temperatures': self.temperatures,
+                    })
+                except Exception as e:
+                    logger.error('temperature changed callback: {}'.format(e))
 
     def _report_location_callback(self):
         if REPORT_LOCATION_ID in self._report_callbacks.keys():
@@ -949,8 +965,17 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             sv3_msg = rx_data[229:245]
             self._first_report_over = True
 
+            size = convert.bytes_to_u32(rx_data[0:4])
+            if size >= 252:
+                temperatures = list(map(int, rx_data[245:252]))
+                if temperatures != self.temperatures:
+                    self._temperatures = temperatures
+                    self._report_temperature_changed_callback()
+
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
+        buffer = b''
+        size = 0
         while self._stream and self._stream.connected:
             try:
                 if not self._stream_report or not self._stream_report.connected:
@@ -959,18 +984,40 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                     self._connect_report()
+                    buffer = b''
                     continue
                 if not report_socket_connected:
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                 rx_data = self._stream_report.read()
-                if rx_data != -1 and len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                    # if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                    #     __handle_report_normal(rx_data)
-                    if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
-                        __handle_report_rich(rx_data)
-                    else:
-                        __handle_report_normal(rx_data)
+                if rx_data != -1:
+                    buffer += rx_data
+                    if len(buffer) < 4:
+                        continue
+                    if size == 0:
+                        size = convert.bytes_to_u32(buffer[0:4])
+                    if len(buffer) < size:
+                        continue
+                    if size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                        if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
+                            if size == 233 and len(buffer) == 245:
+                                data = buffer[:245]
+                                buffer = buffer[245:]
+                            else:
+                                data = buffer[:size]
+                                buffer = buffer[size:]
+                            __handle_report_rich(data)
+                        else:
+                            data = buffer[:size]
+                            buffer = buffer[size:]
+                            __handle_report_normal(data)
+                # if rx_data != -1 and len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                #     # if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                #     #     __handle_report_normal(rx_data)
+                #     if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
+                #         __handle_report_rich(rx_data)
+                #     else:
+                #         __handle_report_normal(rx_data)
             except Exception as e:
                 logger.error(e)
             time.sleep(0.001)
@@ -1796,6 +1843,34 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         limits[2:4] = boundary[2:4] if boundary[2] >= boundary[3] else boundary[2:4][::-1]
         limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
         ret = self.arm_cmd.set_xyz_limits(limits)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_timer(self, secs_later, tid, fun_code, param1=0, param2=0):
+        ret = self.arm_cmd.set_timer(secs_later, tid, fun_code, param1, param2)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def cancel_timer(self, tid):
+        ret = self.arm_cmd.cancel_timer(tid)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_world_offset(self, offset, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        assert isinstance(offset, Iterable) and len(offset) >= 6
+        world_offset = [0] * 6
+        for i in range(len(offset)):
+            if not offset[i]:
+                continue
+            if i < 3:
+                world_offset[i] = offset[i]
+            elif i < 6:
+                if not is_radian:
+                    world_offset[i] = math.radians(offset[i])
+                else:
+                    world_offset[i] = offset[i]
+        ret = self.arm_cmd.set_world_offset(world_offset)
         return ret[0]
 
     def get_is_moving(self):

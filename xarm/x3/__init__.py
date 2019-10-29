@@ -135,6 +135,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._is_set_move = False
         self._cond_pause = threading.Condition()
 
+        self._version_ge_1_2_11 = False  # 固件是否大于等于1.2.11，用于get_reduced_states
+        self._realtime_tcp_speed = 0
+        self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
+
         Events.__init__(self)
         if not do_not_open:
             self.connect()
@@ -144,6 +148,40 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             if self.state == 3 and self._enable_report:
                 with self._cond_pause:
                     self._cond_pause.wait()
+
+    @property
+    def version_is_ge_1_2_11(self):
+        if not self._version:
+            self.get_version()
+            if self._version and isinstance(self._version, str):
+                pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+                m = re.match(pattern, self._version)
+                if m:
+                    (self._major_version_number,
+                     self._minor_version_number,
+                     self._revision_version_number) = map(int, m.groups())
+                else:
+                    version_date = '-'.join(self._version.split('-')[-3:])
+                    self._is_old_protocol = compare_time('2019-02-01', version_date)
+                    if self._is_old_protocol:
+                        self._major_version_number = 0
+                        self._minor_version_number = 0
+                        self._revision_version_number = 1
+                    else:
+                        self._major_version_number = 0
+                        self._minor_version_number = 1
+                        self._revision_version_number = 0
+        return self._major_version_number > 1 or (
+            self._major_version_number == 1 and self._minor_version_number > 2) or (
+            self._major_version_number == 1 and self._minor_version_number == 2 and self._revision_version_number >= 11)
+
+    @property
+    def realtime_tcp_speed(self):
+        return self._realtime_tcp_speed,
+
+    @property
+    def realtime_joint_speeds(self):
+        return self._realtime_joint_speeds
 
     @property
     def version_number(self):
@@ -971,6 +1009,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 if temperatures != self.temperatures:
                     self._temperatures = temperatures
                     self._report_temperature_changed_callback()
+            if size >= 284:
+                speeds = convert.bytes_to_fp32s(rx_data[252:8 * 4 + 252], 8)
+                self._realtime_tcp_speed = speeds[0]
+                self._realtime_joint_speeds = speeds[1:]
+                # print(speeds[0], speeds[1:])
+            # print(size)
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -1827,11 +1871,14 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='get')
     def get_reduced_states(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        ret = self.arm_cmd.get_reduced_states()
+        ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge_1_2_11 else 21)
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
             if not is_radian:
                 ret[4] = round(math.degrees(ret[4]), 1)
+                if self.version_is_ge_1_2_11:
+                    # ret[5] = list(map(math.degrees, ret[5]))
+                    ret[5] = list(map(lambda x: round(math.degrees(x), 2), ret[5]))
         return ret[0], ret[1:]
 
     @xarm_is_connected(_type='set')
@@ -1844,6 +1891,43 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
         ret = self.arm_cmd.set_xyz_limits(limits)
         return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_reduced_joint_range(self, joint_range, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        assert len(joint_range) >= self.axis * 2
+        joint_range = list(map(float, joint_range))
+        limits = [0] * 14
+        for i in range(7):
+            if i < self.axis:
+                limits[i*2:i*2+2] = joint_range[i*2:i*2+2] if joint_range[i*2] <= joint_range[i*2+1] else joint_range[i*2:i*2+2][::-1]
+        if not is_radian:
+            limits = list(map(math.radians, limits))
+            # limits = list(map(lambda x: round(math.radians(x), 3), limits))
+
+        for i in range(self.axis):
+            joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(self.device_type, [])
+            if i < len(joint_limit):
+                angle_range = joint_limit[i]
+                # angle_range = list(map(lambda x: round(x, 3), joint_limit[i]))
+                if limits[i * 2] < angle_range[0]:
+                    limits[i * 2] = angle_range[0]
+                if limits[i * 2 + 1] > angle_range[1]:
+                    limits[i * 2 + 1] = angle_range[1]
+                if limits[i * 2] >= angle_range[1]:
+                    return APIState.OUT_OF_RANGE
+                if limits[i * 2 + 1] <= angle_range[0]:
+                    return APIState.OUT_OF_RANGE
+        ret = self.arm_cmd.set_reduced_jrange(limits)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_fense_mode(self, on_off):
+        return self.arm_cmd.set_fense_on(on_off)
+
+    @xarm_is_connected(_type='set')
+    def set_collision_rebound(self, on_off):
+        return self.arm_cmd.set_collis_reb(on_off)
 
     @xarm_is_connected(_type='set')
     def set_timer(self, secs_later, tid, fun_code, param1=0, param2=0):
@@ -2346,6 +2430,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 'lastAngles': self._last_angles,
                 'mvvelo': self._last_tcp_speed,
                 'mvacc': self._last_tcp_acc,
+                'tcpJerk': self._tcp_jerk,
+                'jointJerk': self._joint_jerk,
                 'angle_mvvelo': self._last_joint_speed,
                 'angle_mvacc': self._last_joint_acc,
                 'mvtime': self._mvtime,
@@ -2360,6 +2446,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 'lastAngles': [math.degrees(angle) for angle in self._last_angles],
                 'mvvelo': int(self._last_tcp_speed),
                 'mvacc': int(self._last_tcp_acc),
+                'tcpJerk': int(self._tcp_jerk),
+                'jointJerk': int(math.degrees(self._joint_jerk)),
                 'angle_mvvelo': int(math.degrees(self._last_joint_speed)),
                 'angle_mvacc': int(math.degrees(self._last_joint_acc)),
                 'mvtime': self._mvtime,

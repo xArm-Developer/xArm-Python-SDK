@@ -199,6 +199,10 @@ class XCONF(object):
         SET_SAFE_LEVEL = 56
         GET_SAFE_LEVEL = 57
 
+        SET_REDUCED_JRANGE = 58
+        SET_FENSE_ON = 59
+        SET_COLLIS_REB = 60
+
         SET_TRAJ_RECORD = 61
         SAVE_TRAJ = 62
         LOAD_TRAJ = 63

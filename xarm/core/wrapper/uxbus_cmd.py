@@ -196,13 +196,16 @@ class UxbusCmd(object):
     def get_reduced_mode(self):
         return self.get_nu8(XCONF.UxbusReg.GET_REDUCED_MODE, 1)
 
-    def get_reduced_states(self):
-        ret = self.get_nu8(XCONF.UxbusReg.GET_REDUCED_STATE, 21)
-        msg = [0] * 5
+    def get_reduced_states(self, length=21):
+        ret = self.get_nu8(XCONF.UxbusReg.GET_REDUCED_STATE, length)
+        msg = [0] * 8
         msg[0] = ret[0]
-        msg[1] = ret[1]
-        msg[2] = convert.bytes_to_16s(ret[2:14], 6)
-        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)
+        msg[1] = ret[1]  # reduced_mode_is_on
+        msg[2] = convert.bytes_to_16s(ret[2:14], 6)  # tcp_boundary
+        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)  # tcp_speed, joint_speed
+        if length == 79:
+            msg[5] = convert.bytes_to_fp32s(ret[22:78], 14)  # joint range
+            msg[6:8] = ret[78:80]  # fense_is_on, collision_rebound
         return msg
 
     def set_xyz_limits(self, xyz_list):
@@ -218,6 +221,17 @@ class UxbusCmd(object):
 
     def set_world_offset(self, pose_offset):
         return self.set_nfp32(XCONF.UxbusReg.SET_WORLD_OFFSET, pose_offset, 6)
+
+    def set_reduced_jrange(self, jrange_rad):
+        return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_JRANGE, jrange_rad, 14)
+
+    def set_fense_on(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_FENSE_ON, txdata, 1)
+
+    def set_collis_reb(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_COLLIS_REB, txdata, 1)
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]

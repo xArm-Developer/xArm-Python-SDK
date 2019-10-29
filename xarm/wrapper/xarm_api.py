@@ -120,6 +120,14 @@ class XArmAPI(object):
         return self._arm.arm_cmd
 
     @property
+    def realtime_tcp_speed(self):
+        return self._arm.realtime_tcp_speed,
+
+    @property
+    def realtime_joint_speeds(self):
+        return self._arm.realtime_joint_speeds
+
+    @property
     def version_number(self):
         """
         Frimware version number
@@ -966,7 +974,7 @@ class XArmAPI(object):
                 [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
                 reduced_max_tcp_speed,
                 reduced_max_joint_speed,
-            ]
+            ]`
         """
         return self._arm.get_reduced_states(is_radian=is_radian)
 
@@ -1025,6 +1033,15 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.set_reduced_tcp_boundary(boundary)
+
+    def set_reduced_joint_range(self, joint_range, is_radian=None):
+        return self._arm.set_reduced_joint_range(joint_range, is_radian=is_radian)
+
+    def set_fense_mode(self, on):
+        return self._arm.set_fense_mode(on)
+
+    def set_collision_rebound(self, on):
+        return self._arm.set_collision_rebound(on)
 
     def get_is_moving(self):
         """

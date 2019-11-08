@@ -222,6 +222,12 @@ class UxbusCmd(object):
     def set_world_offset(self, pose_offset):
         return self.set_nfp32(XCONF.UxbusReg.SET_WORLD_OFFSET, pose_offset, 6)
 
+    def cnter_reset(self):
+        return self.set_nu8(XCONF.UxbusReg.CNTER_RESET, 0, 0)
+
+    def cnter_plus(self):
+        return self.set_nu8(XCONF.UxbusReg.CNTER_PLUS, 0, 0)
+
     def set_reduced_jrange(self, jrange_rad):
         return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_JRANGE, jrange_rad, 14)
 
@@ -274,6 +280,11 @@ class UxbusCmd(object):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE, txdata, 9)
+
+    def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime):
+        txdata = [mvpose[i] for i in range(6)]
+        txdata += [mvvelo, mvacc, mvtime]
+        return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE_TOOL, txdata, 9)
 
     def move_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
         txdata = [mvpose[i] for i in range(6)]

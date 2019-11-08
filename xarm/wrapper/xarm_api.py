@@ -620,6 +620,16 @@ class XArmAPI(object):
                                       speed=speed, mvacc=mvacc, mvtime=mvtime, relative=relative,
                                       is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
 
+    def set_tool_position(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0,
+                          speed=None, mvacc=None, mvtime=None, is_radian=None,
+                          wait=False, timeout=None, **kwargs):
+        """
+        Set the tool position
+        """
+        return self._arm.set_tool_position(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw,
+                                           speed=speed, mvacc=mvacc, mvtime=mvtime,
+                                           is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
+
     def get_servo_angle(self, servo_id=None, is_radian=None):
         """
         Get the servo angle
@@ -1042,6 +1052,9 @@ class XArmAPI(object):
 
     def set_collision_rebound(self, on):
         return self._arm.set_collision_rebound(on)
+
+    def set_world_offset(self, offset, is_radian=None):
+        return self._arm.set_world_offset(offset, is_radian=is_radian)
 
     def get_is_moving(self):
         """
@@ -1806,6 +1819,19 @@ class XArmAPI(object):
         """
         return self._arm.register_temperature_changed_callback(callback=callback)
 
+    def register_count_changed_callback(self, callback=None):
+        """
+        Register the counter value changed callback, only available if enable_report is True
+
+        :param callback: 
+            callback data:
+            {
+                "count": counter value
+            }
+        :return: True/False
+        """
+        return self._arm.register_count_changed_callback(callback=callback)
+
     def release_report_callback(self, callback=None):
         """
         Release the report callback
@@ -1887,6 +1913,15 @@ class XArmAPI(object):
         """
         return self._arm.release_temperature_changed_callback(callback=callback)
 
+    def release_count_changed_callback(self, callback=None):
+        """
+        Release the counter value changed callback
+
+        :param callback: 
+        :return: True/False
+        """
+        return self._arm.release_count_changed_callback(callback=callback)
+
     def get_servo_debug_msg(self, show=False, lang='en'):
         """
         Get the servo debug msg, used only for debugging
@@ -1926,3 +1961,22 @@ class XArmAPI(object):
 
     def get_hd_types(self):
         return self._arm.get_hd_types()
+
+    def set_counter_reset(self):
+        """
+        Reset counter
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_counter_reset()
+
+    def set_counter_increase(self, val=1):
+        """
+        Set counter plus val
+        
+        :param val: reversed
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_counter_increase(val)

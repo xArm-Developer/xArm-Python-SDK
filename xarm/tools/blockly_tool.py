@@ -267,6 +267,18 @@ class BlocklyTool(object):
             value = self.get_nodes('field', root=value, descendant=True)[0].text
         self._append_to_file('{}params[\'angle_acc\'] = {}'.format(prefix, value))
 
+    def _handle_set_counter_increase(self, block, prefix=''):
+        # field = self.get_node('field', root=block)
+        # if field is not None:
+        #     value = field.text
+        # else:
+        #     value = self.get_node('value', root=block)
+        #     value = self.get_nodes('field', root=value, descendant=True)[0].text
+        self._append_to_file('{}arm.set_counter_increase()'.format(prefix))
+
+    def _handle_set_counter_reset(self, block, prefix=''):
+        self._append_to_file('{}arm.set_counter_reset()'.format(prefix))
+
     def _handle_reset(self, block, prefix=''):
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.reset()'.format(prefix))
@@ -531,8 +543,9 @@ class BlocklyTool(object):
         if self._show_comment:
             self._append_to_file('{}# set_suction_cup({}, {})'.format(prefix, on, wait))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    if arm.set_suction_cup({}, {}) != 0:'.format(prefix, on, wait))
-        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}    arm.set_suction_cup({}, {})'.format(prefix, on, wait))
+        # self._append_to_file('{}    if arm.set_suction_cup({}, {}) != 0:'.format(prefix, on, wait))
+        # self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_gpio_get_controller_digital(self, block, prefix=''):
         io = self.get_node('field', block).text

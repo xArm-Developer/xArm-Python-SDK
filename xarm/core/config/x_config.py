@@ -166,6 +166,7 @@ class XCONF(object):
         MOVE_HOME = 25
         SLEEP_INSTT = 26
         MOVE_CIRCLE = 27
+        MOVE_LINE_TOOL = 28
         MOVE_SERVOJ = 29
 
         SET_TCP_JERK = 31
@@ -212,6 +213,8 @@ class XCONF(object):
         SET_TIMER = 71
         CANCEL_TIMER = 72
         SET_WORLD_OFFSET = 73
+        CNTER_RESET = 74
+        CNTER_PLUS = 75
 
         SERVO_W16B = 101
         SERVO_R16B = 102

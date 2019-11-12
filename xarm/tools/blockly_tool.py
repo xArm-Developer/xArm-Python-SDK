@@ -169,13 +169,25 @@ class BlocklyTool(object):
             # self._insert_to_file(self.index, '        sys.exit(1)')
             self._insert_to_file(self.index, 'arm.register_state_changed_callback(state_changed_callback)')
 
+        self._insert_to_file(self.index, '\n\n# Register counter value changed callback')
+        self._insert_to_file(self.index, 'if hasattr(arm, \'register_count_changed_callback\'):')
+        self._insert_to_file(self.index, '    def count_changed_callback(data):')
+        self._insert_to_file(self.index, '        print(\'counter val: {}\'.format(data[\'count\']))')
+        self._insert_to_file(self.index, '    arm.register_count_changed_callback(count_changed_callback)\n')
+
         self._first_index = self._index
 
-    def _finish_py3(self):
+    def _finish_py3(self, error_exit=True, stop_exit=True):
         if self._hasEvent:
             self._append_to_file('\n# Main loop')
             self._append_to_file('while arm.connected and arm.error_code == 0 and not params[\'quit\']:')
             self._append_to_file('    time.sleep(1)')
+        if error_exit:
+            self._append_to_file('arm.release_error_warn_changed_callback(state_changed_callback)')
+        if stop_exit:
+            self._append_to_file('arm.release_state_changed_callback(state_changed_callback)')
+        self._append_to_file('if hasattr(arm, \'release_count_changed_callback\'):')
+        self._append_to_file('    arm.release_count_changed_callback(count_changed_callback)\n')
 
     def to_python(self, path=None, arm=None, init=True, wait_seconds=1, mode=0, state=0,
                   error_exit=True, stop_exit=True, show_comment=False, **kwargs):
@@ -183,7 +195,7 @@ class BlocklyTool(object):
         self._succeed = True
         self._init_py3(arm=arm, init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
         self.parse()
-        self._finish_py3()
+        self._finish_py3(error_exit=error_exit, stop_exit=stop_exit)
         self.codes = '\n'.join(self._code_list)
         if path is not None:
             with open(path, 'w', encoding='utf-8') as f:
@@ -407,6 +419,19 @@ class BlocklyTool(object):
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    if arm.set_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
                              'radius={}, wait={}) != 0:'.format(prefix, values, radius, wait))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+
+    def _handle_move_tool_line(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        values = []
+        for field in fields[:-1]:
+            values.append(float(field.text))
+        wait = fields[-1].text == 'TRUE'
+        if self._show_comment:
+            self._append_to_file('{}# move tool line and {}'.format(prefix, 'wait' if wait else 'no wait'))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    if arm.set_tool_position(*{}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+                             'wait={}) != 0:'.format(prefix, values, wait))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_move_joints_var(self, block, prefix=''):
@@ -643,6 +668,18 @@ class BlocklyTool(object):
         # yaw = self.get_nodes('field', root=values[5], descendant=True)[0].text
         # self._append_to_file('{}arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
         # self._append_to_file('{}arm.set_state(0)'.format(prefix))
+
+    def _handle_set_world_offset(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        x = fields[1].text
+        y = fields[2].text
+        z = fields[3].text
+        roll = fields[4].text
+        pitch = fields[5].text
+        yaw = fields[6].text
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.set_world_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
+        self._append_to_file('{}    arm.set_state(0)'.format(prefix))
 
     def _handle_gripper_set(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)

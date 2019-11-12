@@ -94,6 +94,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
+        self._world_offset = [0] * 6
         self._state = 4
         self._mode = 0
         self._joints_torque = [0, 0, 0, 0, 0, 0, 0]  # 力矩
@@ -275,6 +276,11 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def position_offset(self):
         return [math.degrees(self._position_offset[i]) if 2 < i < 6 and not self._default_is_radian
                 else self._position_offset[i] for i in range(len(self._position_offset))]
+
+    @property
+    def world_offset(self):
+        return [math.degrees(self._world_offset[i]) if 2 < i < 6 and not self._default_is_radian
+                else self._world_offset[i] for i in range(len(self._world_offset))]
 
     @property
     def state(self):
@@ -1038,6 +1044,15 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     self._count = count
                     self._report_count_changed_callback()
                 self._count = count
+            if size >= 312:
+                world_offset = convert.bytes_to_fp32s(rx_data[288:6 * 4 + 288], 6)
+                for i in range(len(world_offset)):
+                    if i < 3:
+                        world_offset[i] = float('{:.3f}'.format(world_offset[i]))
+                    else:
+                        world_offset[i] = float('{:.6f}'.format(world_offset[i]))
+                if math.inf not in world_offset and -math.inf not in world_offset and not (10 <= self._error_code <= 17):
+                    self._world_offset = world_offset
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected

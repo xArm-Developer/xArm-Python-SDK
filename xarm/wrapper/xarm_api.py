@@ -303,6 +303,10 @@ class XArmAPI(object):
         return self._arm.position_offset
 
     @property
+    def world_offset(self):
+        return self._arm.world_offset
+
+    @property
     def state(self):
         """
         xArm state

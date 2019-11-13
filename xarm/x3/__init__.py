@@ -1304,7 +1304,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 return APIState.EMERGENCY_STOP
             elif self.has_error:
                 return
-            time.sleep(0.2)
+            time.sleep(0.1)
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
@@ -2042,6 +2042,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
     def set_world_offset(self, offset, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         assert isinstance(offset, Iterable) and len(offset) >= 6

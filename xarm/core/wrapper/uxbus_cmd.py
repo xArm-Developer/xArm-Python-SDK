@@ -150,7 +150,7 @@ class UxbusCmd(object):
 
     def playback_traj(self, value, spdx=1):
         txdata = [value, spdx]
-        return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, spdx)
+        return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, 2)
 
     def save_traj(self, filename, wait_time=2):
         char_list = list(filename)

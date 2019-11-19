@@ -187,7 +187,7 @@ Motor brake state list, only available in socket way and  enable_report is True 
 Note:
     For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
 
-:return: [motor-1-brake-state, motor-2-..., motor-3-..., motor-4-..., motor-5-..., motor-6-..., motor-7-..., reserved]
+:return: [motor-1-brake-state, ..., motor-7-brake-state, reserved]
     motor-{i}-brake-state:
         0: enable
         1: disable
@@ -199,7 +199,7 @@ Motor enable state list, only available in socket way and  enable_report is True
 Note:
     For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
     
-:return: [motor-1-enable-state, motor-2-..., motor-3-..., motor-4-..., motor-5-..., motor-6-..., motor-7-..., reserved]
+:return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]
     motor-{i}-enable-state:
         0: disable
         1: enable
@@ -212,6 +212,20 @@ Note:
     1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
 
 return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
+```
+
+#### __realtime_joint_speeds__
+```
+The real time speed of joint motion, only available if version > 1.2.11
+
+:return: [joint-1-speed(°/s or rad/s), ...., joint-7-speed(°/s or rad/s)]
+```
+
+#### __realtime_tcp_speed__
+```
+The real time speed of tcp motion, only available if version > 1.2.11
+
+:return: real time speed (mm/s)
 ```
 
 #### __slave_id__
@@ -270,7 +284,14 @@ Joint acceleration limit, only available in socket way and enable_report is True
 ```
 The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
 
-:return: 0~5
+:return: 1~5
+```
+
+#### __temperatures__
+```
+Motor temperature, only available if version > 1.2.11
+
+:return: [motor-1-temperature, ..., motor-7-temperature]
 ```
 
 #### __version__
@@ -281,12 +302,23 @@ xArm version
 #### __version_number__
 ```
 Frimware version number
+
 :return: (major_version_number, minor_version_number, revision_version_number)
 ```
 
 #### __warn_code__
 ```
 Controller warn code. See the controller warn code documentation for details.
+```
+
+#### __world_offset__
+```
+Base coordinate offset, only available if version > 1.2.11
+
+Note:
+    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
+
+:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
 ```
 
 ****************************************
@@ -543,6 +575,33 @@ Get the gripper position
     code: See the Gripper code documentation for details.
 ```
 
+#### def __get_gripper_version__(self):
+
+```
+Get gripper version, only for debug
+
+:return: (code, version)
+    code: See the API code documentation for details.
+```
+
+#### def __get_harmonic_type__(self, servo_id=1):
+
+```
+Get harmonic type, only for debug
+
+:return: (code, type)
+    code: See the API code documentation for details.
+```
+
+#### def __get_hd_types__(self):
+
+```
+Get harmonic types, only for debug
+
+:return: (code, types)
+    code: See the API code documentation for details.
+```
+
 #### def __get_inverse_kinematics__(self, pose, input_is_radian=None, return_is_radian=None):
 
 ```
@@ -602,12 +661,33 @@ Note:
 :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
 :return: tuple((code, states))
     code: See the API code documentation for details.
-    states: [
-        reduced_mode_is_on,
-        [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
-        reduced_max_tcp_speed,
-        reduced_max_joint_speed,
-    ]
+    states: [....]
+        if version > 1.2.11:
+            states: [
+                reduced_mode_is_on,
+                [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
+                reduced_max_tcp_speed,
+                reduced_max_joint_speed,
+                joint_ranges([joint-1-min, joint-1-max, ..., joint-7-min, joint-7-max]),
+                safety_boundary_is_on,
+                collision_rebound_is_on,
+            ]`
+        if version <= 1.2.11:
+            states: [
+                reduced_mode_is_on,
+                [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
+                reduced_max_tcp_speed,
+                reduced_max_joint_speed,
+            ]`
+```
+
+#### def __get_robot_sn__(self):
+
+```
+Get the sn
+
+:return: tuple((code, sn)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
 ```
 
 #### def __get_servo_angle__(self, servo_id=None, is_radian=None):
@@ -637,6 +717,15 @@ Get the servo debug msg, used only for debugging
     code: See the API code documentation for details.
 ```
 
+#### def __get_servo_version__(self, servo_id=1):
+
+```
+Get servo version, only for debug
+
+:return: (code, version)
+    code: See the API code documentation for details.
+```
+
 #### def __get_state__(self):
 
 ```
@@ -649,6 +738,18 @@ Get state
         2: sleeping
         3: suspended
         4: stopping
+```
+
+#### def __get_suction_cup__(self):
+
+```
+Get suction cup state
+
+:return: tuple((code, state)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    state: suction cup state
+        0: suction cup is off
+        1: suction cup is on
 ```
 
 #### def __get_tgpio_analog__(self, ionum=None):
@@ -667,6 +768,15 @@ Get the digital value of the specified Tool GPIO
 
 :param ionum: 0 or 1 or None(both 0 and 1), default is None
 :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+```
+
+#### def __get_tgpio_version__(self):
+
+```
+Get tool gpio version, only for debug
+
+:return: (code, version)
     code: See the API code documentation for details.
 ```
 
@@ -831,7 +941,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __playback_trajectory__(self, times=1, filename=None, wait=True):
+#### def __playback_trajectory__(self, times=1, filename=None, wait=True, double_speed=1):
 
 ```
 Playback trajectory
@@ -844,6 +954,7 @@ Note:
 :param filename: The name of the trajectory to play back
     1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
 :param wait: whether to wait for the arm to complete, default is False
+:param double_speed: double speed, only support 1/2/4, default is 1, only available if version > 1.2.11
 :return: code
     code: See the API code documentation for details.
 ```
@@ -871,6 +982,19 @@ Register the connect status changed callback
     {
         "connected": connected,
         "reported": reported,
+    }
+:return: True/False
+```
+
+#### def __register_count_changed_callback__(self, callback=None):
+
+```
+Register the counter value changed callback, only available if enable_report is True
+
+:param callback: 
+    callback data:
+    {
+        "count": counter value
     }
 :return: True/False
 ```
@@ -973,6 +1097,19 @@ Register the state status changed callback, only available if enable_report is T
 :return: True/False
 ```
 
+#### def __register_temperature_changed_callback__(self, callback=None):
+
+```
+Register the temperature changed callback, only available if enable_report is True
+
+:param callback: 
+    callback data:
+    {
+        "temperatures": [servo-1-temperature, ...., servo-7-temperature]
+    }
+:return: True/False
+```
+
 #### def __release_cmdnum_changed_callback__(self, callback=None):
 
 ```
@@ -986,6 +1123,15 @@ Release the cmdnum changed callback
 
 ```
 Release the connect changed callback
+
+:param callback: 
+:return: True/False
+```
+
+#### def __release_count_changed_callback__(self, callback=None):
+
+```
+Release the counter value changed callback
 
 :param callback: 
 :return: True/False
@@ -1040,6 +1186,15 @@ Release the location report callback
 
 ```
 Release the state changed callback
+
+:param callback: 
+:return: True/False
+```
+
+#### def __release_temperature_changed_callback__(self, callback=None):
+
+```
+Release the temperature changed callback
 
 :param callback: 
 :return: True/False
@@ -1235,6 +1390,19 @@ Set the digital output functional mode of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
+#### def __set_collision_rebound__(self, on):
+
+```
+Set the collision rebound
+
+Note: 
+    1. This interface relies on Firmware 1.2.11 or above
+    
+:param on: True/False
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_collision_sensitivity__(self, value):
 
 ```
@@ -1247,6 +1415,38 @@ Note:
     4. The clean_conf interface can restore system default settings
 
 :param value: sensitivity value, 0~5
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_counter_increase__(self, val=1):
+
+```
+Set counter plus value, only support plus 1
+
+:param val: reversed
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_counter_reset__(self):
+
+```
+Reset counter value
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_fense_mode__(self, on):
+
+```
+Set the fense mode
+
+Note: 
+    1. This interface relies on Firmware 1.2.11 or above
+
+:param on: True/False
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1426,6 +1626,20 @@ Note:
         code >= 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified
 ```
 
+#### def __set_reduced_joint_range__(self, joint_range, is_radian=None):
+
+```
+Set the joint range of the reduced mode
+
+Note: 
+    1. This interface relies on Firmware 1.2.11 or above
+    2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
+    
+:param joint_range: [joint-1-min, joint-1-max, ..., joint-7-min, joint-7-max]
+:param is_radian: the param joint_range are in radians or not, default is self.default_is_radian
+:return:
+```
+
 #### def __set_reduced_max_joint_speed__(self, speed, is_radian=None):
 
 ```
@@ -1471,7 +1685,7 @@ Note:
 #### def __set_reduced_tcp_boundary__(self, boundary):
 
 ```
-Set the boundary of the reduced mode
+Set the boundary of the safety boundary mode
 
 Note: 
     1. This interface relies on Firmware 1.2.0 or above
@@ -1575,7 +1789,7 @@ Set the xArm state
     code: See the API code documentation for details.
 ```
 
-#### def __set_suction_cup__(self, on):
+#### def __set_suction_cup__(self, on, wait=True, timeout=3):
 
 ```
 Set suction cup
@@ -1583,6 +1797,8 @@ Set suction cup
 :param on: open or not
     on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
     on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
+:param wait: wait or not, default is True
+:param timeout: second, default is 3s
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1674,6 +1890,47 @@ Set the digital value of the specified Tool GPIO
 
 :param ionum: 0 or 1
 :param value: value
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_tool_position__(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+
+```
+Movement relative to the tool coordinate system 
+Note:
+    1. This interface is moving relative to the current tool coordinate system
+    2. The tool coordinate system is not fixed and varies with position.
+
+:param x: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+:param y: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+:param z: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+:param roll: the rotate around the X axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
+:param pitch: the rotate around the Y axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
+:param yaw: the rotate around the Z axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
+:param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
+:param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
+:param mvtime: 0, reserved
+:param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
+:param wait: whether to wait for the arm to complete, default is False
+:param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+:param kwargs: reserved
+:return: code
+    code: See the API code documentation for details.
+        code < 0: the last_used_tcp_speed/last_used_tcp_acc will not be modified
+        code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
+```
+
+#### def __set_world_offset__(self, offset, is_radian=None):
+
+```
+Set the base coordinate offset
+
+Note: 
+    1. This interface relies on Firmware 1.2.11 or above
+
+:param offset: [x, y, z, roll, pitch, yaw]
+:param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
 :return: code
     code: See the API code documentation for details.
 ```

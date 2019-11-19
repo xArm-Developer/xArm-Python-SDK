@@ -26,6 +26,7 @@
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout
+- 41: wait to set suction cup timeout
 
 ## Controller warning code
 - 11: uxbux que is full

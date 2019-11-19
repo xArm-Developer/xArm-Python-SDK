@@ -121,16 +121,27 @@ class XArmAPI(object):
 
     @property
     def realtime_tcp_speed(self):
+        """
+        The real time speed of tcp motion, only available if version > 1.2.11
+        
+        :return: real time speed (mm/s)
+        """
         return self._arm.realtime_tcp_speed,
 
     @property
     def realtime_joint_speeds(self):
+        """
+        The real time speed of joint motion, only available if version > 1.2.11
+        
+        :return: [joint-1-speed(°/s or rad/s), ...., joint-7-speed(°/s or rad/s)]
+        """
         return self._arm.realtime_joint_speeds
 
     @property
     def version_number(self):
         """
         Frimware version number
+        
         :return: (major_version_number, minor_version_number, revision_version_number)
         """
         return self._arm.version_number
@@ -304,6 +315,14 @@ class XArmAPI(object):
 
     @property
     def world_offset(self):
+        """
+        Base coordinate offset, only available if version > 1.2.11
+        
+        Note:
+            1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
+        
+        :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
+        """
         return self._arm.world_offset
 
     @property
@@ -365,7 +384,7 @@ class XArmAPI(object):
         """
         The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
         
-        :return: 0~5
+        :return: 1~5
         """
         return self._arm.teach_sensitivity
 
@@ -376,7 +395,7 @@ class XArmAPI(object):
         Note:
             For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
         
-        :return: [motor-1-brake-state, motor-2-..., motor-3-..., motor-4-..., motor-5-..., motor-6-..., motor-7-..., reserved]
+        :return: [motor-1-brake-state, ..., motor-7-brake-state, reserved]
             motor-{i}-brake-state:
                 0: enable
                 1: disable
@@ -390,7 +409,7 @@ class XArmAPI(object):
         Note:
             For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
             
-        :return: [motor-1-enable-state, motor-2-..., motor-3-..., motor-4-..., motor-5-..., motor-6-..., motor-7-..., reserved]
+        :return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]
             motor-{i}-enable-state:
                 0: disable
                 1: enable
@@ -400,7 +419,7 @@ class XArmAPI(object):
     @property
     def temperatures(self):
         """
-        Motor temperature
+        Motor temperature, only available if version > 1.2.11
         
         :return: [motor-1-temperature, ..., motor-7-temperature]
         """
@@ -628,7 +647,28 @@ class XArmAPI(object):
                           speed=None, mvacc=None, mvtime=None, is_radian=None,
                           wait=False, timeout=None, **kwargs):
         """
-        Set the tool position
+        Movement relative to the tool coordinate system 
+        Note:
+            1. This interface is moving relative to the current tool coordinate system
+            2. The tool coordinate system is not fixed and varies with position.
+        
+        :param x: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+        :param y: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+        :param z: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+        :param roll: the rotate around the X axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
+        :param pitch: the rotate around the Y axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
+        :param yaw: the rotate around the Z axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
+        :param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
+        :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
+        :param mvtime: 0, reserved
+        :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
+        :param wait: whether to wait for the arm to complete, default is False
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+        :param kwargs: reserved
+        :return: code
+            code: See the API code documentation for details.
+                code < 0: the last_used_tcp_speed/last_used_tcp_acc will not be modified
+                code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
         """
         return self._arm.set_tool_position(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw,
                                            speed=speed, mvacc=mvacc, mvtime=mvtime,
@@ -937,7 +977,7 @@ class XArmAPI(object):
         :param filename: The name of the trajectory to play back
             1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
         :param wait: whether to wait for the arm to complete, default is False
-        :param double_speed: double speed, only support 1/2/4, default is 1
+        :param double_speed: double speed, only support 1/2/4, default is 1, only available if version > 1.2.11
         :return: code
             code: See the API code documentation for details.
         """
@@ -983,12 +1023,24 @@ class XArmAPI(object):
         :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
         :return: tuple((code, states))
             code: See the API code documentation for details.
-            states: [
-                reduced_mode_is_on,
-                [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
-                reduced_max_tcp_speed,
-                reduced_max_joint_speed,
-            ]`
+            states: [....]
+                if version > 1.2.11:
+                    states: [
+                        reduced_mode_is_on,
+                        [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
+                        reduced_max_tcp_speed,
+                        reduced_max_joint_speed,
+                        joint_ranges([joint-1-min, joint-1-max, ..., joint-7-min, joint-7-max]),
+                        safety_boundary_is_on,
+                        collision_rebound_is_on,
+                    ]`
+                if version <= 1.2.11:
+                    states: [
+                        reduced_mode_is_on,
+                        [reduced_x_max, reduced_x_min, reduced_y_max, reduced_y_min, reduced_z_max, reduced_z_min],
+                        reduced_max_tcp_speed,
+                        reduced_max_joint_speed,
+                    ]`
         """
         return self._arm.get_reduced_states(is_radian=is_radian)
 
@@ -1036,7 +1088,7 @@ class XArmAPI(object):
 
     def set_reduced_tcp_boundary(self, boundary):
         """
-        Set the boundary of the reduced mode
+        Set the boundary of the safety boundary mode
         
         Note: 
             1. This interface relies on Firmware 1.2.0 or above
@@ -1049,15 +1101,57 @@ class XArmAPI(object):
         return self._arm.set_reduced_tcp_boundary(boundary)
 
     def set_reduced_joint_range(self, joint_range, is_radian=None):
+        """
+        Set the joint range of the reduced mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.11 or above
+            2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
+            
+        :param joint_range: [joint-1-min, joint-1-max, ..., joint-7-min, joint-7-max]
+        :param is_radian: the param joint_range are in radians or not, default is self.default_is_radian
+        :return: 
+        """
         return self._arm.set_reduced_joint_range(joint_range, is_radian=is_radian)
 
     def set_fense_mode(self, on):
+        """
+        Set the fense mode
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.11 or above
+        
+        :param on: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_fense_mode(on)
 
     def set_collision_rebound(self, on):
+        """
+        Set the collision rebound
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.11 or above
+            
+        :param on: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_collision_rebound(on)
 
     def set_world_offset(self, offset, is_radian=None):
+        """
+        Set the base coordinate offset
+        
+        Note: 
+            1. This interface relies on Firmware 1.2.11 or above
+        
+        :param offset: [x, y, z, roll, pitch, yaw]
+        :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_world_offset(offset, is_radian=is_radian)
 
     def get_is_moving(self):
@@ -1952,23 +2046,53 @@ class XArmAPI(object):
         return self._arm.run_gcode_file(path, **kwargs)
 
     def get_gripper_version(self):
+        """
+        Get gripper version, only for debug
+        
+        :return: (code, version)
+            code: See the API code documentation for details.
+        """
         return self._arm.get_gripper_version()
 
     def get_servo_version(self, servo_id=1):
+        """
+        Get servo version, only for debug
+
+        :return: (code, version)
+            code: See the API code documentation for details.
+        """
         return self._arm.get_servo_version(servo_id=servo_id)
 
     def get_tgpio_version(self):
+        """
+        Get tool gpio version, only for debug
+
+        :return: (code, version)
+            code: See the API code documentation for details.
+        """
         return self._arm.get_tgpio_version()
 
     def get_harmonic_type(self, servo_id=1):
+        """
+        Get harmonic type, only for debug
+
+        :return: (code, type)
+            code: See the API code documentation for details.
+        """
         return self._arm.get_harmonic_type(servo_id=servo_id)
 
     def get_hd_types(self):
+        """
+        Get harmonic types, only for debug
+
+        :return: (code, types)
+            code: See the API code documentation for details.
+        """
         return self._arm.get_hd_types()
 
     def set_counter_reset(self):
         """
-        Reset counter
+        Reset counter value
         
         :return: code
             code: See the API code documentation for details.
@@ -1977,7 +2101,7 @@ class XArmAPI(object):
 
     def set_counter_increase(self, val=1):
         """
-        Set counter plus val
+        Set counter plus value, only support plus 1
         
         :param val: reversed
         :return: code

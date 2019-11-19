@@ -184,7 +184,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
     @property
     def realtime_joint_speeds(self):
-        return self._realtime_joint_speeds
+        return [speed if self._default_is_radian else math.degrees(speed) for speed in self._realtime_joint_speeds]
 
     @property
     def version_number(self):
@@ -1281,11 +1281,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             limit[0] += self._position_offset[i]
             limit[1] += self._position_offset[i]
             if limit[0] == limit[1]:
-                if value == limit[0] or value == limit[0] - 2 * math.pi:
-                    return False
-                else:
-                    logger.info('API -> set_position -> ret={}, i={}, value={}'.format(APIState.OUT_OF_RANGE, i, value))
-                    return True
+                return False
+                # if value == limit[0] or value == limit[0] - 2 * math.pi:
+                #     return False
+                # else:
+                #     logger.info('API -> set_position -> ret={}, i={}, value={}'.format(APIState.OUT_OF_RANGE, i, value))
+                #     return True
             if value < limit[0] or value > limit[1]:
                 logger.info('API -> set_position -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, value))
                 return True

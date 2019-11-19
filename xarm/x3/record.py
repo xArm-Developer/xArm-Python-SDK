@@ -125,7 +125,10 @@ class Record(object):
                 return ret
         if self.state == 4:
             return APIState.NOT_READY
-        ret = self.arm_cmd.playback_traj(times, double_speed)
+        if self.version_is_ge_1_2_11:
+            ret = self.arm_cmd.playback_traj(times, double_speed)
+        else:
+            ret = self.arm_cmd.playback_traj_old(times)
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:

@@ -634,9 +634,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self._position.copy()
+                    ret['cartesian'] = self.position.copy()
                 if item['joints']:
-                    ret['joints'] = self._angles.copy()
+                    ret['joints'] = self.angles.copy()
                 try:
                     callback(ret)
                 except Exception as e:
@@ -648,9 +648,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self._position.copy()
+                    ret['cartesian'] = self.position.copy()
                 if item['joints']:
-                    ret['joints'] = self._angles.copy()
+                    ret['joints'] = self.angles.copy()
                 if item['error_code']:
                     ret['error_code'] = self._error_code
                 if item['warn_code']:

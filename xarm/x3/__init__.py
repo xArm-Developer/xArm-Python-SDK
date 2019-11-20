@@ -1497,7 +1497,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(self.device_type, [])
         if i < len(joint_limit):
             angle_range = joint_limit[i]
-            if angle <= angle_range[0] or angle >= angle_range[1]:
+            if angle < angle_range[0] or angle > angle_range[1]:
                 logger.info('API -> set_servo_angle -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle))
                 return True
         return False

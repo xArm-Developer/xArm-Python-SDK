@@ -1280,6 +1280,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             limit = list(tcp_range[i])
             limit[0] += self._position_offset[i]
             limit[1] += self._position_offset[i]
+            limit[0] += self._world_offset[i]
+            limit[1] += self._world_offset[i]
             if limit[0] == limit[1]:
                 return False
                 # if value == limit[0] or value == limit[0] - 2 * math.pi:

@@ -25,6 +25,7 @@ def lock_require(func):
 class UxbusCmd(object):
     BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600,
                  1000000, 1500000, 2000000, 2500000)
+
     def __init__(self):
         self._has_error = False
         self._has_warn = False

@@ -256,7 +256,7 @@ class GPIO(object):
                     if not on and ret[1] == 0:
                         code = 0
                         break
-                time.sleep(0.2)
+                time.sleep(0.1)
         logger.info('API -> set_suction_cup -> ret={}, on={}, wait={}'.format(code, on, wait))
         return code
 

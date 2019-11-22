@@ -923,7 +923,7 @@ class XArmAPI(object):
         :param filename: The name to save
             1. Only strings consisting of English or numbers are supported, and the length is no more than 50.
             2. The trajectory is saved in the controller box.
-            3. If the tilename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost
+            3. If the filename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost
             4. This action will overwrite the trajectory with the same name
             5. Empty the trajectory in memory after saving
         :return: code

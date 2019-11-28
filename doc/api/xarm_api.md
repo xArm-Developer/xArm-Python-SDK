@@ -95,6 +95,15 @@ Note:
 :return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]
 ```
 
+#### __joint_jerk__
+```
+Joint jerk
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: jerk (°/s^3 or rad/s^3)
+```
+
 #### __joint_speed_limit__
 ```
 Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'
@@ -254,6 +263,13 @@ xArm state
 Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
+```
+
+#### __tcp_jerk__
+```
+Tcp jerk
+
+:return: jerk (mm/s^3)
 ```
 
 #### __tcp_load__
@@ -1789,7 +1805,7 @@ Set the xArm state
     code: See the API code documentation for details.
 ```
 
-#### def __set_suction_cup__(self, on, wait=True, timeout=3):
+#### def __set_suction_cup__(self, on, wait=False, timeout=3):
 
 ```
 Set suction cup
@@ -1797,7 +1813,7 @@ Set suction cup
 :param on: open or not
     on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
     on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
-:param wait: wait or not, default is True
+:param wait: wait or not, default is False
 :param timeout: second, default is 3s
 :return: code
     code: See the API code documentation for details.

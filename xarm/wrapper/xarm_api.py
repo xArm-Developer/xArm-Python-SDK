@@ -1666,14 +1666,14 @@ class XArmAPI(object):
         """
         return self._arm.get_suction_cup()
 
-    def set_suction_cup(self, on, wait=True, timeout=3):
+    def set_suction_cup(self, on, wait=False, timeout=3):
         """
         Set suction cup
         
         :param on: open or not
             on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
             on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
-        :param wait: wait or not, default is True
+        :param wait: wait or not, default is False
         :param timeout: second, default is 3s
         :return: code
             code: See the API code documentation for details.

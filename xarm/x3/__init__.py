@@ -220,6 +220,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 else self._position[i] for i in range(len(self._position))]
 
     @property
+    def tcp_jerk(self):
+        return self._tcp_jerk
+
+    @property
     def tcp_speed_limit(self):
         return [self._min_tcp_speed, self._max_tcp_speed]
 
@@ -245,6 +249,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not self._enable_report:
             self.get_servo_angle()
         return [angle if self._default_is_radian else math.degrees(angle) for angle in self._angles]
+
+    @property
+    def joint_jerk(self):
+        return self._joint_jerk if self._default_is_radian else math.degrees(self._joint_jerk)
 
     @property
     def joint_speed_limit(self):

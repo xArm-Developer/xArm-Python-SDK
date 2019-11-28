@@ -473,6 +473,13 @@ class BlocklyTool(object):
                              'radius={}, wait={}) != 0:'.format(prefix, values, radius, wait))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
+    def _handle_motion_set_state(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        state = fields[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set state'.format(prefix))
+        self._append_to_file('{}arm.set_state({})'.format(prefix, state))
+
     def _handle_motion_stop(self, block, prefix=''):
         if self._show_comment:
             self._append_to_file('{}# emergency stop'.format(prefix))

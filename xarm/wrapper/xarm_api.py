@@ -199,6 +199,15 @@ class XArmAPI(object):
         return self._arm.last_used_position
 
     @property
+    def tcp_jerk(self):
+        """
+        Tcp jerk
+ 
+        :return: jerk (mm/s^3)
+        """
+        return self._arm.tcp_jerk
+
+    @property
     def tcp_speed_limit(self):
         """
         Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
@@ -244,6 +253,17 @@ class XArmAPI(object):
         :return: [angle1(° or rad), angle2(° or rad), ..., anglen(° or rad)]
         """
         return self._arm.angles
+
+    @property
+    def joint_jerk(self):
+        """
+        Joint jerk
+        Note:
+            1. If self.default_is_radian is True, the returned value is in radians
+        
+        :return: jerk (°/s^3 or rad/s^3)
+        """
+        return self._arm.joint_jerk
 
     @property
     def joint_speed_limit(self):

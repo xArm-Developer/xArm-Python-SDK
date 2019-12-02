@@ -31,6 +31,15 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.3.0
+  - Added several attributes
+  - Support tool coordinate system movement
+  - Support joint range limitation, collision rebound setting
+  - Support user coordinate system setting
+  - Support the status of the air pump
+  - Added counter interface
+  - Support for blocky code conversion and operation of xArmStudio1.3.0
+
 - > ### 1.2.2
 
   - Fix mechanical claw false positive error

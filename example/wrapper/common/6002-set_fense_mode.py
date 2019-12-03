@@ -34,6 +34,6 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-arm.set_reduced_max_joint_speed(100)
-arm.set_reduced_max_tcp_speed(500)
-arm.set_reduced_mode(True)
+x_max, x_min, y_max, y_min, z_max, z_min = 500, -500, 600, -600, 400, -400
+arm.set_reduced_tcp_boundary([x_max, x_min, y_max, y_min, z_max, z_min])
+arm.set_fense_mode(True)

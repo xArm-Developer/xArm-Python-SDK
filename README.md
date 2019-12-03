@@ -82,6 +82,10 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - #####  [1005-move_arc_line](example/wrapper/common/1005-move_arc_line.py)
 
+- #####  [1006-move_tool_line](example/wrapper/common/1006-move_tool_line.py)
+
+- #####  [1007-counter](example/wrapper/common/1007-counter.py)
+
 - ##### 2001-move_joint --> [xarm5](example/wrapper/xarm5/2001-move_joint.py) --- [xarm6](example/wrapper/xarm6/2001-move_joint.py) --- [xarm7](example/wrapper/xarm7/2001-move_joint.py)
 
 - ##### 2002-move_joint --> [xarm5](example/wrapper/xarm5/2002-move_joint.py) --- [xarm6](example/wrapper/xarm6/2002-move_joint.py) --- [xarm7](example/wrapper/xarm7/2002-move_joint.py)
@@ -113,6 +117,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - ##### [5008-get_cgpio_state](example/wrapper/common/5008-get_cgpio_state.py)
 
 - ##### [6001-set_reduced_mode](example/wrapper/common/6001-set_reduced_mode.py)
+
+- ##### [6002-set_fense_mode](example/wrapper/common/6002-set_fense_mode.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 

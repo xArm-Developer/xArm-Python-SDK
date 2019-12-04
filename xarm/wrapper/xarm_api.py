@@ -126,7 +126,7 @@ class XArmAPI(object):
         
         :return: real time speed (mm/s)
         """
-        return self._arm.realtime_tcp_speed,
+        return self._arm.realtime_tcp_speed
 
     @property
     def realtime_joint_speeds(self):

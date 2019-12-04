@@ -1,4 +1,4 @@
-# xArmPythonSDK API code description
+# xArmSDK API code description
 
 ## API return value status code
 - -9: emergency stop

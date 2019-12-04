@@ -56,7 +56,7 @@ arm.start_record_trajectory()
 time.sleep(20)
 
 arm.stop_record_trajectory()
-arm.save_record_trajectory('test')
+arm.save_record_trajectory('test.traj')
 
 time.sleep(1)
 

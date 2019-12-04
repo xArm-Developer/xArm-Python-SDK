@@ -110,7 +110,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### [5005-get_cgpio_digital_analog](example/wrapper/common/5005-get_cgpio_digital_analog.py)
 
-- ##### [5006-set_cgpio_dialog_analog](example/wrapper/common/5006-set_cgpio_dialog_analog.py)
+- ##### [5006-set_cgpio_digital_analog](example/wrapper/common/5006-set_cgpio_digital_analog.py)
 
 - ##### [5007-set_cgpio_input_output_function](example/wrapper/common/5007-set_cgpio_input_output_function.py)
 

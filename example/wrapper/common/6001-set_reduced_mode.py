@@ -34,6 +34,11 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-arm.set_reduced_max_joint_speed(100)
+code = arm.set_reduced_max_joint_speed(100)
+print('set_reduced_max_joint_speed, code={}'.format(code))
 arm.set_reduced_max_tcp_speed(500)
+print('set_reduced_max_tcp_speed, code={}'.format(code))
 arm.set_reduced_mode(True)
+print('set_reduced_mode, code={}'.format(code))
+
+

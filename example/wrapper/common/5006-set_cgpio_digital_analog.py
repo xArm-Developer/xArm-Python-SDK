@@ -33,13 +33,13 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-value = 1
+value = 0
 for i in range(8):
     code = arm.set_cgpio_digital(i, value)
     print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
     time.sleep(0.5)
 
-value = 0
+value = 1
 for i in range(8):
     code = arm.set_cgpio_digital(i, value)
     print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))

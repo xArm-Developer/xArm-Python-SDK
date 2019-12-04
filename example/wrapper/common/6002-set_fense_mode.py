@@ -35,5 +35,7 @@ if arm.error_code != 0:
     arm.clean_error()
 
 x_max, x_min, y_max, y_min, z_max, z_min = 500, -500, 600, -600, 400, -400
-arm.set_reduced_tcp_boundary([x_max, x_min, y_max, y_min, z_max, z_min])
-arm.set_fense_mode(True)
+code = arm.set_reduced_tcp_boundary([x_max, x_min, y_max, y_min, z_max, z_min])
+print('set_reduced_tcp_boundary, code={}'.format(code))
+code = arm.set_fense_mode(True)
+print('set_fense_mode, code={}'.format(code))

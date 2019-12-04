@@ -180,7 +180,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
     @property
     def realtime_tcp_speed(self):
-        return self._realtime_tcp_speed,
+        return self._realtime_tcp_speed
 
     @property
     def realtime_joint_speeds(self):

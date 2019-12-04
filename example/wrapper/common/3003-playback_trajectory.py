@@ -47,7 +47,7 @@ arm.set_mode(0)
 arm.set_state(state=0)
 
 
-arm.load_trajectory('test')
+arm.load_trajectory('test.traj')
 arm.playback_trajectory()
 
 

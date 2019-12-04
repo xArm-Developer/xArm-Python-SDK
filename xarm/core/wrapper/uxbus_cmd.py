@@ -23,6 +23,9 @@ def lock_require(func):
 
 
 class UxbusCmd(object):
+    BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600,
+                 1000000, 1500000, 2000000, 2500000)
+
     def __init__(self):
         self._has_error = False
         self._has_warn = False
@@ -146,7 +149,11 @@ class UxbusCmd(object):
         txdata = [value]
         return self.set_nu8(XCONF.UxbusReg.SET_TRAJ_RECORD, txdata, 1)
 
-    def playback_traj(self, value):
+    def playback_traj(self, value, spdx=1):
+        txdata = [value, spdx]
+        return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, 2)
+
+    def playback_traj_old(self, value):
         txdata = [value]
         return self.set_nint32(XCONF.UxbusReg.PLAY_TRAJ, txdata, 1)
 
@@ -194,17 +201,48 @@ class UxbusCmd(object):
     def get_reduced_mode(self):
         return self.get_nu8(XCONF.UxbusReg.GET_REDUCED_MODE, 1)
 
-    def get_reduced_states(self):
-        ret = self.get_nu8(XCONF.UxbusReg.GET_REDUCED_STATE, 21)
-        msg = [0] * 5
+    def get_reduced_states(self, length=21):
+        ret = self.get_nu8(XCONF.UxbusReg.GET_REDUCED_STATE, length)
+        msg = [0] * 8
         msg[0] = ret[0]
-        msg[1] = ret[1]
-        msg[2] = convert.bytes_to_16s(ret[2:14], 6)
-        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)
+        msg[1] = ret[1]  # reduced_mode_is_on
+        msg[2] = convert.bytes_to_16s(ret[2:14], 6)  # tcp_boundary
+        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)  # tcp_speed, joint_speed
+        if length == 79:
+            msg[5] = convert.bytes_to_fp32s(ret[22:78], 14)  # joint range
+            msg[6:8] = ret[78:80]  # fense_is_on, collision_rebound
         return msg
 
     def set_xyz_limits(self, xyz_list):
         return self.set_nint32(XCONF.UxbusReg.SET_LIMIT_XYZ, xyz_list, 6)
+
+    def set_timer(self, sec_later, timer_id, fun_code, param1=0, param2=0):
+        txdata = [sec_later, timer_id, fun_code, param1, param2]
+        return self.set_nint32(XCONF.UxbusReg.SET_TIMER, txdata, 5)
+
+    def cancel_timer(self, timer_id):
+        txdata = [timer_id]
+        return self.set_nint32(XCONF.UxbusReg.CANCEL_TIMER, txdata, 1)
+
+    def set_world_offset(self, pose_offset):
+        return self.set_nfp32(XCONF.UxbusReg.SET_WORLD_OFFSET, pose_offset, 6)
+
+    def cnter_reset(self):
+        return self.set_nu8(XCONF.UxbusReg.CNTER_RESET, 0, 0)
+
+    def cnter_plus(self):
+        return self.set_nu8(XCONF.UxbusReg.CNTER_PLUS, 0, 0)
+
+    def set_reduced_jrange(self, jrange_rad):
+        return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_JRANGE, jrange_rad, 14)
+
+    def set_fense_on(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_FENSE_ON, txdata, 1)
+
+    def set_collis_reb(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_COLLIS_REB, txdata, 1)
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
@@ -222,6 +260,12 @@ class UxbusCmd(object):
 
     def get_err_code(self):
         return self.get_nu8(XCONF.UxbusReg.GET_ERROR, 2)
+
+    def get_hd_types(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_HD_TYPES, 2)
+
+    def reload_dynamics(self):
+        return self.set_nu8(XCONF.UxbusReg.RELOAD_DYNAMICS, 0, 0)
 
     def clean_err(self):
         return self.set_nu8(XCONF.UxbusReg.CLEAN_ERR, 0, 0)
@@ -241,6 +285,11 @@ class UxbusCmd(object):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE, txdata, 9)
+
+    def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime):
+        txdata = [mvpose[i] for i in range(6)]
+        txdata += [mvvelo, mvacc, mvtime]
+        return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE_TOOL, txdata, 9)
 
     def move_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii):
         txdata = [mvpose[i] for i in range(6)]
@@ -500,6 +549,22 @@ class UxbusCmd(object):
         value[0] = ret[0]
         value[1] = ret[1] * 3.3 / 4096.0
         return value
+
+    def set_modbus_timeout(self, value):
+        txdata = [int(value)]
+        return self.set_nu16(XCONF.UxbusReg.TGPIO_MB_TIOUT, txdata, 1)
+
+    def set_modbus_baudrate(self, baudrate):
+        if baudrate not in self.BAUDRATES:
+            return [-1, -1]
+        ret = self.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
+        if ret[0] != XCONF.UxbusState.ERR_TOUT:
+            baud_val = self.BAUDRATES.index(baudrate)
+            if ret[1] != baud_val:
+                self.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_val)
+                self.tgpio_addr_w16(0x1a0b, baud_val)
+                return self.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
+        return ret[:2]
 
     def tgpio_set_modbus(self, modbus_t, len_t):
         txdata = bytes([XCONF.TGPIO_ID])

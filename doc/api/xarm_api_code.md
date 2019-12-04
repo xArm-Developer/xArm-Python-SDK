@@ -1,4 +1,4 @@
-# xArmPythonSDK API code description
+# xArmSDK API code description
 
 ## API return value status code
 - -9: emergency stop
@@ -26,6 +26,7 @@
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout
+- 41: wait to set suction cup timeout
 
 ## Controller warning code
 - 11: uxbux que is full
@@ -42,7 +43,7 @@
 - 15: Servo motor 5 error
 - 16: Servo motor 6 error
 - 17: Servo motor 7 error
-- 19: Tool GPIO error
+- 19: Gripper Communication Error
 - 21: Kinematic Error
 - 22: Collision Error
 - 23: Joints Angle Exceed Limit
@@ -50,7 +51,7 @@
 - 25: Planning Error
 - 26: Linux RT Error
 - 27: Command Reply Error
-- 28: Gripper error
+- 28: End Module Communication Error
 - 29: Other Errors
 - 30: Feedback Speed Exceeds limit
 - 31: Collision Caused Abnormal Current

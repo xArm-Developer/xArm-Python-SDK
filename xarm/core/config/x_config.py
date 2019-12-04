@@ -37,39 +37,39 @@ class XCONF(object):
             Axis.XARM5: {
                 Type.XARM5_X4: [
                     (-2 * math.pi, 2 * math.pi),
-                    (-2.18, 2.18),
-                    (-4.01, 0.1),
-                    (-1.75, math.pi),
+                    (-2.059488, 2.094395),  # (-2.18, 2.18),
+                    (-3.92699, 0.191986),  # (-4.01, 0.1),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
                 ],
             },
             Axis.XARM6: {
                 Type.XARM6_X4: [
                     (-2 * math.pi, 2 * math.pi),
-                    (-2.18, 2.18),
-                    (-4.01, 0.1),
+                    (-2.059488, 2.094395),  # (-2.18, 2.18),
+                    (-3.92699, 0.191986),  # (-4.01, 0.1),
                     (-2 * math.pi, 2 * math.pi),
-                    (-1.75, math.pi),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
                 ],
             },
             Axis.XARM7: {
                 Type.XARM7_X3: [
                     (-2 * math.pi, 2 * math.pi),
-                    (-2.18, 2.18),
+                    (-2.059488, 2.094395),  # (-2.18, 2.18),
                     (-2 * math.pi, 2 * math.pi),
-                    (-4.01, 0.1),
+                    (-3.92699, 0.191986),  # (-4.01, 0.1),
                     (-2 * math.pi, 2 * math.pi),
-                    (-1.75, math.pi),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
                 ],
                 Type.XARM7_X4: [
                     (-2 * math.pi, 2 * math.pi),
-                    (-2.18, 2.18),
+                    (-2.059488, 2.094395),  # (-2.18, 2.18),
                     (-2 * math.pi, 2 * math.pi),
-                    (-0.1, 4.01),
+                    (-0.191986, 3.92699),  # (-0.1, 4.01),
                     (-2 * math.pi, 2 * math.pi),
-                    (-1.75, math.pi),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
                 ],
             }
@@ -142,12 +142,13 @@ class XCONF(object):
         TCP_CONTROL_BUF_SIZE = 1024
         TCP_REPORT_REAL_BUF_SIZE = 87
         TCP_REPORT_NORMAL_BUF_SIZE = 133
-        TCP_REPORT_RICH_BUF_SIZE = 245
+        TCP_REPORT_RICH_BUF_SIZE = 233
 
     class UxbusReg:
         GET_VERSION = 1
         GET_ROBOT_SN = 2
         CHECK_VERIFY = 3
+        RELOAD_DYNAMICS = 4
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
         SET_STATE = 12
@@ -165,6 +166,7 @@ class XCONF(object):
         MOVE_HOME = 25
         SLEEP_INSTT = 26
         MOVE_CIRCLE = 27
+        MOVE_LINE_TOOL = 28
         MOVE_SERVOJ = 29
 
         SET_TCP_JERK = 31
@@ -198,11 +200,21 @@ class XCONF(object):
         SET_SAFE_LEVEL = 56
         GET_SAFE_LEVEL = 57
 
+        SET_REDUCED_JRANGE = 58
+        SET_FENSE_ON = 59
+        SET_COLLIS_REB = 60
+
         SET_TRAJ_RECORD = 61
         SAVE_TRAJ = 62
         LOAD_TRAJ = 63
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
+
+        SET_TIMER = 71
+        CANCEL_TIMER = 72
+        SET_WORLD_OFFSET = 73
+        CNTER_RESET = 74
+        CNTER_PLUS = 75
 
         SERVO_W16B = 101
         SERVO_R16B = 102
@@ -211,6 +223,7 @@ class XCONF(object):
         SERVO_ZERO = 105
         SERVO_DBMSG = 106
 
+        TGPIO_MB_TIOUT = 123
         TGPIO_MODBUS = 124
         TGPIO_ERR = 125
         TGPIO_W16B = 127
@@ -227,6 +240,8 @@ class XCONF(object):
         CGPIO_SET_IN_FUN = 137
         CGPIO_SET_OUT_FUN = 138
         CGPIO_GET_STATE = 139
+
+        GET_HD_TYPES = 141
 
     class UxbusConf:
         SET_TIMEOUT = 1000  # ms
@@ -265,6 +280,7 @@ class XCONF(object):
         POS_SPD = 0x0303
         MT_ID = 0x1600
         BAUDRATE = 0x0601
+        SOFT_REBOOT = 0x0607
         TAGET_TOQ = 0x050a
         CURR_TOQ = 0x050c
         TOQ_SPD = 0x050e
@@ -280,6 +296,8 @@ class XCONF(object):
         RESET_ERR = 0x0109
         SV3_BRO_ID = 0xFF
 
+        MODBUS_BAUDRATE = 0x0A0B
+        TOOL_MB_TIMEOUT = 0x0A0E
         DIGITAL_IN = 0x0A14
         DIGITAL_OUT = 0x0A15
         ANALOG_IO1 = 0x0A16

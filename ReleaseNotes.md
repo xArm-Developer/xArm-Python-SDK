@@ -2,6 +2,16 @@
 
 ## Update Summary
 
+- > ### 1.3.0
+
+  - Added several attributes
+  - Support tool coordinate system movement
+  - Support joint range limitation, collision rebound setting
+  - Support user coordinate system setting
+  - Support the status of the air pump
+  - Added counter interface
+  - Support for blocky code conversion and operation of xArmStudio1.3.0
+
 - > ### 1.2.0
 
   - Fix the parameters of the control box GPIO analog signal

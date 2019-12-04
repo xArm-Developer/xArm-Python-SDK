@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 """
-Example: Set Controller GPIO Digital/Analog
+Example: Set reduced mode
 """
 
 import os
@@ -26,6 +26,7 @@ except:
     if not ip:
         ip = '192.168.1.194'
 
+
 arm = XArmAPI(ip)
 time.sleep(0.5)
 if arm.warn_code != 0:
@@ -33,22 +34,8 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-value = 1
-for i in range(8):
-    code = arm.set_cgpio_digital(i, value)
-    print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
-    time.sleep(0.5)
-
-value = 0
-for i in range(8):
-    code = arm.set_cgpio_digital(i, value)
-    print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
-    time.sleep(0.5)
-
-value = 2.6
-code = arm.set_cgpio_analog(0, value)
-print('set_cgpio_analog(0, {}), code={}'.format(value, code))
-
-value = 3.6
-code = arm.set_cgpio_analog(1, value)
-print('set_cgpio_analog(1, {}), code={}'.format(value, code))
+x_max, x_min, y_max, y_min, z_max, z_min = 500, -500, 600, -600, 400, -400
+code = arm.set_reduced_tcp_boundary([x_max, x_min, y_max, y_min, z_max, z_min])
+print('set_reduced_tcp_boundary, code={}'.format(code))
+code = arm.set_fense_mode(True)
+print('set_fense_mode, code={}'.format(code))

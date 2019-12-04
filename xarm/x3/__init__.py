@@ -18,7 +18,7 @@ from ..core.config.x_config import XCONF
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils import convert
 from ..core.utils.log import logger, pretty_print
-from ..core.config.x_code import ControllerWarn, ControllerError
+from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
 from .gripper import Gripper
 from .gpio import GPIO
 from .servo import Servo
@@ -94,6 +94,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
+        self._world_offset = [0] * 6
         self._state = 4
         self._mode = 0
         self._joints_torque = [0, 0, 0, 0, 0, 0, 0]  # 力矩
@@ -120,6 +121,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._is_stop = False
         self._is_sync = False
         self._is_first_report = True
+        self._first_report_over = False
         self._default_is_radian = is_radian
 
         self._sleep_finish_time = time.time()
@@ -129,8 +131,16 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._minor_version_number = 0  # 固件次版本号
         self._revision_version_number = 0  # 固件修正版本号
 
+        self._temperatures = [0, 0, 0, 0, 0, 0, 0]
+
         self._is_set_move = False
         self._cond_pause = threading.Condition()
+
+        self._version_ge_1_2_11 = False  # 固件是否大于等于1.2.11，用于get_reduced_states
+        self._realtime_tcp_speed = 0
+        self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
+
+        self._count = -1
 
         Events.__init__(self)
         if not do_not_open:
@@ -141,6 +151,40 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             if self.state == 3 and self._enable_report:
                 with self._cond_pause:
                     self._cond_pause.wait()
+
+    @property
+    def version_is_ge_1_2_11(self):
+        if not self._version:
+            self.get_version()
+            if self._version and isinstance(self._version, str):
+                pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+                m = re.match(pattern, self._version)
+                if m:
+                    (self._major_version_number,
+                     self._minor_version_number,
+                     self._revision_version_number) = map(int, m.groups())
+                else:
+                    version_date = '-'.join(self._version.split('-')[-3:])
+                    self._is_old_protocol = compare_time('2019-02-01', version_date)
+                    if self._is_old_protocol:
+                        self._major_version_number = 0
+                        self._minor_version_number = 0
+                        self._revision_version_number = 1
+                    else:
+                        self._major_version_number = 0
+                        self._minor_version_number = 1
+                        self._revision_version_number = 0
+        return self._major_version_number > 1 or (
+            self._major_version_number == 1 and self._minor_version_number > 2) or (
+            self._major_version_number == 1 and self._minor_version_number == 2 and self._revision_version_number >= 11)
+
+    @property
+    def realtime_tcp_speed(self):
+        return self._realtime_tcp_speed
+
+    @property
+    def realtime_joint_speeds(self):
+        return [speed if self._default_is_radian else math.degrees(speed) for speed in self._realtime_joint_speeds]
 
     @property
     def version_number(self):
@@ -176,6 +220,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 else self._position[i] for i in range(len(self._position))]
 
     @property
+    def tcp_jerk(self):
+        return self._tcp_jerk
+
+    @property
     def tcp_speed_limit(self):
         return [self._min_tcp_speed, self._max_tcp_speed]
 
@@ -201,6 +249,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not self._enable_report:
             self.get_servo_angle()
         return [angle if self._default_is_radian else math.degrees(angle) for angle in self._angles]
+
+    @property
+    def joint_jerk(self):
+        return self._joint_jerk if self._default_is_radian else math.degrees(self._joint_jerk)
 
     @property
     def joint_speed_limit(self):
@@ -232,6 +284,11 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def position_offset(self):
         return [math.degrees(self._position_offset[i]) if 2 < i < 6 and not self._default_is_radian
                 else self._position_offset[i] for i in range(len(self._position_offset))]
+
+    @property
+    def world_offset(self):
+        return [math.degrees(self._world_offset[i]) if 2 < i < 6 and not self._default_is_radian
+                else self._world_offset[i] for i in range(len(self._world_offset))]
 
     @property
     def state(self):
@@ -266,6 +323,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @property
     def motor_enable_states(self):
         return self._arm_motor_enable_states
+
+    @property
+    def temperatures(self):
+        return self._temperatures
 
     @property
     def error_code(self):
@@ -332,7 +393,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self.get_cmdnum()
             except:
                 pass
-            time.sleep(self._timed_comm_interval)
+            count = self._timed_comm_interval * 10
+            while count > 0:
+                count -= 1
+                time.sleep(0.1)
+                if not self._timed_comm_t_alive or not self.connected:
+                    break
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         if self.connected:
@@ -352,6 +418,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self._timed_comm_t = None
             except:
                 pass
+        self._is_first_report = True
+        self._first_report_over = False
         if isinstance(self._port, (str, bytes)):
             if self._port == 'localhost' or re.match(
                     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -379,6 +447,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     self._connect_report()
                 except:
                     self._stream_report = None
+
                 self._check_version()
 
                 if self._stream.connected and self._enable_report:
@@ -392,7 +461,6 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self._stream = SerialPort(self._port)
                 if not self.connected:
                     raise Exception('connect serail failed')
-
                 self._report_error_warn_changed_callback()
 
                 self.arm_cmd = UxbusCmdSer(self._stream)
@@ -473,7 +541,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port,
                                              XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE
+                                             buffer_size=1024
                                              if not self._is_old_protocol else 187)
 
     def __connect_report_real(self):
@@ -548,15 +616,35 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 except Exception as e:
                     logger.error('cmdnum changed callback: {}'.format(e))
 
+    def _report_temperature_changed_callback(self):
+        if REPORT_TEMPERATURE_CHANGED_ID in self._report_callbacks.keys():
+            for callback in self._report_callbacks[REPORT_TEMPERATURE_CHANGED_ID]:
+                try:
+                    callback({
+                        'temperatures': self.temperatures,
+                    })
+                except Exception as e:
+                    logger.error('temperature changed callback: {}'.format(e))
+
+    def _report_count_changed_callback(self):
+        if REPORT_COUNT_CHANGED_ID in self._report_callbacks.keys():
+            for callback in self._report_callbacks[REPORT_COUNT_CHANGED_ID]:
+                try:
+                    callback({
+                        'count': self._count
+                    })
+                except Exception as e:
+                    logger.error('count changed callback: {}'.format(e))
+
     def _report_location_callback(self):
         if REPORT_LOCATION_ID in self._report_callbacks.keys():
             for item in self._report_callbacks[REPORT_LOCATION_ID]:
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self._position.copy()
+                    ret['cartesian'] = self.position.copy()
                 if item['joints']:
-                    ret['joints'] = self._angles.copy()
+                    ret['joints'] = self.angles.copy()
                 try:
                     callback(ret)
                 except Exception as e:
@@ -568,9 +656,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 callback = item['callback']
                 ret = {}
                 if item['cartesian']:
-                    ret['cartesian'] = self._position.copy()
+                    ret['cartesian'] = self.position.copy()
                 if item['joints']:
-                    ret['joints'] = self._angles.copy()
+                    ret['joints'] = self.angles.copy()
                 if item['error_code']:
                     ret['error_code'] = self._error_code
                 if item['warn_code']:
@@ -743,6 +831,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
             sv3_msg = convert.bytes_to_u16s(rx_data[171:187], 8)
+            self._first_report_over = True
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -781,6 +870,11 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
             torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
             mtbrake, mtable, error_code, warn_code = rx_data[87:91]
+            if (error_code != 0 and error_code not in ControllerErrorCodeMap.keys()) \
+                    or (warn_code != 0 and warn_code not in ControllerWarnCodeMap.keys()):
+                self._stream_report.close()
+                print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
+                return
             pose_offset = convert.bytes_to_fp32s(rx_data[91:6 * 4 + 91], 6)
             tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
@@ -938,9 +1032,40 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
             sv3_msg = rx_data[229:245]
+            self._first_report_over = True
+
+            size = convert.bytes_to_u32(rx_data[0:4])
+            if size >= 252:
+                temperatures = list(map(int, rx_data[245:252]))
+                if temperatures != self.temperatures:
+                    self._temperatures = temperatures
+                    self._report_temperature_changed_callback()
+            if size >= 284:
+                speeds = convert.bytes_to_fp32s(rx_data[252:8 * 4 + 252], 8)
+                self._realtime_tcp_speed = speeds[0]
+                self._realtime_joint_speeds = speeds[1:]
+                # print(speeds[0], speeds[1:])
+            if size >= 288:
+                count = convert.bytes_to_u32(data[284:288])
+                # print(count, data[284:288])
+                if self._count != -1 and count != self._count:
+                    self._count = count
+                    self._report_count_changed_callback()
+                self._count = count
+            if size >= 312:
+                world_offset = convert.bytes_to_fp32s(rx_data[288:6 * 4 + 288], 6)
+                for i in range(len(world_offset)):
+                    if i < 3:
+                        world_offset[i] = float('{:.3f}'.format(world_offset[i]))
+                    else:
+                        world_offset[i] = float('{:.6f}'.format(world_offset[i]))
+                if math.inf not in world_offset and -math.inf not in world_offset and not (10 <= self._error_code <= 17):
+                    self._world_offset = world_offset
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
+        buffer = b''
+        size = 0
         while self._stream and self._stream.connected:
             try:
                 if not self._stream_report or not self._stream_report.connected:
@@ -949,20 +1074,44 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                     self._connect_report()
+                    buffer = b''
+                    size = 0
                     continue
                 if not report_socket_connected:
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                 rx_data = self._stream_report.read()
-                if rx_data != -1 and len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                    # if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                    #     __handle_report_normal(rx_data)
-                    if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
-                        __handle_report_rich(rx_data)
-                    else:
-                        __handle_report_normal(rx_data)
+                if rx_data != -1:
+                    buffer += rx_data
+                    if len(buffer) < 4:
+                        continue
+                    if size == 0:
+                        size = convert.bytes_to_u32(buffer[0:4])
+                    if len(buffer) < size:
+                        continue
+                    if size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                        if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
+                            if size == 233 and len(buffer) == 245:
+                                data = buffer[:245]
+                                buffer = buffer[245:]
+                            else:
+                                data = buffer[:size]
+                                buffer = buffer[size:]
+                            __handle_report_rich(data)
+                        else:
+                            data = buffer[:size]
+                            buffer = buffer[size:]
+                            __handle_report_normal(data)
+                # if rx_data != -1 and len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                #     # if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                #     #     __handle_report_normal(rx_data)
+                #     if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
+                #         __handle_report_rich(rx_data)
+                #     else:
+                #         __handle_report_normal(rx_data)
             except Exception as e:
                 logger.error(e)
+                self._connect_report()
             time.sleep(0.001)
         self.disconnect()
         self._report_connect_changed_callback(False, False)
@@ -1019,7 +1168,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         logger.debug('get report thread stopped')
 
     def disconnect(self):
-        self._stream.close()
+        try:
+            self._stream.close()
+        except:
+            pass
         if self._stream_report:
             try:
                 self._stream_report.close()
@@ -1136,12 +1288,15 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             limit = list(tcp_range[i])
             limit[0] += self._position_offset[i]
             limit[1] += self._position_offset[i]
+            limit[0] += self._world_offset[i]
+            limit[1] += self._world_offset[i]
             if limit[0] == limit[1]:
-                if value == limit[0] or value == limit[0] - 2 * math.pi:
-                    return False
-                else:
-                    logger.info('API -> set_position -> ret={}, i={}, value={}'.format(APIState.OUT_OF_RANGE, i, value))
-                    return True
+                return False
+                # if value == limit[0] or value == limit[0] - 2 * math.pi:
+                #     return False
+                # else:
+                #     logger.info('API -> set_position -> ret={}, i={}, value={}'.format(APIState.OUT_OF_RANGE, i, value))
+                #     return True
             if value < limit[0] or value > limit[1]:
                 logger.info('API -> set_position -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, value))
                 return True
@@ -1160,7 +1315,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 return APIState.EMERGENCY_STOP
             elif self.has_error:
                 return
-            time.sleep(0.2)
+            time.sleep(0.1)
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
@@ -1274,6 +1429,65 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             self._last_tcp_acc = last_used_tcp_acc
         return ret[0]
 
+    @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
+    def set_tool_position(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0,
+                          speed=None, mvacc=None, mvtime=None, is_radian=None,
+                          wait=False, timeout=None, **kwargs):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        last_used_tcp_speed = self._last_tcp_speed
+        last_used_tcp_acc = self._last_tcp_acc
+        mvpose = [x, y, z, roll, pitch, yaw]
+        if not is_radian:
+            mvpose = [x, y, z, math.radians(roll), math.radians(pitch), math.radians(yaw)]
+        if speed is not None:
+            if isinstance(speed, str):
+                if speed.isdigit():
+                    speed = float(speed)
+                else:
+                    speed = self._last_tcp_speed
+            self._last_tcp_speed = min(max(speed, self._min_tcp_speed), self._max_tcp_speed)
+        elif kwargs.get('mvvelo', None) is not None:
+            mvvelo = kwargs.get('mvvelo')
+            if isinstance(mvvelo, str):
+                if mvvelo.isdigit():
+                    mvvelo = float(mvvelo)
+                else:
+                    mvvelo = self._last_tcp_speed
+            self._last_tcp_speed = min(max(mvvelo, self._min_tcp_speed), self._max_tcp_speed)
+        if mvacc is not None:
+            if isinstance(mvacc, str):
+                if mvacc.isdigit():
+                    mvacc = float(mvacc)
+                else:
+                    mvacc = self._last_tcp_acc
+            self._last_tcp_acc = min(max(mvacc, self._min_tcp_acc), self._max_tcp_acc)
+        if mvtime is not None:
+            if isinstance(mvtime, str):
+                if mvacc.isdigit():
+                    mvtime = float(mvtime)
+                else:
+                    mvtime = self._mvtime
+            self._mvtime = mvtime
+
+        ret = self.arm_cmd.move_line_tool(mvpose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
+        logger.info('API -> set_tool_position -> ret={}, pos={}, velo={}, acc={}'.format(
+            ret[0], mvpose, self._last_tcp_speed, self._last_tcp_acc
+        ))
+        self._is_set_move = True
+        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+            if not self._enable_report:
+                warnings.warn('if you want to wait, please enable report')
+            else:
+                self._is_stop = False
+                self._WaitMove(self, timeout).start()
+                self._is_stop = False
+                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+        if ret[0] < 0 and not self.get_is_moving():
+            self._last_tcp_speed = last_used_tcp_speed
+            self._last_tcp_acc = last_used_tcp_acc
+        return ret[0]
+
     @xarm_is_connected(_type='get')
     def get_servo_angle(self, servo_id=None, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1293,7 +1507,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(self.device_type, [])
         if i < len(joint_limit):
             angle_range = joint_limit[i]
-            if angle <= angle_range[0] or angle >= angle_range[1]:
+            if angle < angle_range[0] or angle > angle_range[1]:
                 logger.info('API -> set_servo_angle -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle))
                 return True
         return False
@@ -1770,11 +1984,14 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='get')
     def get_reduced_states(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        ret = self.arm_cmd.get_reduced_states()
+        ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge_1_2_11 else 21)
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
             if not is_radian:
                 ret[4] = round(math.degrees(ret[4]), 1)
+                if self.version_is_ge_1_2_11:
+                    # ret[5] = list(map(math.degrees, ret[5]))
+                    ret[5] = list(map(lambda x: round(math.degrees(x), 2), ret[5]))
         return ret[0], ret[1:]
 
     @xarm_is_connected(_type='set')
@@ -1786,6 +2003,72 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         limits[2:4] = boundary[2:4] if boundary[2] >= boundary[3] else boundary[2:4][::-1]
         limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
         ret = self.arm_cmd.set_xyz_limits(limits)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_reduced_joint_range(self, joint_range, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        assert len(joint_range) >= self.axis * 2
+        joint_range = list(map(float, joint_range))
+        limits = [0] * 14
+        for i in range(7):
+            if i < self.axis:
+                limits[i*2:i*2+2] = joint_range[i*2:i*2+2] if joint_range[i*2] <= joint_range[i*2+1] else joint_range[i*2:i*2+2][::-1]
+        if not is_radian:
+            limits = list(map(math.radians, limits))
+            # limits = list(map(lambda x: round(math.radians(x), 3), limits))
+
+        for i in range(self.axis):
+            joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(self.device_type, [])
+            if i < len(joint_limit):
+                angle_range = joint_limit[i]
+                # angle_range = list(map(lambda x: round(x, 3), joint_limit[i]))
+                if limits[i * 2] < angle_range[0]:
+                    limits[i * 2] = angle_range[0]
+                if limits[i * 2 + 1] > angle_range[1]:
+                    limits[i * 2 + 1] = angle_range[1]
+                if limits[i * 2] >= angle_range[1]:
+                    return APIState.OUT_OF_RANGE
+                if limits[i * 2 + 1] <= angle_range[0]:
+                    return APIState.OUT_OF_RANGE
+        ret = self.arm_cmd.set_reduced_jrange(limits)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_fense_mode(self, on_off):
+        return self.arm_cmd.set_fense_on(on_off)
+
+    @xarm_is_connected(_type='set')
+    def set_collision_rebound(self, on_off):
+        return self.arm_cmd.set_collis_reb(on_off)
+
+    @xarm_is_connected(_type='set')
+    def set_timer(self, secs_later, tid, fun_code, param1=0, param2=0):
+        ret = self.arm_cmd.set_timer(secs_later, tid, fun_code, param1, param2)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def cancel_timer(self, tid):
+        ret = self.arm_cmd.cancel_timer(tid)
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
+    def set_world_offset(self, offset, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        assert isinstance(offset, Iterable) and len(offset) >= 6
+        world_offset = [0] * 6
+        for i in range(len(offset)):
+            if not offset[i]:
+                continue
+            if i < 3:
+                world_offset[i] = offset[i]
+            elif i < 6:
+                if not is_radian:
+                    world_offset[i] = math.radians(offset[i])
+                else:
+                    world_offset[i] = offset[i]
+        ret = self.arm_cmd.set_world_offset(world_offset)
         return ret[0]
 
     def get_is_moving(self):
@@ -2261,6 +2544,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 'lastAngles': self._last_angles,
                 'mvvelo': self._last_tcp_speed,
                 'mvacc': self._last_tcp_acc,
+                'tcpJerk': self._tcp_jerk,
+                'jointJerk': self._joint_jerk,
                 'angle_mvvelo': self._last_joint_speed,
                 'angle_mvacc': self._last_joint_acc,
                 'mvtime': self._mvtime,
@@ -2275,6 +2560,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 'lastAngles': [math.degrees(angle) for angle in self._last_angles],
                 'mvvelo': int(self._last_tcp_speed),
                 'mvacc': int(self._last_tcp_acc),
+                'tcpJerk': int(self._tcp_jerk),
+                'jointJerk': int(math.degrees(self._joint_jerk)),
                 'angle_mvvelo': int(math.degrees(self._last_joint_speed)),
                 'angle_mvacc': int(math.degrees(self._last_joint_acc)),
                 'mvtime': self._mvtime,
@@ -2490,6 +2777,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 ret = self.get_gripper_err_code()
             elif num == 126:  # M126 clean_gripper_error, ex: M126
                 ret = self.clean_gripper_error()
+            elif num == 127:
+                ret = self.get_gripper_version()
             elif num == 131:  # M131 get_tgpio_digital, ex: M131
                 ret = self.get_tgpio_digital()
             elif num == 132:  # M132 set_tgpio_digital, ex: M132 I{ionum} V{}
@@ -2502,6 +2791,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             elif num == 134:  # M134 get_tgpio_analog(1), ex: M134 I{ionum=1}
                 ionum = gcode_p.get_id_num(command, default=0)
                 ret = self.get_tgpio_analog(ionum=ionum)
+            elif num == 135:
+                return self.get_tgpio_version()
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
@@ -2538,6 +2829,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             if num == 44:  # S44 I{id}
                 id_num = gcode_p.get_id_num(command, default=None)
                 ret = self.get_servo_all_pids(id_num)
+            elif num == 45:
+                id_num = gcode_p.get_id_num(command, default=1)
+                ret = self.get_servo_version(servo_id=id_num)
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)
@@ -2665,3 +2959,31 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         except Exception as e:
             logger.error(e)
             return APIState.API_EXCEPTION
+
+    @xarm_is_connected(_type='get')
+    def get_hd_types(self):
+        ret = self.arm_cmd.get_hd_types()
+        return ret[0], ret[1:]
+
+    @xarm_is_connected(_type='set')
+    def reload_dynamics(self):
+        ret = self.arm_cmd.reload_dynamics()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_counter_reset(self):
+        ret = self.arm_cmd.cnter_reset()
+        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        #     ret[0] = 0
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_counter_increase(self, val=1):
+        ret = self.arm_cmd.cnter_plus()
+        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        #     ret[0] = 0
+        return ret[0]
+
+

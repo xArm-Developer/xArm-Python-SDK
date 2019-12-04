@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 """
-Example: Get GPIO Digital
+Example: Set Controller GPIO Digital/Analog
 """
 
 import os
@@ -26,7 +26,6 @@ except:
     if not ip:
         ip = '192.168.1.194'
 
-
 arm = XArmAPI(ip)
 time.sleep(0.5)
 if arm.warn_code != 0:
@@ -34,16 +33,22 @@ if arm.warn_code != 0:
 if arm.error_code != 0:
     arm.clean_error()
 
-last_digitals = [-1, -1]
-while arm.connected and arm.error_code != 19 and arm.error_code != 28:
-    code, digitals = arm.get_tgpio_digital()
-    if code == 0:
-        if digitals[0] == 1 and digitals[0] != last_digitals[0]:
-            print('IO0 input high level')
-        if digitals[1] == 1 and digitals[1] != last_digitals[1]:
-            print('IO1 input high level')
-        last_digitals = digitals
-    time.sleep(0.1)
+value = 0
+for i in range(8):
+    code = arm.set_cgpio_digital(i, value)
+    print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
+    time.sleep(0.5)
 
+value = 1
+for i in range(8):
+    code = arm.set_cgpio_digital(i, value)
+    print('set_cgpio_digital({}, {}), code={}'.format(i, value, code))
+    time.sleep(0.5)
 
+value = 2.6
+code = arm.set_cgpio_analog(0, value)
+print('set_cgpio_analog(0, {}), code={}'.format(value, code))
 
+value = 3.6
+code = arm.set_cgpio_analog(1, value)
+print('set_cgpio_analog(1, {}), code={}'.format(value, code))

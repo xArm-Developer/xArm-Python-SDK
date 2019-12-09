@@ -4,7 +4,6 @@
 xArm Python SDK
 
 ## Caution
-- There is currently no collision detection, so try not to be close during use.
 - During use, people should stay away from the robot arm to avoid accidental injury or damage to other items by the robot arm.
 - Protect the arm before use.
 - Before you exercise, please make sure you don't encounter obstacles.

@@ -50,7 +50,7 @@ class SocketPort(Port):
             self.com.setblocking(True)
             self.com.settimeout(1)
             self.com.connect((server_ip, server_port))
-            print('{} connect {} success'.format(self.port_type, server_ip))
+            logger.info('{} connect {} success'.format(self.port_type, server_ip))
             # logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
 
             self._connected = True
@@ -66,7 +66,7 @@ class SocketPort(Port):
                 self.heartbeat_thread = HeartBeatThread(self)
                 self.heartbeat_thread.start()
         except Exception as e:
-            print('{} connect {} failed, {}'.format(self.port_type, server_ip, e))
+            logger.info('{} connect {} failed, {}'.format(self.port_type, server_ip, e))
             # logger.error('{} connect {}:{} failed, {}'.format(self.port_type, server_ip, server_port, e))
             self._connected = False
 

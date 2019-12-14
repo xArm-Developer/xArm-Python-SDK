@@ -1958,11 +1958,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='set')
     def set_reduced_mode(self, on_off):
         ret = self.arm_cmd.set_reduced_mode(on_off)
+        logger.info('API -> set_reduced_mode -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_reduced_max_tcp_speed(self, speed):
         ret = self.arm_cmd.set_reduced_linespeed(speed)
+        logger.info('API -> set_reduced_linespeed -> ret={}, speed={}'.format(ret[0], speed))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1972,6 +1974,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not is_radian:
             speed = math.radians(speed)
         ret = self.arm_cmd.set_reduced_jointspeed(speed)
+        logger.info('API -> set_reduced_linespeed -> ret={}, speed={}'.format(ret[0], speed))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -2003,6 +2006,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         limits[2:4] = boundary[2:4] if boundary[2] >= boundary[3] else boundary[2:4][::-1]
         limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
         ret = self.arm_cmd.set_xyz_limits(limits)
+        logger.info('API -> set_reduced_tcp_boundary -> ret={}, boundary={}'.format(ret[0], limits))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2032,15 +2036,20 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 if limits[i * 2 + 1] <= angle_range[0]:
                     return APIState.OUT_OF_RANGE
         ret = self.arm_cmd.set_reduced_jrange(limits)
+        logger.info('API -> set_reduced_joint_range -> ret={}, boundary={}'.format(ret[0], limits))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_fense_mode(self, on_off):
-        return self.arm_cmd.set_fense_on(on_off)
+        ret = self.arm_cmd.set_fense_on(on_off)
+        logger.info('API -> set_fense_mode -> ret={}, on={}'.format(ret[0], on_off))
+        return ret
 
     @xarm_is_connected(_type='set')
     def set_collision_rebound(self, on_off):
-        return self.arm_cmd.set_collis_reb(on_off)
+        ret = self.arm_cmd.set_collis_reb(on_off)
+        logger.info('API -> set_collision_rebound -> ret={}, on={}'.format(ret[0], on_off))
+        return ret
 
     @xarm_is_connected(_type='set')
     def set_timer(self, secs_later, tid, fun_code, param1=0, param2=0):
@@ -2069,6 +2078,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 else:
                     world_offset[i] = offset[i]
         ret = self.arm_cmd.set_world_offset(world_offset)
+        logger.info('API -> set_world_offset -> ret={}, offset={}'.format(ret[0], world_offset))
         return ret[0]
 
     def get_is_moving(self):
@@ -2219,6 +2229,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_ready(_type='set')
     def set_joint_torque(self, jnt_taus):
         ret = self.arm_cmd.set_servot(jnt_taus)
+        logger.info('API -> set_joint_torque -> ret={}, jnt_taus={}'.format(ret[0], jnt_taus))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -2243,6 +2254,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='set')
     def set_safe_level(self, level=4):
         ret = self.arm_cmd.set_safe_level(level)
+        logger.info('API -> set_safe_level -> ret={}, level={}'.format(ret[0], level))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2970,6 +2982,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         ret = self.arm_cmd.reload_dynamics()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
+        logger.info('API -> reload_dynamics -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2977,6 +2990,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         ret = self.arm_cmd.cnter_reset()
         # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
         #     ret[0] = 0
+        logger.info('API -> set_counter_reset -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2984,6 +2998,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         ret = self.arm_cmd.cnter_plus()
         # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
         #     ret[0] = 0
+        logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
         return ret[0]
 
 

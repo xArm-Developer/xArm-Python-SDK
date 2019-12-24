@@ -2570,17 +2570,17 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             return {
                 'lastPosition': [math.degrees(self._last_position[i]) if 2 < i < 6 else self._last_position[i] for i in range(len(self._last_position))],
                 'lastAngles': [math.degrees(angle) for angle in self._last_angles],
-                'mvvelo': int(self._last_tcp_speed),
-                'mvacc': int(self._last_tcp_acc),
-                'tcpJerk': int(self._tcp_jerk),
-                'jointJerk': int(math.degrees(self._joint_jerk)),
-                'angle_mvvelo': int(math.degrees(self._last_joint_speed)),
-                'angle_mvacc': int(math.degrees(self._last_joint_acc)),
+                'mvvelo': round(self._last_tcp_speed),
+                'mvacc': round(self._last_tcp_acc),
+                'tcpJerk': round(self._tcp_jerk),
+                'jointJerk': round(math.degrees(self._joint_jerk)),
+                'angle_mvvelo': round(math.degrees(self._last_joint_speed)),
+                'angle_mvacc': round(math.degrees(self._last_joint_acc)),
                 'mvtime': self._mvtime,
-                'LIMIT_VELO': list(map(int, [self._min_tcp_speed, self._max_tcp_speed])),
-                'LIMIT_ACC': list(map(int, [self._min_tcp_acc, self._max_tcp_acc])),
-                'LIMIT_ANGLE_VELO': list(map(int, [math.degrees(self._min_joint_speed), math.degrees(self._max_joint_speed)])),
-                'LIMIT_ANGLE_ACC': list(map(int, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
+                'LIMIT_VELO': list(map(round, [self._min_tcp_speed, self._max_tcp_speed])),
+                'LIMIT_ACC': list(map(round, [self._min_tcp_acc, self._max_tcp_acc])),
+                'LIMIT_ANGLE_VELO': list(map(round, [math.degrees(self._min_joint_speed), math.degrees(self._max_joint_speed)])),
+                'LIMIT_ANGLE_ACC': list(map(round, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
             }
 
     def emergency_stop(self):

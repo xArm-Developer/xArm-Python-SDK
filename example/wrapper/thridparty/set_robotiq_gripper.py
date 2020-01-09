@@ -44,11 +44,11 @@ print('set modbus baudrate, ret = %d' % (ret[0]))
 # robotiq open/close test
 data_frame = [0x09, 0x10, 0x03, 0xE8, 0x00, 0x03, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 ret = arm.core.tgpio_set_modbus(data_frame, len(data_frame))
-print('set modbus baudrate, ret = %d' % (ret[0]))
+print('set modbus, ret = %d' % (ret[0]))
 time.sleep(0.1)
 
 data_frame = [0x09, 0x10, 0x03, 0xE8, 0x00, 0x03, 0x06, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00]
 ret = arm.core.tgpio_set_modbus(data_frame, len(data_frame))
-print('set modbus baudrate, ret = %d' % (ret[0]))
+print('set modbus, ret = %d' % (ret[0]))
 
 arm.disconnect()

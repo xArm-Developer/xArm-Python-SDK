@@ -1664,9 +1664,32 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 return APIState.OUT_OF_RANGE
         while len(_angles) < 7:
             _angles.append(0)
-        ret = self.arm_cmd.move_servoj(_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
+        _speed = self._last_joint_speed if speed is None else speed
+        _mvacc = self._last_joint_acc if mvacc is None else mvacc
+        _mvtime = self._mvtime if mvtime is None else mvtime
+        ret = self.arm_cmd.move_servoj(_angles, _speed, _mvacc, _mvtime)
         logger.debug('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
-            ret[0], _angles, self._last_joint_speed, self._last_joint_acc
+            ret[0], _angles, _speed, _mvacc
+        ))
+        self._is_set_move = True
+        return ret[0]
+
+    @xarm_is_ready(_type='set')
+    def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+        assert len(mvpose) >= 6
+        logger.info('set_servo_cartisian--begin')
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        if not is_radian:
+            pose = [mvpose[i] if i < 3 else math.radians(mvpose[i]) for i in range(6)]
+        else:
+            pose = mvpose
+        _speed = self.last_used_tcp_speed if speed is None else speed
+        _mvacc = self.last_used_tcp_acc if mvacc is None else mvacc
+        _mvtime = self._mvtime if mvtime is None else mvtime
+
+        ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
+        logger.debug('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(
+            ret[0], pose, _speed, _mvacc
         ))
         self._is_set_move = True
         return ret[0]
@@ -2313,7 +2336,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not is_radian:
             _jerk = math.radians(_jerk)
         ret = self.arm_cmd.set_joint_jerk(_jerk)
-        logger.info('API -> set_joint_jerk -> ret={}, jerk={}'.format(ret[0], jerk))
+        logger.info('API -> set_joint_jerk -> ret={}, jerk={}'.format(ret[0], _jerk))
         return ret[0]
 
     @xarm_is_connected(_type='set')

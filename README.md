@@ -30,7 +30,12 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.4.0
+  - Support servo cartesian interface
+  - Support for blocky code conversion and operation of xArmStudio1.4.0
+
 - > ### 1.3.0
+
   - Added several attributes
   - Support tool coordinate system movement
   - Support joint range limitation, collision rebound setting
@@ -38,21 +43,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   - Support the status of the air pump
   - Added counter interface
   - Support for blocky code conversion and operation of xArmStudio1.3.0
-
-- > ### 1.2.2
-
-  - Fix mechanical claw false positive error
-  - Modify the wait logic of a motion instruction
-  - Support for blocky code conversion and operation of xArmStudio1.2.2
-
-- > ### 1.2.0
-
-  - Fix the parameters of the control box GPIO analog signal
-  - Support for more Gcode commands
-  - Support trajectory recording
-  - Support for reduced mode settings
-  - Optimize some interfaces and bug fixes
-  - Support for blocky code conversion and operation of xArmStudio1.2.0
 
 - >### [More](ReleaseNotes.md)
 
@@ -118,6 +108,10 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - ##### [6001-set_reduced_mode](example/wrapper/common/6001-set_reduced_mode.py)
 
 - ##### [6002-set_fense_mode](example/wrapper/common/6002-set_fense_mode.py)
+
+- ##### [7001-servo_j](example/wrapper/common/7001-servo_j.py)
+
+- ##### [7002-servo_cartesian](example/wrapper/common/7002-servo_cartesian.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 

@@ -410,7 +410,7 @@ Note: Orientation of attitude angle
         Note: only available in the param `check_cmdnum_limit` is True
         Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
     check_is_ready: check if the arm is in motion, default is True
-        Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`move_circle`/`move_gohome`/`move_arc_lines`
+        Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`set_servo_cartesian`/`move_circle`/`move_gohome`/`move_arc_lines`
 ```
 
 #### def __check_verification__(self):
@@ -1568,7 +1568,8 @@ Set the xArm mode
 :param mode: default is 0
     0: position control mode
     1: servo motion mode
-        Note: the use of the set_servo_angle_j interface must first be set to this mode 
+        Note: the use of the set_servo_angle_j interface must first be set to this mode
+        Note: the use of the set_servo_cartesian interface must first be set to this mode
     2: joint teaching mode
         Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
     3: cartesian teaching mode (invalid)
@@ -1774,6 +1775,23 @@ Attach the servo
         ex: xarm.set_servo_attach(servo_id=1)
     2: 8: attach all joints
         ex: xarm.set_servo_attach(servo_id=8)
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_servo_cartesian__(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+
+```
+Set the servo cartesian, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
+Note:
+    1. only available if firmware_version >= 1.4.0
+
+:param mvpose: cartesian position, [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
+:param speed: move speed (mm/s), reserved
+:param mvacc: move acceleration (mm/s^2), reserved
+:param mvtime: 0, reserved
+:param is_radian: the roll/pitch/yaw of mvpose in radians or not, default is self.default_is_radian
+:param kwargs: reserved 
 :return: code
     code: See the API code documentation for details.
 ```

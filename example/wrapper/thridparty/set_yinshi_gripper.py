@@ -42,7 +42,7 @@ arm.set_state(0)
 ret = arm.core.set_modbus_timeout(20)
 print('set modbus timeout, ret = %d' % (ret[0]))
 
-ret = arm.core.set_modbus_baudrate(115200)
+ret = arm.core.set_modbus_baudrate(2000000)
 print('set modbus baudrate, ret = %d' % (ret[0]))
 time.sleep(2)
 
@@ -50,10 +50,10 @@ while arm.connected:
     # yinshi open/close test
     data_frame = [0x01, 0x06, 0x00, 0x0A, 0x00, 0x03]
     ret = arm.core.tgpio_set_modbus(data_frame, len(data_frame))
-    print('set modbus baudrate, ret = %d' % (ret[0]))
+    print('set modbus, ret = %d' % (ret[0]))
     time.sleep(2)
 
     data_frame = [0x01, 0x06, 0x00, 0x0A, 0x03, 0x60]
     ret = arm.core.tgpio_set_modbus(data_frame, len(data_frame))
-    print('set modbus baudrate, ret = %d' % (ret[0]))
+    print('set modbus, ret = %d' % (ret[0]))
     time.sleep(1)

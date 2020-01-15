@@ -40,6 +40,7 @@ class Record(object):
     @xarm_is_connected(_type='set')
     def start_record_trajectory(self):
         ret = self.arm_cmd.set_record_traj(1)
+        logger.info('API -> start_record_trajectory -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -49,6 +50,7 @@ class Record(object):
             ret2 = self.save_record_trajectory(filename, wait=True, timeout=10)
             if ret2 != 0:
                 return ret2
+        logger.info('API -> stop_record_trajectory -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -60,6 +62,7 @@ class Record(object):
         else:
             full_filename = filename
         ret = self.arm_cmd.save_traj(full_filename, wait_time=0)
+        logger.info('API -> save_record_trajectory -> ret={}'.format(ret[0]))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             if wait:
                 start_time = time.time()
@@ -92,6 +95,7 @@ class Record(object):
         else:
             full_filename = filename
         ret = self.arm_cmd.load_traj(full_filename, wait_time=0)
+        logger.info('API -> load_trajectory -> ret={}'.format(ret[0]))
         if ret[0] == 0:
             if wait:
                 start_time = time.time()
@@ -129,6 +133,7 @@ class Record(object):
             ret = self.arm_cmd.playback_traj(times, double_speed)
         else:
             ret = self.arm_cmd.playback_traj_old(times)
+        logger.info('API -> playback_trajectory -> ret={}'.format(ret[0]))
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:

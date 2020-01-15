@@ -168,6 +168,7 @@ class XCONF(object):
         MOVE_CIRCLE = 27
         MOVE_LINE_TOOL = 28
         MOVE_SERVOJ = 29
+        MOVE_SERVO_CART = 30
 
         SET_TCP_JERK = 31
         SET_TCP_MAXACC = 32

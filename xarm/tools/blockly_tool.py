@@ -1015,7 +1015,7 @@ class BlocklyTool(object):
     def _handle_controls_repeat_ext(self, block, prefix=''):
         value = self.get_node('value', root=block)
         times = self.get_nodes('field', root=value, descendant=True)[0].text
-        self._append_to_file('{}for i in range({}):'.format(prefix, times))
+        self._append_to_file('{}for i in range(int({})):'.format(prefix, times))
         prefix = '    ' + prefix
         self._append_to_file('{}if params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    break'.format(prefix))

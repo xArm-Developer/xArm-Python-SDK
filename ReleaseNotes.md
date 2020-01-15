@@ -2,6 +2,10 @@
 
 ## Update Summary
 
+- > ### 1.4.0
+  - Support servo cartesian interface
+  - Support for blocky code conversion and operation of xArmStudio1.4.0
+
 - > ### 1.3.0
 
   - Added several attributes

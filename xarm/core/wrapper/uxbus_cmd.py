@@ -310,6 +310,11 @@ class UxbusCmd(object):
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_SERVOJ, txdata, 10)
 
+    def move_servo_cartesian(self, mvpose, mvvelo, mvacc, mvtime):
+        txdata = [mvpose[i] for i in range(6)]
+        txdata += [mvvelo, mvacc, mvtime]
+        return self.set_nfp32(XCONF.UxbusReg.MOVE_SERVO_CART, txdata, 9)
+
     def set_servot(self, jnt_taus):
         txdata = [jnt_taus[i] for i in range(7)]
         return self.set_nfp32(XCONF.UxbusReg.SET_SERVOT, txdata, 7)

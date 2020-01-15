@@ -1656,7 +1656,6 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
     @xarm_is_ready(_type='set')
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
-        logger.info('set_servo_angle_j--begin')
         is_radian = self._default_is_radian if is_radian is None else is_radian
         _angles = [angle if is_radian else math.radians(angle) for angle in angles]
         for i in range(self.axis):
@@ -1664,9 +1663,31 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 return APIState.OUT_OF_RANGE
         while len(_angles) < 7:
             _angles.append(0)
-        ret = self.arm_cmd.move_servoj(_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
-        logger.debug('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
-            ret[0], _angles, self._last_joint_speed, self._last_joint_acc
+        _speed = self._last_joint_speed if speed is None else speed
+        _mvacc = self._last_joint_acc if mvacc is None else mvacc
+        _mvtime = self._mvtime if mvtime is None else mvtime
+        ret = self.arm_cmd.move_servoj(_angles, _speed, _mvacc, _mvtime)
+        logger.info('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
+            ret[0], _angles, _speed, _mvacc
+        ))
+        self._is_set_move = True
+        return ret[0]
+
+    @xarm_is_ready(_type='set')
+    def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+        assert len(mvpose) >= 6
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        if not is_radian:
+            pose = [mvpose[i] if i < 3 else math.radians(mvpose[i]) for i in range(6)]
+        else:
+            pose = mvpose
+        _speed = self.last_used_tcp_speed if speed is None else speed
+        _mvacc = self.last_used_tcp_acc if mvacc is None else mvacc
+        _mvtime = self._mvtime if mvtime is None else mvtime
+
+        ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
+        logger.info('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(
+            ret[0], pose, _speed, _mvacc
         ))
         self._is_set_move = True
         return ret[0]
@@ -1958,11 +1979,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='set')
     def set_reduced_mode(self, on_off):
         ret = self.arm_cmd.set_reduced_mode(on_off)
+        logger.info('API -> set_reduced_mode -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_reduced_max_tcp_speed(self, speed):
         ret = self.arm_cmd.set_reduced_linespeed(speed)
+        logger.info('API -> set_reduced_linespeed -> ret={}, speed={}'.format(ret[0], speed))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1972,6 +1995,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not is_radian:
             speed = math.radians(speed)
         ret = self.arm_cmd.set_reduced_jointspeed(speed)
+        logger.info('API -> set_reduced_linespeed -> ret={}, speed={}'.format(ret[0], speed))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -2003,6 +2027,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         limits[2:4] = boundary[2:4] if boundary[2] >= boundary[3] else boundary[2:4][::-1]
         limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
         ret = self.arm_cmd.set_xyz_limits(limits)
+        logger.info('API -> set_reduced_tcp_boundary -> ret={}, boundary={}'.format(ret[0], limits))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2032,15 +2057,20 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 if limits[i * 2 + 1] <= angle_range[0]:
                     return APIState.OUT_OF_RANGE
         ret = self.arm_cmd.set_reduced_jrange(limits)
+        logger.info('API -> set_reduced_joint_range -> ret={}, boundary={}'.format(ret[0], limits))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_fense_mode(self, on_off):
-        return self.arm_cmd.set_fense_on(on_off)
+        ret = self.arm_cmd.set_fense_on(on_off)
+        logger.info('API -> set_fense_mode -> ret={}, on={}'.format(ret[0], on_off))
+        return ret
 
     @xarm_is_connected(_type='set')
     def set_collision_rebound(self, on_off):
-        return self.arm_cmd.set_collis_reb(on_off)
+        ret = self.arm_cmd.set_collis_reb(on_off)
+        logger.info('API -> set_collision_rebound -> ret={}, on={}'.format(ret[0], on_off))
+        return ret
 
     @xarm_is_connected(_type='set')
     def set_timer(self, secs_later, tid, fun_code, param1=0, param2=0):
@@ -2069,6 +2099,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 else:
                     world_offset[i] = offset[i]
         ret = self.arm_cmd.set_world_offset(world_offset)
+        logger.info('API -> set_world_offset -> ret={}, offset={}'.format(ret[0], world_offset))
         return ret[0]
 
     def get_is_moving(self):
@@ -2219,6 +2250,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_ready(_type='set')
     def set_joint_torque(self, jnt_taus):
         ret = self.arm_cmd.set_servot(jnt_taus)
+        logger.info('API -> set_joint_torque -> ret={}, jnt_taus={}'.format(ret[0], jnt_taus))
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -2243,6 +2275,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_connected(_type='set')
     def set_safe_level(self, level=4):
         ret = self.arm_cmd.set_safe_level(level)
+        logger.info('API -> set_safe_level -> ret={}, level={}'.format(ret[0], level))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2301,7 +2334,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not is_radian:
             _jerk = math.radians(_jerk)
         ret = self.arm_cmd.set_joint_jerk(_jerk)
-        logger.info('API -> set_joint_jerk -> ret={}, jerk={}'.format(ret[0], jerk))
+        logger.info('API -> set_joint_jerk -> ret={}, jerk={}'.format(ret[0], _jerk))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2558,17 +2591,17 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             return {
                 'lastPosition': [math.degrees(self._last_position[i]) if 2 < i < 6 else self._last_position[i] for i in range(len(self._last_position))],
                 'lastAngles': [math.degrees(angle) for angle in self._last_angles],
-                'mvvelo': int(self._last_tcp_speed),
-                'mvacc': int(self._last_tcp_acc),
-                'tcpJerk': int(self._tcp_jerk),
-                'jointJerk': int(math.degrees(self._joint_jerk)),
-                'angle_mvvelo': int(math.degrees(self._last_joint_speed)),
-                'angle_mvacc': int(math.degrees(self._last_joint_acc)),
+                'mvvelo': round(self._last_tcp_speed),
+                'mvacc': round(self._last_tcp_acc),
+                'tcpJerk': round(self._tcp_jerk),
+                'jointJerk': round(math.degrees(self._joint_jerk)),
+                'angle_mvvelo': round(math.degrees(self._last_joint_speed)),
+                'angle_mvacc': round(math.degrees(self._last_joint_acc)),
                 'mvtime': self._mvtime,
-                'LIMIT_VELO': list(map(int, [self._min_tcp_speed, self._max_tcp_speed])),
-                'LIMIT_ACC': list(map(int, [self._min_tcp_acc, self._max_tcp_acc])),
-                'LIMIT_ANGLE_VELO': list(map(int, [math.degrees(self._min_joint_speed), math.degrees(self._max_joint_speed)])),
-                'LIMIT_ANGLE_ACC': list(map(int, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
+                'LIMIT_VELO': list(map(round, [self._min_tcp_speed, self._max_tcp_speed])),
+                'LIMIT_ACC': list(map(round, [self._min_tcp_acc, self._max_tcp_acc])),
+                'LIMIT_ANGLE_VELO': list(map(round, [math.degrees(self._min_joint_speed), math.degrees(self._max_joint_speed)])),
+                'LIMIT_ANGLE_ACC': list(map(round, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
             }
 
     def emergency_stop(self):
@@ -2970,6 +3003,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         ret = self.arm_cmd.reload_dynamics()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
+        logger.info('API -> reload_dynamics -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2977,6 +3011,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         ret = self.arm_cmd.cnter_reset()
         # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
         #     ret[0] = 0
+        logger.info('API -> set_counter_reset -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -2984,6 +3019,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         ret = self.arm_cmd.cnter_plus()
         # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
         #     ret[0] = 0
+        logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
         return ret[0]
 
 

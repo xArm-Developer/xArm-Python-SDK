@@ -1656,7 +1656,6 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
     @xarm_is_ready(_type='set')
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
-        logger.info('set_servo_angle_j--begin')
         is_radian = self._default_is_radian if is_radian is None else is_radian
         _angles = [angle if is_radian else math.radians(angle) for angle in angles]
         for i in range(self.axis):
@@ -1668,7 +1667,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         _mvacc = self._last_joint_acc if mvacc is None else mvacc
         _mvtime = self._mvtime if mvtime is None else mvtime
         ret = self.arm_cmd.move_servoj(_angles, _speed, _mvacc, _mvtime)
-        logger.debug('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
+        logger.info('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
             ret[0], _angles, _speed, _mvacc
         ))
         self._is_set_move = True
@@ -1677,7 +1676,6 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @xarm_is_ready(_type='set')
     def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
         assert len(mvpose) >= 6
-        logger.info('set_servo_cartisian--begin')
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if not is_radian:
             pose = [mvpose[i] if i < 3 else math.radians(mvpose[i]) for i in range(6)]
@@ -1688,7 +1686,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         _mvtime = self._mvtime if mvtime is None else mvtime
 
         ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
-        logger.debug('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(
+        logger.info('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(
             ret[0], pose, _speed, _mvacc
         ))
         self._is_set_move = True

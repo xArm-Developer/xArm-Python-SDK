@@ -584,6 +584,45 @@ class UxbusCmd(object):
         ret1[1] = ret[1:]
         return ret
 
+    def tgpio_delay_set_digital(self, ionum, on_off, delay_sec):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32_to_bytes(delay_sec)
+        ret = self.send_xbus(XCONF.UxbusReg.DELAYED_TGPIO_SET, txdata, 6)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.DELAYED_TGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    def cgpio_delay_set_digital(self, ionum, on_off, delay_sec):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32_to_bytes(delay_sec)
+        ret = self.send_xbus(XCONF.UxbusReg.DELAYED_CGPIO_SET, txdata, 6)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.DELAYED_CGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    def cgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32s_to_bytes(xyz, 3)
+        txdata += convert.fp32_to_bytes(tol_r)
+        ret = self.send_xbus(XCONF.UxbusReg.POSITION_CGPIO_SET, txdata, 18)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.POSITION_CGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    def tgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32s_to_bytes(xyz, 3)
+        txdata += convert.fp32_to_bytes(tol_r)
+        ret = self.send_xbus(XCONF.UxbusReg.POSITION_TGPIO_SET, txdata, 18)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.POSITION_TGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    # io_type: 0 for CGPIO, 1 for TGPIO
+    def config_io_stop_reset(self, io_type, on_off):
+        txdata = [io_type, on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_IO_STOP_RESET, txdata, 2)
+
     def gripper_modbus_w16s(self, addr, value, length):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += bytes([0x10])

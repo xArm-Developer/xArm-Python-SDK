@@ -493,6 +493,17 @@ class BlocklyTool(object):
         self._append_to_file('{}    if arm.playback_trajectory(times={}, filename=\'{}\', wait=True) != 0:'.format(prefix, times, filename))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
+    def _handle_app_studio_traj(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        filename = fields[0].text
+        speed = fields[1].text
+        value = self.get_node('value', root=block)
+        times = self.get_nodes('field', root=value, descendant=True)[0].text
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    if arm.playback_trajectory(times={}, filename=\'{}\', wait=True, double_speed={}) != 0:'.format(prefix, times, filename, speed))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+
+
     def _handle_tool_message(self, block, prefix=''):
         fields = self.get_nodes('field', block)
         msg = json.dumps(fields[-1].text, ensure_ascii=False)
@@ -545,13 +556,14 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', root=block)
         io = fields[0].text
         value = 0 if fields[1].text == 'LOW' else 1
+        delay_sec = fields[2].text
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
             self._append_to_file('{}# set tgpio-{} digital'.format(prefix, io))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    if arm.set_tgpio_digital({}, {}) != 0:'.format(prefix, io, value))
+        self._append_to_file('{}    if arm.set_tgpio_digital({}, {}, delay_sec={}) != 0:'.format(prefix, io, value, delay_sec))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_get_suction_cup(self, block, prefix=''):
@@ -597,13 +609,14 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', root=block)
         io = fields[0].text
         value = 0 if fields[1].text == 'LOW' else 1
+        delay_sec = fields[2].text
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
             self._append_to_file('{}# set cgpio-{} digital'.format(prefix, io))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    if arm.set_cgpio_digital({}, {}) != 0:'.format(prefix, io, value))
+        self._append_to_file('{}    if arm.set_cgpio_digital({}, {}, delay_sec={}) != 0:'.format(prefix, io, value, delay_sec))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
     def _handle_gpio_set_controller_analog(self, block, prefix=''):

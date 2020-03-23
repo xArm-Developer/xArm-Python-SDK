@@ -142,6 +142,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
         self._count = -1
 
+        self._cgpio_reset_enable = 0
+        self._tgpio_reset_enable = 0
+
         Events.__init__(self)
         if not do_not_open:
             self.connect()
@@ -385,6 +388,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @property
     def gravity_direction(self):
         return self._gravity_direction
+
+    @property
+    def gpio_reset_config(self):
+        return [self._cgpio_reset_enable, self._tgpio_reset_enable]
 
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
@@ -860,6 +867,49 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._report_connect_changed_callback(False, False)
 
     def _report_thread_handle(self):
+        def __handle_report_real(rx_data):
+            state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
+            cmd_num = convert.bytes_to_u16(rx_data[5:7])
+            angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
+            pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
+            torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
+            if cmd_num != self._cmd_num:
+                self._cmd_num = cmd_num
+                self._report_cmdnum_changed_callback()
+            if state != self._state:
+                self._state = state
+                self._report_state_changed_callback()
+            if state == 4:
+                self._is_ready = False
+            else:
+                self._is_ready = True
+
+            if mode != self._mode:
+                self._mode = mode
+                self._report_mode_changed_callback()
+            for i in range(len(pose)):
+                if i < 3:
+                    pose[i] = float('{:.3f}'.format(pose[i]))
+                    # pose[i] = float('{:.3f}'.format(pose[i][0]))
+                else:
+                    pose[i] = float('{:.6f}'.format(pose[i]))
+                    # pose[i] = float('{:.6f}'.format(pose[i][0]))
+            for i in range(len(angles)):
+                angles[i] = float('{:.6f}'.format(angles[i]))
+                # angles[i] = float('{:.6f}'.format(angles[i][0]))
+            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
+                self._position = pose
+            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
+                self._angles = angles
+            self._joints_torque = torque
+
+            self._report_location_callback()
+
+            self._report_callback()
+            if not self._is_sync:
+                self._sync()
+                self._is_sync = True
+
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
@@ -1061,6 +1111,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         world_offset[i] = float('{:.6f}'.format(world_offset[i]))
                 if math.inf not in world_offset and -math.inf not in world_offset and not (10 <= self._error_code <= 17):
                     self._world_offset = world_offset
+            if size >= 314:
+                self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -1089,7 +1141,11 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         size = convert.bytes_to_u32(buffer[0:4])
                     if len(buffer) < size:
                         continue
-                    if size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                    if self._report_type == 'real' and size == XCONF.SocketConf.TCP_REPORT_REAL_BUF_SIZE:
+                        data = buffer[:size]
+                        buffer = buffer[size:]
+                        __handle_report_real(data)
+                    elif size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
                         if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
                             if size == 233 and len(buffer) == 245:
                                 data = buffer[:245]
@@ -1240,7 +1296,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
         def check_stop_move(self):
             # base_joint_pos = self.owner.angles.copy()
-            time.sleep(0.1)
+            # time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner._is_stop and self.owner.connected and not self.owner.has_error:
                 if self.owner.state == 4:
@@ -2607,6 +2663,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def emergency_stop(self):
         start_time = time.time()
         logger.info('emergency_stop--begin')
+        self.set_state(4)
         while self.state != 4 and time.time() - start_time < 3:
             self.set_state(4)
             time.sleep(0.1)

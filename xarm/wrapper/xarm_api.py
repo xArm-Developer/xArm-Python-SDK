@@ -138,6 +138,14 @@ class XArmAPI(object):
         return self._arm.realtime_joint_speeds
 
     @property
+    def gpio_reset_config(self):
+        """
+        The gpio reset enable config
+        :return: [cgpio_reset_enable, tgpio_reset_enable] 
+        """
+        return self._arm.gpio_reset_config
+
+    @property
     def version_number(self):
         """
         Frimware version number
@@ -210,16 +218,16 @@ class XArmAPI(object):
     @property
     def tcp_speed_limit(self):
         """
-        Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+        Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
         
-        :return: [min_tcp_acc(mm/s), max_tcp_acc(mm/s)]
+        :return: [min_tcp_speed(mm/s), max_tcp_speed(mm/s)]
         """
         return self._arm.tcp_speed_limit
 
     @property
     def tcp_acc_limit(self):
         """
-        Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+        Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
         
         :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
         """
@@ -1652,16 +1660,17 @@ class XArmAPI(object):
         """
         return self._arm.get_tgpio_digital(ionum)
 
-    def set_tgpio_digital(self, ionum, value):
+    def set_tgpio_digital(self, ionum, value, delay_sec=None):
         """
         Set the digital value of the specified Tool GPIO
         
         :param ionum: 0 or 1
         :param value: value
+        :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_tgpio_digital(ionum, value)
+        return self._arm.set_tgpio_digital(ionum=ionum, value=value, delay_sec=delay_sec)
 
     def get_tgpio_analog(self, ionum=None):
         """
@@ -1684,19 +1693,20 @@ class XArmAPI(object):
         """
         return self._arm.get_suction_cup()
 
-    def set_suction_cup(self, on, wait=False, timeout=3):
+    def set_suction_cup(self, on, wait=False, timeout=3, delay_sec=None):
         """
         Set suction cup
         
         :param on: open or not
             on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
             on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
-        :param wait: wait or not, default is False
-        :param timeout: second, default is 3s
+        :param wait: wait or not, default is False, only works when delay_sec = None
+        :param timeout: second, default is 3s, only works with wait = true and delay_sec = None 
+        :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_suction_cup(on, wait=wait, timeout=timeout)
+        return self._arm.set_suction_cup(on, wait=wait, timeout=timeout, delay_sec=delay_sec)
 
     def get_cgpio_digital(self, ionum=None):
         """
@@ -1717,16 +1727,17 @@ class XArmAPI(object):
         """
         return self._arm.get_cgpio_analog(ionum=ionum)
 
-    def set_cgpio_digital(self, ionum, value):
+    def set_cgpio_digital(self, ionum, value, delay_sec=None):
         """
         Set the digital value of the specified Controller GPIO
 
         :param ionum: 0~7
         :param value: value
+        :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_cgpio_digital(ionum=ionum, value=value)
+        return self._arm.set_cgpio_digital(ionum=ionum, value=value, delay_sec=delay_sec)
 
     def set_cgpio_analog(self, ionum, value):
         """
@@ -2146,3 +2157,50 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.set_counter_increase(val)
+
+    def set_tgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        """
+        Set the digital value of the specified Tool GPIO when the robot has reached the specified xyz position           
+        
+        :param ionum: 0 or 1
+        :param value: value
+        :param xyz: position xyz, as [x, y, z]
+        :param fault_tolerance_radius: fault tolerance radius
+        :return: code
+            code: See the API code documentation for details. 
+        """
+        return self._arm.set_tgpio_digital_with_xyz(ionum, value, xyz, fault_tolerance_radius)
+
+    def set_cgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        """
+        Set the digital value of the specified Controller GPIO when the robot has reached the specified xyz position           
+        
+        :param ionum: 0 ~ 7
+        :param value: value
+        :param xyz: position xyz, as [x, y, z]
+        :param fault_tolerance_radius: fault tolerance radius
+        :return: code
+            code: See the API code documentation for details.  
+        """
+        return self._arm.set_cgpio_digital_with_xyz(ionum, value, xyz, fault_tolerance_radius)
+
+    def config_tgpio_reset_when_stop(self, on_off):
+        """
+        Config the Tool GPIO reset the digital output when the robot is in stop state
+        
+        :param on_off: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.config_io_reset_when_stop(1, on_off)
+
+    def config_cgpio_reset_when_stop(self, on_off):
+        """
+        Config the Controller GPIO reset the digital output when the robot is in stop state
+
+        :param on_off: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.config_io_reset_when_stop(0, on_off)
+

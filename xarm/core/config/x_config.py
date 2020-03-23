@@ -243,6 +243,11 @@ class XCONF(object):
         CGPIO_GET_STATE = 139
 
         GET_HD_TYPES = 141
+        DELAYED_CGPIO_SET = 142
+        DELAYED_TGPIO_SET = 143
+        POSITION_CGPIO_SET = 144
+        POSITION_TGPIO_SET = 145
+        SET_IO_STOP_RESET = 146
 
     class UxbusConf:
         SET_TIMEOUT = 1000  # ms

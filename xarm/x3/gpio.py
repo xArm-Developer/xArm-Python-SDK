@@ -60,6 +60,11 @@ class GPIO(object):
             versions[2] = ret3[1]
         else:
             code = ret3[0]
+        # if code != 0:
+        #     _, err_warn = self.get_err_warn_code()
+        #     if _ in [0, 1, 2]:
+        #         if err_warn[0] not in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 28]:
+        #             versions = [ret1[1], ret2[1], ret3[1]]
 
         return code, '.'.join(map(str, versions))
 
@@ -266,3 +271,20 @@ class GPIO(object):
     def config_io_reset_when_stop(self, io_type, on_off):
         ret = self.arm_cmd.config_io_stop_reset(io_type, int(on_off))
         return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def check_air_pump_state(self, state, timeout=3):
+        start_time = time.time()
+        is_first = True
+        while is_first or time.time() - start_time < timeout:
+            is_first = False
+            ret = self.get_suction_cup()
+            if ret[0] == XCONF.UxbusState.ERR_CODE:
+                return False
+            if ret[0] == 0:
+                if state and ret[1] == 1:
+                    return True
+                if not state and ret[1] == 0:
+                    return True
+            time.sleep(0.1)
+        return False

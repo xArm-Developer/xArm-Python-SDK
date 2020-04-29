@@ -357,6 +357,11 @@ class Servo(object):
                 versions[2] = ret3[1]
             else:
                 code = ret3[0]
+            # if code != 0:
+            #     _, err_warn = self.get_err_warn_code()
+            #     if _ in [0, 1, 2]:
+            #         if err_warn[0] not in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 28]:
+            #             versions = [ret1[1], ret2[1], ret3[1]]
             return code, '.'.join(map(str, versions))
 
         if servo_id > self.axis:

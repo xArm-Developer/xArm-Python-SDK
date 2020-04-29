@@ -503,7 +503,6 @@ class BlocklyTool(object):
         self._append_to_file('{}    if arm.playback_trajectory(times={}, filename=\'{}\', wait=True, double_speed={}) != 0:'.format(prefix, times, filename, speed))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
-
     def _handle_tool_message(self, block, prefix=''):
         fields = self.get_nodes('field', block)
         msg = json.dumps(fields[-1].text, ensure_ascii=False)
@@ -589,6 +588,16 @@ class BlocklyTool(object):
             self._append_to_file('{}# get suction cup status'.format(prefix))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.get_suction_cup()'.format(prefix))
+
+    def _handle_check_air_pump_state(self, block, prefix=''):
+        pass
+        if self._show_comment:
+            self._append_to_file('{}# check air pump state'.format(prefix))
+        fields = self.get_nodes('field', root=block)
+        state = 1 if fields[0].text == 'ON' else 0
+        timeout = float(fields[1].text)
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.arm.check_air_pump_state({}, timeout={})'.format(prefix, state, timeout))
 
     def _handle_set_suction_cup(self, block, prefix=''):
         fields = self.get_nodes('field', root=block, name='trigger')
@@ -1184,6 +1193,11 @@ class BlocklyTool(object):
             return 'arm.get_cgpio_analog({})[{}]'.format(io, 1)
         elif block.attrib['type'] == 'get_suction_cup':
             return 'arm.get_suction_cup()[{}]'.format(1)
+        elif block.attrib['type'] == 'check_air_pump_state':
+            fields = self.get_nodes('field', root=block)
+            state = 1 if fields[0].text == 'ON' else 0
+            timeout = float(fields[1].text)
+            return 'arm.arm.check_air_pump_state({}, timeout={})'.format(state, timeout)
         elif block.attrib['type'] == 'math_number':
             val = self.get_node('field', block).text
             return val

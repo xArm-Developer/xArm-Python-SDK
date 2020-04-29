@@ -217,6 +217,11 @@ class XCONF(object):
         CNTER_RESET = 74
         CNTER_PLUS = 75
 
+        CAL_POSE_OFFSET = 76
+        GET_TCP_POSE_AA = 91
+        MOVE_LINE_AA = 92
+        MOVE_SERVO_CART_AA = 93
+
         SERVO_W16B = 101
         SERVO_R16B = 102
         SERVO_W32B = 103

@@ -590,7 +590,6 @@ class BlocklyTool(object):
         self._append_to_file('{}    arm.get_suction_cup()'.format(prefix))
 
     def _handle_check_air_pump_state(self, block, prefix=''):
-        pass
         if self._show_comment:
             self._append_to_file('{}# check air pump state'.format(prefix))
         fields = self.get_nodes('field', root=block)

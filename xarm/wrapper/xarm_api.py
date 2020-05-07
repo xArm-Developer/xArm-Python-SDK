@@ -2224,17 +2224,73 @@ class XArmAPI(object):
 
     def set_position_aa(self, x=None, y=None, z=None, rx=None, ry=None, rz=None, speed=None, mvacc=None, mvtime=None,
                         is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None):
+        """
+        Set the pose represented by the axis angle pose
+        
+        :param x: the axis angle pose x, (unit: mm)
+        :param y: the axis angle pose y, (unit: mm)
+        :param z: the axis angle pose z, (unit: mm)
+        :param rx: the axis angle pose rx, (unit: rad if is_radian is True else °)
+        :param ry: the axis angle pose ry, (unit: rad if is_radian is True else °)
+        :param rz: the axis angle pose rz, (unit: rad if is_radian is True else °)
+        :param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
+        :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
+        :param mvtime: 0, reserved 
+        :param is_radian: the rx/ry/rz in radians or not, default is self.default_is_radian
+        :param is_tool_coord: is tool coordinate or not
+        :param relative: relative move or not
+        :param wait: whether to wait for the arm to complete, default is False
+        :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_position_aa(x=x, y=y, z=z, rx=rx, ry=ry, rz=rz, speed=speed, mvacc=mvacc, mvtime=mvtime,
                                          is_radian=is_radian, is_tool_coord=is_tool_coord, relative=relative, wait=wait, timeout=timeout)
 
     def set_servo_cartesian_aa(self, mvpose, speed=None, mvacc=None, is_radian=None, is_tool_coord=False, relative=False):
+        """
+        Set the servo cartesian represented by the axis angle pose, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
+        Note:
+            1. only available if firmware_version >= 1.4.7
+
+        :param mvpose: cartesian position, [x(mm), y(mm), z(mm), rx(rad or °), ry(rad or °), rz(rad or °)]
+        :param speed: move speed (mm/s), reserved
+        :param mvacc: move acceleration (mm/s^2), reserved
+        :param is_radian: the rx/ry/rz of mvpose in radians or not, default is self.default_is_radian
+        :param is_tool_coord: is tool coordinate or not
+        :param relative: relative move or not
+        :return: code
+            code: See the API code documentation for details.
+        """
+
         return self._arm.set_servo_cartesian_aa(mvpose, speed=speed, mvacc=mvacc, is_radian=is_radian,
                                                 is_tool_coord=is_tool_coord, relative=relative)
 
     def get_pose_offset(self, pose1, pose2, orient_type_in=0, orient_type_out=0, input_is_radian=None, return_is_radian=None):
+        """
+        Calculate the pose offset of two given points
+        
+        :param pose1: [x(mm), y(mm), z(mm), roll/Rx(rad or °), pitch/Ry(rad or °), yaw/Rz(rad or °)]
+        :param pose2: [x(mm), y(mm), z(mm), roll/Rx(rad or °), pitch/Ry(rad or °), yaw/Rz(rad or °)]
+        :param orient_type_in: Input attitude notation, 0 is RPY (default), 1 is axis angle
+        :param orient_type_out: Notation of output attitude, 0 is RPY (default), 1 is axis angle
+        :param input_is_radian: the roll/Rx/pitch/Ry/yaw/Rz of pose1/pose2 is radian or not
+        :param return_is_radian: the roll/Rx/pitch/Ry/yaw/Rz of return value is radian or not
+        :return: tuple((code, pose)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            pose: [x(mm), y(mm), z(mm), roll/Rx(rad or °), pitch/Ry(rad or °), yaw/Rz(rad or °)]
+                Note: the returned roll/Rx/pitch/Ry/yaw/Rz value is radians if return_is_radian is True, else °
+        """
         return self._arm.get_pose_offset(pose1, pose2, orient_type_in=orient_type_in, orient_type_out=orient_type_out,
                                          input_is_radian=input_is_radian, return_is_radian=return_is_radian)
 
     def get_position_aa(self, is_radian=None):
+        """
+        Get the pose represented by the axis angle pose
+        
+        :param is_radian: the returned value (only roll/pitch/yaw) is in radians or not, default is self.default_is_radian
+        :return: tuple((code, [x, y, z, roll, pitch, yaw])), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
         return self._arm.get_position_aa(is_radian=is_radian)
 

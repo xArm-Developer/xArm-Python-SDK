@@ -278,6 +278,8 @@ class GPIO(object):
         is_first = True
         while is_first or time.time() - start_time < timeout:
             is_first = False
+            if not self.connected or self.state == 4:
+                return False
             ret = self.get_suction_cup()
             if ret[0] == XCONF.UxbusState.ERR_CODE:
                 return False

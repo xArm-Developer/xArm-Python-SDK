@@ -108,6 +108,18 @@ class Gripper(object):
         else:
             return self._set_gripper_zero()
 
+    @xarm_is_connected(_type='set')
+    def set_gripper_status(self, status, delay_sec=0):
+        if status:
+            code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec)
+            code2 = self.set_tgpio_digital(ionum=1, value=0, delay_sec=delay_sec)
+        else:
+            code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec)
+            code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec)
+        code = code1 if code2 == 0 else code2
+        logger.info('API -> set_gripper_status -> ret={}, on={}, delay: {}'.format(code, status, delay_sec))
+        return code
+
     ########################### Old Protocol #################################
     @xarm_is_connected(_type='set')
     def _set_gripper_enable(self, enable):

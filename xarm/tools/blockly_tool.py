@@ -606,14 +606,16 @@ class BlocklyTool(object):
             wait = fields[0].text == 'TRUE'
         else:
             wait = False
+        fields = self.get_nodes('field', root=block, name='delay')
+        delay_sec = fields[0].text
 
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
-            self._append_to_file('{}# set_suction_cup({}, {})'.format(prefix, on, wait))
+            self._append_to_file('{}# set_suction_cup({}, wait={}, delay_sec={})'.format(prefix, on, wait, delay_sec))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.set_suction_cup({}, {})'.format(prefix, on, wait))
+        self._append_to_file('{}    arm.set_suction_cup({}, wait={}, delay_sec={})'.format(prefix, on, wait, delay_sec))
         # self._append_to_file('{}    if arm.set_suction_cup({}, {}) != 0:'.format(prefix, on, wait))
         # self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
 
@@ -761,6 +763,16 @@ class BlocklyTool(object):
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    if arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True) != 0:'.format(prefix, pos, wait, speed))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+
+    def _handle_gripper_set_status(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block, name='status')
+        status = True if fields[0].text == 'TRUE' else False
+        fields = self.get_nodes('field', root=block, name='delay')
+        delay_sec = fields[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set_gripper_status({}, delay_sec={})'.format(prefix, status, delay_sec))
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm._arm.set_gripper_status({}, delay_sec={})'.format(prefix, status, delay_sec))
 
     def __handle_gpio_event(self, gpio_type, block, prefix=''):
         fields = self.get_nodes('field', root=block)

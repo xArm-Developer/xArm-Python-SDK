@@ -237,6 +237,8 @@ class GPIO(object):
         if code == 0 and wait:
             start = time.time()
             code = APIState.SUCTION_CUP_TOUT
+            if delay_sec is not None and delay_sec > 0:
+                timeout += delay_sec
             while time.time() - start < timeout:
                 ret = self.get_suction_cup()
                 if ret[0] == XCONF.UxbusState.ERR_CODE:
@@ -262,11 +264,13 @@ class GPIO(object):
 
     @xarm_is_connected(_type='set')
     def set_tgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
         ret = self.arm_cmd.tgpio_position_set_digital(ionum, value, xyz, fault_tolerance_radius)
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_cgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
         ret = self.arm_cmd.cgpio_position_set_digital(ionum, value, xyz, fault_tolerance_radius)
         return ret[0]
 

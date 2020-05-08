@@ -555,7 +555,7 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', root=block)
         io = fields[0].text
         value = 0 if fields[1].text == 'LOW' else 1
-        delay_sec = fields[2].text
+        delay_sec = fields[2].text if len(fields) > 2 else 0
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
@@ -567,13 +567,13 @@ class BlocklyTool(object):
 
     def _handle_gpio_set_digital_with_xyz(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)
-        io = fields[0].text
-        value = 0 if fields[1].text == 'LOW' else 1
-        x = fields[2].text
-        y = fields[3].text
-        z = fields[4].text
+        x = fields[0].text
+        y = fields[1].text
+        z = fields[2].text
         xyz = list(map(float, [x, y, z]))
-        tol_r = fields[5].text
+        tol_r = fields[3].text
+        io = fields[4].text
+        value = 0 if fields[5].text == 'LOW' else 1
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
@@ -607,7 +607,7 @@ class BlocklyTool(object):
         else:
             wait = False
         fields = self.get_nodes('field', root=block, name='delay')
-        delay_sec = fields[0].text
+        delay_sec = fields[0].text if len(fields) > 0 else 0
 
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
@@ -637,7 +637,7 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', root=block)
         io = fields[0].text
         value = 0 if fields[1].text == 'LOW' else 1
-        delay_sec = fields[2].text
+        delay_sec = fields[2].text if len(fields) > 2 else 0
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
@@ -649,13 +649,13 @@ class BlocklyTool(object):
 
     def _handle_gpio_set_controller_digital_with_xyz(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)
-        io = fields[0].text
-        value = 0 if fields[1].text == 'LOW' else 1
-        x = fields[2].text
-        y = fields[3].text
-        z = fields[4].text
+        x = fields[0].text
+        y = fields[1].text
+        z = fields[2].text
         xyz = list(map(float, [x, y, z]))
-        tol_r = fields[5].text
+        tol_r = fields[3].text
+        io = fields[4].text
+        value = 0 if fields[5].text == 'LOW' else 1
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
@@ -768,7 +768,7 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', root=block, name='status')
         status = True if fields[0].text == 'TRUE' else False
         fields = self.get_nodes('field', root=block, name='delay')
-        delay_sec = fields[0].text
+        delay_sec = fields[0].text if len(fields) > 0 else 0
         if self._show_comment:
             self._append_to_file('{}# set_gripper_status({}, delay_sec={})'.format(prefix, status, delay_sec))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))

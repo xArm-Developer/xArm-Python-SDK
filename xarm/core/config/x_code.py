@@ -654,6 +654,16 @@ ControllerErrorCodeMap = {
             'desc': '机械臂到达安全边界，请到实时控制界面开启手动模式后将机械臂移动到安全边界内。'
         }
     },
+    36: {
+        'en': {
+            'title': 'Delayed task queue is full',
+            'desc': 'The number of delay tasks to be completed cannot exceed 36. Please check whether the code frequently sets delay tasks.'
+        },
+        'cn': {
+            'title': '延时任务队列已满',
+            'desc': '待完成的延时任务数不能超过36个，请检查代码是否频繁设置了延时任务。'
+        }
+    },
     'other': {
         'en': {
             'title': 'Other Errors',

@@ -921,14 +921,15 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
             torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
             mtbrake, mtable, error_code, warn_code = rx_data[87:91]
-            if (error_code != 0 and error_code not in ControllerErrorCodeMap.keys()) \
-                    or (warn_code != 0 and warn_code not in ControllerWarnCodeMap.keys()):
-                self._stream_report.close()
-                print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
-                return
             pose_offset = convert.bytes_to_fp32s(rx_data[91:6 * 4 + 91], 6)
             tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
+            if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
+                    and ((error_code != 0 and error_code not in ControllerErrorCodeMap.keys()) \
+                    or (warn_code != 0 and warn_code not in ControllerWarnCodeMap.keys())):
+                self._stream_report.close()
+                print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
+                return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
             # print('torque: {}'.format(torque))

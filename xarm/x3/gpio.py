@@ -234,7 +234,7 @@ class GPIO(object):
             code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec)
             code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec)
         code = code1 if code2 == 0 else code2
-        if code == 0 and wait and delay_sec is not None and delay_sec > 0:
+        if code == 0 and wait:
             start = time.time()
             code = APIState.SUCTION_CUP_TOUT
             while time.time() - start < timeout:
@@ -249,6 +249,9 @@ class GPIO(object):
                     if not on and ret[1] == 0:
                         code = 0
                         break
+                if not self.connected or self.state == 4:
+                    code = APIState.EMERGENCY_STOP
+                    break
                 time.sleep(0.1)
         logger.info('API -> set_suction_cup -> ret={}, on={}, wait={}, delay: {}'.format(code, on, wait, delay_sec))
         return code

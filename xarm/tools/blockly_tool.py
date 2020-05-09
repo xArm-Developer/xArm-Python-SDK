@@ -286,9 +286,13 @@ class BlocklyTool(object):
         # else:
         #     value = self.get_node('value', root=block)
         #     value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set counter increase'.format(prefix))
         self._append_to_file('{}arm.set_counter_increase()'.format(prefix))
 
     def _handle_set_counter_reset(self, block, prefix=''):
+        if self._show_comment:
+            self._append_to_file('{}# set counter reset'.format(prefix))
         self._append_to_file('{}arm.set_counter_reset()'.format(prefix))
 
     def _handle_reset(self, block, prefix=''):
@@ -298,7 +302,8 @@ class BlocklyTool(object):
     def _handle_sleep(self, block, prefix=''):
         value = self.get_node('value', root=block)
         value = self.get_nodes('field', root=value, descendant=True)[0].text
-        self._append_to_file('{}# set pause time'.format(prefix))
+        if self._show_comment:
+            self._append_to_file('{}# set pause time'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.set_pause_time({})'.format(prefix, value))
 
@@ -1131,6 +1136,13 @@ class BlocklyTool(object):
     def _handle_tool_comment(self, block, prefix=''):
         field = self.get_node('field', block)
         self._append_to_file('{}# {}'.format(prefix, field.text))
+        statement = self.get_node('statement', block)
+        if statement:
+            self.parse(statement, prefix)
+
+    def _handle_tool_app_comment(self, block, prefix=''):
+        field = self.get_node('field', block)
+        self._append_to_file('{}# [APP] {}'.format(prefix, field.text))
         statement = self.get_node('statement', block)
         if statement:
             self.parse(statement, prefix)

@@ -1548,15 +1548,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
-    def set_position_aa(self, x=None, y=None, z=None, rx=None, ry=None, rz=None, speed=None, mvacc=None, mvtime=None,
-                        is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None):
+    def set_position_aa(self, mvpose, speed=None, mvacc=None, mvtime=None,
+                        is_radian=None, is_tool_coord=False, relative=False,
+                        wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         last_used_tcp_speed = self._last_tcp_speed
         last_used_tcp_acc = self._last_tcp_acc
-        pose = [x, y, z, rx, ry, rz]
-        if not is_radian:
-            pose = [pose[i] if i < 3 else math.radians(pose[i]) for i in range(6)]
-
+        pose = [mvpose[i] if i <= 2 or is_radian else math.radians(mvpose[i]) for i in range(6)]
         if speed is not None:
             if isinstance(speed, str):
                 if speed.isdigit():
@@ -1579,7 +1577,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
-        ret = self.arm_cmd.move_line_aa(pose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, int(is_tool_coord), int(relative))
+        mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
+
+        ret = self.arm_cmd.move_line_aa(pose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, mvcoord, int(relative))
         logger.info('API -> set_position_aa -> ret={}, pos={}, velo={}, acc={}'.format(
             ret[0], pose, self._last_tcp_speed, self._last_tcp_acc
         ))
@@ -1599,7 +1599,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
-    def set_servo_cartesian_aa(self, mvpose, speed=None, mvacc=None, is_radian=None, is_tool_coord=False, relative=False):
+    def set_servo_cartesian_aa(self, mvpose, speed=None, mvacc=None, is_radian=None, is_tool_coord=False, relative=False, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         assert len(mvpose) >= 6
 
@@ -1607,7 +1607,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         _speed = self.last_used_tcp_speed if speed is None else speed
         _mvacc = self.last_used_tcp_acc if mvacc is None else mvacc
 
-        ret = self.arm_cmd.move_servo_cart_aa(mvpose=pose, mvvelo=_speed, mvacc=_mvacc, tool_coord=int(is_tool_coord),
+        tool_coord = kwargs.get('tool_coord', int(is_tool_coord))
+
+        ret = self.arm_cmd.move_servo_cart_aa(mvpose=pose, mvvelo=_speed, mvacc=_mvacc, tool_coord=tool_coord,
                                               relative=int(relative))
         logger.info('API -> set_servo_cartesian_aa -> ret={}, pose={}, velo={}, acc={}'.format(
             ret[0], pose, _speed, _mvacc
@@ -1625,14 +1627,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         return ret[0], ret[1:7]
 
     @xarm_is_connected(_type='get')
-    def get_pose_offset(self, pose1, pose2, orient_type_in=0, orient_type_out=0, input_is_radian=None, return_is_radian=None):
-        input_is_radian = self._default_is_radian if input_is_radian is None else input_is_radian
-        return_is_radian = self._default_is_radian if return_is_radian is None else return_is_radian
-        _pose1 = [pose1[i] if i <= 2 or input_is_radian else math.radians(pose1[i]) for i in range(6)]
-        _pose2 = [pose2[i] if i <= 2 or input_is_radian else math.radians(pose2[i]) for i in range(6)]
+    def get_pose_offset(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        _pose1 = [pose1[i] if i <= 2 or is_radian else math.radians(pose1[i]) for i in range(6)]
+        _pose2 = [pose2[i] if i <= 2 or is_radian else math.radians(pose2[i]) for i in range(6)]
         ret = self.arm_cmd.get_pose_offset(_pose1, _pose2, orient_type_in, orient_type_out)
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
-            pose = [float('{:.6f}'.format(ret[i] if i <= 3 or return_is_radian else math.degrees(ret[i]))) for i in range(1, 7)]
+            pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in range(1, 7)]
             return ret[0], pose
         return ret[0], ret[1:7]
 
@@ -1822,7 +1823,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         return ret[0]
 
     @xarm_is_ready(_type='set')
-    def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+    def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, is_tool_coord=False, **kwargs):
         assert len(mvpose) >= 6
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if not is_radian:
@@ -1831,7 +1832,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             pose = mvpose
         _speed = self.last_used_tcp_speed if speed is None else speed
         _mvacc = self.last_used_tcp_acc if mvacc is None else mvacc
-        _mvtime = self._mvtime if mvtime is None else mvtime
+        # _mvtime = self._mvtime if mvtime is None else mvtime
+        _mvtime = int(is_tool_coord)
 
         ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
         logger.info('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(

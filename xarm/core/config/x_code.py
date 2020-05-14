@@ -656,12 +656,12 @@ ControllerErrorCodeMap = {
     },
     36: {
         'en': {
-            'title': 'Delayed task queue is full',
-            'desc': 'The number of delay tasks to be completed cannot exceed 36. Please check whether the code frequently sets delay tasks.'
+            'title': 'The number of delay commands exceeds the limit',
+            'desc': 'The number of delay commands or position detection commands to be executed cannot exceed 36, please check whether there are too many delay commands or position detection commands in the code.'
         },
         'cn': {
-            'title': '延时任务队列已满',
-            'desc': '待完成的延时任务数不能超过36个，请检查代码是否频繁设置了延时任务。'
+            'title': '延时指令数量超限',
+            'desc': '待执行的延时指令或位置检测指令超过36个，请检查代码中延时指令或位置检测指令是否过多。'
         }
     },
     'other': {

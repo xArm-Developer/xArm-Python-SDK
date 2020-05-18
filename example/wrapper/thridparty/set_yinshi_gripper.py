@@ -42,7 +42,7 @@ arm.set_state(0)
 ret = arm.core.set_modbus_timeout(20)
 print('set modbus timeout, ret = %d' % (ret[0]))
 
-ret = arm.core.set_modbus_baudrate(2000000)
+ret = arm.core.set_modbus_baudrate(115200)
 print('set modbus baudrate, ret = %d' % (ret[0]))
 time.sleep(2)
 

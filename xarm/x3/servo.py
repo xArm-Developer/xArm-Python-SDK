@@ -64,15 +64,17 @@ class Servo(object):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def set_servo_addr_16(self, servo_id=None, addr=None, value=None):
+    def set_servo_addr_16(self, servo_id=None, addr=None, value=None, id_check=True):
         """
         Danger, do not use, may cause the arm to be abnormal,  just for debugging
         :param servo_id: 
         :param addr: 
         :param value: 
+        :param id_check:
         :return: 
         """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
+        if id_check:
+            assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
         assert addr is not None, 'The value of parameter addr cannot be None.'
         assert value is not None, 'The value of parameter value cannot be None.'
         ret = self.arm_cmd.servo_addr_w16(servo_id, addr, value)
@@ -80,20 +82,21 @@ class Servo(object):
         return ret[0]
 
     @xarm_is_connected(_type='get')
-    def get_servo_addr_16(self, servo_id=None, addr=None):
+    def get_servo_addr_16(self, servo_id=None, addr=None, id_check=True):
         """
         Danger, do not use, may cause the arm to be abnormal,  just for debugging
         :param servo_id: 
         :param addr: 
         :return: 
         """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
+        if id_check:
+            assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
         assert addr is not None, 'The value of parameter addr cannot be None.'
         ret = self.arm_cmd.servo_addr_r16(servo_id, addr)
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
-    def set_servo_addr_32(self, servo_id=None, addr=None, value=None):
+    def set_servo_addr_32(self, servo_id=None, addr=None, value=None, id_check=True):
         """
         Danger, do not use, may cause the arm to be abnormal,  just for debugging
         :param servo_id: 
@@ -101,7 +104,8 @@ class Servo(object):
         :param value: 
         :return: 
         """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
+        if id_check:
+            assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
         assert addr is not None, 'The value of parameter addr cannot be None.'
         assert value is not None, 'The value of parameter value cannot be None.'
         ret = self.arm_cmd.servo_addr_w32(servo_id, addr, value)
@@ -109,14 +113,15 @@ class Servo(object):
         return ret[0]
 
     @xarm_is_connected(_type='get')
-    def get_servo_addr_32(self, servo_id=None, addr=None):
+    def get_servo_addr_32(self, servo_id=None, addr=None, id_check=True):
         """
         Danger, do not use, may cause the arm to be abnormal,  just for debugging
         :param servo_id: 
         :param addr: 
         :return: 
         """
-        assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
+        if id_check:
+            assert isinstance(servo_id, int) and 1 <= servo_id <= 7, 'The value of parameter servo_id can only be 1-7.'
         assert addr is not None, 'The value of parameter addr cannot be None.'
         ret = self.arm_cmd.servo_addr_r32(servo_id, addr)
         return ret[0], ret[1]
@@ -357,6 +362,11 @@ class Servo(object):
                 versions[2] = ret3[1]
             else:
                 code = ret3[0]
+            # if code != 0:
+            #     _, err_warn = self.get_err_warn_code()
+            #     if _ in [0, 1, 2]:
+            #         if err_warn[0] not in [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 28]:
+            #             versions = [ret1[1], ret2[1], ret3[1]]
             return code, '.'.join(map(str, versions))
 
         if servo_id > self.axis:

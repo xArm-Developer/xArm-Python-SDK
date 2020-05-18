@@ -11,7 +11,7 @@ Servo angles
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 
-:return: [angle1(° or rad), angle2(° or rad), ..., anglen(° or rad)]
+:return: [angle1(° or rad), angle2(° or rad), ..., anglen7(° or rad)]
 ```
 
 #### __arm__
@@ -60,7 +60,13 @@ Device type, only available in socket way and  enable_report is True and report_
 
 #### __error_code__
 ```
-Controller error code. See the controller error code documentation for details.
+Controller error code. See Chapter 7 of the xArm User Manual for details.
+```
+
+#### __gpio_reset_config__
+```
+The gpio reset enable config
+:return: [cgpio_reset_enable, tgpio_reset_enable]
 ```
 
 #### __gravity_direction__
@@ -88,7 +94,7 @@ Controller have an warnning or not
 
 #### __joint_acc_limit__
 ```
-Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
 
@@ -109,7 +115,7 @@ Note:
 Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'
 Note:
     1. If self.default_is_radian is True, the returned value is in radians
-    
+
 :return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]
 ```
 
@@ -183,7 +189,7 @@ Master id, only available in socket way and enable_report is True and report_typ
 ```
 xArm mode，only available in socket way and  enable_report is True
 
-:return: 
+:return:
     0: position control mode
     1: servo motion mode
     2: joint teaching mode
@@ -207,7 +213,7 @@ Note:
 Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'
 Note:
     For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
-    
+
 :return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]
     motor-{i}-enable-state:
         0: disable
@@ -251,7 +257,7 @@ xArm sn
 ```
 xArm state
 
-:return: 
+:return:
     1: in motion
     2: sleeping
     3: suspended
@@ -260,7 +266,7 @@ xArm state
 
 #### __tcp_acc_limit__
 ```
-Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
 
 :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
 ```
@@ -276,13 +282,13 @@ Tcp jerk
 ```
 xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
 
-:return: [weight, center of gravity] 
+:return: [weight, center of gravity]
     such as: [weight(kg), [x(mm), y(mm), z(mm)]]
 ```
 
 #### __tcp_offset__
 ```
-Cartesion position offset, only available in socket way and enable_report is True 
+Cartesion position offset, only available in socket way and enable_report is True
 Note:
     1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
 
@@ -291,9 +297,9 @@ Note:
 
 #### __tcp_speed_limit__
 ```
-Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+Tcp speed limit, only available in socket way and enable_report is True and report_type is 'rich'
 
-:return: [min_tcp_acc(mm/s), max_tcp_acc(mm/s)]
+:return: [min_tcp_speed(mm/s), max_tcp_speed(mm/s)]
 ```
 
 #### __teach_sensitivity__
@@ -324,7 +330,7 @@ Frimware version number
 
 #### __warn_code__
 ```
-Controller warn code. See the controller warn code documentation for details.
+Controller warn code. See Chapter 7 of the xArm User Manual for details.
 ```
 
 #### __world_offset__
@@ -365,7 +371,7 @@ Note: Orientation of attitude angle
         * 1 °/s^2 == 0.017453292519943295 rad/s^2
         * 1 rad/s^3 == 57.29577951308232 °/s^3
         * 1 °/s^3 == 0.017453292519943295 rad/s^3
-    Note: This parameter determines the value of the property self.default_is_radian 
+    Note: This parameter determines the value of the property self.default_is_radian
     Note: This parameter determines the default value of the interface with the is_radian/input_is_radian/return_is_radian parameter
        The list of affected interfaces is as follows:
             1. method: get_position
@@ -385,6 +391,7 @@ Note: Orientation of attitude angle
             15. method: get_params
             16: method: move_arc_lines
             17: method: move_circle
+            18: method: set_servo_cartesian
     Note: This parameter determines the default return type for some interfaces (such as the position, velocity, and acceleration associated with the return angle arc).
         The affected attributes are as follows:
             1. property: position
@@ -402,7 +409,7 @@ Note: Orientation of attitude angle
     filters: serial port filters, invalid, reserved.
     check_tcp_limit: check the tcp param value out of limit or not, default is True
         Note: only check the param roll/pitch/yaw of the interface `set_position`/`move_arc_lines`
-    check_joint_limit: check the joint param value out of limit or not, default is True
+    check_joint_limit: check the joint           param value out of limit or not, default is True
         Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
     check_cmdnum_limit: check the cmdnum out of limit or not, default is True
         Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
@@ -420,7 +427,7 @@ check verification
 
 :return: tuple((code, status)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
-    status: 
+    status:
         0: verified
         other: not verified
 ```
@@ -439,7 +446,7 @@ Note:
 #### def __clean_error__(self):
 
 ```
-Clean the error, need to be manually enabled motion and set state after clean error
+Clean the error, need to be manually enabled motion(arm.motion_enable(True)) and set state(arm.set_state(state=0))after clean error
 
 :return: code
     code: See the API code documentation for details.
@@ -459,6 +466,26 @@ Clean the gripper error
 ```
 Clean the warn
 
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __config_cgpio_reset_when_stop__(self, on_off):
+
+```
+Config the Controller GPIO reset the digital output when the robot is in stop state
+
+:param on_off: True/False
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __config_tgpio_reset_when_stop__(self, on_off):
+
+```
+Config the Tool GPIO reset the digital output when the robot is in stop state
+
+:param on_off: True/False
 :return: code
     code: See the API code documentation for details.
 ```
@@ -554,8 +581,8 @@ Get the controller error and warn code
 :param lang: show language, en/cn, degault is en, only available if show is True
 :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
-    error_code: See the controller error code documentation for details.
-    warn_code: See the controller warn code documentation for details.
+    error_code: See Chapter 7 of the xArm User Manual for details.
+    warn_code: See Chapter 7 of the xArm User Manual for details.
 ```
 
 #### def __get_forward_kinematics__(self, angles, input_is_radian=None, return_is_radian=None):
@@ -603,7 +630,7 @@ Get gripper version, only for debug
 #### def __get_harmonic_type__(self, servo_id=1):
 
 ```
-Get harmonic type, only for debug
+Get harmonic type, only for debu
 
 :return: (code, type)
     code: See the API code documentation for details.
@@ -640,16 +667,41 @@ Check xArm is moving or not
 :return: True/False
 ```
 
+#### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
+
+```
+Calculate the pose offset of two given points
+
+:param pose1: [x(mm), y(mm), z(mm), roll/rx(rad or °), pitch/ry(rad or °), yaw/rz(rad or °)]
+:param pose2: [x(mm), y(mm), z(mm), roll/rx(rad or °), pitch/ry(rad or °), yaw/rz(rad or °)]
+:param orient_type_in: input attitude notation, 0 is RPY(roll/pitch/yaw) (default), 1 is axis angle(rx/ry/rz)
+:param orient_type_out: notation of output attitude, 0 is RPY (default), 1 is axis angle
+:param is_radian: the roll/rx/pitch/ry/yaw/rz of pose1/pose2/return_pose is radian or not
+:return: tuple((code, pose)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    pose: [x(mm), y(mm), z(mm), roll/rx(rad or °), pitch/ry(rad or °), yaw/rz(rad or °)]
+```
+
 #### def __get_position__(self, is_radian=None):
 
 ```
 Get the cartesian position
 Note:
     1. If the value(roll/pitch/yaw) you want to return is an radian unit, please set the parameter is_radian to True
-        ex: code, pos = xarm.get_position(is_radian=True)
+        ex: code, pos = arm.get_position(is_radian=True)
 
 :param is_radian: the returned value (only roll/pitch/yaw) is in radians or not, default is self.default_is_radian
 :return: tuple((code, [x, y, z, roll, pitch, yaw])), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+```
+
+#### def __get_position_aa__(self, is_radian=None):
+
+```
+Get the pose represented by the axis angle pose
+
+:param is_radian: the returned value (only rx/ry/rz) is in radians or not, default is self.default_is_radian
+:return: tuple((code, [x, y, z, rx, ry, rz])), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
 ```
 
@@ -658,12 +710,12 @@ Note:
 ```
 Get reduced mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
 
 :return: tuple((code, mode))
     code: See the API code documentation for details.
-    mode: 0 or 1, 1 means that the reduced mode is turned on.
+    mode: 0 or 1, 1 means that the reduced mode is turned on. 0 means that the reduced mode is not turned on
 ```
 
 #### def __get_reduced_states__(self, is_radian=None):
@@ -671,7 +723,7 @@ Note:
 ```
 Get states of the reduced mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
 
 :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
@@ -700,7 +752,7 @@ Note:
 #### def __get_robot_sn__(self):
 
 ```
-Get the sn
+Get the xArm sn
 
 :return: tuple((code, sn)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
@@ -712,9 +764,10 @@ Get the sn
 Get the servo angle
 Note:
     1. If the value you want to return is an radian unit, please set the parameter is_radian to True
-        ex: code, angles = xarm.get_servo_angle(is_radian=True)
+        ex: code, angles = arm.get_servo_angle(is_radian=True)
     2. If you want to return only the angle of a single joint, please set the parameter servo_id
-        ex: code, angle = xarm.get_servo_angle(servo_id=2)
+        ex: code, angle = arm.get_servo_angle(servo_id=2)
+    3. This interface is only used in the base coordinate system.
 
 :param servo_id: 1-(Number of axes), None(8), default is None
 :param is_radian: the returned value is in radians or not, default is self.default_is_radian
@@ -738,6 +791,7 @@ Get the servo debug msg, used only for debugging
 ```
 Get servo version, only for debug
 
+:param servo_id: servo id(1~7)
 :return: (code, version)
     code: See the API code documentation for details.
 ```
@@ -754,18 +808,6 @@ Get state
         2: sleeping
         3: suspended
         4: stopping
-```
-
-#### def __get_suction_cup__(self):
-
-```
-Get suction cup state
-
-:return: tuple((code, state)), only when code is 0, the returned result is correct.
-    code: See the API code documentation for details.
-    state: suction cup state
-        0: suction cup is off
-        1: suction cup is on
 ```
 
 #### def __get_tgpio_analog__(self, ionum=None):
@@ -801,7 +843,7 @@ Get tool gpio version, only for debug
 ```
 get the trajectories
 
-Note: 
+Note:
     1. This interface relies on xArmStudio 1.2.0 or above
     2. This interface relies on Firmware 1.2.0 or above
 
@@ -830,10 +872,22 @@ Get trajectory read/write status
         6: save failed
 ```
 
+#### def __get_vacuum_gripper__(self):
+
+```
+Get vacuum gripper state
+
+:return: tuple((code, state)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    state: suction cup state
+        0: suction cup is off
+        1: suction cup is on
+```
+
 #### def __get_version__(self):
 
 ```
-Get the xArm version
+Get the xArm firmware version
 
 :return: tuple((code, version)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
@@ -842,7 +896,7 @@ Get the xArm version
 #### def __is_joint_limit__(self, joint, is_radian=None):
 
 ```
-Check the joint is in limit
+Check the joint angle is in limit
 
 :param joint: [angle-1, angle-2, ..., angle-n], n is the number of axes of the arm
 :param is_radian: angle value is radians or not, default is self.default_is_radian
@@ -868,7 +922,7 @@ Check the tcp pose is in limit
 ```
 Load the trajectory
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
 
 :param filename: The name of the trajectory to load
@@ -883,7 +937,7 @@ Note:
 ```
 Motion enable
 
-:param enable: 
+:param enable:True/False
 :param servo_id: 1-(Number of axes), None(8)
 :return: code
     code: See the API code documentation for details.
@@ -892,24 +946,26 @@ Motion enable
 #### def __move_arc_lines__(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0, automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
 
 ```
-Continuous linear motion with interpolation
+Continuous linear motion with interpolation.
 Note:
-    1. If an error occurs, it will return early
+    1. If an error occurs, it will return early.
     2. If the emergency_stop interface is called actively, it will return early.
-    3. The last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified
-    4. The last_used_angles/last_used_joint_speed/last_used_joint_acc will not be modified
+    3. The last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified.
+    4. The last_used_angles/last_used_joint_speed/last_used_joint_acc will not be modified.
 
 :param paths: cartesian path list
     1. Specify arc radius： [[x, y, z, roll, pitch, yaw, radius], ....]
-    1. Do not specify arc radius (radius=0)： [[x, y, z, roll, pitch, yaw], ....]
+    2. Do not specify arc radius (radius=0)： [[x, y, z, roll, pitch, yaw], ....]
+    3. If you want to plan the continuous motion,set radius>0.
+
 :param is_radian: roll/pitch/yaw of paths are in radians or not, default is self.default_is_radian
 :param times: repeat times, 0 is infinite loop, default is 1
-:param first_pause_time: sleep time at first, purpose is to cache the instruction, default is 0.1s
-:param repeat_pause_time: interval between repeated movements, unit: second
+:param first_pause_time: sleep time at first, purpose is to cache the commands and plan continuous motion, default is 0.1s
+:param repeat_pause_time: interval between repeated movements, unit: (s)second
 :param automatic_calibration: automatic calibration or not, default is True
 :param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
 :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
-:param mvtime: 0, reserved 
+:param mvtime: 0, reserved
 :param wait: whether to wait for the arm to complete, default is False
 ```
 
@@ -944,7 +1000,7 @@ Note:
     1. The API will change self.last_used_position value into [201.5, 0, 140.5, -180, 0, 0]
     2. The API will change self.last_used_angles value into [0, 0, 0, 0, 0, 0, 0]
     3. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
-        ex: code = xarm.move_gohome(wait=True)
+        ex: code = arm.move_gohome(wait=True)
     4. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
 
 :param speed: gohome speed (unit: rad/s if is_radian is True else °/s), default is 50 °/s
@@ -962,7 +1018,7 @@ Note:
 ```
 Playback trajectory
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
 
 :param times: Number of playbacks,
@@ -980,7 +1036,7 @@ Note:
 ```
 Register the cmdnum changed callback, only available if enable_report is True
 
-:param callback: 
+:param callback:
     callback data:
     {
         "cmdnum": cmdnum
@@ -993,7 +1049,7 @@ Register the cmdnum changed callback, only available if enable_report is True
 ```
 Register the connect status changed callback
 
-:param callback: 
+:param callback:
     callback data:
     {
         "connected": connected,
@@ -1007,7 +1063,7 @@ Register the connect status changed callback
 ```
 Register the counter value changed callback, only available if enable_report is True
 
-:param callback: 
+:param callback:
     callback data:
     {
         "count": counter value
@@ -1020,7 +1076,7 @@ Register the counter value changed callback, only available if enable_report is 
 ```
 Register the error code or warn code changed callback, only available if enable_report is True
 
-:param callback: 
+:param callback:
     callback data:
     {
         "error_code": error_code,
@@ -1047,7 +1103,7 @@ Register the mode changed callback, only available if enable_report is True and 
 ```
 Register the motor enable states or motor brake states changed callback, only available if enable_report is True and the connect way is socket
 
-:param callback: 
+:param callback:
     callback data:
     {
         "mtable": [motor-1-motion-enable, motor-2-motion-enable, ...],
@@ -1061,7 +1117,7 @@ Register the motor enable states or motor brake states changed callback, only av
 ```
 Register the report callback, only available if enable_report is True
 
-:param callback: 
+:param callback:
     callback data:
     {
         'cartesian': [], # if report_cartesian is True
@@ -1089,7 +1145,7 @@ Register the report callback, only available if enable_report is True
 ```
 Register the report location callback, only available if enable_report is True
 
-:param callback: 
+:param callback:
     callback data:
     {
         "cartesian": [x, y, z, roll, pitch, yaw], ## if report_cartesian is True
@@ -1118,7 +1174,7 @@ Register the state status changed callback, only available if enable_report is T
 ```
 Register the temperature changed callback, only available if enable_report is True
 
-:param callback: 
+:param callback:
     callback data:
     {
         "temperatures": [servo-1-temperature, ...., servo-7-temperature]
@@ -1131,7 +1187,7 @@ Register the temperature changed callback, only available if enable_report is Tr
 ```
 Release the cmdnum changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1140,7 +1196,7 @@ Release the cmdnum changed callback
 ```
 Release the connect changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1149,7 +1205,7 @@ Release the connect changed callback
 ```
 Release the counter value changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1158,7 +1214,7 @@ Release the counter value changed callback
 ```
 Release the error warn changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1167,7 +1223,7 @@ Release the error warn changed callback
 ```
 Release the mode changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1176,7 +1232,7 @@ Release the mode changed callback
 ```
 Release the motor enable states or motor brake states changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1185,7 +1241,7 @@ Release the motor enable states or motor brake states changed callback
 ```
 Release the report callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1194,7 +1250,7 @@ Release the report callback
 ```
 Release the location report callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1203,7 +1259,7 @@ Release the location report callback
 ```
 Release the state changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1212,7 +1268,7 @@ Release the state changed callback
 ```
 Release the temperature changed callback
 
-:param callback: 
+:param callback:
 :return: True/False
 ```
 
@@ -1267,14 +1323,14 @@ Note:
 ```
 Save the trajectory you just recorded
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
- 
+
 :param filename: The name to save
     1. Only strings consisting of English or numbers are supported, and the length is no more than 50.
     2. The trajectory is saved in the controller box.
     3. This action will overwrite the trajectory with the same name
-    4. Empty the trajectory in memory after saving, so repeated calls will cause the recorded trajectory to be covered by an empty trajectory. 
+    4. Empty the trajectory in memory after saving, so repeated calls will cause the recorded trajectory to be covered by an empty trajectory.
 :param wait: Whether to wait for saving, default is True
 :param timeout: Timeout waiting for saving to complete
 :return: code
@@ -1288,7 +1344,7 @@ Send cmd and wait (only waiting the cmd response, not waiting for the movement)
 Note:
     1. Some command depends on self.default_is_radian
 
-:param command: 
+:param command:
     'G1': 'set_position(MoveLine): G1 X{x} Y{y} Z{z} A{roll} B{pitch} C{yaw} F{speed} Q{acc} T{mvtime}'
     'G2': 'move_circle: G2 X{x1} Y{y1} Z{z1} A{roll1} B{pitch1} C{yaw1} I{x2} J{y2} K{z2} L{roll2} M{pitch2} N{yaw2} F{speed} Q{acc} T{mvtime}'
     'G4': 'set_pause_time: G4 T{second}'
@@ -1359,13 +1415,14 @@ Set the analog value of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
-#### def __set_cgpio_digital__(self, ionum, value):
+#### def __set_cgpio_digital__(self, ionum, value, delay_sec=None):
 
 ```
 Set the digital value of the specified Controller GPIO
 
 :param ionum: 0~7
 :param value: value
+:param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1406,14 +1463,27 @@ Set the digital output functional mode of the specified Controller GPIO
     code: See the API code documentation for details.
 ```
 
+#### def __set_cgpio_digital_with_xyz__(self, ionum, value, xyz, fault_tolerance_radius):
+
+```
+Set the digital value of the specified Controller GPIO when the robot has reached the specified xyz position           
+
+:param ionum: 0 ~ 7
+:param value: value
+:param xyz: position xyz, as [x, y, z]
+:param fault_tolerance_radius: fault tolerance radius
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_collision_rebound__(self, on):
 
 ```
-Set the collision rebound
+Set the collision rebound,turn on/off collision rebound
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.11 or above
-    
+
 :param on: True/False
 :return: code
     code: See the API code documentation for details.
@@ -1454,12 +1524,12 @@ Reset counter value
     code: See the API code documentation for details.
 ```
 
-#### def __set_fense_mode__(self, on):
+#### def __set_fence_mode__(self, on):
 
 ```
-Set the fense mode
+Set the fence mode,turn on/off fense mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.11 or above
 
 :param on: True/False
@@ -1489,6 +1559,7 @@ Note:
 Set the gripper enable
 
 :param enable: enable or not
+ Note： such as code = arm.set_gripper_enable(True)  #turn on the Gripper
 :return: code
     code: See the Gripper code documentation for details.
 ```
@@ -1498,7 +1569,8 @@ Set the gripper enable
 ```
 Set the gripper mode
 
-:param mode: 1: location mode, 2: speed mode (no use), 3: torque mode (no use)
+:param mode: 0: location mode
+ Note： such as code = rm.set_gripper_mode(0)
 :return: code
     code: See the Gripper code documentation for details.
 ```
@@ -1510,9 +1582,9 @@ Set the gripper position
 
 :param pos: pos
 :param wait: wait or not, default is False
-:param speed: speed
+:param speed: speed,unit:r/min
 :param auto_enable: auto enable or not, default is False
-:param timeout: second, default is 10s
+:param timeout: wait time, unit:second, default is 10s
 :return: code
     code: See the Gripper code documentation for details.
 ```
@@ -1522,7 +1594,7 @@ Set the gripper position
 ```
 Set the gripper speed
 
-:param speed: 
+:param speed:
 :return: code
     code: See the Gripper code documentation for details.
 ```
@@ -1587,10 +1659,10 @@ Note:
     2. If not saved, it will be lost after reboot
     3. The save_conf interface can record the current settings and will not be lost after the restart.
     4. The clean_conf interface can restore system default settings
-    
+
 :param base_tilt_deg: tilt degree
 :param rotation_deg: rotation degree
-:param is_radian: the jebase_tilt_deg/rotation_deg in radians or not, default is self.default_is_radian
+:param is_radian: the base_tilt_deg/rotation_deg in radians or not, default is self.default_is_radian
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1600,7 +1672,7 @@ Note:
 ```
 Set the arm pause time, xArm will pause sltime second
 
-:param sltime: sleep second
+:param sltime: sleep time,unit:(s)second
 :param wait: wait or not, default is False
 :return: code
     code: See the API code documentation for details.
@@ -1611,12 +1683,13 @@ Set the arm pause time, xArm will pause sltime second
 ```
 Set the cartesian position, the API will modify self.last_used_position value
 Note:
-    1. If it is a 5-axis arm, ensure that the current robot arm has a roll value of 180° or π rad and has a roll value of 0 before calling this interface.
-    2. If it is a 5-axis arm, roll must be set to 180° or π rad, pitch must be set to 0
+    1. If it is xArm5, ensure that the current robotic arm has a roll value of 180° or π rad and has a roll value of 0 before calling this interface.
+    2. If it is xArm5, roll must be set to 180° or π rad, pitch must be set to 0
     3. If the parameter(roll/pitch/yaw) you are passing is an radian unit, be sure to set the parameter is_radian to True.
-        ex: code = xarm.set_position(x=300, y=0, z=200, roll=-3.14, pitch=0, yaw=0, is_radian=True)
+        ex: code = arm.set_position(x=300, y=0, z=200, roll=-3.14, pitch=0, yaw=0, is_radian=True)
     4. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
-        ex: code = xarm.set_position(x=300, y=0, z=200, roll=180, pitch=0, yaw=0, is_radian=False, wait=True)
+        ex: code = arm.set_position(x=300, y=0, z=200, roll=180, pitch=0, yaw=0, is_radian=False, wait=True)
+    5. This interface is only used in the base coordinate system.
 
 :param x: cartesian position x, (unit: mm), default is self.last_used_position[0]
 :param y: cartesian position y, (unit: mm), default is self.last_used_position[1]
@@ -1626,9 +1699,10 @@ Note:
 :param yaw: rotate around the Z axis, (unit: rad if is_radian is True else °), default is self.last_used_position[5]
 :param radius: move radius, if radius is None or radius less than 0, will MoveLine, else MoveArcLine
     MoveLine: Linear motion
-        ex: code = xarm.set_position(..., radius=None)
+        ex: code = arm.set_position(..., radius=None)
     MoveArcLine: Linear arc motion with interpolation
-        ex: code = xarm.set_position(..., radius=0)
+        ex: code = arm.set_position(..., radius=0)
+        Note: Need to set radius>=0
 :param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
 :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
 :param mvtime: 0, reserved
@@ -1643,15 +1717,33 @@ Note:
         code >= 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified
 ```
 
+#### def __set_position_aa__(self, axis_angle_pose, speed=None, mvacc=None, mvtime=None, is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None, **kwargs):
+
+```
+Set the pose represented by the axis angle pose
+
+:param axis_angle_pose: the axis angle pose, [x(mm), y(mm), z(mm), rx(rad or °), ry(rad or °), rz(rad or °)]
+:param speed: move speed (mm/s, rad/s), default is self.last_used_tcp_speed
+:param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc
+:param mvtime: 0, reserved 
+:param is_radian: the rx/ry/rz of axis_angle_pose in radians or not, default is self.default_is_radian
+:param is_tool_coord: is tool coordinate or not
+:param relative: relative move or not
+:param wait: whether to wait for the arm to complete, default is False
+:param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_reduced_joint_range__(self, joint_range, is_radian=None):
 
 ```
 Set the joint range of the reduced mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.11 or above
     2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
-    
+
 :param joint_range: [joint-1-min, joint-1-max, ..., joint-7-min, joint-7-max]
 :param is_radian: the param joint_range are in radians or not, default is self.default_is_radian
 :return:
@@ -1662,7 +1754,7 @@ Note:
 ```
 Set the maximum joint speed of the reduced mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
     2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
 
@@ -1677,7 +1769,7 @@ Note:
 ```
 Set the maximum tcp speed of the reduced mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
     2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
 
@@ -1691,10 +1783,11 @@ Note:
 ```
 Turn on/off reduced mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
 
 :param on: True/False
+           such as:Turn on the reduced mode : code=arm.set_reduced_mode(True)
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1704,7 +1797,7 @@ Note:
 ```
 Set the boundary of the safety boundary mode
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
     2. Only reset the reduced mode to take effect (`set_reduced_mode(True)`)
 
@@ -1719,21 +1812,22 @@ Note:
 Set the servo angle, the API will modify self.last_used_angles value
 Note:
     1. If the parameter angle you are passing is an radian unit, be sure to set the parameter is_radian to True.
-        ex: code = xarm.set_servo_angle(servo_id=1, angle=1.57, is_radian=True)
+        ex: code = arm.set_servo_angle(servo_id=1, angle=1.57, is_radian=True)
     2. If you want to wait for the robot to complete this action and then return, please set the parameter wait to True.
-        ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False,wait=True)
+        ex: code = arm.set_servo_angle(servo_id=1, angle=45, is_radian=False,wait=True)
+    3. This interface is only used in the base coordinate system.
 
 :param servo_id: 1-(Number of axes), None(8)
     1. 1-(Number of axes) indicates the corresponding joint, the parameter angle should be a numeric value
-        ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
+        ex: code = arm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
     2. None(8) means all joints, default is None, the parameter angle should be a list of values whose length is the number of joints
-        ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
+        ex: code = arm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
 :param angle: angle or angle list, (unit: rad if is_radian is True else °)
     1. If servo_id is 1-(Number of axes), angle should be a numeric value
-        ex: code = xarm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
+        ex: code = arm.set_servo_angle(servo_id=1, angle=45, is_radian=False)
     2. If servo_id is None or 8, angle should be a list of values whose length is the number of joints
         like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
-        ex: code = xarm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
+        ex: code = arm.set_servo_angle(angle=[30, -45, 0, 0, 0, 0, 0], is_radian=False)
 :param speed: move speed (unit: rad/s if is_radian is True else °/s), default is self.last_used_joint_speed
 :param mvacc: move acceleration (unit: rad/s^2 if is_radian is True else °/s^2), default is self.last_used_joint_acc
 :param mvtime: 0, reserved
@@ -1754,6 +1848,7 @@ Note:
 Set the servo angle, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
 Note:
     1. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
+    2. This interface is only used in the base coordinate system.
 
 :param angles: angle list, (unit: rad if is_radian is True else °)
 :param speed: speed, reserved
@@ -1772,26 +1867,45 @@ Attach the servo
 
 :param servo_id: 1-(Number of axes), 8, if servo_id is 8, will attach all servo
     1. 1-(Number of axes): attach only one joint
-        ex: xarm.set_servo_attach(servo_id=1)
+        ex: arm.set_servo_attach(servo_id=1)
     2: 8: attach all joints
-        ex: xarm.set_servo_attach(servo_id=8)
+        ex: arm.set_servo_attach(servo_id=8)
 :return: code
     code: See the API code documentation for details.
 ```
 
-#### def __set_servo_cartesian__(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+#### def __set_servo_cartesian__(self, mvpose, speed=None, mvacc=None, mvtime=0, is_radian=None, is_tool_coord=False, **kwargs):
 
 ```
 Set the servo cartesian, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
 Note:
     1. only available if firmware_version >= 1.4.0
+    2. This interface is only used in the base coordinate system.
 
 :param mvpose: cartesian position, [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
 :param speed: move speed (mm/s), reserved
 :param mvacc: move acceleration (mm/s^2), reserved
 :param mvtime: 0, reserved
 :param is_radian: the roll/pitch/yaw of mvpose in radians or not, default is self.default_is_radian
-:param kwargs: reserved 
+:param is_tool_coord: is tool coordinate or not
+:param kwargs: reserved
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_servo_cartesian_aa__(self, axis_angle_pose, speed=None, mvacc=None, is_radian=None, is_tool_coord=False, relative=False, **kwargs):
+
+```
+Set the servo cartesian represented by the axis angle pose, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
+Note:
+    1. only available if firmware_version >= 1.4.7
+
+:param axis_angle_pose: the axis angle pose, [x(mm), y(mm), z(mm), rx(rad or °), ry(rad or °), rz(rad or °)]
+:param speed: move speed (mm/s), reserved
+:param mvacc: move acceleration (mm/s^2), reserved
+:param is_radian: the rx/ry/rz of axis_angle_pose in radians or not, default is self.default_is_radian
+:param is_tool_coord: is tool coordinate or not
+:param relative: relative move or not
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1803,9 +1917,9 @@ Detach the servo, be sure to do protective work before unlocking to avoid injury
 
 :param servo_id: 1-(Number of axes), 8, if servo_id is 8, will detach all servo
     1. 1-(Number of axes): detach only one joint
-        ex: xarm.set_servo_detach(servo_id=1)
+        ex: arm.set_servo_detach(servo_id=1)
     2: 8: detach all joints, please
-        ex: xarm.set_servo_detach(servo_id=8)
+        ex: arm.set_servo_detach(servo_id=8)
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1819,20 +1933,6 @@ Set the xArm state
     0: sport state
     3: pause state
     4: stop state
-:return: code
-    code: See the API code documentation for details.
-```
-
-#### def __set_suction_cup__(self, on, wait=False, timeout=3):
-
-```
-Set suction cup
-
-:param on: open or not
-    on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
-    on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
-:param wait: wait or not, default is False
-:param timeout: second, default is 3s
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1855,7 +1955,7 @@ Note:
 #### def __set_tcp_load__(self, weight, center_of_gravity):
 
 ```
-Set the load
+Set the end load of xArm
 
 Note:
     1. Do not use if not required
@@ -1917,13 +2017,27 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __set_tgpio_digital__(self, ionum, value):
+#### def __set_tgpio_digital__(self, ionum, value, delay_sec=None):
 
 ```
 Set the digital value of the specified Tool GPIO
 
 :param ionum: 0 or 1
 :param value: value
+:param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_tgpio_digital_with_xyz__(self, ionum, value, xyz, fault_tolerance_radius):
+
+```
+Set the digital value of the specified Tool GPIO when the robot has reached the specified xyz position           
+
+:param ionum: 0 or 1
+:param value: value
+:param xyz: position xyz, as [x, y, z]
+:param fault_tolerance_radius: fault tolerance radius
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1931,14 +2045,16 @@ Set the digital value of the specified Tool GPIO
 #### def __set_tool_position__(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
 
 ```
-Movement relative to the tool coordinate system 
+Movement relative to the tool coordinate system
 Note:
     1. This interface is moving relative to the current tool coordinate system
     2. The tool coordinate system is not fixed and varies with position.
+    3. This interface is only used in the tool coordinate system.
+
 
 :param x: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
-:param y: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
-:param z: the x coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+:param y: the y coordinate relative to the current tool coordinate system, (unit: mm), default is 0
+:param z: the z coordinate relative to the current tool coordinate system, (unit: mm), default is 0
 :param roll: the rotate around the X axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
 :param pitch: the rotate around the Y axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
 :param yaw: the rotate around the Z axis relative to the current tool coordinate system, (unit: rad if is_radian is True else °), default is 0
@@ -1955,12 +2071,27 @@ Note:
         code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
 ```
 
+#### def __set_vacuum_gripper__(self, on, wait=False, timeout=3, delay_sec=None):
+
+```
+Set vacuum gripper state
+
+:param on: open or not
+    on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
+    on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
+:param wait: wait or not, default is False
+:param timeout: wait time, unit:second, default is 3s
+:param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_world_offset__(self, offset, is_radian=None):
 
 ```
 Set the base coordinate offset
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.11 or above
 
 :param offset: [x, y, z, roll, pitch, yaw]
@@ -1984,10 +2115,10 @@ Shutdown the xArm controller system
 ```
 Start trajectory recording, only in teach mode, so you need to set joint teaching mode before.
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
     2. set joint teaching mode: set_mode(2);set_state(0)
-    
+
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1997,7 +2128,7 @@ Note:
 ```
 Stop trajectory recording
 
-Note: 
+Note:
     1. This interface relies on Firmware 1.2.0 or above
 
 :param filename: The name to save

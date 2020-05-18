@@ -59,6 +59,7 @@
 - 33: Controller GPIO error
 - 34: Recording Timeout
 - 35: Safety Boundary Limit
+- 36: The number of delay commands exceeds the limit
 
 ## Servo Error Code
 

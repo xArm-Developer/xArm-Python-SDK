@@ -142,6 +142,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
         self._count = -1
 
+        self._cgpio_reset_enable = 0
+        self._tgpio_reset_enable = 0
+
         Events.__init__(self)
         if not do_not_open:
             self.connect()
@@ -206,7 +209,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def version(self):
         if not self._version:
             self.get_version()
-        return 'v' + '.'.join(map(str, self.version_number))
+        return self._version
+        # return 'v' + '.'.join(map(str, self.version_number))
 
     @property
     def sn(self):
@@ -385,6 +389,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     @property
     def gravity_direction(self):
         return self._gravity_direction
+
+    @property
+    def gpio_reset_config(self):
+        return [self._cgpio_reset_enable, self._tgpio_reset_enable]
 
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
@@ -860,6 +868,49 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._report_connect_changed_callback(False, False)
 
     def _report_thread_handle(self):
+        def __handle_report_real(rx_data):
+            state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
+            cmd_num = convert.bytes_to_u16(rx_data[5:7])
+            angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
+            pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
+            torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
+            if cmd_num != self._cmd_num:
+                self._cmd_num = cmd_num
+                self._report_cmdnum_changed_callback()
+            if state != self._state:
+                self._state = state
+                self._report_state_changed_callback()
+            if state == 4:
+                self._is_ready = False
+            else:
+                self._is_ready = True
+
+            if mode != self._mode:
+                self._mode = mode
+                self._report_mode_changed_callback()
+            for i in range(len(pose)):
+                if i < 3:
+                    pose[i] = float('{:.3f}'.format(pose[i]))
+                    # pose[i] = float('{:.3f}'.format(pose[i][0]))
+                else:
+                    pose[i] = float('{:.6f}'.format(pose[i]))
+                    # pose[i] = float('{:.6f}'.format(pose[i][0]))
+            for i in range(len(angles)):
+                angles[i] = float('{:.6f}'.format(angles[i]))
+                # angles[i] = float('{:.6f}'.format(angles[i][0]))
+            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
+                self._position = pose
+            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
+                self._angles = angles
+            self._joints_torque = torque
+
+            self._report_location_callback()
+
+            self._report_callback()
+            if not self._is_sync:
+                self._sync()
+                self._is_sync = True
+
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
@@ -870,14 +921,15 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
             torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
             mtbrake, mtable, error_code, warn_code = rx_data[87:91]
-            if (error_code != 0 and error_code not in ControllerErrorCodeMap.keys()) \
-                    or (warn_code != 0 and warn_code not in ControllerWarnCodeMap.keys()):
-                self._stream_report.close()
-                print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
-                return
             pose_offset = convert.bytes_to_fp32s(rx_data[91:6 * 4 + 91], 6)
             tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
+            if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
+                    and ((error_code != 0 and error_code not in ControllerErrorCodeMap.keys()) \
+                    or (warn_code != 0 and warn_code not in ControllerWarnCodeMap.keys())):
+                self._stream_report.close()
+                print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
+                return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
             # print('torque: {}'.format(torque))
@@ -1061,6 +1113,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         world_offset[i] = float('{:.6f}'.format(world_offset[i]))
                 if math.inf not in world_offset and -math.inf not in world_offset and not (10 <= self._error_code <= 17):
                     self._world_offset = world_offset
+            if size >= 314:
+                self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -1089,7 +1143,11 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         size = convert.bytes_to_u32(buffer[0:4])
                     if len(buffer) < size:
                         continue
-                    if size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                    if self._report_type == 'real' and size == XCONF.SocketConf.TCP_REPORT_REAL_BUF_SIZE:
+                        data = buffer[:size]
+                        buffer = buffer[size:]
+                        __handle_report_real(data)
+                    elif size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
                         if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
                             if size == 233 and len(buffer) == 245:
                                 data = buffer[:245]
@@ -1240,7 +1298,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
 
         def check_stop_move(self):
             # base_joint_pos = self.owner.angles.copy()
-            time.sleep(0.1)
+            # time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner._is_stop and self.owner.connected and not self.owner.has_error:
                 if self.owner.state == 4:
@@ -1277,7 +1335,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             # self._position = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 7)]
             self._position = [float('{:.6f}'.format(ret[i])) for i in range(1, 7)]
             ret[0] = 0
-        return ret[0], [math.degrees(self._position[i]) if 2 < i < 6 and not is_radian else self._position[i] for i in
+        return ret[0], [float('{:.6f}'.format(math.degrees(self._position[i]) if 2 < i < 6 and not is_radian else self._position[i])) for i in
                         range(len(self._position))]
 
     def _is_out_of_tcp_range(self, value, i):
@@ -1488,6 +1546,97 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             self._last_tcp_acc = last_used_tcp_acc
         return ret[0]
 
+    @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
+    def set_position_aa(self, mvpose, speed=None, mvacc=None, mvtime=None,
+                        is_radian=None, is_tool_coord=False, relative=False,
+                        wait=False, timeout=None, **kwargs):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        last_used_tcp_speed = self._last_tcp_speed
+        last_used_tcp_acc = self._last_tcp_acc
+        pose = [mvpose[i] if i <= 2 or is_radian else math.radians(mvpose[i]) for i in range(6)]
+        if speed is not None:
+            if isinstance(speed, str):
+                if speed.isdigit():
+                    speed = float(speed)
+                else:
+                    speed = self._last_tcp_speed
+            self._last_tcp_speed = min(max(speed, self._min_tcp_speed), self._max_tcp_speed)
+        if mvacc is not None:
+            if isinstance(mvacc, str):
+                if mvacc.isdigit():
+                    mvacc = float(mvacc)
+                else:
+                    mvacc = self._last_tcp_acc
+            self._last_tcp_acc = min(max(mvacc, self._min_tcp_acc), self._max_tcp_acc)
+        if mvtime is not None:
+            if isinstance(mvtime, str):
+                if mvacc.isdigit():
+                    mvtime = float(mvtime)
+                else:
+                    mvtime = self._mvtime
+            self._mvtime = mvtime
+
+        mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
+
+        ret = self.arm_cmd.move_line_aa(pose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, mvcoord, int(relative))
+        logger.info('API -> set_position_aa -> ret={}, pos={}, velo={}, acc={}'.format(
+            ret[0], pose, self._last_tcp_speed, self._last_tcp_acc
+        ))
+        self._is_set_move = True
+        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+            if not self._enable_report:
+                warnings.warn('if you want to wait, please enable report')
+            else:
+                self._is_stop = False
+                self._WaitMove(self, timeout).start()
+                self._is_stop = False
+                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+        if ret[0] < 0 and not self.get_is_moving():
+            self._last_tcp_speed = last_used_tcp_speed
+            self._last_tcp_acc = last_used_tcp_acc
+        return ret[0]
+
+    @xarm_is_ready(_type='set')
+    @xarm_is_pause(_type='set')
+    def set_servo_cartesian_aa(self, mvpose, speed=None, mvacc=None, is_radian=None, is_tool_coord=False, relative=False, **kwargs):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        assert len(mvpose) >= 6
+
+        pose = [mvpose[i] if i <= 2 or is_radian else math.radians(mvpose[i]) for i in range(6)]
+        _speed = self.last_used_tcp_speed if speed is None else speed
+        _mvacc = self.last_used_tcp_acc if mvacc is None else mvacc
+
+        tool_coord = kwargs.get('tool_coord', int(is_tool_coord))
+
+        ret = self.arm_cmd.move_servo_cart_aa(mvpose=pose, mvvelo=_speed, mvacc=_mvacc, tool_coord=tool_coord,
+                                              relative=int(relative))
+        logger.info('API -> set_servo_cartesian_aa -> ret={}, pose={}, velo={}, acc={}'.format(
+            ret[0], pose, _speed, _mvacc
+        ))
+        self._is_set_move = True
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_position_aa(self, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        ret = self.arm_cmd.get_position_aa()
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
+            pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in range(1, 7)]
+            return ret[0], pose
+        return ret[0], ret[1:7]
+
+    @xarm_is_connected(_type='get')
+    def get_pose_offset(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        _pose1 = [pose1[i] if i <= 2 or is_radian else math.radians(pose1[i]) for i in range(6)]
+        _pose2 = [pose2[i] if i <= 2 or is_radian else math.radians(pose2[i]) for i in range(6)]
+        ret = self.arm_cmd.get_pose_offset(_pose1, _pose2, orient_type_in, orient_type_out)
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
+            pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in range(1, 7)]
+            return ret[0], pose
+        return ret[0], ret[1:7]
+
     @xarm_is_connected(_type='get')
     def get_servo_angle(self, servo_id=None, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1497,9 +1646,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             self._angles = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]
             ret[0] = 0
         if servo_id is None or servo_id == 8 or len(self._angles) < servo_id:
-            return ret[0], list(map(lambda x: x if is_radian else math.degrees(x), self._angles))
+            return ret[0], list(map(lambda x: float('{:.6f}'.format(x if is_radian else math.degrees(x))), self._angles))
         else:
-            return ret[0], self._angles[servo_id-1] if is_radian else math.degrees(self._angles[servo_id-1])
+            return ret[0], float('{:.6f}'.format(self._angles[servo_id-1] if is_radian else math.degrees(self._angles[servo_id-1])))
 
     def _is_out_of_joint_range(self, angle, i):
         if not self._check_joint_limit or self._stream_type != 'socket' or not self._enable_report:
@@ -1674,7 +1823,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         return ret[0]
 
     @xarm_is_ready(_type='set')
-    def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+    def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, is_tool_coord=False, **kwargs):
         assert len(mvpose) >= 6
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if not is_radian:
@@ -1683,7 +1832,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             pose = mvpose
         _speed = self.last_used_tcp_speed if speed is None else speed
         _mvacc = self.last_used_tcp_acc if mvacc is None else mvacc
-        _mvtime = self._mvtime if mvtime is None else mvtime
+        # _mvtime = self._mvtime if mvtime is None else mvtime
+        _mvtime = int(is_tool_coord)
 
         ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
         logger.info('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(
@@ -2607,6 +2757,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
     def emergency_stop(self):
         start_time = time.time()
         logger.info('emergency_stop--begin')
+        self.set_state(4)
         while self.state != 4 and time.time() - start_time < 3:
             self.set_state(4)
             time.sleep(0.1)

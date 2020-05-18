@@ -93,6 +93,15 @@ class UxbusCmd(object):
         return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
 
     @lock_require
+    def set_nfp32_with_bytes(self, funcode, datas, num, additional_bytes):
+        hexdata = convert.fp32s_to_bytes(datas, num)
+        hexdata += additional_bytes
+        ret = self.send_xbus(funcode, hexdata, num * 4 + len(additional_bytes))
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    @lock_require
     def set_nint32(self, funcode, datas, num):
         hexdata = convert.int32s_to_bytes(datas, num)
         ret = self.send_xbus(funcode, hexdata, num * 4)
@@ -285,6 +294,40 @@ class UxbusCmd(object):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE, txdata, 9)
+
+    def move_line_aa(self, mvpose, mvvelo, mvacc, mvtime, mvcoord, relative):
+        float_data = [mvpose[i] for i in range(6)]
+        float_data += [mvvelo, mvacc, mvtime]
+        byte_data = bytes([mvcoord, relative])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE_AA, float_data, 9, byte_data)
+
+    def move_servo_cart_aa(self, mvpose, mvvelo, mvacc, tool_coord, relative):
+        float_data = [mvpose[i] for i in range(6)]
+        float_data += [mvvelo, mvacc, tool_coord]
+        byte_data = bytes([relative])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_SERVO_CART_AA, float_data, 9, byte_data)
+
+    def get_position_aa(self):
+        return self.get_nfp32(XCONF.UxbusReg.GET_TCP_POSE_AA, 6)
+
+    def get_pose_offset(self, pose1, pose2, orient_type_in=0, orient_type_out=0):
+        float_data = [pose1[i] for i in range(6)]
+        float_data += [pose2[j] for j in range(6)]
+        byte_data = bytes([orient_type_in, orient_type_out])
+        ret_fp_num = 6
+        funcode = XCONF.UxbusReg.CAL_POSE_OFFSET
+        hexdata = convert.fp32s_to_bytes(float_data, 12)
+        hexdata += byte_data
+
+        ret = self.send_xbus(funcode, hexdata, len(hexdata))
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (ret_fp_num * 4 + 1)
+
+        ret = self.send_pend(funcode, ret_fp_num * 4, XCONF.UxbusConf.GET_TIMEOUT)
+        data = [0] * (1 + ret_fp_num)
+        data[0] = ret[0]
+        data[1:ret_fp_num] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
+        return data
 
     def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime):
         txdata = [mvpose[i] for i in range(6)]
@@ -563,7 +606,7 @@ class UxbusCmd(object):
         if baudrate not in self.BAUDRATES:
             return [-1, -1]
         ret = self.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
-        if ret[0] != XCONF.UxbusState.ERR_TOUT:
+        if ret[0] == 0:
             baud_val = self.BAUDRATES.index(baudrate)
             if ret[1] != baud_val:
                 self.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_val)
@@ -583,6 +626,45 @@ class UxbusCmd(object):
         ret1[0] = ret[0]
         ret1[1] = ret[1:]
         return ret
+
+    def tgpio_delay_set_digital(self, ionum, on_off, delay_sec):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32_to_bytes(delay_sec)
+        ret = self.send_xbus(XCONF.UxbusReg.DELAYED_TGPIO_SET, txdata, 6)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.DELAYED_TGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    def cgpio_delay_set_digital(self, ionum, on_off, delay_sec):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32_to_bytes(delay_sec)
+        ret = self.send_xbus(XCONF.UxbusReg.DELAYED_CGPIO_SET, txdata, 6)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.DELAYED_CGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    def cgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32s_to_bytes(xyz, 3)
+        txdata += convert.fp32_to_bytes(tol_r)
+        ret = self.send_xbus(XCONF.UxbusReg.POSITION_CGPIO_SET, txdata, 18)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.POSITION_CGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    def tgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
+        txdata = bytes([ionum, on_off])
+        txdata += convert.fp32s_to_bytes(xyz, 3)
+        txdata += convert.fp32_to_bytes(tol_r)
+        ret = self.send_xbus(XCONF.UxbusReg.POSITION_TGPIO_SET, txdata, 18)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.POSITION_TGPIO_SET, 0, XCONF.UxbusConf.SET_TIMEOUT)
+
+    # io_type: 0 for CGPIO, 1 for TGPIO
+    def config_io_stop_reset(self, io_type, on_off):
+        txdata = [io_type, on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_IO_STOP_RESET, txdata, 2)
 
     def gripper_modbus_w16s(self, addr, value, length):
         txdata = bytes([XCONF.GRIPPER_ID])

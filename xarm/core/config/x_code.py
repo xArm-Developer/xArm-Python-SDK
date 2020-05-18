@@ -654,6 +654,16 @@ ControllerErrorCodeMap = {
             'desc': '机械臂到达安全边界，请到实时控制界面开启手动模式后将机械臂移动到安全边界内。'
         }
     },
+    36: {
+        'en': {
+            'title': 'The number of delay commands exceeds the limit',
+            'desc': 'The number of delay commands or position detection commands to be executed cannot exceed 36, please check whether there are too many delay commands or position detection commands in the code.'
+        },
+        'cn': {
+            'title': '延时指令数量超限',
+            'desc': '待执行的延时指令或位置检测指令超过36个，请检查代码中延时指令或位置检测指令是否过多。'
+        }
+    },
     'other': {
         'en': {
             'title': 'Other Errors',

@@ -141,7 +141,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.move_gohome(...)
   arm.move_circle(...)
   arm.emergency_stop()
-  
   arm.set_position_aa(...)
   arm.set_servo_cartesian_aa(...)
   ```
@@ -166,7 +165,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.get_position(...)
   arm.get_servo_angle(...)
   arm.get_position_aa(...)
-  
   arm.get_pose_offset(...)
   ```
 
@@ -204,6 +202,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.get_tgpio_digital(...)
   arm.set_tgpio_digital(...)
   arm.get_tgpio_analog(...)
+  arm.set_tgpio_digital_with_xyz(...)
   # Controller GPIO
   arm.get_cgpio_digital(...)
   arm.get_cgpio_analog(...)
@@ -212,8 +211,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_cgpio_digital_input_function(...)
   arm.set_cgpio_digital_output_function(...)
   arm.get_cgpio_state()
-  
-  arm.set_tgpio_digital_with_xyz(...)
   arm.set_cgpio_digital_with_xyz(...)
   ```
 
@@ -223,7 +220,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.shutdown_system(...)
   arm.clean_error()
   arm.clean_warn()
-  
   arm.set_counter_reset()
   arm.set_counter_increase(...)
   ```
@@ -240,7 +236,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.register_cmdnum_changed_callback(callback)
   arm.register_temperature_changed_callback(callback)
   arm.register_count_changed_callback(callback)
-  
   arm.release_report_callback(callback)
   arm.release_report_location_callback(callback)
   arm.release_connect_changed_callback(callback)

@@ -137,9 +137,13 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_position(...)
   arm.set_servo_angle(...)
   arm.set_servo_angle_j(...)
+  arm.set_servo_cartesian(...)
   arm.move_gohome(...)
   arm.move_circle(...)
   arm.emergency_stop()
+  
+  arm.set_position_aa(...)
+  arm.set_servo_cartesian_aa(...)
   ```
 
 - #### Set
@@ -161,6 +165,9 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.get_err_warn_code()
   arm.get_position(...)
   arm.get_servo_angle(...)
+  arm.get_position_aa(...)
+  
+  arm.get_pose_offset(...)
   ```
 
 - #### Setting
@@ -174,6 +181,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_collision_sensitivity(...)
   arm.set_teach_sensitivity(...)
   arm.set_gravity_direction(...)
+  arm.config_tgpio_reset_when_stop(...)
+  arm.config_cgpio_reset_when_stop(...)
   arm.clean_conf()
   arm.save_conf()
   ```
@@ -203,6 +212,9 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_cgpio_digital_input_function(...)
   arm.set_cgpio_digital_output_function(...)
   arm.get_cgpio_state()
+  
+  arm.set_tgpio_digital_with_xyz(...)
+  arm.set_cgpio_digital_with_xyz(...)
   ```
 
 - #### Other
@@ -211,6 +223,9 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.shutdown_system(...)
   arm.clean_error()
   arm.clean_warn()
+  
+  arm.set_counter_reset()
+  arm.set_counter_increase(...)
   ```
 
 - #### Register/Release
@@ -223,6 +238,9 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.register_mtable_mtbrake_changed_callback(callback)
   arm.register_error_warn_changed_callback(callback)
   arm.register_cmdnum_changed_callback(callback)
+  arm.register_temperature_changed_callback(callback)
+  arm.register_count_changed_callback(callback)
+  
   arm.release_report_callback(callback)
   arm.release_report_location_callback(callback)
   arm.release_connect_changed_callback(callback)
@@ -231,6 +249,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.release_mtable_mtbrake_changed_callback(callback)
   arm.release_error_warn_changed_callback(callback)
   arm.release_cmdnum_changed_callback(callback)
+  arm.release_temperature_changed_callback(callback)
+  arm.release_count_changed_callback(callback)
   ```
 
 - #### Property
@@ -268,5 +288,6 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.device_type
   arm.axis
   arm.gravity_direction
+  arm.gpio_reset_config
   ```
 

@@ -1253,9 +1253,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not self._stream_report or not self._stream_report.connected:
             self.get_position()
             self.get_servo_angle()
-        self._last_angles = self._angles
+        self._last_angles = self._angles.copy()
         if index is None:
-            self._last_position = self._position
+            self._last_position = self._position.copy()
         elif isinstance(index, int) and 0 <= index < 6:
             self._last_position[index] = self._position[index]
         print('=============sync_tcp: index={}'.format(index))
@@ -1264,9 +1264,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not self._stream_report or not self._stream_report.connected:
             self.get_position()
             self.get_servo_angle()
-        self._last_position = self._position
+        self._last_position = self._position.copy()
         if index is None:
-            self._last_angles = self._angles
+            self._last_angles = self._angles.copy()
         elif isinstance(index, int) and 0 <= index < 7:
             self._last_angles[index] = self._angles[index]
         print('=============sync_joint: index={}'.format(index))
@@ -1275,8 +1275,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         if not self._stream_report or not self._stream_report.connected:
             self.get_position()
             self.get_servo_angle()
-        self._last_position = self._position
-        self._last_angles = self._angles
+        self._last_position = self._position.copy()
+        self._last_angles = self._angles.copy()
         print('=============sync_all')
 
     class _WaitMove:
@@ -3173,4 +3173,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
         return ret[0]
 
-
+    @staticmethod
+    def set_timeout(timeout):
+        if isinstance(timeout, (tuple, list)) and len(timeout) >= 2:
+            XCONF.UxbusConf.SET_TIMEOUT = timeout[0] * 1000
+            XCONF.UxbusConf.GET_TIMEOUT = timeout[1] * 1000
+        else:
+            XCONF.UxbusConf.SET_TIMEOUT = timeout * 1000
+            XCONF.UxbusConf.GET_TIMEOUT = timeout * 1000
+        return 0

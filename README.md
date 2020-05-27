@@ -30,6 +30,8 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.5.1
+  - Fix timeout of `motion_enable` interface
 - > ### 1.5.0
   - The new parameter of `set_servo_cartisian` interface is used to support servo cartisian movement of tool coordinate system
   - Support delayed trigger digital IO
@@ -75,6 +77,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - #####  [1007-counter](example/wrapper/common/1007-counter.py)
 
+- [__1008-move_line_aa__](example/wrapper/common/1008-move_line_aa.py)
+
 - ##### 2001-move_joint --> [xarm5](example/wrapper/xarm5/2001-move_joint.py) --- [xarm6](example/wrapper/xarm6/2001-move_joint.py) --- [xarm7](example/wrapper/xarm7/2001-move_joint.py)
 
 - ##### 2002-move_joint --> [xarm5](example/wrapper/xarm5/2002-move_joint.py) --- [xarm6](example/wrapper/xarm6/2002-move_joint.py) --- [xarm7](example/wrapper/xarm7/2002-move_joint.py)
@@ -112,6 +116,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - ##### [7001-servo_j](example/wrapper/common/7001-servo_j.py)
 
 - ##### [7002-servo_cartesian](example/wrapper/common/7002-servo_cartesian.py)
+
+- [__7003-servo_cartesian_aa__](example/wrapper/common/7003-servo_cartesian_aa.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 

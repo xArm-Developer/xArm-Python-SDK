@@ -44,11 +44,11 @@ class UxbusCmd(object):
         raise NotImplementedError
 
     @lock_require
-    def set_nu8(self, funcode, datas, num):
+    def set_nu8(self, funcode, datas, num, timeout=None):
         ret = self.send_xbus(funcode, datas, num)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT)
+        return self.send_pend(funcode, 0, XCONF.UxbusConf.SET_TIMEOUT if timeout is None else timeout)
 
     @lock_require
     def set_get_nu8(self, funcode, datas, num_send, num_get):
@@ -255,7 +255,7 @@ class UxbusCmd(object):
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
-        return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2)
+        return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2, timeout=2000)
 
     def set_state(self, value):
         txdata = [value]

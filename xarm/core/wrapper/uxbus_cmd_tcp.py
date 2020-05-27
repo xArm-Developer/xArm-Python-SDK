@@ -72,7 +72,9 @@ class UxbusCmdTcp(UxbusCmd):
             ret = [0] * (num + 1)
         times = int(timeout)
         ret[0] = XCONF.UxbusState.ERR_TOUT
-        while times > 0:
+        expired = time.time() + timeout / 1000
+        # while times > 0:
+        while time.time() < expired:
             times -= 1
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 7:

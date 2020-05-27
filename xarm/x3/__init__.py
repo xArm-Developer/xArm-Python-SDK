@@ -3173,4 +3173,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
         return ret[0]
 
-
+    @staticmethod
+    def set_timeout(timeout):
+        if isinstance(timeout, (tuple, list)) and len(timeout) >= 2:
+            XCONF.UxbusConf.SET_TIMEOUT = timeout[0] * 1000
+            XCONF.UxbusConf.GET_TIMEOUT = timeout[1] * 1000
+        else:
+            XCONF.UxbusConf.SET_TIMEOUT = timeout * 1000
+            XCONF.UxbusConf.GET_TIMEOUT = timeout * 1000
+        return 0

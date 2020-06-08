@@ -24,6 +24,7 @@ from .gpio import GPIO
 from .servo import Servo
 from .events import *
 from .record import Record
+from .robotiq import RobotIQ
 from .parse import GcodeParser
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_time, compare_version
@@ -35,12 +36,15 @@ except:
 
 
 gcode_p = GcodeParser()
+controller_error_keys = ControllerErrorCodeMap.keys()
+controller_warn_keys = ControllerWarnCodeMap.keys()
 
 
-class XArm(Gripper, Servo, GPIO, Events, Record):
+class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
     def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         super(XArm, self).__init__()
         self._port = port
+        self._debug = kwargs.get('debug', False)
         self._baudrate = kwargs.get('baudrate', XCONF.SerialConf.SERIAL_BAUD)
         self._timeout = kwargs.get('timeout', None)
         self._filters = kwargs.get('filters', None)
@@ -145,7 +149,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         self._cgpio_reset_enable = 0
         self._tgpio_reset_enable = 0
 
+        self.modbus_baud = -1
+
         Events.__init__(self)
+        RobotIQ.__init__(self)
         if not do_not_open:
             self.connect()
 
@@ -154,6 +161,40 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             if self.state == 3 and self._enable_report:
                 with self._cond_pause:
                     self._cond_pause.wait()
+
+    @xarm_is_connected(_type='set')
+    def checkset_modbus_baud(self, baudrate):
+        if self.modbus_baud == baudrate:
+            return True
+        if baudrate not in self.arm_cmd.BAUDRATES:
+            return False
+        ret, cur_baud_inx = self._get_modbus_baudrate()
+        if ret == 0:
+            baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
+            if cur_baud_inx != baud_inx:
+                self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
+                self.arm_cmd.tgpio_addr_w16(0x1a0b, baud_inx)
+                self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
+                if self.error_code != 19 and self.error_code != 28:
+                    self.get_err_warn_code()
+                if self.error_code == 19 or self.error_code == 28:
+                    self.clean_error()
+                    time.sleep(0.6)
+                ret, cur_baud_inx = self._get_modbus_baudrate()
+                logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
+            if ret == 0:
+                self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
+        return self.modbus_baud == baudrate
+
+    @xarm_is_connected(_type='get')
+    def _get_modbus_baudrate(self):
+        ret = self.arm_cmd.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
+        if ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            if self.error_code != 19 and self.error_code != 28:
+                self.get_err_warn_code()
+            if self.error_code != 19 and self.error_code != 28:
+                ret[0] = 0
+        return ret[0], ret[1]
 
     @property
     def version_is_ge_1_2_11(self):
@@ -457,6 +498,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     self._stream_report = None
 
                 self._check_version()
+                self.arm_cmd.set_debug(self._debug)
 
                 if self._stream.connected and self._enable_report:
                     if self._is_old_protocol:
@@ -480,6 +522,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 else:
                     self._report_connect_changed_callback(True, False)
                 self._check_version()
+                self.arm_cmd.set_debug(self._debug)
 
     def _check_version(self):
         self._version = None
@@ -746,6 +789,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 self._is_ready = False
             self._is_first_report = False
 
+            if error_code in [10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+                self.modbus_baud = -1
+
             self._error_code = error_code
             self._warn_code = warn_code
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
@@ -925,12 +971,14 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
             if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
-                    and ((error_code != 0 and error_code not in ControllerErrorCodeMap.keys()) \
-                    or (warn_code != 0 and warn_code not in ControllerWarnCodeMap.keys())):
+                    and ((error_code != 0 and error_code not in controller_error_keys) or (warn_code != 0 and warn_code not in controller_warn_keys)):
                 self._stream_report.close()
                 print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
                 return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
+
+            if error_code in [10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+                self.modbus_baud = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))
@@ -1086,25 +1134,26 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
             sv3_msg = rx_data[229:245]
             self._first_report_over = True
 
-            size = convert.bytes_to_u32(rx_data[0:4])
-            if size >= 252:
+            # length = convert.bytes_to_u32(rx_data[0:4])
+            length = len(rx_data)
+            if length >= 252:
                 temperatures = list(map(int, rx_data[245:252]))
                 if temperatures != self.temperatures:
                     self._temperatures = temperatures
                     self._report_temperature_changed_callback()
-            if size >= 284:
+            if length >= 284:
                 speeds = convert.bytes_to_fp32s(rx_data[252:8 * 4 + 252], 8)
                 self._realtime_tcp_speed = speeds[0]
                 self._realtime_joint_speeds = speeds[1:]
                 # print(speeds[0], speeds[1:])
-            if size >= 288:
-                count = convert.bytes_to_u32(data[284:288])
-                # print(count, data[284:288])
+            if length >= 288:
+                count = convert.bytes_to_u32(rx_data[284:288])
+                # print(count, rx_data[284:288])
                 if self._count != -1 and count != self._count:
                     self._count = count
                     self._report_count_changed_callback()
                 self._count = count
-            if size >= 312:
+            if length >= 312:
                 world_offset = convert.bytes_to_fp32s(rx_data[288:6 * 4 + 288], 6)
                 for i in range(len(world_offset)):
                     if i < 3:
@@ -1113,7 +1162,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                         world_offset[i] = float('{:.6f}'.format(world_offset[i]))
                 if math.inf not in world_offset and -math.inf not in world_offset and not (10 <= self._error_code <= 17):
                     self._world_offset = world_offset
-            if size >= 314:
+            if length >= 314:
                 self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
 
         main_socket_connected = self._stream and self._stream.connected
@@ -1134,9 +1183,9 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                 if not report_socket_connected:
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                rx_data = self._stream_report.read()
-                if rx_data != -1:
-                    buffer += rx_data
+                recv_data = self._stream_report.read()
+                if recv_data != -1:
+                    buffer += recv_data
                     if len(buffer) < 4:
                         continue
                     if size == 0:
@@ -1160,13 +1209,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                             data = buffer[:size]
                             buffer = buffer[size:]
                             __handle_report_normal(data)
-                # if rx_data != -1 and len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                #     # if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                #     #     __handle_report_normal(rx_data)
-                #     if len(rx_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
-                #         __handle_report_rich(rx_data)
+                # if recv_data != -1 and len(recv_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                #     # if len(recv_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
+                #     #     __handle_report_normal(recv_data)
+                #     if len(recv_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
+                #         __handle_report_rich(recv_data)
                 #     else:
-                #         __handle_report_normal(rx_data)
+                #         __handle_report_normal(recv_data)
             except Exception as e:
                 logger.error(e)
                 self._connect_report()
@@ -1317,6 +1366,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
                     count += 1
                     if count >= 10:
                         break
+                    if count % 4 == 0:
+                        self.owner.get_state()
                 else:
                     # base_joint_pos = self.owner._angles.copy()
                     count = 0
@@ -2398,13 +2449,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record):
         logger.info('reset--end')
 
     @xarm_is_ready(_type='set')
-    def set_joint_torque(self, jnt_taus):
-        ret = self.arm_cmd.set_servot(jnt_taus)
-        logger.info('API -> set_joint_torque -> ret={}, jnt_taus={}'.format(ret[0], jnt_taus))
+    def set_joints_torque(self, joints_torque):
+        ret = self.arm_cmd.set_servot(joints_torque)
+        logger.info('API -> set_joints_torque -> ret={}, joints_torque={}'.format(ret[0], joints_torque))
         return ret[0]
 
     @xarm_is_connected(_type='get')
-    def get_joint_torque(self, servo_id=None):
+    def get_joints_torque(self, servo_id=None):
         ret = self.arm_cmd.get_joint_tau()
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 7:
             self._joints_torque = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]

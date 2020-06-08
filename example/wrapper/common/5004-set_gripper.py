@@ -29,11 +29,11 @@ except:
 
 
 arm = XArmAPI(ip)
-time.sleep(0.5)
-if arm.warn_code != 0:
-    arm.clean_warn()
-if arm.error_code != 0:
-    arm.clean_error()
+arm.motion_enable(True)
+arm.clean_error()
+arm.set_mode(0)
+arm.set_state(0)
+time.sleep(1)
 
 code = arm.set_gripper_mode(0)
 print('set gripper mode: location mode, code={}'.format(code))

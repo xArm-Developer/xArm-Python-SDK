@@ -2290,3 +2290,161 @@ class XArmAPI(object):
         """
         return self._arm.get_position_aa(is_radian=is_radian)
 
+    def get_joints_torque(self):
+        """
+        Get joints torque
+        
+        :return: tuple((code, joints_torque))
+            code: See the API code documentation for details.
+            joints_torque: joints torque
+        """
+        return self._arm.get_joints_torque()
+
+    def set_joints_torque(self, joints_torque):
+        """
+        Set joints torque,
+            Warning: If necessary, please do not set it randomly, it may damage the robot arm
+
+        :param joints_torque: 
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_joints_torque(joints_torque)
+
+    def get_safe_level(self):
+        """
+        Get safe level
+        
+        :return: tuple((code, safe_level))
+            code: See the API code documentation for details.
+            safe_level: safe level
+        """
+        return self._arm.get_safe_level()
+
+    def set_safe_level(self, level=4):
+        """
+        Set safe level,
+
+        :param level: safe level, default is 4
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_safe_level(level=level)
+
+    def robotiq_reset(self):
+        """
+        Reset the robotiq gripper (clear previous activation if any)
+        
+        :return: tuple((code, robotiq_response))
+            code: See the code documentation for details.
+            robotiq_response: See the robotiq documentation
+        """
+        return self._arm.robotiq_reset()
+
+    def robotiq_set_activate(self, wait=True, timeout=3):
+        """
+        If not already activated. Activate the robotiq gripper
+        
+        :param wait: whether to wait for the robotiq activate complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+        
+        :return: tuple((code, robotiq_response))
+            code: See the code documentation for details.
+            robotiq_response: See the robotiq documentation 
+        """
+        return self._arm.robotiq_set_activate(wait=wait, timeout=timeout)
+
+    def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+        """
+        Go to the position with determined speed and force.
+        
+        :param pos: position of the gripper. Integer between 0 and 255. 0 being the open position and 255 being the close position.
+        :param speed: gripper speed between 0 and 255
+        :param force: gripper force between 0 and 255
+        :param wait: whether to wait for the robotion motion complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+        :param check_detected: check object detected or not, default is False, only available if wait=True
+        
+        :return: tuple((code, robotiq_response))
+            code: See the code documentation for details.
+            robotiq_response: See the robotiq documentation 
+        """
+        return self._arm.robotiq_set_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+
+    def robotiq_open(self, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+        """
+        Open the robotiq gripper
+        
+        :param speed: gripper speed between 0 and 255
+        :param force: gripper force between 0 and 255
+        :param wait: whether to wait for the robotiq motion to complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+        :param check_detected: check object detected or not, default is False, only available if wait=True
+        
+        :return: tuple((code, robotiq_response))
+            code: See the code documentation for details.
+            robotiq_response: See the robotiq documentation 
+        """
+        return self._arm.robotiq_open(speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+
+    def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+        """
+        Close the robotiq gripper
+        
+        :param speed: gripper speed between 0 and 255
+        :param force: gripper force between 0 and 255
+        :param wait: whether to wait for the robotiq motion to complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+        :param check_detected: check object detected or not, default is False, only available if wait=True
+        
+        :return: tuple((code, robotiq_response))
+            code: See the code documentation for details.
+            robotiq_response: See the robotiq documentation
+        """
+        return self._arm.robotiq_close(speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+
+    def robotiq_get_status(self, number_of_registers=3):
+        """
+        Reading the status of robotiq gripper
+        
+        :param number_of_registers: number of registers, 1/2/3, default is 3
+            number_of_registers=1: reading the content of register 0x07D0
+            number_of_registers=2: reading the content of register 0x07D0/0x07D1
+            number_of_registers=3: reading the content of register 0x07D0/0x07D1/0x07D2
+            
+            Note: 
+                register 0x07D0: Register GRIPPER STATUS
+                register 0x07D1: Register FAULT STATUS and register POSITION REQUEST ECHO
+                register 0x07D2: Register POSITION and register CURRENT
+        :return: tuple((code, robotiq_response))
+            code: See the code documentation for details.
+            robotiq_response: See the robotiq documentation
+        """
+        return self._arm.robotiq_get_status(number_of_registers=number_of_registers)
+
+    @property
+    def robotiq_status(self):
+        """
+        The last state value obtained
+        
+        Note:
+            1. Successfully call the robotiq related interface with wait parameter (when the parameter wait = True is set) will update this value
+            2. Successfully calling interface robotiq_get_status will partially or completely update this value
+        
+        :return status dict
+            {
+                'gOBJ': 0,  # Object detection status, is a built-in feature that provides information on possible object pick-up
+                'gSTA': 0,  # Gripper status, returns the current status & motion of the Gripper fingers
+                'gGTO': 0,  # Action status, echo of the rGTO bit(go to bit)
+                'gACT': 0,  # Activation status, echo of the rACT bit(activation bit)
+                'kFLT': 0,  # Echo of the requested position for the Gripper
+                'gFLT': 0,  # Fault status
+                'gPR': 0,  # Echo of the requested position for the Gripper
+                'gPO': 0,  # Actual position of the Gripper obtained via the encoders
+                'gCU': 0,  # The current is read instantaneously from the motor drive
+            }
+            Note: -1 means never updated
+        """
+        return self._arm.robotiq_status
+
+

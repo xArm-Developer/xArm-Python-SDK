@@ -20,6 +20,14 @@ TX2_BUS_FLAG_MIN = 1  # cmd序号 起始值
 TX2_BUS_FLAG_MAX = 5000  # cmd序号 最大值
 
 
+def debug_log_datas(datas, label=''):
+    print('{}:'.format(label), end=' ')
+    for i in range(len(datas)):
+        print('{:x}'.format(datas[i]).zfill(2), end=' ')
+        # print(hex(rx_data[i]), end=',')
+    print()
+
+
 class UxbusCmdTcp(UxbusCmd):
     def __init__(self, arm_port):
         super(UxbusCmdTcp, self).__init__()
@@ -66,34 +74,26 @@ class UxbusCmdTcp(UxbusCmd):
         return 0
 
     def send_pend(self, funcode, num, timeout):
-        if num == -1:
-            ret = [0] * 254
-        else:
-            ret = [0] * (num + 1)
-        times = int(timeout)
+        ret = [0] * 254 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
         expired = time.time() + timeout / 1000
-        # while times > 0:
         while time.time() < expired:
-            times -= 1
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 7:
-                # print('recv:',  end=' ')
-                # for i in range(len(rx_data)):
-                #     print(hex(rx_data[i]), end=',')
-                # print()
+                if self._debug:
+                    debug_log_datas(rx_data, label='recv')
                 ret[0] = self.check_xbus_prot(rx_data, funcode)
                 if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-                    if num == -1:
-                        num = rx_data[5] - 2
-                        ret1 = [ret[0]] * (num + 1)
-                        for i in range(num):
-                            ret1[i + 1] = rx_data[i + 8]
-                        return ret1
-                    else:
-                        for i in range(num):
-                            ret[i + 1] = rx_data[i + 8]
-                return ret
+                    num = (rx_data[5] - 2) if num == -1 else num
+                    ret = ret[:num + 1] if len(ret) <= num + 1 else [ret[0]] * (num + 1)
+                    length = len(rx_data) - 8
+                    for i in range(num):
+                        if i >= length:
+                            break
+                        ret[i + 1] = rx_data[i + 8]
+                    return ret
+                elif ret[0] != XCONF.UxbusState.ERR_NUM:
+                    return ret
             time.sleep(0.001)
         return ret
 
@@ -108,10 +108,8 @@ class UxbusCmdTcp(UxbusCmd):
             for i in range(num):
                 send_data += bytes([datas[i]])
         self.arm_port.flush()
-        # print('send:', end=' ')
-        # for i in range(len(send_data)):
-        #     print(hex(send_data[i]), end=',')
-        # print()
+        if self._debug:
+            debug_log_datas(send_data, label='send')
         ret = self.arm_port.write(send_data)
         if ret != 0:
             return -1

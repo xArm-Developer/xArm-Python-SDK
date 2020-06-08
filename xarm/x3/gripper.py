@@ -11,6 +11,7 @@ from .utils import xarm_is_connected, xarm_is_pause
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from ..core.utils import convert
+from .code import APIState
 
 
 class Gripper(object):
@@ -24,6 +25,8 @@ class Gripper(object):
     @xarm_is_connected(_type='get')
     def get_gripper_version(self):
         versions = ['*', '*', '*']
+        if not self._check_modbus_gripper_baud(label='get_gripper_version'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT, '.'.join(map(str, versions))
         ret1 = self.arm_cmd.gripper_modbus_r16s(0x0801, 1)
         ret2 = self.arm_cmd.gripper_modbus_r16s(0x0802, 1)
         ret3 = self.arm_cmd.gripper_modbus_r16s(0x0803, 1)
@@ -248,6 +251,8 @@ class Gripper(object):
     ########################### Modbus Protocol #################################
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_enable(self, enable):
+        if not self._check_modbus_gripper_baud(label='set_modbus_gripper_enable'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT
         ret = self.arm_cmd.gripper_modbus_set_en(int(enable))
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_enable -> ret={}, enable={}, ret2={}, err={}'.format(ret[0], enable, _, err))
@@ -256,6 +261,8 @@ class Gripper(object):
 
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_mode(self, mode):
+        if not self._check_modbus_gripper_baud(label='set_modbus_gripper_mode'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT
         ret = self.arm_cmd.gripper_modbus_set_mode(mode)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_mode -> ret={}, mode={}, ret2={}, err={}'.format(ret[0], mode, _, err))
@@ -264,6 +271,8 @@ class Gripper(object):
 
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_speed(self, speed):
+        if not self._check_modbus_gripper_baud(label='set_modbus_gripper_speed'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT
         ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_speed -> ret={}, speed={}, ret2={}, err={}'.format(ret[0], speed, _, err))
@@ -272,6 +281,8 @@ class Gripper(object):
 
     @xarm_is_connected(_type='get')
     def _get_modbus_gripper_position(self):
+        if not self._check_modbus_gripper_baud(label='get_modbus_gripper_position'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT, None
         ret = self.arm_cmd.gripper_modbus_get_pos()
         _, err = self._get_modbus_gripper_err_code()
         if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or len(ret) <= 1:
@@ -285,6 +296,8 @@ class Gripper(object):
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+        if not self._check_modbus_gripper_baud(label='set_modbus_gripper_position'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT
         if auto_enable:
             self.arm_cmd.gripper_modbus_set_en(True)
         if speed is not None:
@@ -349,6 +362,8 @@ class Gripper(object):
 
     @xarm_is_connected(_type='get')
     def _get_modbus_gripper_err_code(self):
+        if not self._check_modbus_gripper_baud(label='get_modbus_gripper_err_code'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT, 0
         ret = self.arm_cmd.gripper_modbus_get_errcode()
         logger.info('API -> get_modbus_gripper_err_code -> ret={}'.format(ret))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
@@ -366,6 +381,8 @@ class Gripper(object):
 
     @xarm_is_connected(_type='set')
     def _clean_modbus_gripper_error(self):
+        if not self._check_modbus_gripper_baud(label='clean_modbus_gripper_error'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT
         ret = self.arm_cmd.gripper_modbus_clean_err()
         self._gripper_error_code = 0
         _, err = self._get_modbus_gripper_err_code()
@@ -379,8 +396,16 @@ class Gripper(object):
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
         :return: 
         """
+        if not self._check_modbus_gripper_baud(label='set_modbus_gripper_zero'):
+            return APIState.MODBUS_BAUD_NOT_CORRECT
         ret = self.arm_cmd.gripper_modbus_set_zero()
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_zero -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
         # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
         return ret[0]
+
+    def _check_modbus_gripper_baud(self, label=''):
+        code = self.checkset_modbus_baud(2000000)
+        if not code:
+            logger.info('API -> {} -> checkset_modbus_baud(2000000) -> code={}, baud={}'.format(label, code, self.modbus_baud))
+        return APIState.MODBUS_BAUD_NOT_CORRECT

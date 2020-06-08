@@ -14,6 +14,14 @@ from .uxbus_cmd import UxbusCmd
 from ..config.x_config import XCONF
 
 
+def debug_log_datas(datas, label=''):
+    print('{}:'.format(label), end=' ')
+    for i in range(len(datas)):
+        print('{:x}'.format(datas[i]).zfill(2), end=' ')
+        # print(hex(rx_data[i]), end=',')
+    print()
+
+
 class UxbusCmdSer(UxbusCmd):
     def __init__(self, arm_port, fromid=XCONF.SerialConf.UXBUS_DEF_FROMID, toid=XCONF.SerialConf.UXBUS_DEF_TOID):
         super(UxbusCmdSer, self).__init__()
@@ -43,20 +51,20 @@ class UxbusCmdSer(UxbusCmd):
             return 0
 
     def send_pend(self, funcode, num, timeout):
-        if num == -1:
-            ret = [0] * 254
-        else:
-            ret = [0] * (num + 1)
-        times = int(timeout)
+        ret = [0] * 254 if num == -1 else [0] * (num + 1)
+        expired = time.time() + timeout / 1000
         ret[0] = XCONF.UxbusState.ERR_TOUT
-        while times > 0:
-            times -= 1
+        while time.time() < expired:
             rx_data = self.arm_port.read()
             if rx_data != -1 and len(rx_data) > 5:
+                if self._debug:
+                    debug_log_datas(rx_data, label='recv')
                 ret[0] = self.check_xbus_prot(rx_data)
-                if num == -1:
-                    num = rx_data[2]
+                num = rx_data[2] if num == -1 else num
+                length = len(rx_data) - 4
                 for i in range(num):
+                    if i >= length:
+                        break
                     ret[i + 1] = rx_data[i + 4]
                 return ret
             time.sleep(0.001)
@@ -68,4 +76,6 @@ class UxbusCmdSer(UxbusCmd):
             send_data += bytes([txdata[i]])
         send_data += crc16.crc_modbus(send_data)
         self.arm_port.flush()
+        if self._debug:
+            debug_log_datas(send_data, label='send')
         return self.arm_port.write(send_data)

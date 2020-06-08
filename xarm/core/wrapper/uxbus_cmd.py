@@ -32,7 +32,11 @@ class UxbusCmd(object):
         self._error_code = 0
         self._warn_code = 0
         self._cmd_num = 0
+        self._debug = False
         self.lock = threading.Lock()
+
+    def set_debug(self, debug):
+        self._debug = debug
 
     def check_xbus_prot(self, data, funcode):
         raise NotImplementedError
@@ -622,9 +626,6 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_MODBUS, -1, XCONF.UxbusConf.GET_TIMEOUT)
-        ret1 = [0] * 2
-        ret1[0] = ret[0]
-        ret1[1] = ret[1:]
         return ret
 
     def tgpio_delay_set_digital(self, ionum, on_off, delay_sec):

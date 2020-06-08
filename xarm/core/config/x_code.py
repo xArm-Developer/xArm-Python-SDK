@@ -730,6 +730,120 @@ ControllerWarnCodeMap = {
 }
 
 
+RobotIqErrorCodeMap = {
+    0x05: {
+        'en': {
+            'title': 'Action delayed',
+            'desc': 'Activation(reactivation) must be completed prior to perfmoring the action'
+        },
+        'cn': {
+            'title': '延迟动作',
+            'desc': '必须在激活动作之前完成激活（重新激活）'
+        }
+    },
+    0x07: {
+        'en': {
+            'title': 'Not activated',
+            'desc': 'The activation bit must be set prior to action'
+        },
+        'cn': {
+            'title': '没有激活',
+            'desc': '必须在操作前先激活'
+        }
+    },
+    0x08: {
+        'en': {
+            'title': 'Maximum operating temperature exceeded',
+            'desc': 'Please wait for cool-down'
+        },
+        'cn': {
+            'title': '机械爪过温',
+            'desc': '请等待机械爪冷却'
+        }
+    },
+    0x09: {
+        'en': {
+            'title': 'Abnormal communication',
+            'desc': 'No communication during at least 1second'
+        },
+        'cn': {
+            'title': '通信异常',
+            'desc': '至少1秒钟内没有通信'
+        }
+    },
+    0x0A: {
+        'en': {
+            'title': 'Under minimum operating voltage',
+            'desc': 'Under minimum operating voltage'
+        },
+        'cn': {
+            'title': '机械爪电压过低',
+            'desc': '机械爪电压过低'
+        }
+    },
+    0x0B: {
+        'en': {
+            'title': 'Automatic release in progress',
+            'desc': ''
+        },
+        'cn': {
+            'title': '机械爪正在自动松开',
+            'desc': '机械爪正在自动松开'
+        }
+    },
+    0x0C: {
+        'en': {
+            'title': 'Internal fault',
+            'desc': 'please contact support@robotiq.com'
+        },
+        'cn': {
+            'title': '内部故障',
+            'desc': '请联系技术支持 support@robotiq.com'
+        }
+    },
+    0x0D: {
+        'en': {
+            'title': 'Activation fault',
+            'desc': 'Please verify that no interference or other erroro ccurred'
+        },
+        'cn': {
+            'title': '激活故障',
+            'desc': '请确认没有干扰或其他错误发生'
+        }
+    },
+    0x0E: {
+        'en': {
+            'title': 'Over current triggered',
+            'desc': 'Over current triggered'
+        },
+        'cn': {
+            'title': '机械爪过流',
+            'desc': '机械爪过流'
+        }
+    },
+    0x0F: {
+        'en': {
+            'title': 'Automatic release completed',
+            'desc': 'Automatic release completed'
+        },
+        'cn': {
+            'title': '机械爪自动松开完成',
+            'desc': '机械爪自动松开完成'
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Other Fault',
+            'desc': ''
+        },
+        'cn': {
+            'title': '其它故障',
+            'desc': ''
+        }
+    },
+}
+
+
 class BaseCode(object):
     def __init__(self, code, status=0):
         self._code = code
@@ -787,3 +901,9 @@ class GripperError(BaseCode):
     def __init__(self, code, status=0):
         self._code_map = GripperError
         super(GripperError, self).__init__(code, status=status)
+
+
+class RobotIqError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = RobotIqErrorCodeMap
+        super(RobotIqError, self).__init__(code, status=status)

@@ -23,10 +23,15 @@
 - 10: reversed, no use
 - 11: other error
 - 12: parameter error
+- 21: modbus baudrate not correct
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout
 - 41: wait to set suction cup timeout
+- 101: robotiq response length error
+- 102: robotiq has error
+- 103: robotiq get status failed
+- 104: robotiq wait timeout
 
 ## Controller warning code
 - 11: uxbux que is full

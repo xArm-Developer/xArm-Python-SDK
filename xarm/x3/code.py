@@ -32,9 +32,17 @@ class APIState(object):
     NO_TCP = XCONF.UxbusState.ERR_NOTTCP  # 写数据异常
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
+
+    MODBUS_BAUD_NOT_CORRECT = 21  # 末端modbus波特率不正确
+
     TRAJ_RW_FAILED = 31  # 读写轨迹失败(加载轨迹或保存轨迹)
     TRAJ_RW_TOUT = 32  # 读写轨迹等待超时(加载轨迹或保存轨迹)
     TRAJ_PLAYBACK_TOUT = 33  # 回放轨迹超时(多种情况)
     SUCTION_CUP_TOUT = 41  # 等待吸泵设置超时
+
+    ROBOTIQ_ERR_LENG = 101
+    ROBOTIQ_HAS_FAULT = 102
+    ROBOTIQ_GET_FAILED = 103
+    ROBOTIQ_WAIT_TIMEOUT = 104
 
 

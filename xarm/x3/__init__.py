@@ -149,9 +149,12 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
         self._cgpio_reset_enable = 0
         self._tgpio_reset_enable = 0
 
+        self.ignore_error = False
         self.modbus_baud = -1
 
         Events.__init__(self)
+        GPIO.__init__(self)
+        Gripper.__init__(self)
         RobotIQ.__init__(self)
         if not do_not_open:
             self.connect()
@@ -162,29 +165,37 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
                 with self._cond_pause:
                     self._cond_pause.wait()
 
-    @xarm_is_connected(_type='set')
     def checkset_modbus_baud(self, baudrate):
-        if self.modbus_baud == baudrate:
-            return True
-        if baudrate not in self.arm_cmd.BAUDRATES:
-            return False
-        ret, cur_baud_inx = self._get_modbus_baudrate()
-        if ret == 0:
-            baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
-            if cur_baud_inx != baud_inx:
-                self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
-                self.arm_cmd.tgpio_addr_w16(0x1a0b, baud_inx)
-                self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
-                if self.error_code != 19 and self.error_code != 28:
-                    self.get_err_warn_code()
-                if self.error_code == 19 or self.error_code == 28:
-                    self.clean_error()
-                    time.sleep(0.6)
-                ret, cur_baud_inx = self._get_modbus_baudrate()
-                logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
+        try:
+            if not self.connected:
+                return False
+            if self.modbus_baud == baudrate:
+                return True
+            if baudrate not in self.arm_cmd.BAUDRATES:
+                return False
+            ret, cur_baud_inx = self._get_modbus_baudrate()
             if ret == 0:
-                self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
-        return self.modbus_baud == baudrate
+                baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
+                if cur_baud_inx != baud_inx:
+                    self.ignore_error = True
+                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
+                    self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
+                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
+                    if self.error_code != 19 and self.error_code != 28:
+                        self.get_err_warn_code()
+                    if self.error_code == 19 or self.error_code == 28:
+                        self.clean_error()
+                        time.sleep(0.6)
+                    self.ignore_error = False
+                    ret, cur_baud_inx = self._get_modbus_baudrate()
+                    logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
+                if ret == 0:
+                    self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
+            return self.modbus_baud == baudrate
+        except Exception as e:
+            logger.error('checkset_modbus_baud error: {}'.format(e))
+        finally:
+            self.ignore_error = False
 
     @xarm_is_connected(_type='get')
     def _get_modbus_baudrate(self):
@@ -647,6 +658,8 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
                     logger.error('mtable/mtbrake changed callback: {}'.format(e))
 
     def _report_error_warn_changed_callback(self):
+        if self.ignore_error:
+            return
         if REPORT_ERROR_WARN_CHANGED_ID in self._report_callbacks.keys():
             for callback in self._report_callbacks[REPORT_ERROR_WARN_CHANGED_ID]:
                 try:
@@ -791,6 +804,10 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
 
             if error_code in [10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
                 self.modbus_baud = -1
+                self.robotiq_is_activated = False
+                self.gripper_is_enabled = False
+                self.bio_gripper_is_enabled = False
+                self.bio_gripper_speed = -1
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -973,12 +990,16 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
             if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
                     and ((error_code != 0 and error_code not in controller_error_keys) or (warn_code != 0 and warn_code not in controller_warn_keys)):
                 self._stream_report.close()
-                print('DataException，ErrorCode: {}, WarnCode: {}, try reconnect'.format(error_code, warn_code))
+                logger.info('ReportDataException: data={}'.format(rx_data))
                 return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
             if error_code in [10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
                 self.modbus_baud = -1
+                self.robotiq_is_activated = False
+                self.gripper_is_enabled = False
+                self.bio_gripper_is_enabled = False
+                self.bio_gripper_speed = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))
@@ -1307,7 +1328,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
             self._last_position = self._position.copy()
         elif isinstance(index, int) and 0 <= index < 6:
             self._last_position[index] = self._position[index]
-        print('=============sync_tcp: index={}'.format(index))
+        # print('=============sync_tcp: index={}'.format(index))
 
     def _sync_joints(self, index=None):
         if not self._stream_report or not self._stream_report.connected:
@@ -1318,7 +1339,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
             self._last_angles = self._angles.copy()
         elif isinstance(index, int) and 0 <= index < 7:
             self._last_angles[index] = self._angles[index]
-        print('=============sync_joint: index={}'.format(index))
+        # print('=============sync_joint: index={}'.format(index))
 
     def _sync(self):
         if not self._stream_report or not self._stream_report.connected:
@@ -1326,7 +1347,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
             self.get_servo_angle()
         self._last_position = self._position.copy()
         self._last_angles = self._angles.copy()
-        print('=============sync_all')
+        # print('=============sync_all')
 
     class _WaitMove:
         def __init__(self, owner, timeout):
@@ -1406,7 +1427,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
                 # else:
                 #     logger.info('API -> set_position -> ret={}, i={}, value={}'.format(APIState.OUT_OF_RANGE, i, value))
                 #     return True
-            if value < limit[0] or value > limit[1]:
+            if value < limit[0] - math.radians(0.1) or value > limit[1] + math.radians(0.1):
                 logger.info('API -> set_position -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, value))
                 return True
         return False
@@ -1707,7 +1728,7 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
         joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(self.device_type, [])
         if i < len(joint_limit):
             angle_range = joint_limit[i]
-            if angle < angle_range[0] or angle > angle_range[1]:
+            if angle < angle_range[0] - math.radians(0.1) or angle > angle_range[1] + math.radians(0.1):
                 logger.info('API -> set_servo_angle -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle))
                 return True
         return False
@@ -2468,9 +2489,6 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
     @xarm_is_connected(_type='get')
     def get_safe_level(self):
         ret = self.arm_cmd.get_safe_level()
-        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #     self._state = ret[1]
-        #     ret[0] = 0
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
@@ -2806,22 +2824,13 @@ class XArm(Gripper, Servo, GPIO, Events, Record, RobotIQ):
             }
 
     def emergency_stop(self):
-        start_time = time.time()
         logger.info('emergency_stop--begin')
         self.set_state(4)
-        while self.state != 4 and time.time() - start_time < 3:
+        expired = time.time() + 3
+        while self.state != 4 and time.time() < expired:
             self.set_state(4)
             time.sleep(0.1)
         self._is_stop = True
-        # self.set_state(0)
-        # if not self._is_ready:
-        #     start_time = time.time()
-        #     self.motion_enable(enable=True)
-        #     while self.state in [0, 3, 4] and time.time() - start_time < 3:
-        #         ret = self.set_state(0)
-        #         if ret == 1:
-        #             break
-        #         time.sleep(0.1)
         self._sleep_finish_time = 0
         logger.info('emergency_stop--end')
 

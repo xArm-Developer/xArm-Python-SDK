@@ -10,6 +10,7 @@ import time
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .code import APIState
+from .utils import xarm_is_connected
 
 BAUDRATE = 115200
 
@@ -31,18 +32,19 @@ class RobotIQ(object):
         self.__robotiq_closemm = None
         self.__robotiq_aCoef = None
         self.__robotiq_bCoef = None
+        self.robotiq_is_activated = False
 
     @property
     def robotiq_status(self):
         return self.__robotiq_status
 
-    def __check_code(self, ret, length=0):
+    def __check_robotiq_code(self, ret, length=0):
         if not self.connected:
             return APIState.NOT_CONNECTED
         code = ret[0]
         if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             if length > 0 and len(ret) < length:
-                return APIState.ROBOTIQ_ERR_LENG
+                return APIState.MODBUS_ERR_LENG
             elif code != 0:
                 if self.error_code != 19 and self.error_code != 28:
                     self.get_err_warn_code()
@@ -55,18 +57,20 @@ class RobotIQ(object):
             return [APIState.MODBUS_BAUD_NOT_CORRECT]
         return self.arm_cmd.tgpio_set_modbus(data_frame, len(data_frame))
 
+    @xarm_is_connected(_type='get')
     def __robotiq_set(self, params):
         data_frame = [0x09, 0x10, 0x03, 0xE8, 0x00, 0x03, len(params)]
         data_frame.extend(params)
         ret = self.__robotiq_send_modbus(data_frame)
-        ret[0] = self.__check_code(ret, 8)
+        ret[0] = self.__check_robotiq_code(ret, 8)
         return ret[0], ret[2:]
 
+    @xarm_is_connected(_type='get')
     def __robotiq_get(self, params):
         data_frame = [0x09, 0x03]
         data_frame.extend(params)
         ret = self.__robotiq_send_modbus(data_frame)
-        ret[0] = self.__check_code(ret, 5 + 2 * params[-1])
+        ret[0] = self.__check_robotiq_code(ret, 5 + 2 * params[-1])
         if ret[0] == 0 and len(ret) >= 7:
             gripper_status_reg = ret[5]
             self.__robotiq_status['gOBJ'] = (gripper_status_reg & 0xC0) >> 6
@@ -121,18 +125,18 @@ class RobotIQ(object):
     def robotiq_wait_activation_completed(self, timeout=3):
         failed_cnt = 0
         expired = time.time() + timeout if timeout is not None and timeout > 0 else 0
-        code = APIState.ROBOTIQ_WAIT_TIMEOUT
+        code = APIState.WAIT_FINISH_TIMEOUT
         while expired == 0 or time.time() < expired:
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
                 gFLT = self.__robotiq_status['gFLT']
                 gSTA = self.__robotiq_status['gSTA']
-                code = APIState.ROBOTIQ_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
+                code = APIState.END_EFFECTOR_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
                     else 0 if gSTA == 3 else code
             else:
-                code = APIState.ROBOTIQ_GET_FAILED if failed_cnt > 10 else code
-            if code != APIState.ROBOTIQ_WAIT_TIMEOUT:
+                code = APIState.NOT_CONNECTED if _ == APIState.NOT_CONNECTED else APIState.CHECK_FAILED if failed_cnt > 10 else code
+            if code != APIState.WAIT_FINISH_TIMEOUT:
                 break
             time.sleep(0.05)
         return code
@@ -140,7 +144,7 @@ class RobotIQ(object):
     def robotiq_wait_motion_completed(self, timeout=5, check_detected=False):
         failed_cnt = 0
         expired = time.time() + timeout if timeout is not None and timeout > 0 else 0
-        code = APIState.ROBOTIQ_WAIT_TIMEOUT
+        code = APIState.WAIT_FINISH_TIMEOUT
         while expired == 0 or time.time() < expired:
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
@@ -148,12 +152,12 @@ class RobotIQ(object):
                 gFLT = self.__robotiq_status['gFLT']
                 gSTA = self.__robotiq_status['gSTA']
                 gOBJ = self.__robotiq_status['gOBJ']
-                code = APIState.ROBOTIQ_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
+                code = APIState.END_EFFECTOR_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
                     else 0 if (check_detected and (gOBJ == 1 or gOBJ == 2)) or (gOBJ == 1 or gOBJ == 2 or gOBJ == 3) \
                     else code
             else:
-                code = APIState.ROBOTIQ_GET_FAILED if failed_cnt > 10 else code
-            if code != APIState.ROBOTIQ_WAIT_TIMEOUT:
+                code = APIState.NOT_CONNECTED if _ == APIState.NOT_CONNECTED else APIState.CHECK_FAILED if failed_cnt > 10 else code
+            if code != APIState.WAIT_FINISH_TIMEOUT:
                 break
             time.sleep(0.05)
         return code
@@ -178,16 +182,16 @@ class RobotIQ(object):
         elif pos_mm > self.__robotiq_openmm:
             print("The maximum opening is {}".format(self.__robotiq_openmm))
         else:
-            pos = int(self.robotiq_mm_to_bit(pos_mm))
+            pos = int(self.__robotiq_mm_to_bit(pos_mm))
             return self.robotiq_set_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
 
-    def robotiq_mm_to_bit(self, mm):
+    def __robotiq_mm_to_bit(self, mm):
         if self.__robotiq_aCoef is None or self.__robotiq_bCoef is None:
             print('You have to calibrate the gripper before using the function robotiq_mm_to_bit()')
         else:
             return (mm - self.__robotiq_bCoef) / self.__robotiq_aCoef
 
-    def robotiq_bit_to_mm(self, bit):
+    def __robotiq_bit_to_mm(self, bit):
         if self.__robotiq_aCoef is None or self.__robotiq_bCoef is None:
             print('You have to calibrate the gripper before using the function robotiq_bit_to_mm()')
         else:

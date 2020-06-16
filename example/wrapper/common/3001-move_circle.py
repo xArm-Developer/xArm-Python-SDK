@@ -39,7 +39,7 @@ else:
 ########################################################
 
 
-arm = XArmAPI(ip, is_radian=True)
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
@@ -47,14 +47,14 @@ arm.set_state(state=0)
 arm.reset(wait=True)
 
 poses = [
-    [300,  0,   100, -3.1416, 0, 0],
-    [300,  100, 100, -3.1416, 0, 0],
-    [400,  100, 100, -3.1416, 0, 0],
-    [400, -100, 100, -3.1416, 0, 0],
-    [300,  0,   300, -3.1416, 0, 0]
+    [300,  0,   100, -180, 0, 0],
+    [300,  100, 100, -180, 0, 0],
+    [400,  100, 100, -180, 0, 0],
+    [400, -100, 100, -180, 0, 0],
+    [300,  0,   300, -180, 0, 0]
 ]
 
-ret = arm.set_position(*poses[0], speed=50, mvacc=100, wait=True)
+ret = arm.set_position(*poses[0], speed=50, mvacc=100, wait=False)
 print('set_position, ret: {}'.format(ret))
 
 ret = arm.move_circle(pose1=poses[1], pose2=poses[2], percent=50, speed=200, mvacc=1000, wait=True)

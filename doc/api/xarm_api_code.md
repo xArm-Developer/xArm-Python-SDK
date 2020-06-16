@@ -24,14 +24,14 @@
 - 11: other error
 - 12: parameter error
 - 21: modbus baudrate not correct
+- 22: modbus reply length error
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout
 - 41: wait to set suction cup timeout
-- 101: robotiq response length error
-- 102: robotiq has error
-- 103: robotiq get status failed
-- 104: robotiq wait timeout
+- 100: wait finish timeout
+- 101: too many consecutive failed tests
+- 102: end effector has error
 
 ## Controller warning code
 - 11: uxbux que is full

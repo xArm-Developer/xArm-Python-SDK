@@ -335,5 +335,11 @@ class XCONF(object):
         SAVE_SUCCESS = 5
         SAVE_FAIL = 6
 
+    class BioGripperState:
+        IS_STOP = 0
+        IS_MOTION = 1
+        IS_DETECTED = 2
+        IS_FAULT = 3
+
 
 

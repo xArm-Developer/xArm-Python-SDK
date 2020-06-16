@@ -63,12 +63,12 @@ class Port(threading.Thread):
             return -1
         try:
             with self.write_lock:
-                logger.verbose('send: {}'.format(data))
+                logger.verbose('[{}] send: {}'.format(self.port_type, data))
                 self.com_write(data)
             return 0
         except Exception as e:
             self._connected = False
-            logger.error("{} send: {}".format(self.port_type, e))
+            logger.error("[{}] send error: {}".format(self.port_type, e))
             return -1
 
     def read(self, timeout=None):
@@ -76,14 +76,14 @@ class Port(threading.Thread):
             return -1
         if not self.rx_que.empty():
             buf = self.rx_que.get(timeout=timeout)
-            logger.verbose('recv: {}'.format(buf))
+            logger.verbose('[{}] recv: {}'.format(self.port_type, buf))
             return buf
         else:
             return -1
 
     def recv_proc(self):
         self.alive = True
-        logger.debug('{} recv thread start'.format(self.port_type))
+        logger.debug('[{}] recv thread start'.format(self.port_type))
         try:
             failed_read_count = 0
             timeout_count = 0
@@ -123,17 +123,17 @@ class Port(threading.Thread):
                 timeout_count = 0
                 failed_read_count = 0
                 if -1 == self.rx_parse:
-                    if self.rx_que.full():
-                        self.rx_que.get()
+                    # if self.rx_que.full():
+                    #     self.rx_que.get()
                     self.rx_que.put(rx_data)
                 else:
                     self.rx_parse.put(rx_data)
         except Exception as e:
             if self.alive:
-                logger.error('{}: {}'.format(self.port_type, e))
+                logger.error('[{}] recv error: {}'.format(self.port_type, e))
         finally:
             self.close()
-        logger.debug('{} recv thread had stopped'.format(self.port_type))
+        logger.debug('[{}] recv thread had stopped'.format(self.port_type))
         self._connected = False
         # if self.heartbeat_thread:
         #     try:

@@ -2447,4 +2447,21 @@ class XArmAPI(object):
         """
         return self._arm.robotiq_status
 
+    def set_bio_gripper_enable(self, enable):
+        return self._arm.set_bio_gripper_enable(enable)
+
+    def set_bio_gripper_speed(self, speed):
+        return self._arm.set_bio_gripper_speed(speed)
+
+    def open_bio_gripper(self, wait=True, timeout=5):
+        return self._arm.open_bio_gripper(wait=wait, timeout=timeout)
+
+    def close_bio_gripper(self, wait=True, timeout=5):
+        return self._arm.close_bio_gripper(wait=wait, timeout=timeout)
+
+    def get_bio_gripper_status(self):
+        return self._arm.get_bio_gripper_status()
+
+    def get_bio_gripper_error(self):
+        return self._arm.get_bio_gripper_error()
 

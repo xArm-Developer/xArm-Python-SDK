@@ -34,15 +34,15 @@ class APIState(object):
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
 
     MODBUS_BAUD_NOT_CORRECT = 21  # 末端modbus波特率不正确
+    MODBUS_ERR_LENG = 22  # modbus回复数据长度错误
 
     TRAJ_RW_FAILED = 31  # 读写轨迹失败(加载轨迹或保存轨迹)
     TRAJ_RW_TOUT = 32  # 读写轨迹等待超时(加载轨迹或保存轨迹)
     TRAJ_PLAYBACK_TOUT = 33  # 回放轨迹超时(多种情况)
     SUCTION_CUP_TOUT = 41  # 等待吸泵设置超时
 
-    ROBOTIQ_ERR_LENG = 101
-    ROBOTIQ_HAS_FAULT = 102
-    ROBOTIQ_GET_FAILED = 103
-    ROBOTIQ_WAIT_TIMEOUT = 104
+    WAIT_FINISH_TIMEOUT = 100  # 等待操作完成超时
+    CHECK_FAILED = 101  # 等待操作完成过程检测状态连续失败次数过多
+    END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误
 
 

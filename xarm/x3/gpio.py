@@ -15,7 +15,14 @@ from .code import APIState
 
 class GPIO(object):
     def __init__(self):
-        pass
+        self.cgpio_state = {
+            'digital': [-1] * 8,
+            'analog': [9999] * 2
+        }
+        self.tgpio_state = {
+            'digital': [-1] * 2,
+            'analog': [9999] * 2
+        }
 
     # @xarm_is_connected(_type='set')
     # def set_tgpio_addr_16(self, addr, value):
@@ -72,6 +79,8 @@ class GPIO(object):
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
         ret = self.arm_cmd.tgpio_get_digital()
+        if ret[0] == 0:
+            self.tgpio_state['digital'] = ret[1:]
         # if ret[0] != 0:
         #     self.get_err_warn_code()
         #     if self.error_code != 19:
@@ -99,13 +108,21 @@ class GPIO(object):
                 code = ret2[0]
             else:
                 code = ret1[0]
+            if ret1[0] == 0:
+                self.tgpio_state['analog'][0] = ret1[1]
+            if ret2[0] == 0:
+                self.tgpio_state['analog'][1] = ret2[1]
             ret = [code, [ret1[1], ret2[1]]]
         else:
             assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
             if ionum == 0:
                 ret = self.arm_cmd.tgpio_get_analog1()
+                if ret[0] == 0:
+                    self.tgpio_state['analog'][0] = ret[1]
             else:
                 ret = self.arm_cmd.tgpio_get_analog2()
+                if ret[0] == 0:
+                    self.tgpio_state['analog'][1] = ret[1]
         # if ret[0] != 0:
         #     self.get_err_warn_code()
         #     if self.error_code != 19:
@@ -187,6 +204,10 @@ class GPIO(object):
     @xarm_is_connected(_type='get')
     def get_cgpio_state(self):
         ret = self.arm_cmd.cgpio_get_state()
+        code, states = ret[0], ret[1:]
+        if code == 0 and states[0] == 0 and states[1] == 0:
+            self.cgpio_state['digital'] = [states[3] >> i & 0x01 if states[10][i] in [0, 255] else 1 for i in range(8)]
+            self.cgpio_state['analog'] = [states[6], states[7]]
         # data = {
         #     'state': ret[1],
         #     'error_code': ret[2],

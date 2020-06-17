@@ -13,11 +13,12 @@ from .utils import xarm_is_connected
 from .code import APIState
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
+from .base import Base
 
 
-class Record(object):
+class Record(Base):
     def __init__(self):
-        pass
+        super(Record, self).__init__()
 
     @xarm_is_connected(_type='get')
     def get_trajectories(self, ip=None):

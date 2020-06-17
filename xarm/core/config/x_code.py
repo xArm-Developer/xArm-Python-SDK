@@ -730,114 +730,138 @@ ControllerWarnCodeMap = {
 }
 
 
-RobotIqErrorCodeMap = {
+RobotiqErrorCodeMap = {
     0x05: {
         'en': {
-            'title': 'Action delayed',
+            'title': 'Robotiq action delayed',
             'desc': 'Activation(reactivation) must be completed prior to perfmoring the action'
         },
         'cn': {
-            'title': '延迟动作',
+            'title': 'Robotiq动作延迟',
             'desc': '必须在激活动作之前完成激活（重新激活）'
         }
     },
     0x07: {
         'en': {
-            'title': 'Not activated',
+            'title': 'Robotiq not activated',
             'desc': 'The activation bit must be set prior to action'
         },
         'cn': {
-            'title': '没有激活',
+            'title': 'Robotiq未激活',
             'desc': '必须在操作前先激活'
         }
     },
     0x08: {
         'en': {
-            'title': 'Maximum operating temperature exceeded',
+            'title': 'Robotiq maximum operating temperature exceeded',
             'desc': 'Please wait for cool-down'
         },
         'cn': {
-            'title': '机械爪过温',
+            'title': 'Robotiq机械爪过温',
             'desc': '请等待机械爪冷却'
         }
     },
     0x09: {
         'en': {
-            'title': 'Abnormal communication',
+            'title': 'Robotiq abnormal communication',
             'desc': 'No communication during at least 1second'
         },
         'cn': {
-            'title': '通信异常',
+            'title': 'Robotiq通信异常',
             'desc': '至少1秒钟内没有通信'
         }
     },
     0x0A: {
         'en': {
-            'title': 'Under minimum operating voltage',
+            'title': 'Robotiq under minimum operating voltage',
             'desc': 'Under minimum operating voltage'
         },
         'cn': {
-            'title': '机械爪电压过低',
+            'title': 'Robotiq机械爪电压过低',
             'desc': '机械爪电压过低'
         }
     },
     0x0B: {
         'en': {
-            'title': 'Automatic release in progress',
+            'title': 'Robotiq automatic release in progress',
             'desc': ''
         },
         'cn': {
-            'title': '机械爪正在自动松开',
+            'title': 'Robotiq机械爪正在自动松开',
             'desc': '机械爪正在自动松开'
         }
     },
     0x0C: {
         'en': {
-            'title': 'Internal fault',
+            'title': 'Robotiq internal fault',
             'desc': 'please contact support@robotiq.com'
         },
         'cn': {
-            'title': '内部故障',
+            'title': 'Robotiq内部故障',
             'desc': '请联系技术支持 support@robotiq.com'
         }
     },
     0x0D: {
         'en': {
-            'title': 'Activation fault',
+            'title': 'Robotiq activation fault',
             'desc': 'Please verify that no interference or other erroro ccurred'
         },
         'cn': {
-            'title': '激活故障',
+            'title': 'Robotiq激活故障',
             'desc': '请确认没有干扰或其他错误发生'
         }
     },
     0x0E: {
         'en': {
-            'title': 'Over current triggered',
+            'title': 'Robotiq over current triggered',
             'desc': 'Over current triggered'
         },
         'cn': {
-            'title': '机械爪过流',
+            'title': 'Robotiq机械爪过流',
             'desc': '机械爪过流'
         }
     },
     0x0F: {
         'en': {
-            'title': 'Automatic release completed',
+            'title': 'Robotiq automatic release completed',
             'desc': 'Automatic release completed'
         },
         'cn': {
-            'title': '机械爪自动松开完成',
+            'title': 'Robotiq机械爪自动松开完成',
             'desc': '机械爪自动松开完成'
         }
     },
     'other': {
         'en': {
-            'title': 'Other Fault',
+            'title': 'Robotiq other fault',
             'desc': ''
         },
         'cn': {
-            'title': '其它故障',
+            'title': 'Robotiq其它故障',
+            'desc': ''
+        }
+    },
+}
+
+
+BioGripperErrorCodeMap = {
+    0x0B: {
+        'en': {
+            'title': 'Bio Gripper Current Overlimit',
+            'desc': 'Please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': 'Bio 机械爪电流过大',
+            'desc': '请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Bio gripper other fault',
+            'desc': ''
+        },
+        'cn': {
+            'title': 'Bio机械爪其它故障',
             'desc': ''
         }
     },
@@ -903,7 +927,14 @@ class GripperError(BaseCode):
         super(GripperError, self).__init__(code, status=status)
 
 
+class BioGripperError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = BioGripperErrorCodeMap
+        super(BioGripperError, self).__init__(code, status=status)
+
+
 class RobotIqError(BaseCode):
     def __init__(self, code, status=0):
-        self._code_map = RobotIqErrorCodeMap
+        self._code_map = RobotiqErrorCodeMap
         super(RobotIqError, self).__init__(code, status=status)
+

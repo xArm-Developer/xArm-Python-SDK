@@ -10,11 +10,12 @@ from .utils import xarm_is_connected
 from ..core.config.x_config import XCONF
 from ..core.config.x_code import ServoError
 from ..core.utils.log import logger, pretty_print
+from .base import Base
 
 
-class Servo(object):
+class Servo(Base):
     def __init__(self):
-        pass
+        super(Servo, self).__init__()
 
     @xarm_is_connected(_type='get')
     def get_servo_debug_msg(self, show=False, lang='en'):

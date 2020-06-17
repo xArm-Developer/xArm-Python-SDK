@@ -11,10 +11,12 @@ from .utils import xarm_is_connected, xarm_is_pause
 from ..core.utils.log import logger
 from ..core.config.x_config import XCONF
 from .code import APIState
+from .base import Base
 
 
-class GPIO(object):
+class GPIO(Base):
     def __init__(self):
+        super(GPIO, self).__init__()
         self.cgpio_state = {
             'digital': [-1] * 8,
             'analog': [9999] * 2

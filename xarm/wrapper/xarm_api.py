@@ -6,7 +6,6 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-import os
 from ..x3 import XArm
 
 

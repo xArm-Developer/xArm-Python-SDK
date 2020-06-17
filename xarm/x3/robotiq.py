@@ -11,13 +11,17 @@ from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .code import APIState
 from .utils import xarm_is_connected
+from .base import Base
 
-BAUDRATE = 115200
 
-
-class RobotIQ(object):
+class RobotIQ(Base):
     def __init__(self):
-        self.__robotiq_status = {
+        super(RobotIQ, self).__init__()
+        self.__robotiq_openmm = None
+        self.__robotiq_closemm = None
+        self.__robotiq_aCoef = None
+        self.__robotiq_bCoef = None
+        self._robotiq_status = {
             'gOBJ': 0,  # 1和2表示停止并抓取到物体，3表示停止但没有抓取到物体，0表示正在动也没有抓取到物体
             'gSTA': 0,  # 3表示激活完成
             'gGTO': 0,
@@ -28,29 +32,14 @@ class RobotIQ(object):
             'gPO': 0,  # 通过编码器获取抓取器的实际位置, 值介于0x00和0xFF之间, 0xFF为全闭合, 0x00为全张开
             'gCU': 0,  # 从电机驱动器上瞬时读电流, 值介于0x00和0xFF之间, 等效电流大约为=10 * value mA
         }
-        self.__robotiq_openmm = None
-        self.__robotiq_closemm = None
-        self.__robotiq_aCoef = None
-        self.__robotiq_bCoef = None
-        self.robotiq_is_activated = False
+
+    @property
+    def robotiq_error_code(self):
+        return self.robotiq_status['gFLT']
 
     @property
     def robotiq_status(self):
-        return self.__robotiq_status
-
-    def __check_robotiq_code(self, ret, length=0):
-        if not self.connected:
-            return APIState.NOT_CONNECTED
-        code = ret[0]
-        if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            if length > 0 and len(ret) < length:
-                return APIState.MODBUS_ERR_LENG
-            elif code != 0:
-                if self.error_code != 19 and self.error_code != 28:
-                    self.get_err_warn_code()
-                if self.error_code != 19 and self.error_code != 28:
-                    code = 0
-        return code
+        return self._robotiq_status
 
     def __robotiq_send_modbus(self, data_frame):
         if not self.checkset_modbus_baud(115200):
@@ -62,7 +51,7 @@ class RobotIQ(object):
         data_frame = [0x09, 0x10, 0x03, 0xE8, 0x00, 0x03, len(params)]
         data_frame.extend(params)
         ret = self.__robotiq_send_modbus(data_frame)
-        ret[0] = self.__check_robotiq_code(ret, 8)
+        ret[0] = self._check_modbus_code(ret, 8)
         return ret[0], ret[2:]
 
     @xarm_is_connected(_type='get')
@@ -70,21 +59,21 @@ class RobotIQ(object):
         data_frame = [0x09, 0x03]
         data_frame.extend(params)
         ret = self.__robotiq_send_modbus(data_frame)
-        ret[0] = self.__check_robotiq_code(ret, 5 + 2 * params[-1])
+        ret[0] = self._check_modbus_code(ret, 5 + 2 * params[-1])
         if ret[0] == 0 and len(ret) >= 7:
             gripper_status_reg = ret[5]
-            self.__robotiq_status['gOBJ'] = (gripper_status_reg & 0xC0) >> 6
-            self.__robotiq_status['gSTA'] = (gripper_status_reg & 0x30) >> 4
-            self.__robotiq_status['gGTO'] = (gripper_status_reg & 0x08) >> 3
-            self.__robotiq_status['gACT'] = gripper_status_reg & 0x01
+            self._robotiq_status['gOBJ'] = (gripper_status_reg & 0xC0) >> 6
+            self._robotiq_status['gSTA'] = (gripper_status_reg & 0x30) >> 4
+            self._robotiq_status['gGTO'] = (gripper_status_reg & 0x08) >> 3
+            self._robotiq_status['gACT'] = gripper_status_reg & 0x01
             if len(ret) >= 9:
                 fault_status_reg = ret[7]
-                self.__robotiq_status['kFLT'] = (fault_status_reg & 0xF0) >> 4
-                self.__robotiq_status['gFLT'] = fault_status_reg & 0x0F
-                self.__robotiq_status['gPR'] = ret[8]
+                self._robotiq_status['kFLT'] = (fault_status_reg & 0xF0) >> 4
+                self._robotiq_status['gFLT'] = fault_status_reg & 0x0F
+                self._robotiq_status['gPR'] = ret[8]
             if len(ret) >= 11:
-                self.__robotiq_status['gPO'] = ret[9]
-                self.__robotiq_status['gCU'] = ret[10]
+                self._robotiq_status['gPO'] = ret[9]
+                self._robotiq_status['gCU'] = ret[10]
         return ret[0], ret[2:]
 
     def robotiq_reset(self):
@@ -99,6 +88,8 @@ class RobotIQ(object):
         if wait and code == 0:
             code = self.robotiq_wait_activation_completed(timeout)
         logger.info('API -> robotiq_set_activate ->code={}, ret={}'.format(code, ret))
+        if code == 0:
+            self.robotiq_is_activated = True
         return code, ret
 
     def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
@@ -130,8 +121,8 @@ class RobotIQ(object):
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
-                gFLT = self.__robotiq_status['gFLT']
-                gSTA = self.__robotiq_status['gSTA']
+                gFLT = self._robotiq_status['gFLT']
+                gSTA = self._robotiq_status['gSTA']
                 code = APIState.END_EFFECTOR_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
                     else 0 if gSTA == 3 else code
             else:
@@ -149,9 +140,9 @@ class RobotIQ(object):
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
-                gFLT = self.__robotiq_status['gFLT']
-                gSTA = self.__robotiq_status['gSTA']
-                gOBJ = self.__robotiq_status['gOBJ']
+                gFLT = self._robotiq_status['gFLT']
+                gSTA = self._robotiq_status['gSTA']
+                gOBJ = self._robotiq_status['gOBJ']
                 code = APIState.END_EFFECTOR_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
                     else 0 if (check_detected and (gOBJ == 1 or gOBJ == 2)) or (gOBJ == 1 or gOBJ == 2 or gOBJ == 3) \
                     else code
@@ -165,10 +156,10 @@ class RobotIQ(object):
     def robotiq_calibrate_mm(self, closemm, openmm):
         ret = self.robotiq_open(wait=True)
         if ret[0] == 0:
-            open_bit = self.__robotiq_status['gPO']
+            open_bit = self._robotiq_status['gPO']
             ret = self.robotiq_close(wait=True)
             if ret[0] == 0:
-                close_bit = self.__robotiq_status['gPO']
+                close_bit = self._robotiq_status['gPO']
                 self.__robotiq_aCoef = (closemm - openmm) / (close_bit - open_bit)
                 self.__robotiq_bCoef = (openmm * close_bit - closemm * open_bit) / (close_bit - open_bit)
                 self.__robotiq_closemm = closemm

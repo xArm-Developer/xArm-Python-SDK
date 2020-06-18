@@ -503,7 +503,7 @@ class Gripper(GPIO):
                 self.get_bio_gripper_error()
             else:
                 self.bio_gripper_error_code = 0
-        print('code={}, status={}'.format(code, status))
+        # print('code={}, status={}'.format(code, status))
         return code, status
 
     @xarm_is_connected(_type='get')

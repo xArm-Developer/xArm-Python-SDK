@@ -139,10 +139,10 @@ class Base(Events):
             self.modbus_baud = -1
 
             self.gripper_is_enabled = False
-            self.gripper_speed = 5000
+            self.gripper_speed = 0
 
             self.bio_gripper_is_enabled = False
-            self.bio_gripper_speed = -1
+            self.bio_gripper_speed = 0
             self.bio_gripper_error_code = 0
 
             self.robotiq_is_activated = False
@@ -836,7 +836,9 @@ class Base(Events):
                 self.robotiq_is_activated = False
                 self.gripper_is_enabled = False
                 self.bio_gripper_is_enabled = False
-                self.bio_gripper_speed = -1
+                self.bio_gripper_speed = 0
+                self.gripper_is_enabled = False
+                self.gripper_speed = 0
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1029,6 +1031,8 @@ class Base(Events):
                 self.gripper_is_enabled = False
                 self.bio_gripper_is_enabled = False
                 self.bio_gripper_speed = -1
+                self.gripper_is_enabled = False
+                self.gripper_speed = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))

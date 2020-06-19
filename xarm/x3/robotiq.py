@@ -92,19 +92,22 @@ class RobotIQ(Base):
             self.robotiq_is_activated = True
         return code, ret
 
-    def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+    def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
+        if kwargs.get('auto_enable') and not self.robotiq_is_activated:
+            self.robotiq_reset()
+            self.robotiq_set_activate(wait=True)
         params = [0x09, 0x00, 0x00, pos, speed, force]
         code, ret = self.__robotiq_set(params)
         if wait and code == 0:
-            code = self.robotiq_wait_motion_completed(timeout, check_detected=check_detected)
+            code = self.robotiq_wait_motion_completed(timeout, **kwargs)
         logger.info('API -> robotiq_set_position ->code={}, ret={}'.format(code, ret))
         return code, ret
 
-    def robotiq_open(self, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
-        return self.robotiq_set_position(0x00, speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+    def robotiq_open(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
+        return self.robotiq_set_position(0x00, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
-    def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
-        return self.robotiq_set_position(0xFF, speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+    def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
+        return self.robotiq_set_position(0xFF, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
     def robotiq_get_status(self, number_of_registers=3):
         number_of_registers = 3 if number_of_registers not in [1, 2, 3] else number_of_registers
@@ -132,10 +135,11 @@ class RobotIQ(Base):
             time.sleep(0.05)
         return code
 
-    def robotiq_wait_motion_completed(self, timeout=5, check_detected=False):
+    def robotiq_wait_motion_completed(self, timeout=5, **kwargs):
         failed_cnt = 0
         expired = time.time() + timeout if timeout is not None and timeout > 0 else 0
         code = APIState.WAIT_FINISH_TIMEOUT
+        check_detected = kwargs.get('check_detected', False)
         while expired == 0 or time.time() < expired:
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1

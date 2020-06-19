@@ -2353,7 +2353,7 @@ class XArmAPI(object):
         """
         return self._arm.robotiq_set_activate(wait=wait, timeout=timeout)
 
-    def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+    def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         """
         Go to the position with determined speed and force.
         
@@ -2362,15 +2362,14 @@ class XArmAPI(object):
         :param force: gripper force between 0 and 255
         :param wait: whether to wait for the robotion motion complete, default is True
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
-        :param check_detected: check object detected or not, default is False, only available if wait=True
         
         :return: tuple((code, robotiq_response))
             code: See the code documentation for details.
             robotiq_response: See the robotiq documentation 
         """
-        return self._arm.robotiq_set_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+        return self._arm.robotiq_set_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
-    def robotiq_open(self, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+    def robotiq_open(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         """
         Open the robotiq gripper
         
@@ -2378,15 +2377,14 @@ class XArmAPI(object):
         :param force: gripper force between 0 and 255
         :param wait: whether to wait for the robotiq motion to complete, default is True
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
-        :param check_detected: check object detected or not, default is False, only available if wait=True
         
         :return: tuple((code, robotiq_response))
             code: See the code documentation for details.
             robotiq_response: See the robotiq documentation 
         """
-        return self._arm.robotiq_open(speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+        return self._arm.robotiq_open(speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
-    def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, check_detected=False):
+    def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         """
         Close the robotiq gripper
         
@@ -2394,13 +2392,12 @@ class XArmAPI(object):
         :param force: gripper force between 0 and 255
         :param wait: whether to wait for the robotiq motion to complete, default is True
         :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
-        :param check_detected: check object detected or not, default is False, only available if wait=True
         
         :return: tuple((code, robotiq_response))
             code: See the code documentation for details.
             robotiq_response: See the robotiq documentation
         """
-        return self._arm.robotiq_close(speed=speed, force=force, wait=wait, timeout=timeout, check_detected=check_detected)
+        return self._arm.robotiq_close(speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
     def robotiq_get_status(self, number_of_registers=3):
         """
@@ -2452,11 +2449,11 @@ class XArmAPI(object):
     def set_bio_gripper_speed(self, speed):
         return self._arm.set_bio_gripper_speed(speed)
 
-    def open_bio_gripper(self, wait=True, timeout=5):
-        return self._arm.open_bio_gripper(wait=wait, timeout=timeout)
+    def open_bio_gripper(self, speed=300, wait=True, timeout=5, **kwargs):
+        return self._arm.open_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
-    def close_bio_gripper(self, wait=True, timeout=5):
-        return self._arm.close_bio_gripper(wait=wait, timeout=timeout)
+    def close_bio_gripper(self, speed=300, wait=True, timeout=5, **kwargs):
+        return self._arm.close_bio_gripper(speed=speed, wait=wait, timeout=timeout, *kwargs)
 
     def get_bio_gripper_status(self):
         return self._arm.get_bio_gripper_status()

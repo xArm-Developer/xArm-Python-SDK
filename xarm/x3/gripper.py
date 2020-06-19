@@ -24,6 +24,10 @@ class Gripper(GPIO):
     def gripper_error_code(self):
         return self._gripper_error_code
 
+    @gripper_error_code.setter
+    def gripper_error_code(self, val):
+        self._gripper_error_code = val
+
     @xarm_is_connected(_type='get')
     def get_gripper_version(self):
         versions = ['*', '*', '*']
@@ -258,7 +262,9 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_en(int(enable))
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_enable -> ret={}, enable={}, ret2={}, err={}'.format(ret[0], enable, _, err))
-        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        ret[0] = self._check_modbus_code(ret)
+        if ret[0] == 0 and self.gripper_error_code == 0:
+            self.gripper_is_enabled = True
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -268,7 +274,7 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_mode(mode)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_mode -> ret={}, mode={}, ret2={}, err={}'.format(ret[0], mode, _, err))
-        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        ret[0] = self._check_modbus_code(ret)
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -278,7 +284,9 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_speed -> ret={}, speed={}, ret2={}, err={}'.format(ret[0], speed, _, err))
-        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        ret[0] = self._check_modbus_code(ret)
+        if ret[0] == 0 and self.gripper_error_code == 0:
+            self.gripper_speed = speed
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -286,6 +294,7 @@ class Gripper(GPIO):
         if not self._check_modbus_gripper_baud(label='get_modbus_gripper_position'):
             return APIState.MODBUS_BAUD_NOT_CORRECT, None
         ret = self.arm_cmd.gripper_modbus_get_pos()
+        ret[0] = self._check_modbus_code(ret)
         _, err = self._get_modbus_gripper_err_code()
         if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or len(ret) <= 1:
             return ret[0], None
@@ -300,12 +309,19 @@ class Gripper(GPIO):
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
         if not self._check_modbus_gripper_baud(label='set_modbus_gripper_position'):
             return APIState.MODBUS_BAUD_NOT_CORRECT
-        if auto_enable:
-            self.arm_cmd.gripper_modbus_set_en(True)
-        if speed is not None:
-            self.arm_cmd.gripper_modbus_set_posspd(speed)
+        if auto_enable and not self.gripper_is_enabled:
+            ret = self.arm_cmd.gripper_modbus_set_en(True)
+            ret[0] = self._check_modbus_code(ret)
+            if ret[0] == 0:
+                self.gripper_is_enabled = True
+        if speed is not None and self.gripper_speed != speed:
+            ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
+            ret[0] = self._check_modbus_code(ret)
+            if ret[0] == 0:
+                self.gripper_speed = speed
         ret = self.arm_cmd.gripper_modbus_set_pos(pos)
         logger.info('API -> set_modbus_gripper_position -> ret={}, pos={}'.format(ret[0], pos))
+        ret[0] = self._check_modbus_code(ret)
         if wait:
             is_add = True
             last_pos = 0
@@ -368,16 +384,17 @@ class Gripper(GPIO):
             return APIState.MODBUS_BAUD_NOT_CORRECT, 0
         ret = self.arm_cmd.gripper_modbus_get_errcode()
         logger.info('API -> get_modbus_gripper_err_code -> ret={}'.format(ret))
+        ret[0] = self._check_modbus_code(ret)
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             if ret[1] < 128:
                 self._gripper_error_code = ret[1]
-            # if ret[1] != 0:
-            #     logger.error('gripper error: {}'.format(ret[1]))
-            if ret[0] == XCONF.UxbusState.ERR_CODE:
-                self.get_err_warn_code()
-                if self.error_code == 19 or self.error_code == 28:
-                    return ret[0], ret[1]
-            ret[0] = 0
+                self.gripper_is_enabled = False
+                self.gripper_speed = 0
+            # if ret[0] == XCONF.UxbusState.ERR_CODE:
+            #     self.get_err_warn_code()
+            #     if self.error_code == 19 or self.error_code == 28:
+            #         return ret[0], ret[1]
+            # ret[0] = 0
             return ret[0], ret[1]
         return ret[0], 0
 
@@ -389,7 +406,7 @@ class Gripper(GPIO):
         self._gripper_error_code = 0
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> clean_modbus_gripper_error -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
-        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        ret[0] = self._check_modbus_code(ret)
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -403,7 +420,7 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_zero()
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_zero -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
-        # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
+        ret[0] = self._check_modbus_code(ret)
         return ret[0]
 
     def _check_modbus_gripper_baud(self, label=''):
@@ -417,10 +434,11 @@ class Gripper(GPIO):
             return [APIState.MODBUS_BAUD_NOT_CORRECT]
         return self.arm_cmd.tgpio_set_modbus(data_frame, len(data_frame))
 
-    def __check_bio_gripper_finish(self, timeout=5):
+    def __check_bio_gripper_finish(self, timeout=5, **kwargs):
         failed_cnt = 0
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
+        # check_detected = kwargs.get('check_detected', False)
         while time.time() < expired:
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
@@ -466,24 +484,34 @@ class Gripper(GPIO):
     #     return code
 
     @xarm_is_connected(_type='set')
-    def open_bio_gripper(self, wait=True, timeout=5):
+    def open_bio_gripper(self, speed=300, wait=True, timeout=5, **kwargs):
+        if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
+            self.set_bio_gripper_enable(True)
+            time.sleep(2)
+        if speed != self.bio_gripper_speed:
+            self.set_bio_gripper_speed(speed)
         # return self.set_bio_gripper_position(-100, wait=wait, timeout=timeout)
         data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x80, 0x00, 0x00, 0x64]
         ret = self.__bio_gripper_send_modbus(data_frame)
         code = self._check_modbus_code(ret, 8)
         if code == 0 and wait:
-            code = self.__check_bio_gripper_finish(timeout=timeout)
+            code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
         logger.info('API -> open_bio_gripper ->code={}'.format(code))
         return code
 
     @xarm_is_connected(_type='set')
-    def close_bio_gripper(self, wait=True, timeout=5):
+    def close_bio_gripper(self, speed=300, wait=True, timeout=5, **kwargs):
+        if kwargs.get('auto_enable', False):
+            self.set_bio_gripper_enable(True)
+            time.sleep(2)
+        if speed != self.bio_gripper_speed:
+            self.set_bio_gripper_speed(speed)
         # return self.set_bio_gripper_position(100, wait=wait, timeout=timeout)
         data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x64]
         ret = self.__bio_gripper_send_modbus(data_frame)
         code = self._check_modbus_code(ret, 8)
         if code == 0 and wait:
-            code = self.__check_bio_gripper_finish(timeout=timeout)
+            code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
         logger.info('API -> close_bio_gripper ->code={}'.format(code))
         return code
 

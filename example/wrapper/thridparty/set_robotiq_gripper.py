@@ -41,7 +41,7 @@ print('robotiq_reset, ret={}'.format(ret))
 code, ret = arm.robotiq_set_activate()
 print('robotiq_set_activate, code={}, ret={}'.format(code, ret))
 
-while arm.connected and (code == 0 or code == APIState.ROBOTIQ_WAIT_TIMEOUT):
+while arm.connected and (code == 0 or code == APIState.WAIT_FINISH_TIMEOUT):
     code, ret = arm.robotiq_close()
     print('robotiq_close, code={}, ret={}'.format(code, ret))
     code, ret = arm.robotiq_open()
@@ -52,7 +52,7 @@ while arm.connected and (code == 0 or code == APIState.ROBOTIQ_WAIT_TIMEOUT):
     # code, ret = arm.robotiq_set_position(0)
     # print('robotiq_set_pos(0), code={}, ret={}'.format(code, ret))
 
-if code == APIState.ROBOTIQ_HAS_FAULT:
+if code == APIState.END_EFFECTOR_HAS_FAULT:
     print('robotiq fault code: {}'.format(arm.robotiq_status['gFLT']))
 
 arm.disconnect()

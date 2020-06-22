@@ -15,6 +15,8 @@ from .base import Base
 
 
 class RobotIQ(Base):
+    ROBOTIQ_BAUD = 115200
+
     def __init__(self):
         super(RobotIQ, self).__init__()
         self.__robotiq_openmm = None
@@ -41,40 +43,42 @@ class RobotIQ(Base):
     def robotiq_status(self):
         return self._robotiq_status
 
-    def __robotiq_send_modbus(self, data_frame):
-        if not self.checkset_modbus_baud(115200):
-            return [APIState.MODBUS_BAUD_NOT_CORRECT]
-        return self.arm_cmd.tgpio_set_modbus(data_frame, len(data_frame))
+    def __robotiq_send_modbus(self, data_frame, min_res_len=0):
+        code = self._checkset_modbus_baud(self.ROBOTIQ_BAUD)
+        if code != 0:
+            return code, []
+        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len)
 
     @xarm_is_connected(_type='get')
     def __robotiq_set(self, params):
         data_frame = [0x09, 0x10, 0x03, 0xE8, 0x00, 0x03, len(params)]
         data_frame.extend(params)
-        ret = self.__robotiq_send_modbus(data_frame)
-        ret[0] = self._check_modbus_code(ret, 8)
-        return ret[0], ret[2:]
+        return self.__robotiq_send_modbus(data_frame, 6)
 
     @xarm_is_connected(_type='get')
     def __robotiq_get(self, params):
         data_frame = [0x09, 0x03]
         data_frame.extend(params)
-        ret = self.__robotiq_send_modbus(data_frame)
-        ret[0] = self._check_modbus_code(ret, 5 + 2 * params[-1])
-        if ret[0] == 0 and len(ret) >= 7:
-            gripper_status_reg = ret[5]
+        code, ret = self.__robotiq_send_modbus(data_frame, 3 + 2 * params[-1])
+        if code == 0 and len(ret) >= 5:
+            gripper_status_reg = ret[3]
             self._robotiq_status['gOBJ'] = (gripper_status_reg & 0xC0) >> 6
             self._robotiq_status['gSTA'] = (gripper_status_reg & 0x30) >> 4
             self._robotiq_status['gGTO'] = (gripper_status_reg & 0x08) >> 3
             self._robotiq_status['gACT'] = gripper_status_reg & 0x01
-            if len(ret) >= 9:
-                fault_status_reg = ret[7]
+            if len(ret) >= 7:
+                fault_status_reg = ret[5]
                 self._robotiq_status['kFLT'] = (fault_status_reg & 0xF0) >> 4
                 self._robotiq_status['gFLT'] = fault_status_reg & 0x0F
-                self._robotiq_status['gPR'] = ret[8]
-            if len(ret) >= 11:
-                self._robotiq_status['gPO'] = ret[9]
-                self._robotiq_status['gCU'] = ret[10]
-        return ret[0], ret[2:]
+                self._robotiq_status['gPR'] = ret[6]
+            if len(ret) >= 9:
+                self._robotiq_status['gPO'] = ret[7]
+                self._robotiq_status['gCU'] = ret[8]
+            if self._robotiq_status['gSTA'] == 3 and self._robotiq_status['gFLT'] == 0:
+                self.robotiq_is_activated = True
+            else:
+                self.robotiq_is_activated = False
+        return code, ret
 
     def robotiq_reset(self):
         params = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00]

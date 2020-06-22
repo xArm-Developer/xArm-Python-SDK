@@ -2449,10 +2449,10 @@ class XArmAPI(object):
     def set_bio_gripper_speed(self, speed):
         return self._arm.set_bio_gripper_speed(speed)
 
-    def open_bio_gripper(self, speed=300, wait=True, timeout=5, **kwargs):
+    def open_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
         return self._arm.open_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
-    def close_bio_gripper(self, speed=300, wait=True, timeout=5, **kwargs):
+    def close_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
         return self._arm.close_bio_gripper(speed=speed, wait=wait, timeout=timeout, *kwargs)
 
     def get_bio_gripper_status(self):
@@ -2460,4 +2460,13 @@ class XArmAPI(object):
 
     def get_bio_gripper_error(self):
         return self._arm.get_bio_gripper_error()
+
+    def set_tgpio_modbus_timeout(self, timeout):
+        return self._arm.set_tgpio_modbus_timeout(timeout)
+
+    def set_tgpio_modbus_baudrate(self, baud):
+        return self._arm.set_tgpio_modbus_baudrate(baud)
+
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0):
+        return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len)
 

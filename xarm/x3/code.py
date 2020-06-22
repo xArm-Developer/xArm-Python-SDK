@@ -33,8 +33,10 @@ class APIState(object):
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
 
-    MODBUS_BAUD_NOT_CORRECT = 21  # 末端modbus波特率不正确
-    MODBUS_ERR_LENG = 22  # modbus回复数据长度错误
+    TGPIO_ID_ERR = 20  # 末端IO主机ID错误
+    MODBUS_BAUD_NOT_SUPPORT = 21  # modbus不支持此波特率
+    MODBUS_BAUD_NOT_CORRECT = 22  # 末端modbus波特率不正确
+    MODBUS_ERR_LENG = 23  # modbus回复数据长度错误
 
     TRAJ_RW_FAILED = 31  # 读写轨迹失败(加载轨迹或保存轨迹)
     TRAJ_RW_TOUT = 32  # 读写轨迹等待超时(加载轨迹或保存轨迹)

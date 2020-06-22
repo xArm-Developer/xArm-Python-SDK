@@ -23,8 +23,10 @@
 - 10: reversed, no use
 - 11: other error
 - 12: parameter error
-- 21: modbus baudrate not correct
-- 22: modbus reply length error
+- 20: tgpio id error
+- 21: modbus baudrate not supported
+- 22:  modbus baudrate not correct
+- 23: modbus reply length error
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout

@@ -395,62 +395,6 @@ class Base(Events):
                 with self._cond_pause:
                     self._cond_pause.wait()
 
-    def _check_modbus_code(self, ret, length=0):
-        if not self.connected:
-            return APIState.NOT_CONNECTED
-        code = ret[0]
-        if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            if length > 0 and len(ret) < length:
-                return APIState.MODBUS_ERR_LENG
-            elif code != 0:
-                if self.error_code != 19 and self.error_code != 28:
-                    self.get_err_warn_code()
-                if self.error_code != 19 and self.error_code != 28:
-                    code = 0
-        return code
-
-    def checkset_modbus_baud(self, baudrate):
-        try:
-            if not self.connected:
-                return False
-            if self.modbus_baud == baudrate:
-                return True
-            if baudrate not in self.arm_cmd.BAUDRATES:
-                return False
-            ret, cur_baud_inx = self._get_modbus_baudrate()
-            if ret == 0:
-                baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
-                if cur_baud_inx != baud_inx:
-                    self._ignore_error = True
-                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
-                    self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
-                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
-                    if self.error_code != 19 and self.error_code != 28:
-                        self.get_err_warn_code()
-                    if self.error_code == 19 or self.error_code == 28:
-                        self.clean_error()
-                        time.sleep(0.6)
-                    self._ignore_error = False
-                    ret, cur_baud_inx = self._get_modbus_baudrate()
-                    logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
-                if ret == 0:
-                    self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
-            return self.modbus_baud == baudrate
-        except Exception as e:
-            logger.error('checkset_modbus_baud error: {}'.format(e))
-        finally:
-            self._ignore_error = False
-
-    @xarm_is_connected(_type='get')
-    def _get_modbus_baudrate(self):
-        ret = self.arm_cmd.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
-        if ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            if self.error_code != 19 and self.error_code != 28:
-                self.get_err_warn_code()
-            if self.error_code != 19 and self.error_code != 28:
-                ret[0] = 0
-        return ret[0], ret[1]
-
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
         while self.connected and self._timed_comm_t_alive:
@@ -1658,3 +1602,77 @@ class Base(Events):
         logger.info('API -> motion_enable -> ret={}'.format(ret[0]))
         return ret[0]
 
+    @xarm_is_connected(_type='set')
+    def _check_modbus_code(self, ret, length=2):
+        code = ret[0]
+        if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            if len(ret) < length:
+                return APIState.MODBUS_ERR_LENG
+            if ret[1] != XCONF.TGPIO_ID:
+                return APIState.TGPIO_ID_ERR
+            if code != 0:
+                if self.error_code != 19 and self.error_code != 28:
+                    self.get_err_warn_code()
+                if self.error_code != 19 and self.error_code != 28:
+                    code = 0
+        return code
+
+    @xarm_is_connected(_type='set')
+    def _checkset_modbus_baud(self, baudrate, check=True):
+        if check and self.modbus_baud == baudrate:
+            return 0
+        if baudrate not in self.arm_cmd.BAUDRATES:
+            return APIState.MODBUS_BAUD_NOT_SUPPORT
+        ret, cur_baud_inx = self._get_modbus_baudrate()
+        if ret == 0:
+            baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
+            if cur_baud_inx != baud_inx:
+                try:
+                    self._ignore_error = True
+                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
+                    self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
+                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
+                    if self.error_code != 19 and self.error_code != 28:
+                        self.get_err_warn_code()
+                    if self.error_code == 19 or self.error_code == 28:
+                        self.clean_error()
+                        time.sleep(0.6)
+                except Exception as e:
+                    self._ignore_error = False
+                    logger.error('checkset_modbus_baud error: {}'.format(e))
+                    return APIState.API_EXCEPTION
+                self._ignore_error = False
+                ret, cur_baud_inx = self._get_modbus_baudrate()
+                logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
+            if ret == 0:
+                self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
+        return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
+
+    @xarm_is_connected(_type='get')
+    def _get_modbus_baudrate(self):
+        ret = self.arm_cmd.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
+        if ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            if self.error_code != 19 and self.error_code != 28:
+                self.get_err_warn_code()
+            if self.error_code != 19 and self.error_code != 28:
+                ret[0] = 0
+        return ret[0], ret[1]
+
+    @xarm_is_connected(_type='set')
+    def set_tgpio_modbus_timeout(self, timeout):
+        ret = self.arm_cmd.set_modbus_timeout(timeout)
+        logger.info('set_tgpio_modbus_timeout, code={}'.format(ret[0]))
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_tgpio_modbus_baudrate(self, baud):
+        code = self._checkset_modbus_baud(baud, check=False)
+        logger.info('set_tgpio_modbus_baudrate, code={}'.format(code))
+        return code
+
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0):
+        if not self.connected:
+            return APIState.NOT_CONNECTED, []
+        ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas))
+        ret[0] = self._check_modbus_code(ret, min_res_len + 2)
+        return ret[0], ret[2:]

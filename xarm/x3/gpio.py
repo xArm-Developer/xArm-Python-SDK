@@ -321,26 +321,4 @@ class GPIO(Base):
             time.sleep(0.1)
         return False
 
-    # @xarm_is_connected(_type='set')
-    # def set_tgpio_modbus_timeout(self, timeout):
-    #     ret = self.arm_cmd.set_modbus_timeout(timeout)
-    #     return ret[0]
-    #
-    # @xarm_is_connected(_type='set')
-    # def set_tgpio_modbus_baudrate(self, baud):
-    #     ret = self.arm_cmd.set_modbus_baudrate(baud)
-    #     return ret[0]
-    #
-    # def getset_tgpio_modbus_data(self, datas):
-    #     if not self.connected:
-    #         return APIState.NOT_CONNECTED, []
-    #     ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas))
-    #     if len(ret) < 2:
-    #         return APIState.RES_LENGTH_ERROR, []
-    #     if ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-    #         if self.error_code != 19 and self.error_code != 28:
-    #             self.get_err_warn_code()
-    #         if self.error_code != 19 and self.error_code != 28:
-    #             ret[0] = 0
-    #     return ret[0], ret[2:]
 

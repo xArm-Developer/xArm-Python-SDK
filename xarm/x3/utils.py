@@ -12,6 +12,20 @@ from ..core.utils.log import logger
 from .code import APIState
 
 
+def check_modbus_baud(baud=2000000, _type='set', default=None):
+    def _check_modbus_baud(func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            code = args[0].checkset_modbus_baud(baud)
+            if code != 0:
+                logger.error('check modbus baud is failed, code={}'.format(code))
+                return code if _type == 'set' else (code, default if default != -99 else [])
+            else:
+                return func(*args, **kwargs)
+        return decorator
+    return _check_modbus_baud
+
+
 def xarm_is_connected(_type='set'):
     def _xarm_is_connected(func):
         @functools.wraps(func)

@@ -1618,7 +1618,7 @@ class Base(Events):
         return code
 
     @xarm_is_connected(_type='set')
-    def _checkset_modbus_baud(self, baudrate, check=True):
+    def checkset_modbus_baud(self, baudrate, check=True):
         if check and self.modbus_baud == baudrate:
             return 0
         if baudrate not in self.arm_cmd.BAUDRATES:
@@ -1666,7 +1666,7 @@ class Base(Events):
 
     @xarm_is_connected(_type='set')
     def set_tgpio_modbus_baudrate(self, baud):
-        code = self._checkset_modbus_baud(baud, check=False)
+        code = self.checkset_modbus_baud(baud, check=False)
         logger.info('set_tgpio_modbus_baudrate, code={}'.format(code))
         return code
 

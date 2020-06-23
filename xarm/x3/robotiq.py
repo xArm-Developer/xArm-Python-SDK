@@ -7,16 +7,15 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
-from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .code import APIState
-from .utils import xarm_is_connected
+from .utils import xarm_is_connected, check_modbus_baud
 from .base import Base
+
+ROBOTIQ_BAUD = 115200
 
 
 class RobotIQ(Base):
-    ROBOTIQ_BAUD = 115200
-
     def __init__(self):
         super(RobotIQ, self).__init__()
         self.__robotiq_openmm = None
@@ -43,10 +42,8 @@ class RobotIQ(Base):
     def robotiq_status(self):
         return self._robotiq_status
 
+    @check_modbus_baud(baud=ROBOTIQ_BAUD, _type='get', default=-99)
     def __robotiq_send_modbus(self, data_frame, min_res_len=0):
-        code = self._checkset_modbus_baud(self.ROBOTIQ_BAUD)
-        if code != 0:
-            return code, []
         return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len)
 
     @xarm_is_connected(_type='get')
@@ -74,7 +71,7 @@ class RobotIQ(Base):
             if len(ret) >= 9:
                 self._robotiq_status['gPO'] = ret[7]
                 self._robotiq_status['gCU'] = ret[8]
-            if self._robotiq_status['gSTA'] == 3 and self._robotiq_status['gFLT'] == 0:
+            if self._robotiq_status['gSTA'] == 3 and (self._robotiq_status['gFLT'] == 0 or self._robotiq_status['gFLT'] == 9):
                 self.robotiq_is_activated = True
             else:
                 self.robotiq_is_activated = False

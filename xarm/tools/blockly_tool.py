@@ -777,7 +777,57 @@ class BlocklyTool(object):
         if self._show_comment:
             self._append_to_file('{}# set_gripper_status({}, delay_sec={})'.format(prefix, status, delay_sec))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm._arm.set_gripper_status({}, delay_sec={})'.format(prefix, status, delay_sec))
+        self._append_to_file('{}    if arm._arm.set_gripper_status({}, delay_sec={}) != 0:'.format(prefix, status, delay_sec))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+
+    def _handle_set_bio_gripper_init(self, block, prefix=''):
+        if self._show_comment:
+            self._append_to_file('{}# set_bio_gripper_enable(True)'.format(prefix))
+        self._append_to_file('{}if not params[\'quit\'] and arm.set_bio_gripper_enable(True) != 0:'.format(prefix))
+        self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}expired = time.time() + 2'.format(prefix))
+        self._append_to_file('{}while not params[\'quit\'] and time.time() < expired:'.format(prefix))
+        self._append_to_file('{}    time.sleep(0.1)'.format(prefix))
+
+    def _handle_set_bio_gripper(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block, name='status')
+        on = True if fields[0].text == 'TRUE' else False
+        fields = self.get_nodes('field', root=block, name='speed')
+        speed = int(fields[0].text) if fields and len(fields) > 0 else 0
+        fields = self.get_nodes('field', root=block, name='wait')
+        wait = fields[0].text == 'TRUE' if fields and len(fields) > 0 else False
+        if on:
+            if self._show_comment:
+                self._append_to_file('{}# open_bio_gripper(speed={}, wait={})'.format(prefix, speed, wait))
+            self._append_to_file('{}if not params[\'quit\'] and arm.open_bio_gripper(speed={}, wait={}) != 0:'.format(prefix, speed, wait))
+            self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
+        else:
+            if self._show_comment:
+                self._append_to_file('{}# close_bio_gripper(speed={}, wait={})'.format(prefix, speed, wait))
+            self._append_to_file('{}if not params[\'quit\'] and arm.close_bio_gripper(speed={}, wait={}) != 0'.format(prefix, speed, wait))
+            self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
+
+    def _handle_set_robotiq_init(self, block, prefix=''):
+        if self._show_comment:
+            self._append_to_file('{}# set_robotiq_init()'.format(prefix))
+        self._append_to_file('{}if not params[\'quit\'] and arm.robotiq_reset() != 0:'.format(prefix))
+        self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}if not params[\'quit\'] and arm.robotiq_set_activate(wait=True) != 0:'.format(prefix))
+        self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
+
+    def _handle_set_robotiq_gripper(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block, name='pos')
+        pos = int(fields[0].text)
+        fields = self.get_nodes('field', root=block, name='speed')
+        speed = int(fields[0].text) if fields and len(fields) > 0 else 0
+        fields = self.get_nodes('field', root=block, name='force')
+        force = int(fields[0].text) if fields and len(fields) > 0 else 0
+        fields = self.get_nodes('field', root=block, name='wait')
+        wait = fields[0].text == 'TRUE' if fields and len(fields) > 0 else False
+        if self._show_comment:
+            self._append_to_file('{}# robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
+        self._append_to_file('{}if not params[\'quit\'] and arm.robotiq_set_position({}, speed={}, force={}, wait={}) != 0'.format(prefix, pos, speed, force, wait))
+        self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
 
     def __handle_gpio_event(self, gpio_type, block, prefix=''):
         fields = self.get_nodes('field', root=block)

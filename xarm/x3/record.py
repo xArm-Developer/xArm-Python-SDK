@@ -128,7 +128,7 @@ class Record(Base):
             ret = self.load_trajectory(filename, wait=True, timeout=10)
             if ret != 0:
                 return ret
-        if self.state == 4:
+        if self.state in [4]:
             return APIState.NOT_READY
         if self.version_is_ge_1_2_11:
             ret = self.arm_cmd.playback_traj(times, double_speed)
@@ -138,7 +138,7 @@ class Record(Base):
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:
-                if self.state == 4:
+                if self.state in [4]:
                     return APIState.NOT_READY
                 if time.time() - start_time > 5:
                     return APIState.TRAJ_PLAYBACK_TOUT
@@ -151,14 +151,14 @@ class Record(Base):
                     start_time = time.time()
                     time.sleep(0.1)
                     continue
-                if self.state == 4:
+                if self.state in [4]:
                     return APIState.NOT_READY
                 if time.time() - start_time > 5:
                     return APIState.TRAJ_PLAYBACK_TOUT
                 time.sleep(0.1)
             time.sleep(0.1)
             count = 0
-            while self.state != 4:
+            while self.state not in [4]:
                 if self.state == 2:
                     if times == 1:
                         break
@@ -170,7 +170,7 @@ class Record(Base):
                 time.sleep(0.1)
             # while self.state != 4 and self.state != 2:
             #     time.sleep(0.1)
-            if self.state != 4:
+            if self.state not in [4]:
                 self.set_mode(0)
                 self.set_state(0)
         return ret[0]

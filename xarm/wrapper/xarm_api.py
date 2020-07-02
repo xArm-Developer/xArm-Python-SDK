@@ -123,6 +123,13 @@ class XArmAPI(object):
         return self._arm.arm_cmd
 
     @property
+    def count(self):
+        """
+        Counter val
+        """
+        return self._arm.count
+
+    @property
     def realtime_tcp_speed(self):
         """
         The real time speed of tcp motion, only available if version > 1.2.11
@@ -2469,4 +2476,11 @@ class XArmAPI(object):
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0):
         return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len)
+
+    def set_report_tau_or_i(self, tau_or_i=0):
+        return self._arm.set_report_tau_or_i(tau_or_i=tau_or_i)
+
+    def get_report_tau_or_i(self):
+        return self._arm.get_report_tau_or_i()
+
 

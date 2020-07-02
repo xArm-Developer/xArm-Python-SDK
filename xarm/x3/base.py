@@ -102,9 +102,8 @@ class Base(Events):
             self._arm_slave_id = 0
             self._arm_motor_tid = 0
             self._arm_motor_fid = 0
-            self._arm_motor_brake_states = [0, 0, 0, 0, 0, 0, 0, 0]  # [motor-1-brake-state, ..., motor-7-brake, reserved]
-            self._arm_motor_enable_states = [0, 0, 0, 0, 0, 0, 0,
-                                             0]  # [motor-1-enable-state, ..., motor-7-enable, reserved]
+            self._arm_motor_brake_states = [-1, -1, -1, -1, -1, -1, -1, -1]  # [motor-1-brake-state, ..., motor-7-brake, reserved]
+            self._arm_motor_enable_states = [-1, -1, -1, -1, -1, -1, -1, -1]  # [motor-1-enable-state, ..., motor-7-enable, reserved]
             self._gravity_direction = [0, 0, -1]
 
             self._is_ready = False
@@ -389,6 +388,10 @@ class Base(Events):
     def gpio_reset_config(self):
         return [self._cgpio_reset_enable, self._tgpio_reset_enable]
 
+    @property
+    def count(self):
+        return self._count
+
     def check_is_pause(self):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
@@ -598,6 +601,8 @@ class Base(Events):
                     logger.error('connect changed callback: {}'.format(e))
 
     def _report_state_changed_callback(self):
+        if self._ignore_error:
+            return
         if self.REPORT_STATE_CHANGED_ID in self._report_callbacks.keys():
             for callback in self._report_callbacks[self.REPORT_STATE_CHANGED_ID]:
                 try:
@@ -763,7 +768,7 @@ class Base(Events):
                 self._report_mtable_mtbrake_changed_callback()
 
             if not self._is_first_report:
-                if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
+                if state in [4, 5] or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
@@ -918,7 +923,7 @@ class Base(Events):
             if state != self._state:
                 self._state = state
                 self._report_state_changed_callback()
-            if state == 4:
+            if state in [4, 5]:
                 self._is_ready = False
             else:
                 self._is_ready = True
@@ -1024,7 +1029,7 @@ class Base(Events):
                 self._report_mtable_mtbrake_changed_callback()
 
             if not self._is_first_report:
-                if state == 4 or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
+                if state in [4, 5] or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
@@ -1247,7 +1252,7 @@ class Base(Events):
                     self._report_cmdnum_changed_callback()
                 if state != self._state:
                     self._report_state_changed_callback()
-                if state == 4:
+                if state in [4, 5]:
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
                     self._is_ready = False
@@ -1502,7 +1507,7 @@ class Base(Events):
         if self._state != 3:
             with self._cond_pause:
                 self._cond_pause.notifyAll()
-        if self._state in [4]:
+        if self._state in [4, 5]:
             if self._is_ready:
                 pretty_print('[set_state], xArm is not ready to move', color='red')
             self._is_ready = False
@@ -1564,7 +1569,7 @@ class Base(Events):
     def clean_error(self):
         ret = self.arm_cmd.clean_err()
         self.get_state()
-        if self._state in [4]:
+        if self._state in [4, 5]:
             if self._is_ready:
                 pretty_print('[clean_error], xArm is not ready to move', color='red')
             self._is_ready = False
@@ -1591,7 +1596,7 @@ class Base(Events):
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self._is_ready = bool(enable)
         self.get_state()
-        if self._state in [4]:
+        if self._state in [4, 5]:
             if self._is_ready:
                 pretty_print('[motion_enable], xArm is not ready to move', color='red')
             self._is_ready = False
@@ -1603,13 +1608,14 @@ class Base(Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def _check_modbus_code(self, ret, length=2):
+    def _check_modbus_code(self, ret, length=2, only_check_code=False):
         code = ret[0]
         if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            if len(ret) < length:
-                return APIState.MODBUS_ERR_LENG
-            if ret[1] != XCONF.TGPIO_ID:
-                return APIState.TGPIO_ID_ERR
+            if not only_check_code:
+                if len(ret) < length:
+                    return APIState.MODBUS_ERR_LENG
+                if ret[1] != XCONF.TGPIO_ID:
+                    return APIState.TGPIO_ID_ERR
             if code != 0:
                 if self.error_code != 19 and self.error_code != 28:
                     self.get_err_warn_code()

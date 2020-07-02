@@ -149,6 +149,8 @@ class XCONF(object):
         GET_ROBOT_SN = 2
         CHECK_VERIFY = 3
         RELOAD_DYNAMICS = 4
+        GET_REPORT_TAU_OR_I = 5
+
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
         SET_STATE = 12
@@ -211,6 +213,7 @@ class XCONF(object):
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
 
+        REPORT_TAU_OR_I = 70
         SET_TIMER = 71
         CANCEL_TIMER = 72
         SET_WORLD_OFFSET = 73

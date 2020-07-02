@@ -294,6 +294,13 @@ class UxbusCmd(object):
         txdata = [mode]
         return self.set_nu8(XCONF.UxbusReg.SET_MODE, txdata, 1)
 
+    def set_report_tau_or_i(self, tau_or_i):  # 0 for tau(default), 1 for i
+        txdata = [tau_or_i]
+        return self.set_nu8(XCONF.UxbusReg.REPORT_TAU_OR_I, txdata, 1)
+
+    def get_report_tau_or_i(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_REPORT_TAU_OR_I, 1)
+
     def move_line(self, mvpose, mvvelo, mvacc, mvtime):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]

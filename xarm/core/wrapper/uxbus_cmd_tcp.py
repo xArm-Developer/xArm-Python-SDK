@@ -94,7 +94,7 @@ class UxbusCmdTcp(UxbusCmd):
                     return ret
                 elif ret[0] != XCONF.UxbusState.ERR_NUM:
                     return ret
-            time.sleep(0.001)
+            time.sleep(0.0005)
         return ret
 
     def send_xbus(self, funcode, datas, num):

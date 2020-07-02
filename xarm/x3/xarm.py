@@ -59,7 +59,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             # time.sleep(0.1)
             count = 0
             while not self.is_timeout and not self.owner._is_stop and self.owner.connected and not self.owner.has_error:
-                if self.owner.state == 4:
+                if self.owner.state in [4, 5]:
                     self.owner._sleep_finish_time = 0
                     break
                 if time.time() < self.owner._sleep_finish_time:
@@ -1216,7 +1216,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         logger.info('emergency_stop--begin')
         self.set_state(4)
         expired = time.time() + 3
-        while self.state != 4 and time.time() < expired:
+        while self.state not in [4, 5] and time.time() < expired:
             self.set_state(4)
             time.sleep(0.1)
         self._is_stop = True
@@ -1631,3 +1631,16 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             XCONF.UxbusConf.SET_TIMEOUT = timeout * 1000
             XCONF.UxbusConf.GET_TIMEOUT = timeout * 1000
         return 0
+
+    @xarm_is_connected(_type='set')
+    def set_report_tau_or_i(self, tau_or_i=0):
+        ret = self.arm_cmd.set_report_tau_or_i(tau_or_i)
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+        logger.info('API -> set_report_tau_or_i -> ret={}'.format(ret[0]))
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def get_report_tau_or_i(self):
+        ret = self.arm_cmd.get_report_tau_or_i()
+        return ret[0], ret[1]

@@ -776,9 +776,8 @@ class BlocklyTool(object):
         delay_sec = fields[0].text if len(fields) > 0 else 0
         if self._show_comment:
             self._append_to_file('{}# set_gripper_status({}, delay_sec={})'.format(prefix, status, delay_sec))
-        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    if arm._arm.set_gripper_status({}, delay_sec={}) != 0:'.format(prefix, status, delay_sec))
-        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}if not params[\'quit\'] and arm._arm.set_gripper_status({}, delay_sec={}) != 0:'.format(prefix, status, delay_sec))
+        self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
 
     def _handle_set_bio_gripper_init(self, block, prefix=''):
         if self._show_comment:
@@ -804,7 +803,7 @@ class BlocklyTool(object):
         else:
             if self._show_comment:
                 self._append_to_file('{}# close_bio_gripper(speed={}, wait={})'.format(prefix, speed, wait))
-            self._append_to_file('{}if not params[\'quit\'] and arm.close_bio_gripper(speed={}, wait={}) != 0'.format(prefix, speed, wait))
+            self._append_to_file('{}if not params[\'quit\'] and arm.close_bio_gripper(speed={}, wait={}) != 0:'.format(prefix, speed, wait))
             self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
 
     def _handle_set_robotiq_init(self, block, prefix=''):
@@ -819,14 +818,14 @@ class BlocklyTool(object):
         fields = self.get_nodes('field', root=block, name='pos')
         pos = int(fields[0].text)
         fields = self.get_nodes('field', root=block, name='speed')
-        speed = int(fields[0].text) if fields and len(fields) > 0 else 0
+        speed = int(fields[0].text) if fields and len(fields) > 0 else 0xFF
         fields = self.get_nodes('field', root=block, name='force')
-        force = int(fields[0].text) if fields and len(fields) > 0 else 0
+        force = int(fields[0].text) if fields and len(fields) > 0 else 0xFF
         fields = self.get_nodes('field', root=block, name='wait')
         wait = fields[0].text == 'TRUE' if fields and len(fields) > 0 else False
         if self._show_comment:
             self._append_to_file('{}# robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
-        self._append_to_file('{}if not params[\'quit\'] and arm.robotiq_set_position({}, speed={}, force={}, wait={}) != 0'.format(prefix, pos, speed, force, wait))
+        self._append_to_file('{}if not params[\'quit\'] and arm.robotiq_set_position({}, speed={}, force={}, wait={}) != 0:'.format(prefix, pos, speed, force, wait))
         self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
 
     def __handle_gpio_event(self, gpio_type, block, prefix=''):

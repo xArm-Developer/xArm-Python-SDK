@@ -262,7 +262,7 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_en(int(enable))
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_enable -> ret={}, enable={}, ret2={}, err={}'.format(ret[0], enable, _, err))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         if ret[0] == 0 and self.gripper_error_code == 0:
             self.gripper_is_enabled = True
         return ret[0]
@@ -273,7 +273,7 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_mode(mode)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_mode -> ret={}, mode={}, ret2={}, err={}'.format(ret[0], mode, _, err))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -282,7 +282,7 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_speed -> ret={}, speed={}, ret2={}, err={}'.format(ret[0], speed, _, err))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         if ret[0] == 0 and self.gripper_error_code == 0:
             self.gripper_speed = speed
         return ret[0]
@@ -291,7 +291,7 @@ class Gripper(GPIO):
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=None)
     def _get_modbus_gripper_position(self):
         ret = self.arm_cmd.gripper_modbus_get_pos()
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         _, err = self._get_modbus_gripper_err_code()
         if ret[0] != 0 or len(ret) <= 1:
             return ret[0], None
@@ -307,17 +307,17 @@ class Gripper(GPIO):
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
         if auto_enable and not self.gripper_is_enabled:
             ret = self.arm_cmd.gripper_modbus_set_en(True)
-            ret[0] = self._check_modbus_code(ret)
+            ret[0] = self._check_modbus_code(ret, only_check_code=True)
             if ret[0] == 0:
                 self.gripper_is_enabled = True
         if speed is not None and self.gripper_speed != speed:
             ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
-            ret[0] = self._check_modbus_code(ret)
+            ret[0] = self._check_modbus_code(ret, only_check_code=True)
             if ret[0] == 0:
                 self.gripper_speed = speed
         ret = self.arm_cmd.gripper_modbus_set_pos(pos)
         logger.info('API -> set_modbus_gripper_position -> ret={}, pos={}'.format(ret[0], pos))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         if wait:
             is_add = True
             last_pos = 0
@@ -379,7 +379,7 @@ class Gripper(GPIO):
     def _get_modbus_gripper_err_code(self):
         ret = self.arm_cmd.gripper_modbus_get_errcode()
         logger.info('API -> get_modbus_gripper_err_code -> ret={}'.format(ret))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         if ret[0] == 0:
             if ret[1] < 128:
                 self._gripper_error_code = ret[1]
@@ -400,7 +400,7 @@ class Gripper(GPIO):
         self._gripper_error_code = 0
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> clean_modbus_gripper_error -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -413,7 +413,7 @@ class Gripper(GPIO):
         ret = self.arm_cmd.gripper_modbus_set_zero()
         _, err = self._get_modbus_gripper_err_code()
         logger.info('API -> set_modbus_gripper_zero -> ret={}, ret2={}, err={}'.format(ret[0], _, err))
-        ret[0] = self._check_modbus_code(ret)
+        ret[0] = self._check_modbus_code(ret, only_check_code=True)
         return ret[0]
 
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=-99)

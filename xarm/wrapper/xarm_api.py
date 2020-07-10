@@ -792,9 +792,6 @@ class XArmAPI(object):
     def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=0, is_radian=None, is_tool_coord=False, **kwargs):
         """
         Set the servo cartesian, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
-        Note:
-            1. only available if firmware_version >= 1.4.0
-            2. This interface is only used in the base coordinate system.
 
         :param mvpose: cartesian position, [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
         :param speed: move speed (mm/s), reserved

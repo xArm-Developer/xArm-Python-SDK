@@ -1216,7 +1216,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         logger.info('emergency_stop--begin')
         self.set_state(4)
         expired = time.time() + 3
-        while self.state not in [4, 5] and time.time() < expired:
+        while self.state not in [4] and time.time() < expired:
             self.set_state(4)
             time.sleep(0.1)
         self._is_stop = True
@@ -1644,3 +1644,83 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def get_report_tau_or_i(self):
         ret = self.arm_cmd.get_report_tau_or_i()
         return ret[0], ret[1]
+
+    def get_firmware_config(self):
+        cgpio_code, cgpio_states = self.get_cgpio_state()
+        reduced_code, reduced_states = self.get_reduced_states()
+        tau_code, tau_flag = self.get_report_tau_or_i()
+        code = cgpio_code if reduced_code == 0 and tau_code == 0 else reduced_code if cgpio_code == 0 and tau_code == 0 else tau_code
+        return code, {
+            'collision_sensitivity': self.collision_sensitivity,  # 碰撞灵敏度
+            'teach_sensitivity': self.teach_sensitivity,  # 示教灵敏度
+            'gravity_direction': self.gravity_direction,  # 重力方向
+            'tcp_load': self.tcp_load,  # TCP负载
+            'tcp_offset': self.position_offset,  # TCP偏移
+            'tcp_maxacc': self.tcp_acc_limit[1],  # TCP的最大加速度
+            'tcp_jerk': self.tcp_jerk,  # TCP加加速度
+            'joint_maxacc': self.joint_acc_limit[1],  # 关节的最大加速度
+            'joint_jerk': self.joint_jerk,  # 关节加加速度
+            'world_offset': self.world_offset,  # 基坐标偏移
+            'report_tau_or_i': tau_flag,  # 上报力矩还是电流
+            'cgpio_auxin': cgpio_states[10],  # 控制器数字输入IO的配置功能
+            'cgpio_auxout': cgpio_states[11],  # 控制器数字输出IO的配置功能
+            'reduced_states': reduced_states,  # 缩减模式的状态
+            'gpio_reset_config': self.gpio_reset_config,  # gpio自动复位配置
+        }
+
+    def set_firmware_config(self, config):
+        code, old_config = self.get_firmware_config()
+        if 'collision_sensitivity' in config and config['collision_sensitivity'] != old_config['collision_sensitivity']:
+            self.set_collision_sensitivity(config['collision_sensitivity'])
+        if 'teach_sensitivity' in config and config['teach_sensitivity'] != old_config['teach_sensitivity']:
+            self.set_teach_sensitivity(config['teach_sensitivity'])
+        if 'gravity_direction' in config and config['gravity_direction'] != old_config['gravity_direction']:
+            self.set_gravity_direction(config['gravity_direction'])
+        if 'tcp_load' in config and config['tcp_load'] != old_config['tcp_load']:
+            self.set_tcp_load(config['tcp_load'])
+        if 'tcp_offset' in config and config['tcp_offset'] != old_config['tcp_offset']:
+            self.set_tcp_offset(config['tcp_offset'])
+        if 'tcp_maxacc' in config and config['tcp_maxacc'] != old_config['tcp_maxacc']:
+            self.set_tcp_maxacc(config['tcp_maxacc'])
+        if 'tcp_jerk' in config and config['tcp_jerk'] != old_config['tcp_jerk']:
+            self.set_tcp_jerk(config['tcp_jerk'])
+        if 'joint_maxacc' in config and config['joint_maxacc'] != old_config['joint_maxacc']:
+            self.set_joint_maxacc(config['joint_maxacc'])
+        if 'joint_jerk' in config and config['joint_jerk'] != old_config['joint_jerk']:
+            self.set_joint_jerk(config['joint_jerk'])
+        if 'world_offset' in config and config['world_offset'] != old_config['world_offset']:
+            self.set_world_offset(config['world_offset'])
+        if 'report_tau_or_i' in config and config['report_tau_or_i'] != old_config['report_tau_or_i']:
+            self.set_report_tau_or_i(config['report_tau_or_i'])
+        if 'gpio_reset_config' in config and config['gpio_reset_config'] != old_config['gpio_reset_config']:
+            self.config_io_reset_when_stop(0, config['gpio_reset_config'][0])
+            self.config_io_reset_when_stop(1, config['gpio_reset_config'][1])
+
+        if 'reduced_states' in config:
+            states = config['reduced_states']
+            old_states = old_config['reduced_states']
+            if states[1] != old_states[1]:
+                self.set_reduced_tcp_boundary(states[1])
+            if states[2] != old_states[2]:
+                self.set_reduced_max_tcp_speed(states[2])
+            if states[3] != old_states[3]:
+                self.set_reduced_max_joint_speed(states[3])
+            if len(states) > 4 and len(old_states) > 4:
+                if states[4] != old_states[4]:
+                    self.set_reduced_joint_range(states[4])
+            if len(states) > 5 and len(old_states) > 5:
+                if states[5] != old_states[5]:
+                    self.set_fense_mode(states[5])
+            if len(states) > 6 and len(old_states) > 6:
+                if states[4] != old_states[6]:
+                    self.set_collision_rebound(states[6])
+            self.set_reduced_mode(states[0])
+
+        if 'cgpio_auxin' in config and config['cgpio_auxin'] != old_config['cgpio_auxin']:
+            for i in range(len(config['cgpio_auxin'])):
+                if config['cgpio_auxin'][i] != old_config['cgpio_auxin'][i]:
+                    self.set_cgpio_digital_input_function(i, config['cgpio_auxin'][i])
+        if 'cgpio_auxout' in config and config['cgpio_auxout'] != old_config['cgpio_auxout']:
+            for i in range(len(config['cgpio_auxout'])):
+                if config['cgpio_auxout'][i] != old_config['cgpio_auxout'][i]:
+                    self.set_cgpio_digital_output_function(i, config['cgpio_auxout'][i])

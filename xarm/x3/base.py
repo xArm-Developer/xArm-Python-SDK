@@ -92,6 +92,7 @@ class Base(Events):
             self._teach_sensitivity = 0  # 示教灵敏度
             self._error_code = 0
             self._warn_code = 0
+            self._servo_code = [0] * 16
             self._cmd_num = 0
             self._arm_type = XCONF.Robot.Type.XARM7_X4
             self._arm_axis = XCONF.Robot.Axis.XARM7
@@ -1134,7 +1135,12 @@ class Base(Events):
             self._rot_jerk, self._max_rot_acc = rot_msg
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
-            sv3_msg = rx_data[229:245]
+            servo_code = [val for val in rx_data[229:245]]
+            for i in range(self.axis):
+                if self._servo_code[i * 2] != servo_code[i * 2] or self._servo_code[i * 2 + 1] != servo_code[i * 2 + 1]:
+                    print('servo_error_code, servo_id={}, status={}, code={}'.format(i + 1, servo_code[i * 2], servo_code[i * 2 + 1]))
+            self._servo_code = servo_code
+
             self._first_report_over = True
 
             # length = convert.bytes_to_u32(rx_data[0:4])
@@ -1440,8 +1446,7 @@ class Base(Events):
             ret[0] = 0
         return ret[0], [float(
             '{:.6f}'.format(math.degrees(self._position[i]) if 2 < i < 6 and not is_radian else self._position[i])) for
-                        i in
-                        range(len(self._position))]
+                        i in range(len(self._position))]
 
     @xarm_is_connected(_type='get')
     def get_servo_angle(self, servo_id=None, is_radian=None):
@@ -1682,3 +1687,4 @@ class Base(Events):
         ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas))
         ret[0] = self._check_modbus_code(ret, min_res_len + 2)
         return ret[0], ret[2:]
+

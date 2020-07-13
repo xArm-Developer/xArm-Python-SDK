@@ -543,6 +543,19 @@ class XArmAPI(object):
         """
         return self._arm.gravity_direction
 
+    @property
+    def servo_codes(self):
+        """
+        Servos status and error_code
+        :return: [
+            [servo-1-status, servo-1-code],
+            ...,
+            [servo-7-status, servo-7-code], 
+            [tool-gpio-status, tool-gpio-code]
+        ]
+        """
+        return self._arm.servo_codes
+
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         """
         Connect to xArm
@@ -2479,5 +2492,8 @@ class XArmAPI(object):
 
     def get_report_tau_or_i(self):
         return self._arm.get_report_tau_or_i()
+
+    def set_timeout(self, timeout):
+        return self._arm.set_timeout(timeout)
 
 

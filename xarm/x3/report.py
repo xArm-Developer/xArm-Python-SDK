@@ -1,4 +1,3 @@
-from xarm.core.config.x_config import XCONF
 from xarm.core.utils import convert
 
 
@@ -42,7 +41,7 @@ class ReportHandler(object):
                         else:
                             self.reset()
                             # TODO reconnect
-                            return
+                            return -1
                     else:
                         data = self.buffer[:245]
                         self.buffer = self.buffer[245:]
@@ -56,16 +55,16 @@ class ReportHandler(object):
             except:
                 self.reset()
                 # TODO reconnect
-                return
+                return -1
         else:
             data = self.buffer[:self.report_size]
             self.buffer = self.buffer[self.report_size:]
         self.source_data = data
         if self.parse_handler:
-            self.parse_handler(data)
+            return self.parse_handler(data)
 
     @staticmethod
-    def __parse_report_common_data(self, rx_data):
+    def __parse_report_common_data(rx_data):
         # length = convert.bytes_to_u32(rx_data[0:4])
         length = len(rx_data)
         state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4

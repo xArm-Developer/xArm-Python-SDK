@@ -74,12 +74,20 @@ class Port(threading.Thread):
     def read(self, timeout=None):
         if not self.connected:
             return -1
-        if not self.rx_que.empty():
+        try:
             buf = self.rx_que.get(timeout=timeout)
             logger.verbose('[{}] recv: {}'.format(self.port_type, buf))
             return buf
-        else:
+        except:
             return -1
+        # if not self.connected:
+        #     return -1
+        # if not self.rx_que.empty():
+        #     buf = self.rx_que.get(timeout=timeout)
+        #     logger.verbose('[{}] recv: {}'.format(self.port_type, buf))
+        #     return buf
+        # else:
+        #     return -1
 
     def recv_proc(self):
         self.alive = True

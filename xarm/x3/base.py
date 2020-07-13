@@ -92,7 +92,7 @@ class Base(Events):
             self._teach_sensitivity = 0  # 示教灵敏度
             self._error_code = 0
             self._warn_code = 0
-            self._servo_code = [0] * 16
+            self._servo_codes = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
             self._cmd_num = 0
             self._arm_type = XCONF.Robot.Type.XARM7_X4
             self._arm_axis = XCONF.Robot.Axis.XARM7
@@ -146,6 +146,8 @@ class Base(Events):
             self.bio_gripper_error_code = 0
 
             self.robotiq_is_activated = False
+
+            self._cmd_timeout = XCONF.UxbusConf.SET_TIMEOUT / 1000
 
             if not do_not_open:
                 self.connect()
@@ -393,6 +395,10 @@ class Base(Events):
     def count(self):
         return self._count
 
+    @property
+    def servo_codes(self):
+        return self._servo_codes
+
     def check_is_pause(self):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
@@ -487,6 +493,7 @@ class Base(Events):
                     self._report_connect_changed_callback(True, False)
                 self._check_version()
                 self.arm_cmd.set_debug(self._debug)
+            self.set_timeout(self._cmd_timeout)
 
     def disconnect(self):
         try:
@@ -511,6 +518,12 @@ class Base(Events):
         self._report_connect_changed_callback(False, False)
         with self._cond_pause:
             self._cond_pause.notifyAll()
+
+    def set_timeout(self, timeout):
+        self._cmd_timeout = timeout
+        if self.arm_cmd is not None:
+            self._cmd_timeout = self.arm_cmd.set_timeout(self._cmd_timeout)
+        return self._cmd_timeout
 
     def _check_version(self):
         self._version = None
@@ -1135,11 +1148,12 @@ class Base(Events):
             self._rot_jerk, self._max_rot_acc = rot_msg
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
-            servo_code = [val for val in rx_data[229:245]]
+            servo_codes = [val for val in rx_data[229:245]]
             for i in range(self.axis):
-                if self._servo_code[i * 2] != servo_code[i * 2] or self._servo_code[i * 2 + 1] != servo_code[i * 2 + 1]:
-                    print('servo_error_code, servo_id={}, status={}, code={}'.format(i + 1, servo_code[i * 2], servo_code[i * 2 + 1]))
-            self._servo_code = servo_code
+                if self._servo_codes[i][0] != servo_codes[i * 2] or self._servo_codes[i][1] != servo_codes[i * 2 + 1]:
+                    print('servo_error_code, servo_id={}, status={}, code={}'.format(i + 1, servo_codes[i * 2], servo_codes[i * 2 + 1]))
+                self._servo_codes[i][0] = servo_codes[i * 2]
+                self._servo_codes[i][1] = servo_codes[i * 2 + 1]
 
             self._first_report_over = True
 

@@ -37,6 +37,35 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         kwargs['init'] = True
         Base.__init__(self, port, is_radian, do_not_open, **kwargs)
 
+    def _wait_move(self, timeout=None):
+        if timeout is not None:
+            expired = time.time() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.time() else 0)
+        else:
+            expired = 0
+        count = 0
+        while timeout is None or time.time() < expired:
+            if not self.connected:
+                return APIState.NOT_CONNECTED
+            if self.error_code != 0:
+                return APIState.HAS_ERROR
+            if self.state in [4, 5] or self._is_stop:
+                self._sleep_finish_time = 0 if self.state in [4, 5] else self._sleep_finish_time
+                return APIState.EMERGENCY_STOP
+            if time.time() < self._sleep_finish_time or self.state == 3:
+                time.sleep(0.02)
+                count = 0
+                continue
+            if self.state != 1:
+                count += 1
+                if count >= 10:
+                    return 0
+                if count % 4 == 0:
+                    self.get_state()
+            else:
+                count = 0
+            time.sleep(0.05)
+        return APIState.WAIT_FINISH_TIMEOUT
+
     class _WaitMove:
         def __init__(self, owner, timeout):
             self.owner = owner
@@ -233,9 +262,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
-                self._WaitMove(self, timeout).start()
+                code = self._wait_move(timeout)
+                # self._WaitMove(self, timeout).start()
                 self._is_stop = False
-                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+                return code
+                # return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_position = last_used_position
             self._last_tcp_speed = last_used_tcp_speed
@@ -293,9 +324,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
-                self._WaitMove(self, timeout).start()
+                code = self._wait_move(timeout)
+                # self._WaitMove(self, timeout).start()
                 self._is_stop = False
-                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+                return code
+                # return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_tcp_speed = last_used_tcp_speed
             self._last_tcp_acc = last_used_tcp_acc
@@ -344,9 +377,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
-                self._WaitMove(self, timeout).start()
+                code = self._wait_move(timeout)
+                # self._WaitMove(self, timeout).start()
                 self._is_stop = False
-                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+                return code
+                # return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_tcp_speed = last_used_tcp_speed
             self._last_tcp_acc = last_used_tcp_acc
@@ -505,9 +540,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
-                self._WaitMove(self, timeout).start()
+                code = self._wait_move(timeout)
+                # self._WaitMove(self, timeout).start()
                 self._is_stop = False
-                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+                return code
+                # return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_angles = last_used_angle
             self._last_joint_speed = last_used_joint_speed
@@ -609,9 +646,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 print('if you want to wait, please enable report')
             else:
                 self._is_stop = False
-                self._WaitMove(self, timeout).start()
+                code = self._wait_move(timeout)
+                # self._WaitMove(self, timeout).start()
                 self._is_stop = False
-                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+                return code
+                # return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         if ret[0] < 0 and not self.get_is_moving():
             self._last_tcp_speed = last_used_tcp_speed
             self._last_tcp_acc = last_used_tcp_acc
@@ -684,9 +723,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 warnings.warn('if you want to wait, please enable report')
             else:
                 self._is_stop = False
-                self._WaitMove(self, timeout).start()
+                code = self._wait_move(timeout)
+                # self._WaitMove(self, timeout).start()
                 self._is_stop = False
-                return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
+                return code
+                # return APIState.HAS_ERROR if self.error_code != 0 else APIState.HAS_WARN if self.warn_code != 0 else APIState.NORMAL
         return ret[0]
 
     @xarm_is_ready(_type='set')
@@ -777,7 +818,8 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             self.release_state_changed_callback(state_changed_callback)
         logger.info('move_arc_lines--end')
         if wait:
-            self._WaitMove(self, 0).start()
+            self._wait_move()
+            # self._WaitMove(self, 0).start()
         self._is_stop = False
 
     @xarm_is_connected(_type='set')
@@ -1621,16 +1663,6 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         #     ret[0] = 0
         logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
         return ret[0]
-
-    @staticmethod
-    def set_timeout(timeout):
-        if isinstance(timeout, (tuple, list)) and len(timeout) >= 2:
-            XCONF.UxbusConf.SET_TIMEOUT = timeout[0] * 1000
-            XCONF.UxbusConf.GET_TIMEOUT = timeout[1] * 1000
-        else:
-            XCONF.UxbusConf.SET_TIMEOUT = timeout * 1000
-            XCONF.UxbusConf.GET_TIMEOUT = timeout * 1000
-        return 0
 
     @xarm_is_connected(_type='set')
     def set_report_tau_or_i(self, tau_or_i=0):

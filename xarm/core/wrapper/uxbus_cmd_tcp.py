@@ -77,9 +77,10 @@ class UxbusCmdTcp(UxbusCmd):
     def send_pend(self, funcode, num, timeout):
         ret = [0] * 254 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
-        expired = time.time() + timeout / 1000
+        expired = time.time() + timeout
         while time.time() < expired:
-            rx_data = self.arm_port.read()
+            remaining = expired - time.time()
+            rx_data = self.arm_port.read(remaining)
             if rx_data != -1 and len(rx_data) > 7:
                 if self._debug:
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
@@ -95,7 +96,9 @@ class UxbusCmdTcp(UxbusCmd):
                     return ret
                 elif ret[0] != XCONF.UxbusState.ERR_NUM:
                     return ret
-            time.sleep(0.0005)
+            else:
+                time.sleep(0.001)
+            # time.sleep(0.0005)
         return ret
 
     def send_xbus(self, funcode, datas, num):

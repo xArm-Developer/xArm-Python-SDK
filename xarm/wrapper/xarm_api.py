@@ -556,6 +556,14 @@ class XArmAPI(object):
         """
         return self._arm.servo_codes
 
+    @property
+    def voltages(self):
+        return self._arm.voltages
+
+    @property
+    def cgpio_states(self):
+        return self._arm.cgpio_states
+
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         """
         Connect to xArm
@@ -1364,7 +1372,7 @@ class XArmAPI(object):
         """
         return self._arm.set_pause_time(sltime, wait=wait)
 
-    def set_tcp_offset(self, offset, is_radian=None):
+    def set_tcp_offset(self, offset, is_radian=None, **kwargs):
         """
         Set the tool coordinate system offset at the end
         Note:
@@ -1379,7 +1387,7 @@ class XArmAPI(object):
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_tcp_offset(offset, is_radian=is_radian)
+        return self._arm.set_tcp_offset(offset, is_radian=is_radian, **kwargs)
 
     def set_tcp_jerk(self, jerk):
         """
@@ -2494,6 +2502,11 @@ class XArmAPI(object):
         return self._arm.get_report_tau_or_i()
 
     def set_timeout(self, timeout):
+        """
+        Set the timeout of cmd response
+         
+        :param timeout: seconds
+        """
         return self._arm.set_timeout(timeout)
 
 

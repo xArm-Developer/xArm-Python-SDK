@@ -108,7 +108,6 @@ class Base(Events):
             self._gravity_direction = [0, 0, -1]
 
             self._is_ready = False
-            self._is_stop = False
             self._is_sync = False
             self._is_first_report = True
             self._first_report_over = False
@@ -122,6 +121,7 @@ class Base(Events):
             self._revision_version_number = 0  # 固件修正版本号
 
             self._temperatures = [0, 0, 0, 0, 0, 0, 0]
+            self._voltages = [0, 0, 0, 0, 0, 0, 0]
 
             self._is_set_move = False
             self._cond_pause = threading.Condition()
@@ -131,9 +131,12 @@ class Base(Events):
             self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
 
             self._count = -1
+            self._last_report_time = time.time()
+            self._max_report_interval = 0
 
             self._cgpio_reset_enable = 0
             self._tgpio_reset_enable = 0
+            self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
 
             self._ignore_error = False
             self.modbus_baud = -1
@@ -398,6 +401,18 @@ class Base(Events):
     @property
     def servo_codes(self):
         return self._servo_codes
+
+    @property
+    def is_stop(self):
+        return self.state in [4, 5]
+
+    @property
+    def voltages(self):
+        return self._voltages
+
+    @property
+    def cgpio_states(self):
+        return self._cgpio_states
 
     def check_is_pause(self):
         if self._check_is_pause:
@@ -785,6 +800,7 @@ class Base(Events):
                 if state in [4, 5] or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
+                    self._sleep_finish_time = 0
                     self._is_ready = False
                 else:
                     # if not self._is_ready:
@@ -842,7 +858,7 @@ class Base(Events):
             self._report_location_callback()
 
             self._report_callback()
-            if not self._is_sync:
+            if not self._is_sync and self._error_code != 0 and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
 
@@ -964,12 +980,12 @@ class Base(Events):
             self._report_location_callback()
 
             self._report_callback()
-            if not self._is_sync:
+            if not self._is_sync and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
 
         def __handle_report_normal(rx_data):
-            # print('length:', convert.bytes_to_u32(rx_data[0:4]))
+            # print('length:', convert.bytes_to_u32(rx_data[0:4]), len(rx_data))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
             # if state != self._state or mode != self._mode:
             #     print('mode: {}, state={}, time={}'.format(mode, state, time.time()))
@@ -1046,6 +1062,7 @@ class Base(Events):
                 if state in [4, 5] or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
+                    self._sleep_finish_time = 0
                     self._is_ready = False
                 else:
                     # if not self._is_ready:
@@ -1102,11 +1119,16 @@ class Base(Events):
             self._report_location_callback()
 
             self._report_callback()
-            if not self._is_sync:
+            if not self._is_sync and self._error_code != 0 and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
 
         def __handle_report_rich(rx_data):
+            report_time = time.time()
+            interval = report_time - self._last_report_time
+            self._max_report_interval = max(self._max_report_interval, interval)
+            self._last_report_time = report_time
+            # print('interval={}, max_interval={}'.format(interval, self._max_report_interval))
             __handle_report_normal(rx_data)
             (self._arm_type,
              arm_axis,
@@ -1187,6 +1209,18 @@ class Base(Events):
                     self._world_offset = world_offset
             if length >= 314:
                 self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
+            if length >= 328:
+                voltages = convert.bytes_to_u16s(rx_data[314:328], 7)
+                voltages = list(map(lambda x: x / 100, voltages))
+                self._voltages = voltages
+            if length >= 362:
+                cgpio_states = []
+                cgpio_states.extend(rx_data[328:330])
+                cgpio_states.extend(convert.bytes_to_u16s(rx_data[330:346], 8))
+                cgpio_states[6:10] = list(map(lambda x: x / 4096.0 * 10.0, cgpio_states[6:10]))
+                cgpio_states.append(list(map(int, rx_data[346:354])))
+                cgpio_states.append(list(map(int, rx_data[354:362])))
+                self._cgpio_states = cgpio_states
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -1275,6 +1309,7 @@ class Base(Events):
                 if state in [4, 5]:
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
+                    self._sleep_finish_time = 0
                     self._is_ready = False
                 else:
                     # if not self._is_ready:
@@ -1527,6 +1562,7 @@ class Base(Events):
             with self._cond_pause:
                 self._cond_pause.notifyAll()
         if self._state in [4, 5]:
+            self._sleep_finish_time = 0
             if self._is_ready:
                 pretty_print('[set_state], xArm is not ready to move', color='red')
             self._is_ready = False
@@ -1589,6 +1625,7 @@ class Base(Events):
         ret = self.arm_cmd.clean_err()
         self.get_state()
         if self._state in [4, 5]:
+            self._sleep_finish_time = 0
             if self._is_ready:
                 pretty_print('[clean_error], xArm is not ready to move', color='red')
             self._is_ready = False
@@ -1616,6 +1653,7 @@ class Base(Events):
             self._is_ready = bool(enable)
         self.get_state()
         if self._state in [4, 5]:
+            self._sleep_finish_time = 0
             if self._is_ready:
                 pretty_print('[motion_enable], xArm is not ready to move', color='red')
             self._is_ready = False

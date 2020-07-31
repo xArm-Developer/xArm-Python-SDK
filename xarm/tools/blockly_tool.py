@@ -41,6 +41,7 @@ class BlocklyTool(object):
         self._hasEvent = False
         self._events = {}
         self._funcs = {}
+        self._func_cls_exist = False
         self._func_index = 0
         self._index = -1
         self._first_index = 0
@@ -780,7 +781,7 @@ class BlocklyTool(object):
         pitch = fields[5].text
         yaw = fields[6].text
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.set_tcp_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
+        self._append_to_file('{}    arm.set_tcp_offset([{}, {}, {}, {}, {}, {}], wait=True)'.format(prefix, x, y, z, roll, pitch, yaw))
         self._append_to_file('{}    arm.set_state(0)'.format(prefix))
 
         # values = self.get_nodes('value', root=block)
@@ -980,8 +981,8 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '        self.alive = False')
 
             self._insert_to_file(self.index, '        self.values = {'
-                                             '\'tgpio\': {\'digital\': [-1] * 2, \'analog\': [-1] * 2},'
-                                             '\'cgpio\': {\'digital\': [-1] * 8, \'analog\': [-1] * 2}}')
+                                             '\'tgpio\': {\'digital\': [0] * 2, \'analog\': [0] * 2},'
+                                             '\'cgpio\': {\'digital\': [1] * 8, \'analog\': [0] * 2}}')
 
             self._insert_to_file(self.index, '        self.tgpio_digital_callbacks = []')
             self._insert_to_file(self.index, '        self.tgpio_analog_callbacks = []')
@@ -1112,12 +1113,14 @@ class BlocklyTool(object):
     #     self._hasEvent = True
 
     def _handle_procedures_defnoreturn(self, block, prefix=''):
-        if not self._funcs:
+        if not self._func_cls_exist:
             name = 'MyDef'
             self._insert_to_file(self.first_index, '\n\n# Define Mydef class')
             self._insert_to_file(self.first_index, 'class {}(object):'.format(name))
             self._insert_to_file(self.first_index,
                                  '    def __init__(self, *args, **kwargs):\n        pass')
+            self._func_cls_exist = True
+
         field = self.get_node('field', block).text
         if not field:
             field = '1'

@@ -131,5 +131,17 @@ class ReportHandler(object):
         if length >= 314:
             cgpio_reset_enable, tgpio_reset_enable = rx_data[312:314]
             ret.extend([cgpio_reset_enable, tgpio_reset_enable])
+        if length >= 328:
+            voltages = convert.bytes_to_u16s(rx_data[314:328], 7)
+            voltages = list(map(lambda x: x / 100, voltages))
+            ret.append(voltages)
+        if length >= 362:
+            cgpio_states = []
+            cgpio_states.extend(rx_data[328:330])
+            cgpio_states.extend(convert.bytes_to_u16s(rx_data[330:346], 8))
+            cgpio_states[6:10] = list(map(lambda x: x / 4096.0 * 10.0, cgpio_states[6:10]))
+            cgpio_states.append(list(map(int, rx_data[346:354])))
+            cgpio_states.append(list(map(int, rx_data[354:362])))
+            ret.append(cgpio_states)
         return ret
 

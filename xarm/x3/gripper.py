@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
+import struct
 from .utils import xarm_is_connected, xarm_is_pause, check_modbus_baud
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
@@ -429,8 +430,8 @@ class Gripper(GPIO):
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
-                code = code if status == XCONF.BioGripperState.IS_MOTION \
-                    else APIState.END_EFFECTOR_HAS_FAULT if status == XCONF.BioGripperState.IS_FAULT \
+                code = code if status & 0x03 == XCONF.BioGripperState.IS_MOTION \
+                    else APIState.END_EFFECTOR_HAS_FAULT if status & 0x03 == XCONF.BioGripperState.IS_FAULT \
                     else 0
             else:
                 code = APIState.NOT_CONNECTED if _ == APIState.NOT_CONNECTED else APIState.CHECK_FAILED if failed_cnt > 10 else code
@@ -439,12 +440,30 @@ class Gripper(GPIO):
             time.sleep(0.1)
         return code
 
+    def __check_bio_gripper_enable_finish(self, timeout=3):
+        failed_cnt = 0
+        expired = time.time() + timeout
+        code = APIState.WAIT_FINISH_TIMEOUT
+        while time.time() < expired:
+            _, status = self.get_bio_gripper_status()
+            failed_cnt = 0 if _ == 0 else failed_cnt + 1
+            if _ == 0:
+                code = 0 if self.bio_gripper_is_enabled else code
+            else:
+                code = APIState.NOT_CONNECTED if _ == APIState.NOT_CONNECTED else APIState.CHECK_FAILED if failed_cnt > 10 else code
+            if code != APIState.WAIT_FINISH_TIMEOUT:
+                break
+            time.sleep(0.1)
+        return code
+
     @xarm_is_connected(_type='set')
-    def set_bio_gripper_enable(self, enable):
+    def set_bio_gripper_enable(self, enable, wait=True):
         data_frame = [0x08, 0x06, 0x01, 0x00, 0x00, int(enable)]
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        if code == 0 and wait:
+            code = self.__check_bio_gripper_enable_finish()
         logger.info('API -> set_bio_gripper_enable ->code={}, enable={}'.format(code, enable))
-        self.bio_gripper_is_enabled = True if code == 0 else self.bio_gripper_is_enabled
+        # self.bio_gripper_is_enabled = True if code == 0 else self.bio_gripper_is_enabled
         return code
 
     @xarm_is_connected(_type='set')
@@ -455,66 +474,79 @@ class Gripper(GPIO):
         self.bio_gripper_speed = speed if code == 0 else self.bio_gripper_speed
         return code
 
-    # @xarm_is_connected(_type='set')
-    # def set_bio_gripper_position(self, pos, wait=True, timeout=5):
-    #     data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x80 if pos < 0 else 0x00, 0x00, pos // 256 % 256, pos % 256]
-    #     code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
-    #     if code == 0 and wait:
-    #         code = self.__check_bio_gripper_finish(timeout=timeout)
-    #     logger.info('API -> set_bio_gripper_position ->code={}, pos={}'.format(code, pos))
-    #     return code
+    @xarm_is_connected(_type='set')
+    def set_bio_gripper_position(self, pos, speed=0, wait=True, timeout=5, **kwargs):
+        if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
+            self.set_bio_gripper_enable(True)
+        if speed > 0 and speed != self.bio_gripper_speed:
+            self.set_bio_gripper_speed(speed)
+        data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04]
+        data_frame.extend(list(struct.pack('>i', pos)))
+        code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        if code == 0 and wait:
+            code = self.__check_bio_gripper_finish(timeout=timeout)
+        logger.info('API -> set_bio_gripper_position ->code={}, pos={}'.format(code, pos))
+        return code
 
     @xarm_is_connected(_type='set')
     def open_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
-        if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
-            self.set_bio_gripper_enable(True)
-            time.sleep(2)
-        if speed > 0 and speed != self.bio_gripper_speed:
-            self.set_bio_gripper_speed(speed)
-        # return self.set_bio_gripper_position(-100, wait=wait, timeout=timeout)
-        data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x80, 0x00, 0x00, 0x64]
-        code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
-        if code == 0 and wait:
-            code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
-        logger.info('API -> open_bio_gripper ->code={}'.format(code))
-        return code
+        return self.set_bio_gripper_position(130, speed=speed, wait=wait, timeout=timeout, **kwargs)
+        # if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
+        #     self.set_bio_gripper_enable(True)
+        # if speed > 0 and speed != self.bio_gripper_speed:
+        #     self.set_bio_gripper_speed(speed)
+        # data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x80, 0x00, 0x00, 0x64]
+        # code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        # if code == 0 and wait:
+        #     code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
+        # logger.info('API -> open_bio_gripper ->code={}'.format(code))
+        # return code
 
     @xarm_is_connected(_type='set')
     def close_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
-        if kwargs.get('auto_enable', False):
-            self.set_bio_gripper_enable(True)
-            time.sleep(2)
-        if speed > 0 and speed != self.bio_gripper_speed:
-            self.set_bio_gripper_speed(speed)
-        # return self.set_bio_gripper_position(100, wait=wait, timeout=timeout)
-        data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x64]
-        code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
-        if code == 0 and wait:
-            code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
-        logger.info('API -> close_bio_gripper ->code={}'.format(code))
-        return code
+        return self.set_bio_gripper_position(50, speed=speed, wait=wait, timeout=timeout, **kwargs)
+        # if kwargs.get('auto_enable', False):
+        #     self.set_bio_gripper_enable(True)
+        # if speed > 0 and speed != self.bio_gripper_speed:
+        #     self.set_bio_gripper_speed(speed)
+        # data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x64]
+        # code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        # if code == 0 and wait:
+        #     code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
+        # logger.info('API -> close_bio_gripper ->code={}'.format(code))
+        # return code
 
     @xarm_is_connected(_type='get')
-    def __get_bio_gripper_register(self, address=0x00, number_of_registers=1):
-        data_frame = [0x08, 0x03, 0x00, address, 0x00, number_of_registers]
+    def get_bio_gripper_register(self, address=0x00, number_of_registers=1):
+        data_frame = [0x08, 0x03]
+        data_frame.extend(list(struct.pack('>h', address)))
+        data_frame.extend(list(struct.pack('>h', number_of_registers)))
         return self.__bio_gripper_send_modbus(data_frame, 3 + 2 * number_of_registers)
 
     @xarm_is_connected(_type='get')
     def get_bio_gripper_status(self):
-        code, ret = self.__get_bio_gripper_register(address=0x00)
+        code, ret = self.get_bio_gripper_register(address=0x00)
         status = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
         if code == 0:
-            if status == XCONF.BioGripperState.IS_FAULT:
+            if status & 0x03 == XCONF.BioGripperState.IS_FAULT:
                 self.get_bio_gripper_error()
             else:
                 self.bio_gripper_error_code = 0
+            if (status >> 2) & 0x03 == XCONF.BioGripperState.IS_ENABLED:
+                self.bio_gripper_is_enabled = True
+            else:
+                self.bio_gripper_is_enabled = False
         # print('code={}, status={}'.format(code, status))
         return code, status
 
     @xarm_is_connected(_type='get')
     def get_bio_gripper_error(self):
-        code, ret = self.__get_bio_gripper_register(address=0x0F)
+        code, ret = self.get_bio_gripper_register(address=0x0F)
         error_code = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
         if code == 0:
             self.bio_gripper_error_code = error_code
         return code, error_code
+
+    def get_bio_gripper_version(self):
+        ret = self.get_bio_gripper_register(address=0x0801, number_of_registers=0x03)
+        return ret

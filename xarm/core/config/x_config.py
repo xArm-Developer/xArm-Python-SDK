@@ -343,6 +343,9 @@ class XCONF(object):
         IS_MOTION = 1
         IS_DETECTED = 2
         IS_FAULT = 3
+        IS_NOT_ENABLED = 0
+        IS_ENABLING = 1
+        IS_ENABLED = 2
 
 
 

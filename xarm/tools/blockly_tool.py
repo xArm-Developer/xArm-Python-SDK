@@ -846,9 +846,9 @@ class BlocklyTool(object):
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'set_bio_gripper_enable, code={{}}\'.format(code))'.format(prefix))
-        self._append_to_file('{}expired = time.time() + 2'.format(prefix))
-        self._append_to_file('{}while not params[\'quit\'] and time.time() < expired:'.format(prefix))
-        self._append_to_file('{}    time.sleep(0.1)'.format(prefix))
+        # self._append_to_file('{}expired = time.time() + 2'.format(prefix))
+        # self._append_to_file('{}while not params[\'quit\'] and time.time() < expired:'.format(prefix))
+        # self._append_to_file('{}    time.sleep(0.1)'.format(prefix))
 
     def _handle_set_bio_gripper(self, block, prefix=''):
         fields = self.get_nodes('field', root=block, name='status')

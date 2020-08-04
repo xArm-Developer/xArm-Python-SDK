@@ -139,6 +139,7 @@ class Base(Events):
             self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
 
             self._ignore_error = False
+            self._ignore_state = False
             self.modbus_baud = -1
 
             self.gripper_is_enabled = False
@@ -630,7 +631,7 @@ class Base(Events):
                     logger.error('connect changed callback: {}'.format(e))
 
     def _report_state_changed_callback(self):
-        if self._ignore_error:
+        if self._ignore_state:
             return
         if self.REPORT_STATE_CHANGED_ID in self._report_callbacks.keys():
             for callback in self._report_callbacks[self.REPORT_STATE_CHANGED_ID]:
@@ -800,7 +801,6 @@ class Base(Events):
                 if state in [4, 5] or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
-                    self._sleep_finish_time = 0
                     self._is_ready = False
                 else:
                     # if not self._is_ready:
@@ -809,6 +809,8 @@ class Base(Events):
             else:
                 self._is_ready = False
             self._is_first_report = False
+            if not self._is_ready:
+                self._sleep_finish_time = 0
 
             if error_code in [10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
                 self.modbus_baud = -1
@@ -1062,7 +1064,6 @@ class Base(Events):
                 if state in [4, 5] or not all([bool(item[0] & item[1]) for item in zip(mtbrake, mtable)][:self.axis]):
                     # if self._is_ready:
                     #     pretty_print('[report], xArm is not ready to move', color='red')
-                    self._sleep_finish_time = 0
                     self._is_ready = False
                 else:
                     # if not self._is_ready:
@@ -1071,6 +1072,8 @@ class Base(Events):
             else:
                 self._is_ready = False
             self._is_first_report = False
+            if not self._is_ready:
+                self._sleep_finish_time = 0
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1664,6 +1667,47 @@ class Base(Events):
         logger.info('API -> motion_enable -> ret={}'.format(ret[0]))
         return ret[0]
 
+    def wait_move(self, timeout=None):
+        if timeout is not None:
+            expired = time.time() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.time() else 0)
+        else:
+            expired = 0
+        count = 0
+        _, state = self.get_state()
+        max_cnt = 2 if _ == 0 and state == 1 else 10
+        while timeout is None or time.time() < expired:
+            if not self.connected:
+                return APIState.NOT_CONNECTED
+            if time.time() - self._last_report_time > 0.4:
+                self.get_state()
+                self.get_err_warn_code()
+            if self.error_code != 0:
+                return APIState.HAS_ERROR
+            if self.is_stop:
+                self._sleep_finish_time = 0
+                return APIState.EMERGENCY_STOP
+            if time.time() < self._sleep_finish_time or self.state == 3:
+                time.sleep(0.02)
+                count = 0
+                continue
+            if self.state != 1:
+                count += 1
+                if count >= max_cnt:
+                    _, state = self.get_state()
+                    self.get_err_warn_code()
+                    if _ == 0 and state != 1:
+                        return 0
+                    else:
+                        count = 0
+                #     return 0
+                # if count % 4 == 0:
+                #     self.get_state()
+                #     self.get_err_warn_code()
+            else:
+                count = 0
+            time.sleep(0.05)
+        return APIState.WAIT_FINISH_TIMEOUT
+
     @xarm_is_connected(_type='set')
     def _check_modbus_code(self, ret, length=2, only_check_code=False):
         code = ret[0]
@@ -1692,6 +1736,7 @@ class Base(Events):
             if cur_baud_inx != baud_inx:
                 try:
                     self._ignore_error = True
+                    self._ignore_state = True if self.state not in [4, 5] else False
                     self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
@@ -1699,12 +1744,16 @@ class Base(Events):
                         self.get_err_warn_code()
                     if self.error_code == 19 or self.error_code == 28:
                         self.clean_error()
+                        if self._ignore_state:
+                            self.set_state(0)
                         time.sleep(0.6)
                 except Exception as e:
                     self._ignore_error = False
+                    self._ignore_state = False
                     logger.error('checkset_modbus_baud error: {}'.format(e))
                     return APIState.API_EXCEPTION
                 self._ignore_error = False
+                self._ignore_state = False
                 ret, cur_baud_inx = self._get_modbus_baudrate()
                 logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
             if ret == 0:

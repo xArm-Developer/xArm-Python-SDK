@@ -2478,7 +2478,7 @@ class XArmAPI(object):
         return self._arm.open_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
     def close_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
-        return self._arm.close_bio_gripper(speed=speed, wait=wait, timeout=timeout, *kwargs)
+        return self._arm.close_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
     def get_bio_gripper_status(self):
         return self._arm.get_bio_gripper_status()

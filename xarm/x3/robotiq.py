@@ -98,6 +98,10 @@ class RobotIQ(Base):
             self.robotiq_reset()
             self.robotiq_set_activate(wait=True)
         params = [0x09, 0x00, 0x00, pos, speed, force]
+        if wait:
+            code = self.wait_move()
+            if code != 0:
+                return code
         code, ret = self.__robotiq_set(params)
         if wait and code == 0:
             code = self.robotiq_wait_motion_completed(timeout, **kwargs)

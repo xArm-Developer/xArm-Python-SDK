@@ -306,6 +306,10 @@ class Gripper(GPIO):
     @xarm_is_pause(_type='set')
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+        if wait:
+            code = self.wait_move()
+            if code != 0:
+                return code
         if auto_enable and not self.gripper_is_enabled:
             ret = self.arm_cmd.gripper_modbus_set_en(True)
             ret[0] = self._check_modbus_code(ret, only_check_code=True)
@@ -421,7 +425,7 @@ class Gripper(GPIO):
     def __bio_gripper_send_modbus(self, data_frame, min_res_len=0):
         return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len)
 
-    def __check_bio_gripper_finish(self, timeout=5, **kwargs):
+    def __bio_gripper_wait_motion_completed(self, timeout=5, **kwargs):
         failed_cnt = 0
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
@@ -430,8 +434,8 @@ class Gripper(GPIO):
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
-                code = code if status & 0x03 == XCONF.BioGripperState.IS_MOTION \
-                    else APIState.END_EFFECTOR_HAS_FAULT if status & 0x03 == XCONF.BioGripperState.IS_FAULT \
+                code = code if (status & 0x03) == XCONF.BioGripperState.IS_MOTION \
+                    else APIState.END_EFFECTOR_HAS_FAULT if (status & 0x03) == XCONF.BioGripperState.IS_FAULT \
                     else 0
             else:
                 code = APIState.NOT_CONNECTED if _ == APIState.NOT_CONNECTED else APIState.CHECK_FAILED if failed_cnt > 10 else code
@@ -440,7 +444,7 @@ class Gripper(GPIO):
             time.sleep(0.1)
         return code
 
-    def __check_bio_gripper_enable_finish(self, timeout=3):
+    def __bio_gripper_wait_enable_completed(self, timeout=3):
         failed_cnt = 0
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
@@ -460,8 +464,8 @@ class Gripper(GPIO):
     def set_bio_gripper_enable(self, enable, wait=True):
         data_frame = [0x08, 0x06, 0x01, 0x00, 0x00, int(enable)]
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
-        if code == 0 and wait:
-            code = self.__check_bio_gripper_enable_finish()
+        if code == 0 and enable and wait:
+            code = self.__bio_gripper_wait_enable_completed()
         logger.info('API -> set_bio_gripper_enable ->code={}, enable={}'.format(code, enable))
         # self.bio_gripper_is_enabled = True if code == 0 else self.bio_gripper_is_enabled
         return code
@@ -476,6 +480,10 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_position(self, pos, speed=0, wait=True, timeout=5, **kwargs):
+        if wait:
+            code = self.wait_move()
+            if code != 0:
+                return code
         if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
             self.set_bio_gripper_enable(True)
         if speed > 0 and speed != self.bio_gripper_speed:
@@ -484,7 +492,7 @@ class Gripper(GPIO):
         data_frame.extend(list(struct.pack('>i', pos)))
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
         if code == 0 and wait:
-            code = self.__check_bio_gripper_finish(timeout=timeout)
+            code = self.__bio_gripper_wait_motion_completed(timeout=timeout)
         logger.info('API -> set_bio_gripper_position ->code={}, pos={}'.format(code, pos))
         return code
 
@@ -498,7 +506,7 @@ class Gripper(GPIO):
         # data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x80, 0x00, 0x00, 0x64]
         # code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
         # if code == 0 and wait:
-        #     code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
+        #     code = self.__bio_gripper_wait_motion_completed(timeout=timeout, **kwargs)
         # logger.info('API -> open_bio_gripper ->code={}'.format(code))
         # return code
 
@@ -512,7 +520,7 @@ class Gripper(GPIO):
         # data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00, 0x64]
         # code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
         # if code == 0 and wait:
-        #     code = self.__check_bio_gripper_finish(timeout=timeout, **kwargs)
+        #     code = self.__bio_gripper_wait_motion_completed(timeout=timeout, **kwargs)
         # logger.info('API -> close_bio_gripper ->code={}'.format(code))
         # return code
 
@@ -528,11 +536,11 @@ class Gripper(GPIO):
         code, ret = self.get_bio_gripper_register(address=0x00)
         status = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
         if code == 0:
-            if status & 0x03 == XCONF.BioGripperState.IS_FAULT:
+            if (status & 0x03) == XCONF.BioGripperState.IS_FAULT:
                 self.get_bio_gripper_error()
             else:
                 self.bio_gripper_error_code = 0
-            if (status >> 2) & 0x03 == XCONF.BioGripperState.IS_ENABLED:
+            if ((status >> 2) & 0x03) == XCONF.BioGripperState.IS_ENABLED:
                 self.bio_gripper_is_enabled = True
             else:
                 self.bio_gripper_is_enabled = False

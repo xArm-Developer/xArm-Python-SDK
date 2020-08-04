@@ -88,11 +88,11 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
-    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, is_modbus=True):
+    def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, is_modbus=True, **kwargs):
         if is_modbus:
-            return self._set_modbus_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)
+            return self._set_modbus_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
         else:
-            return self._set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout)
+            return self._set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
 
     @xarm_is_connected(_type='get')
     def get_gripper_err_code(self, is_modbus=True):
@@ -165,7 +165,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
-    def _set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
+    def _set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
         if auto_enable:
             self.arm_cmd.gripper_set_en(True)
         if speed is not None:
@@ -305,8 +305,8 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
-    def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
-        if wait:
+    def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
+        if wait or kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()
@@ -483,7 +483,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_position(self, pos, speed=0, wait=True, timeout=5, **kwargs):
-        if wait:
+        if wait or kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()

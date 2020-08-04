@@ -98,7 +98,7 @@ class RobotIQ(Base):
             self.robotiq_reset()
             self.robotiq_set_activate(wait=True)
         params = [0x09, 0x00, 0x00, pos, speed, force]
-        if wait:
+        if wait or kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()

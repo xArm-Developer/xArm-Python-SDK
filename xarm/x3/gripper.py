@@ -307,8 +307,11 @@ class Gripper(GPIO):
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None):
         if wait:
+            has_error = self.error_code != 0
+            is_stop = self.is_stop
             code = self.wait_move()
-            if code != 0:
+            if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
+                    or (has_error and code == APIState.HAS_ERROR)):
                 return code
         if auto_enable and not self.gripper_is_enabled:
             ret = self.arm_cmd.gripper_modbus_set_en(True)
@@ -481,8 +484,11 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='set')
     def set_bio_gripper_position(self, pos, speed=0, wait=True, timeout=5, **kwargs):
         if wait:
+            has_error = self.error_code != 0
+            is_stop = self.is_stop
             code = self.wait_move()
-            if code != 0:
+            if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
+                    or (has_error and code == APIState.HAS_ERROR)):
                 return code
         if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
             self.set_bio_gripper_enable(True)

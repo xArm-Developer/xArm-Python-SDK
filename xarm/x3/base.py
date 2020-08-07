@@ -154,7 +154,7 @@ class Base(Events):
 
             self._cmd_timeout = XCONF.UxbusConf.SET_TIMEOUT / 1000
 
-            self._is_collision_check = 0
+            self._is_collision_detection = 0
             self._collision_tool_type = 0
             self._collision_tool_params = [0, 0, 0, 0, 0, 0]
 
@@ -426,7 +426,7 @@ class Base(Events):
 
     @property
     def self_collision_params(self):
-        return [self._is_collision_check, self._collision_tool_type, self._collision_tool_params]
+        return [self._is_collision_detection, self._collision_tool_type, self._collision_tool_params]
 
     def check_is_pause(self):
         if self._check_is_pause:
@@ -1220,17 +1220,17 @@ class Base(Events):
                     self._world_offset = world_offset
             if length >= 314:
                 self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
-            if length >= 340:
-                self._is_collision_check, self._collision_tool_type = rx_data[314:316]
+            if length >= 416:
+                self._is_collision_detection, self._collision_tool_type = rx_data[314:316]
                 self._collision_tool_params = convert.bytes_to_fp32s(rx_data[316:340], 6)
-            if length >= 354:
+                
                 voltages = convert.bytes_to_u16s(rx_data[340:354], 7)
                 voltages = list(map(lambda x: x / 100, voltages))
                 self._voltages = voltages
-            if length >= 382:
+
                 currents = convert.bytes_to_fp32s(rx_data[354:382], 7)
                 self._currents = currents
-            if length >= 416:
+
                 cgpio_states = []
                 cgpio_states.extend(rx_data[382:384])
                 cgpio_states.extend(convert.bytes_to_u16s(rx_data[384:400], 8))

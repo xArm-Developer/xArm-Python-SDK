@@ -173,24 +173,25 @@ class ReportHandler(object):
             self.parse_dict['cgpio_reset_enable'] = cgpio_reset_enable
             self.parse_dict['tgpio_reset_enable'] = tgpio_reset_enable
             ret.extend([cgpio_reset_enable, tgpio_reset_enable])
-        if length >= 340:
+        if length >= 416:
+        # if length >= 340:
             is_collision_check, collision_tool_type = rx_data[314:316]
             collision_tool_params = convert.bytes_to_fp32s(rx_data[316:340], 6)
             self.parse_dict['is_collision_check'] = is_collision_check
             self.parse_dict['collision_tool_type'] = collision_tool_type
             self.parse_dict['collision_tool_params'] = collision_tool_params
             ret.extend([is_collision_check, collision_tool_type, collision_tool_params])
-        if length >= 354:
+        # if length >= 354:
             voltages = convert.bytes_to_u16s(rx_data[340:354], 7)
             voltages = list(map(lambda x: x / 100, voltages))
             self.parse_dict['voltages'] = voltages
             ret.append(voltages)
-        if length >= 382:
+        # if length >= 382:
             currents = convert.bytes_to_fp32s(rx_data[354:382], 7)
             self._currents = currents
             self.parse_dict['currents'] = currents
             ret.append(currents)
-        if length >= 416:
+        # if length >= 416:
             cgpio_states = []
             cgpio_states.extend(rx_data[382:384])
             cgpio_states.extend(convert.bytes_to_u16s(rx_data[384:400], 8))

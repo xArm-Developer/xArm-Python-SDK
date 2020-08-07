@@ -432,7 +432,7 @@ class Gripper(GPIO):
         failed_cnt = 0
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
-        check_detected = kwargs.get('check_detected', False)
+        # check_detected = kwargs.get('check_detected', False)
         while time.time() < expired:
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
@@ -464,11 +464,11 @@ class Gripper(GPIO):
         return code
 
     @xarm_is_connected(_type='set')
-    def set_bio_gripper_enable(self, enable, wait=True):
+    def set_bio_gripper_enable(self, enable, wait=True, timeout=3):
         data_frame = [0x08, 0x06, 0x01, 0x00, 0x00, int(enable)]
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
         if code == 0 and enable and wait:
-            code = self.__bio_gripper_wait_enable_completed()
+            code = self.__bio_gripper_wait_enable_completed(timeout=timeout)
         logger.info('API -> set_bio_gripper_enable ->code={}, enable={}'.format(code, enable))
         # self.bio_gripper_is_enabled = True if code == 0 else self.bio_gripper_is_enabled
         return code

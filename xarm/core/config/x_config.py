@@ -221,6 +221,10 @@ class XCONF(object):
         CNTER_PLUS = 75
 
         CAL_POSE_OFFSET = 76
+
+        SET_SELF_COLLIS_CHECK = 77
+        SET_COLLIS_TOOL = 78
+
         GET_TCP_POSE_AA = 91
         MOVE_LINE_AA = 92
         MOVE_SERVO_CART_AA = 93
@@ -258,8 +262,8 @@ class XCONF(object):
         SET_IO_STOP_RESET = 146
 
     class UxbusConf:
-        SET_TIMEOUT = 1000  # ms
-        GET_TIMEOUT = 1000  # ms
+        SET_TIMEOUT = 2000  # ms
+        GET_TIMEOUT = 2000  # ms
 
     class ServoConf:
         CON_EN = 0x0100
@@ -346,6 +350,18 @@ class XCONF(object):
         IS_NOT_ENABLED = 0
         IS_ENABLING = 1
         IS_ENABLED = 2
+
+    class CollisionToolType:
+        NONE = 0
+        XARM_GRIPPER = 1
+        XARM_VACUUM_GRIPPER = 2
+        XARM_BIO_GRIPPER = 3
+        ROBOTIQ_2F85 = 4
+        ROBOTIQ_2F140 = 5
+
+        USE_PRIMITIVES = 20  # just for judgement, threshold.
+        CYLINDER = 21  # radius, height
+        BOX = 22  # x, y, z in tool coordinate direction
 
 
 

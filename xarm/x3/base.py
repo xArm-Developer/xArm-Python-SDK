@@ -122,6 +122,7 @@ class Base(Events):
 
             self._temperatures = [0, 0, 0, 0, 0, 0, 0]
             self._voltages = [0, 0, 0, 0, 0, 0, 0]
+            self._currents = [0, 0, 0, 0, 0, 0, 0]
 
             self._is_set_move = False
             self._cond_pause = threading.Condition()
@@ -152,6 +153,10 @@ class Base(Events):
             self.robotiq_is_activated = False
 
             self._cmd_timeout = XCONF.UxbusConf.SET_TIMEOUT / 1000
+
+            self._is_collision_check = 0
+            self._collision_tool_type = 0
+            self._collision_tool_params = [0, 0, 0, 0, 0, 0]
 
             if not do_not_open:
                 self.connect()
@@ -412,8 +417,16 @@ class Base(Events):
         return self._voltages
 
     @property
+    def currents(self):
+        return self._currents
+
+    @property
     def cgpio_states(self):
         return self._cgpio_states
+
+    @property
+    def self_collision_params(self):
+        return [self._is_collision_check, self._collision_tool_type, self._collision_tool_params]
 
     def check_is_pause(self):
         if self._check_is_pause:
@@ -600,24 +613,19 @@ class Base(Events):
 
     def __connect_report_normal(self):
         if self._stream_type == 'socket':
-            self._stream_report = SocketPort(self._port,
-                                             XCONF.SocketConf.TCP_REPORT_NORM_PORT,
+            self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_NORM_PORT,
                                              buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE
                                              if not self._is_old_protocol else 87)
 
     def __connect_report_rich(self):
         if self._stream_type == 'socket':
-            self._stream_report = SocketPort(self._port,
-                                             XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=1024
-                                             if not self._is_old_protocol else 187)
+            self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_RICH_PORT,
+                                             buffer_size=1024 if not self._is_old_protocol else 187)
 
     def __connect_report_real(self):
         if self._stream_type == 'socket':
-            self._stream_report = SocketPort(self._port,
-                                             XCONF.SocketConf.TCP_REPORT_REAL_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_REAL_BUF_SIZE
-                                             if not self._is_old_protocol else 87)
+            self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
+                                             buffer_size=1024 if not self._is_old_protocol else 87)
 
     def _report_connect_changed_callback(self, main_connected=None, report_connected=None):
         if self.REPORT_CONNECT_CHANGED_ID in self._report_callbacks.keys():
@@ -1212,17 +1220,23 @@ class Base(Events):
                     self._world_offset = world_offset
             if length >= 314:
                 self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
-            if length >= 328:
-                voltages = convert.bytes_to_u16s(rx_data[314:328], 7)
+            if length >= 340:
+                self._is_collision_check, self._collision_tool_type = rx_data[314:316]
+                self._collision_tool_params = convert.bytes_to_fp32s(rx_data[316:340], 6)
+            if length >= 354:
+                voltages = convert.bytes_to_u16s(rx_data[340:354], 7)
                 voltages = list(map(lambda x: x / 100, voltages))
                 self._voltages = voltages
-            if length >= 362:
+            if length >= 382:
+                currents = convert.bytes_to_fp32s(rx_data[354:382], 7)
+                self._currents = currents
+            if length >= 416:
                 cgpio_states = []
-                cgpio_states.extend(rx_data[328:330])
-                cgpio_states.extend(convert.bytes_to_u16s(rx_data[330:346], 8))
+                cgpio_states.extend(rx_data[382:384])
+                cgpio_states.extend(convert.bytes_to_u16s(rx_data[384:400], 8))
                 cgpio_states[6:10] = list(map(lambda x: x / 4096.0 * 10.0, cgpio_states[6:10]))
-                cgpio_states.append(list(map(int, rx_data[346:354])))
-                cgpio_states.append(list(map(int, rx_data[354:362])))
+                cgpio_states.append(list(map(int, rx_data[400:408])))
+                cgpio_states.append(list(map(int, rx_data[408:416])))
                 self._cgpio_states = cgpio_states
 
         main_socket_connected = self._stream and self._stream.connected
@@ -1252,7 +1266,7 @@ class Base(Events):
                         size = convert.bytes_to_u32(buffer[0:4])
                     if len(buffer) < size:
                         continue
-                    if self._report_type == 'real' and size == XCONF.SocketConf.TCP_REPORT_REAL_BUF_SIZE:
+                    if self._report_type == 'real':
                         data = buffer[:size]
                         buffer = buffer[size:]
                         __handle_report_real(data)
@@ -1269,13 +1283,6 @@ class Base(Events):
                             data = buffer[:size]
                             buffer = buffer[size:]
                             __handle_report_normal(data)
-                # if recv_data != -1 and len(recv_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                #     # if len(recv_data) >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                #     #     __handle_report_normal(recv_data)
-                #     if len(recv_data) >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
-                #         __handle_report_rich(recv_data)
-                #     else:
-                #         __handle_report_normal(recv_data)
             except Exception as e:
                 logger.error(e)
                 self._connect_report()
@@ -1737,6 +1744,7 @@ class Base(Events):
                 try:
                     self._ignore_error = True
                     self._ignore_state = True if self.state not in [4, 5] else False
+                    state = self.state
                     self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
@@ -1745,7 +1753,7 @@ class Base(Events):
                     if self.error_code == 19 or self.error_code == 28:
                         self.clean_error()
                         if self._ignore_state:
-                            self.set_state(0)
+                            self.set_state(state)
                         time.sleep(0.6)
                 except Exception as e:
                     self._ignore_error = False

@@ -746,7 +746,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_connected(_type='set')
     def set_reduced_mode(self, on_off):
-        ret = self.arm_cmd.set_reduced_mode(on_off)
+        ret = self.arm_cmd.set_reduced_mode(int(on_off))
         logger.info('API -> set_reduced_mode -> ret={}'.format(ret[0]))
         return ret[0]
 
@@ -830,13 +830,13 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_connected(_type='set')
     def set_fense_mode(self, on_off):
-        ret = self.arm_cmd.set_fense_on(on_off)
+        ret = self.arm_cmd.set_fense_on(int(on_off))
         logger.info('API -> set_fense_mode -> ret={}, on={}'.format(ret[0], on_off))
         return ret
 
     @xarm_is_connected(_type='set')
     def set_collision_rebound(self, on_off):
-        ret = self.arm_cmd.set_collis_reb(on_off)
+        ret = self.arm_cmd.set_collis_reb(int(on_off))
         logger.info('API -> set_collision_rebound -> ret={}, on={}'.format(ret[0], on_off))
         return ret
 
@@ -1561,16 +1561,48 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_connected(_type='set')
     def set_report_tau_or_i(self, tau_or_i=0):
-        ret = self.arm_cmd.set_report_tau_or_i(tau_or_i)
+        ret = self.arm_cmd.set_report_tau_or_i(int(tau_or_i))
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             ret[0] = 0
-        logger.info('API -> set_report_tau_or_i -> ret={}'.format(ret[0]))
+        logger.info('API -> set_report_tau_or_i({}) -> ret={}'.format(tau_or_i, ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='get')
     def get_report_tau_or_i(self):
         ret = self.arm_cmd.get_report_tau_or_i()
         return ret[0], ret[1]
+
+    @xarm_is_connected(_type='set')
+    def set_self_collision_detection(self, on_off):
+        ret = self.arm_cmd.set_self_collision_detection(int(on_off))
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+        logger.info('API -> set_self_collision_detection({}) -> ret={}'.format(on_off, ret[0]))
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_collision_tool_model(self, tool_type, *args, **kwargs):
+        if tool_type == XCONF.CollisionToolType.BOX:
+            assert ('z' in kwargs or len(args) >= 3) \
+                and ('y' in kwargs or len(args) >= 2) \
+                and ('x' in kwargs or len(args) >= 1), 'params error, must specify x,y,z parameter'
+            x = kwargs.get('x') if 'x' in kwargs else args[0]
+            y = kwargs.get('y') if 'y' in kwargs else args[1]
+            z = kwargs.get('z') if 'z' in kwargs else args[2]
+            params = [x, y, z]
+        elif tool_type == XCONF.CollisionToolType.CYLINDER:
+            assert ('radius' in kwargs or len(args) >= 2) \
+                   and ('height' in kwargs or len(args) >= 1), 'params error, must specify radius,height parameter'
+            radius = kwargs.get('radius') if 'radius' in kwargs else args[0]
+            height = kwargs.get('height') if 'height' in kwargs else args[1]
+            params = [radius, height]
+        else:
+            params = [] if tool_type < XCONF.CollisionToolType.USE_PRIMITIVES else list(args)
+        ret = self.arm_cmd.set_collision_tool_model(tool_type, params)
+        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+            ret[0] = 0
+        logger.info('API -> set_collision_tool_model({}, {}) -> ret={}'.format(tool_type, params, ret[0]))
+        return ret[0]
 
     def get_firmware_config(self):
         cgpio_code, cgpio_states = self.get_cgpio_state()

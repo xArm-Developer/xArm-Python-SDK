@@ -755,6 +755,7 @@ class BlocklyTool(object):
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
         self._append_to_file('{}    arm.set_state(0)'.format(prefix))
+        self._append_to_file('{}    time.sleep(0.5)'.format(prefix))
 
         # values = self.get_nodes('value', root=block)
         # weight = self.get_nodes('field', root=values[0], descendant=True)[0].text
@@ -783,6 +784,7 @@ class BlocklyTool(object):
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.set_tcp_offset([{}, {}, {}, {}, {}, {}], wait=True)'.format(prefix, x, y, z, roll, pitch, yaw))
         self._append_to_file('{}    arm.set_state(0)'.format(prefix))
+        self._append_to_file('{}    time.sleep(0.5)'.format(prefix))
 
         # values = self.get_nodes('value', root=block)
         # x = self.get_nodes('field', root=values[0], descendant=True)[0].text
@@ -805,6 +807,7 @@ class BlocklyTool(object):
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.set_world_offset([{}, {}, {}, {}, {}, {}])'.format(prefix, x, y, z, roll, pitch, yaw))
         self._append_to_file('{}    arm.set_state(0)'.format(prefix))
+        self._append_to_file('{}    time.sleep(0.5)'.format(prefix))
 
     def _handle_gripper_set(self, block, prefix=''):
         fields = self.get_nodes('field', root=block)

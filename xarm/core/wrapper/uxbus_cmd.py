@@ -904,3 +904,16 @@ class UxbusCmd(object):
         msg[12] = ret[27:35]
 
         return msg
+
+    def set_self_collision_detection(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.SET_SELF_COLLIS_CHECK, txdata, 1)
+
+    def set_collision_tool_model(self, tool_type, params):
+        if len(params) > 0:
+            byte_data = bytes([tool_type])
+            return self.set_nfp32_with_bytes(XCONF.UxbusReg.SET_COLLIS_TOOL, params, len(params), byte_data)
+        else:
+            txdata = [tool_type]
+            return self.set_nu8(XCONF.UxbusReg.SET_COLLIS_TOOL, txdata, 1)
+

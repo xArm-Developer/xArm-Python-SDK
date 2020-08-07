@@ -561,8 +561,16 @@ class XArmAPI(object):
         return self._arm.voltages
 
     @property
+    def currents(self):
+        return self._arm.currents
+
+    @property
     def cgpio_states(self):
         return self._arm.cgpio_states
+
+    @property
+    def self_collision_params(self):
+        return self._arm.self_collision_params
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):
         """
@@ -2355,6 +2363,14 @@ class XArmAPI(object):
         """
         return self._arm.set_safe_level(level=level)
 
+    def set_timeout(self, timeout):
+        """
+        Set the timeout of cmd response
+
+        :param timeout: seconds
+        """
+        return self._arm.set_timeout(timeout)
+
     def robotiq_reset(self):
         """
         Reset the robotiq gripper (clear previous activation if any)
@@ -2468,45 +2484,180 @@ class XArmAPI(object):
         """
         return self._arm.robotiq_status
 
-    def set_bio_gripper_enable(self, enable, wait=True):
-        return self._arm.set_bio_gripper_enable(enable, wait=wait)
+    def set_bio_gripper_enable(self, enable=True, wait=True, timeout=3):
+        """
+        If not already enabled. Enable the bio gripper
+        
+        :param enable: enable or not
+        :param wait: whether to wait for the bio gripper enable complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+        
+        :return: code
+            code: See the code documentation for details.
+        """
+        return self._arm.set_bio_gripper_enable(enable, wait=wait, timeout=timeout)
 
     def set_bio_gripper_speed(self, speed):
+        """
+        Set the speed of the bio gripper
+        
+        :param speed: speed
+        
+        :return: code
+            code: See the code documentation for details.
+        """
         return self._arm.set_bio_gripper_speed(speed)
 
     def open_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
+        """
+        Open the bio gripper
+        
+        :param speed: speed value, default is 0 (not set the speed)
+        :param wait: whether to wait for the bio gripper motion complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+        
+        :return: code
+            code: See the code documentation for details.
+        """
         return self._arm.open_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
     def close_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
+        """
+        Close the bio gripper
+        
+        :param speed: speed value, default is 0 (not set the speed)
+        :param wait: whether to wait for the bio gripper motion complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+        
+        :return: code
+            code: See the code documentation for details.
+        """
         return self._arm.close_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
     def get_bio_gripper_status(self):
+        """
+        Get the status of the bio gripper
+        
+        :return: tuple((code, status))
+            code: See the code documentation for details.
+            status: status
+                status & 0x03 == 0: stop
+                status & 0x03 == 1: motion
+                status & 0x03 == 2: catch
+                status & 0x03 == 3: error
+                (status >> 2) & 0x03 == 0: not enabled
+                (status >> 2) & 0x03 == 1: enabling
+                (status >> 2) & 0x03 == 2: enabled
+        """
         return self._arm.get_bio_gripper_status()
 
     def get_bio_gripper_error(self):
+        """
+        Get the error code of the bio gripper
+        
+        :return: tuple((code, error_code))
+            code: See the code documentation for details.
+            error_code: See Chapter 7 of the xArm User Manual for details. 
+        """
         return self._arm.get_bio_gripper_error()
 
     def set_tgpio_modbus_timeout(self, timeout):
+        """
+        Set the modbus timeout of the tool gpio
+        
+        :param timeout: timeout, seconds
+        
+        :return: code
+            code: See the code documentation for details.
+        """
         return self._arm.set_tgpio_modbus_timeout(timeout)
 
     def set_tgpio_modbus_baudrate(self, baud):
+        """
+        Set the modbus baudrate of the tool gpio
+        
+        :param baud: 
+        
+        :return: code
+            code: See the code documentation for details.
+        """
         return self._arm.set_tgpio_modbus_baudrate(baud)
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0):
+        """
+        Send the modbus data to the tool gpio
+        
+        :param datas: data_list
+        :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
+        
+        :return: tuple((code, modbus_response))
+            code: See the code documentation for details.
+            modbus_response: modbus response data
+        """
         return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len)
 
     def set_report_tau_or_i(self, tau_or_i=0):
+        """
+        Set the reported torque or electric current
+        
+        :param tau_or_i: 
+            0: torque
+            1: electric current
+        
+        :return: code
+            code: See the code documentation for details.
+        """
         return self._arm.set_report_tau_or_i(tau_or_i=tau_or_i)
 
     def get_report_tau_or_i(self):
+        """
+        Get the reported torque or electric current
+        
+        :return: tuple((code, tau_or_i))
+            code: See the code documentation for details.
+            tau_or_i: 
+                0: torque
+                1: electric current
+        """
         return self._arm.get_report_tau_or_i()
 
-    def set_timeout(self, timeout):
+    def set_self_collision_detection(self, on_off):
         """
-        Set the timeout of cmd response
+        Set whether to enable self-collision detection 
+        
+        :param on_off: enable or not
+        
+        :return: code
+            code: See the code documentation for details.
+        """
+        return self._arm.set_self_collision_detection(on_off)
+
+    def set_collision_tool_model(self, tool_type, *args, **kwargs):
+        """
+        Set the geometric model of the end effector for self collision detection
          
-        :param timeout: seconds
+        :param tool_type: the geometric model type
+            0: No end effector, no additional parameters required
+            1: xArm Gripper, no additional parameters required
+            2: xArm Vacuum Gripper, no additional parameters required
+            3: xArm Bio Gripper, no additional parameters required
+            4: Robotiq-2F-85 Gripper, no additional parameters required
+            5: Robotiq-2F-140 Gripper, no additional parameters required
+            21: Cylinder, need additional parameters radius, height
+                self.set_collision_tool_model(21, radius=45, height=137)
+                :param radius: the radius of cylinder, (unit: mm)
+                :param height: the height of cylinder, (unit: mm)
+            22: Cuboid, need additional parameters x, y, z
+                self.set_collision_tool_model(22, x=234, y=323, z=23)
+                :param x: the length of the cuboid in the x coordinate direction, (unit: mm)
+                :param y: the length of the cuboid in the y coordinate direction, (unit: mm)
+                :param z: the length of the cuboid in the z coordinate direction, (unit: mm)
+        :param args: additional parameters
+        :param kwargs: additional parameters
+        :return: code
+            code: See the code documentation for details.
         """
-        return self._arm.set_timeout(timeout)
+        return self._arm.set_collision_tool_model(tool_type, *args, **kwargs)
+
 
 

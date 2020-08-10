@@ -209,12 +209,12 @@ class Base(Events):
             print('compare_time: {}, {}'.format(self._version, e))
 
     @property
-    def version_is_ge_1_5_19(self):
+    def version_is_ge_1_5_20(self):
         if self._version is None:
             self._check_version()
         return self._major_version_number > 1 or (
             self._major_version_number == 1 and self._minor_version_number > 5) or (
-                   self._major_version_number == 1 and self._minor_version_number == 5 and self._revision_version_number >= 19)
+                   self._major_version_number == 1 and self._minor_version_number == 5 and self._revision_version_number >= 20)
 
     @property
     def version_is_ge_1_2_11(self):
@@ -473,7 +473,7 @@ class Base(Events):
 
     @property
     def state_is_ready(self):
-        if self._check_is_ready and not self.version_is_ge_1_5_19:
+        if self._check_is_ready and not self.version_is_ge_1_5_20:
             return self.ready
         else:
             return True
@@ -1513,49 +1513,44 @@ class Base(Events):
                 'LIMIT_ANGLE_ACC': list(map(round, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
             }
 
-    @staticmethod
-    def _code_is_success(code, is_move_cmd=False):
+    def _check_code(self, code, is_move_cmd=False):
         if is_move_cmd:
-            return code in [0, XCONF.UxbusState.WAR_CODE]
+            return 0 if code in [0, XCONF.UxbusState.WAR_CODE] and self.arm_cmd.state_is_ready else XCONF.UxbusState.STATE_NOT_READY if not self.arm_cmd.state_is_ready else code
         else:
-            return code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]
+            return 0 if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY] else code
 
     @xarm_is_connected(_type='get')
     def get_version(self):
         ret = self.arm_cmd.get_version()
-        if self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             version = ''.join(list(map(chr, ret[1:])))
             self._version = version[:version.find('\0')]
-            ret[0] = 0
-            return ret[0], self._version
-        else:
-            return ret[0], self._version
+        return ret[0], self._version
 
     @xarm_is_connected(_type='get')
     def get_robot_sn(self):
         ret = self.arm_cmd.get_robot_sn()
-        if self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             robot_sn = ''.join(list(map(chr, ret[1:])))
             self._robot_sn = robot_sn[:robot_sn.find('\0')]
-            ret[0] = 0
-            pass
         return ret[0], self._robot_sn
 
     @xarm_is_connected(_type='get')
     def check_verification(self):
         ret = self.arm_cmd.check_verification()
-        if self._code_is_success(ret[0]):
-            ret[0] = 0
+        ret[0] = self._check_code(ret[0])
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='get')
     def get_position(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_tcp_pose()
-        if self._code_is_success(ret[0]) and len(ret) > 6:
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0 and len(ret) > 6:
             # self._position = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 7)]
             self._position = [float('{:.6f}'.format(ret[i])) for i in range(1, 7)]
-            ret[0] = 0
         return ret[0], [float(
             '{:.6f}'.format(math.degrees(self._position[i]) if 2 < i < 6 and not is_radian else self._position[i])) for
                         i in range(len(self._position))]
@@ -1564,10 +1559,10 @@ class Base(Events):
     def get_servo_angle(self, servo_id=None, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_joint_pos()
-        if self._code_is_success(ret[0]) and len(ret) > 7:
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0 and len(ret) > 7:
             # self._angles = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 8)]
             self._angles = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]
-            ret[0] = 0
         if servo_id is None or servo_id == 8 or len(self._angles) < servo_id:
             return ret[0], list(
                 map(lambda x: float('{:.6f}'.format(x if is_radian else math.degrees(x))), self._angles))
@@ -1579,7 +1574,8 @@ class Base(Events):
     def get_position_aa(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_position_aa()
-        if self._code_is_success(ret[0]) and len(ret) > 6:
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0 and len(ret) > 6:
             pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in
                     range(1, 7)]
             return ret[0], pose
@@ -1591,7 +1587,8 @@ class Base(Events):
         _pose1 = [pose1[i] if i <= 2 or is_radian else math.radians(pose1[i]) for i in range(6)]
         _pose2 = [pose2[i] if i <= 2 or is_radian else math.radians(pose2[i]) for i in range(6)]
         ret = self.arm_cmd.get_pose_offset(_pose1, _pose2, orient_type_in, orient_type_out)
-        if self._code_is_success(ret[0]) and len(ret) > 6:
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0 and len(ret) > 6:
             pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in
                     range(1, 7)]
             return ret[0], pose
@@ -1604,16 +1601,17 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_state(self):
         ret = self.arm_cmd.get_state()
-        if self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             self._state = ret[1]
-            ret[0] = 0
         return ret[0], self._state
 
     @xarm_is_connected(_type='set')
     def set_state(self, state=0):
         _state = self._state
         ret = self.arm_cmd.set_state(state)
-        if state == 4 and self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if state == 4 and ret[0] == 0:
             # self._last_position[:6] = self.position
             # self._last_angles = self.angles
             self._sleep_finish_time = 0
@@ -1639,28 +1637,27 @@ class Base(Events):
     @xarm_is_connected(_type='set')
     def set_mode(self, mode=0):
         ret = self.arm_cmd.set_mode(mode)
-        if self._code_is_success(ret[0]):
-            ret[0] = 0
+        ret[0] = self._check_code(ret[0])
         logger.info('API -> set_mode -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='get')
     def get_cmdnum(self):
         ret = self.arm_cmd.get_cmdnum()
-        if self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             if ret[1] != self._cmd_num:
                 self._report_cmdnum_changed_callback()
             self._cmd_num = ret[1]
-            ret[0] = 0
         return ret[0], self._cmd_num
 
     @xarm_is_connected(_type='get')
     def get_err_warn_code(self, show=False, lang='en'):
         ret = self.arm_cmd.get_err_code()
         lang = lang if lang == 'cn' else 'en'
-        if self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             self._error_code, self._warn_code = ret[1:3]
-            ret[0] = 0
         if show:
             pretty_print('************* {}, {}: {} **************'.format(
                          '获取控制器错误警告码' if lang == 'cn' else 'GetErrorWarnCode',
@@ -1712,7 +1709,8 @@ class Base(Events):
             ret = self.arm_cmd.motion_en(8, int(enable))
         else:
             ret = self.arm_cmd.motion_en(servo_id, int(enable))
-        if self._code_is_success(ret[0]):
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             self._is_ready = bool(enable)
         self.get_state()
         if self._state in [4, 5]:
@@ -1771,7 +1769,7 @@ class Base(Events):
     @xarm_is_connected(_type='set')
     def _check_modbus_code(self, ret, length=2, only_check_code=False):
         code = ret[0]
-        if self._code_is_success(code):
+        if self._check_code(code) == 0:
             if not only_check_code:
                 if len(ret) < length:
                     return APIState.MODBUS_ERR_LENG

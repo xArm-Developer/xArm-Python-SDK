@@ -330,9 +330,9 @@ class XCONF(object):
         ERR_PROT = 6  # TCP协议标志错误
         ERR_FUN = 7  # TCP回复指令和发送指令不匹配
         ERR_NOTTCP = 8  # 发送错误
+        STATE_NOT_READY = 9  # 未准备好运动
         ERR_OTHER = 11  # 其它错误
         ERR_PARAM = 12  # 参数错误
-        STATE_NOT_READY = 13  # 未准备好运动
 
     class TrajState:
         IDLE = 0

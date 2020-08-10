@@ -38,6 +38,10 @@ class UxbusCmd(object):
         self._GET_TIMEOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
         self._SET_TIMEOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
 
+    @property
+    def state_is_ready(self):
+        return self._state_is_ready
+
     def set_timeout(self, timeout):
         try:
             if isinstance(timeout, (tuple, list)):

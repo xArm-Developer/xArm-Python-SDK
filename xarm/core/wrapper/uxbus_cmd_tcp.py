@@ -66,6 +66,9 @@ class UxbusCmdTcp(UxbusCmd):
         if state & 0x40:
             self._has_err_warn = True
             return XCONF.UxbusState.ERR_CODE
+        if state & 0x10:
+            self._state_is_ready = False
+            return XCONF.UxbusState.STATE_NOT_READY
         if state & 0x20:
             self._has_err_warn = True
             return XCONF.UxbusState.WAR_CODE
@@ -85,7 +88,7 @@ class UxbusCmdTcp(UxbusCmd):
                 if self._debug:
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
                 ret[0] = self.check_xbus_prot(rx_data, funcode)
-                if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+                if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]:
                     num = (rx_data[5] - 2) if num == -1 else num
                     ret = ret[:num + 1] if len(ret) <= num + 1 else [ret[0]] * (num + 1)
                     length = len(rx_data) - 8

@@ -49,7 +49,7 @@ def xarm_is_ready(_type='set'):
                     args[0].set_mode(0)
                     args[0].set_state(0)
             if args[0].connected:
-                if not args[0]._check_is_ready or args[0].ready:
+                if args[0].state_is_ready:
                     return func(*args, **kwargs)
                 else:
                     logger.error('xArm is not ready')

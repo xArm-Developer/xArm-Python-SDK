@@ -64,12 +64,12 @@ class Record(Base):
             full_filename = filename
         ret = self.arm_cmd.save_traj(full_filename, wait_time=0)
         logger.info('API -> save_record_trajectory -> ret={}'.format(ret[0]))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             if wait:
                 start_time = time.time()
                 while time.time() - start_time < timeout:
                     code, status = self.get_trajectory_rw_status()
-                    if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+                    if self._code_is_success(code):
                         if status == XCONF.TrajState.IDLE:
                             logger.info('Save {} failed'.format(filename))
                             return APIState.TRAJ_RW_FAILED

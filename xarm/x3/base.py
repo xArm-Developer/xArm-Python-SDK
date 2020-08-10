@@ -127,7 +127,6 @@ class Base(Events):
             self._is_set_move = False
             self._cond_pause = threading.Condition()
 
-            self._version_ge_1_2_11 = False  # 固件是否大于等于1.2.11，用于get_reduced_states
             self._realtime_tcp_speed = 0
             self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
 
@@ -161,10 +160,19 @@ class Base(Events):
             if not do_not_open:
                 self.connect()
 
-    @property
-    def version_is_ge_1_2_11(self):
-        if not self._version:
-            self.get_version()
+    def _check_version(self, is_first=False):
+        if is_first:
+            self._version = None
+            self._robot_sn = None
+        try:
+            if not self._version:
+                self.get_version()
+            if is_first:
+                count = 2
+                while not self._version and count:
+                    self.get_version()
+                    time.sleep(0.1)
+                    count -= 1
             if self._version and isinstance(self._version, str):
                 pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
                 m = re.match(pattern, self._version)
@@ -183,6 +191,35 @@ class Base(Events):
                         self._major_version_number = 0
                         self._minor_version_number = 1
                         self._revision_version_number = 0
+            if is_first:
+                if self._check_robot_sn:
+                    count = 2
+                    while not self._robot_sn and count and self.warn_code == 0:
+                        self.get_robot_sn()
+                        self.get_err_warn_code()
+                        if not self._robot_sn and self.warn_code == 0 and count:
+                            time.sleep(0.1)
+                        count -= 1
+                if self.warn_code != 0:
+                    self.clean_warn()
+                print('is_old_protocol: {}'.format(self._is_old_protocol))
+                print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
+                                                        self._revision_version_number))
+        except Exception as e:
+            print('compare_time: {}, {}'.format(self._version, e))
+
+    @property
+    def version_is_ge_1_5_20(self):
+        if self._version is None:
+            self._check_version()
+        return self._major_version_number > 1 or (
+            self._major_version_number == 1 and self._minor_version_number > 5) or (
+                   self._major_version_number == 1 and self._minor_version_number == 5 and self._revision_version_number >= 20)
+
+    @property
+    def version_is_ge_1_2_11(self):
+        if self._version is None:
+            self._check_version()
         return self._major_version_number > 1 or (
             self._major_version_number == 1 and self._minor_version_number > 2) or (
             self._major_version_number == 1 and self._minor_version_number == 2 and self._revision_version_number >= 11)
@@ -434,6 +471,13 @@ class Base(Events):
                 with self._cond_pause:
                     self._cond_pause.wait()
 
+    @property
+    def state_is_ready(self):
+        if self._check_is_ready and not self.version_is_ge_1_5_20:
+            return self.ready
+        else:
+            return True
+
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
         while self.connected and self._timed_comm_t_alive:
@@ -496,7 +540,7 @@ class Base(Events):
                 except:
                     self._stream_report = None
 
-                self._check_version()
+                self._check_version(is_first=True)
                 self.arm_cmd.set_debug(self._debug)
 
                 if self._stream.connected and self._enable_report:
@@ -520,7 +564,7 @@ class Base(Events):
                     self._report_connect_changed_callback(True, True)
                 else:
                     self._report_connect_changed_callback(True, False)
-                self._check_version()
+                self._check_version(is_first=True)
                 self.arm_cmd.set_debug(self._debug)
             self.set_timeout(self._cmd_timeout)
 
@@ -554,47 +598,47 @@ class Base(Events):
             self._cmd_timeout = self.arm_cmd.set_timeout(self._cmd_timeout)
         return self._cmd_timeout
 
-    def _check_version(self):
-        self._version = None
-        self._robot_sn = None
-        try:
-            count = 2
-            while not self._version and count:
-                self.get_version()
-                time.sleep(0.1)
-                count -= 1
-            if self._version and isinstance(self._version, str):
-                pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
-                m = re.match(pattern, self._version)
-                if m:
-                    self._major_version_number, self._minor_version_number, self._revision_version_number = map(int,
-                                                                                                                m.groups())
-                else:
-                    version_date = '-'.join(self._version.split('-')[-3:])
-                    self._is_old_protocol = compare_time('2019-02-01', version_date)
-                    if self._is_old_protocol:
-                        self._major_version_number = 0
-                        self._minor_version_number = 0
-                        self._revision_version_number = 1
-                    else:
-                        self._major_version_number = 0
-                        self._minor_version_number = 1
-                        self._revision_version_number = 0
-            if self._check_robot_sn:
-                count = 2
-                while not self._robot_sn and count and self.warn_code == 0:
-                    self.get_robot_sn()
-                    self.get_err_warn_code()
-                    if not self._robot_sn and self.warn_code == 0 and count:
-                        time.sleep(0.1)
-                    count -= 1
-            if self.warn_code != 0:
-                self.clean_warn()
-            print('is_old_protocol: {}'.format(self._is_old_protocol))
-            print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
-                                                    self._revision_version_number))
-        except Exception as e:
-            print('compare_time: {}, {}'.format(self._version, e))
+    # def _check_version(self):
+    #     self._version = None
+    #     self._robot_sn = None
+    #     try:
+    #         count = 2
+    #         while not self._version and count:
+    #             self.get_version()
+    #             time.sleep(0.1)
+    #             count -= 1
+    #         if self._version and isinstance(self._version, str):
+    #             pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+    #             m = re.match(pattern, self._version)
+    #             if m:
+    #                 self._major_version_number, self._minor_version_number, self._revision_version_number = map(int,
+    #                                                                                                             m.groups())
+    #             else:
+    #                 version_date = '-'.join(self._version.split('-')[-3:])
+    #                 self._is_old_protocol = compare_time('2019-02-01', version_date)
+    #                 if self._is_old_protocol:
+    #                     self._major_version_number = 0
+    #                     self._minor_version_number = 0
+    #                     self._revision_version_number = 1
+    #                 else:
+    #                     self._major_version_number = 0
+    #                     self._minor_version_number = 1
+    #                     self._revision_version_number = 0
+    #         if self._check_robot_sn:
+    #             count = 2
+    #             while not self._robot_sn and count and self.warn_code == 0:
+    #                 self.get_robot_sn()
+    #                 self.get_err_warn_code()
+    #                 if not self._robot_sn and self.warn_code == 0 and count:
+    #                     time.sleep(0.1)
+    #                 count -= 1
+    #         if self.warn_code != 0:
+    #             self.clean_warn()
+    #         print('is_old_protocol: {}'.format(self._is_old_protocol))
+    #         print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
+    #                                                 self._revision_version_number))
+    #     except Exception as e:
+    #         print('compare_time: {}, {}'.format(self._version, e))
 
     def _connect_report(self):
         if self._enable_report:
@@ -832,8 +876,9 @@ class Base(Events):
             self._error_code = error_code
             self._warn_code = warn_code
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
+            _state = self._state
             self._state = state
-            if self.state != 3:
+            if _state == 3 and self.state != 3:
                 with self._cond_pause:
                     self._cond_pause.notifyAll()
             self._cmd_num = cmd_num
@@ -1086,8 +1131,9 @@ class Base(Events):
             self._error_code = error_code
             self._warn_code = warn_code
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
+            _state = self._state
             self._state = state
-            if self.state != 3:
+            if _state == 3 and self.state != 3:
                 with self._cond_pause:
                     self._cond_pause.notifyAll()
             self._mode = mode
@@ -1223,7 +1269,7 @@ class Base(Events):
             if length >= 416:
                 self._is_collision_detection, self._collision_tool_type = rx_data[314:316]
                 self._collision_tool_params = convert.bytes_to_fp32s(rx_data[316:340], 6)
-                
+
                 voltages = convert.bytes_to_u16s(rx_data[340:354], 7)
                 voltages = list(map(lambda x: x / 100, voltages))
                 self._voltages = voltages
@@ -1309,7 +1355,7 @@ class Base(Events):
                 time.sleep(0.01)
                 self.get_position()
 
-                if self.state != 3:
+                if state == 3 and self.state != 3:
                     with self._cond_pause:
                         self._cond_pause.notifyAll()
                 if cmd_num != self._cmd_num:
@@ -1467,10 +1513,17 @@ class Base(Events):
                 'LIMIT_ANGLE_ACC': list(map(round, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
             }
 
+    @staticmethod
+    def _code_is_success(code, is_move_cmd=False):
+        if is_move_cmd:
+            return code in [0, XCONF.UxbusState.WAR_CODE]
+        else:
+            return code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]
+
     @xarm_is_connected(_type='get')
     def get_version(self):
         ret = self.arm_cmd.get_version()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             version = ''.join(list(map(chr, ret[1:])))
             self._version = version[:version.find('\0')]
             ret[0] = 0
@@ -1481,7 +1534,7 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_robot_sn(self):
         ret = self.arm_cmd.get_robot_sn()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             robot_sn = ''.join(list(map(chr, ret[1:])))
             self._robot_sn = robot_sn[:robot_sn.find('\0')]
             ret[0] = 0
@@ -1491,7 +1544,7 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def check_verification(self):
         ret = self.arm_cmd.check_verification()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         return ret[0], ret[1]
 
@@ -1499,7 +1552,7 @@ class Base(Events):
     def get_position(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_tcp_pose()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
+        if self._code_is_success(ret[0]) and len(ret) > 6:
             # self._position = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 7)]
             self._position = [float('{:.6f}'.format(ret[i])) for i in range(1, 7)]
             ret[0] = 0
@@ -1511,7 +1564,7 @@ class Base(Events):
     def get_servo_angle(self, servo_id=None, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_joint_pos()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 7:
+        if self._code_is_success(ret[0]) and len(ret) > 7:
             # self._angles = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 8)]
             self._angles = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]
             ret[0] = 0
@@ -1526,7 +1579,7 @@ class Base(Events):
     def get_position_aa(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_position_aa()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
+        if self._code_is_success(ret[0]) and len(ret) > 6:
             pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in
                     range(1, 7)]
             return ret[0], pose
@@ -1538,7 +1591,7 @@ class Base(Events):
         _pose1 = [pose1[i] if i <= 2 or is_radian else math.radians(pose1[i]) for i in range(6)]
         _pose2 = [pose2[i] if i <= 2 or is_radian else math.radians(pose2[i]) for i in range(6)]
         ret = self.arm_cmd.get_pose_offset(_pose1, _pose2, orient_type_in, orient_type_out)
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 6:
+        if self._code_is_success(ret[0]) and len(ret) > 6:
             pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in
                     range(1, 7)]
             return ret[0], pose
@@ -1551,7 +1604,7 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_state(self):
         ret = self.arm_cmd.get_state()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             self._state = ret[1]
             ret[0] = 0
         return ret[0], self._state
@@ -1560,7 +1613,7 @@ class Base(Events):
     def set_state(self, state=0):
         _state = self._state
         ret = self.arm_cmd.set_state(state)
-        if state == 4 and ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if state == 4 and self._code_is_success(ret[0]):
             # self._last_position[:6] = self.position
             # self._last_angles = self.angles
             self._sleep_finish_time = 0
@@ -1568,7 +1621,7 @@ class Base(Events):
         self.get_state()
         if _state != self._state:
             self._report_state_changed_callback()
-        if self._state != 3:
+        if _state == 3 and self._state != 3:
             with self._cond_pause:
                 self._cond_pause.notifyAll()
         if self._state in [4, 5]:
@@ -1586,7 +1639,7 @@ class Base(Events):
     @xarm_is_connected(_type='set')
     def set_mode(self, mode=0):
         ret = self.arm_cmd.set_mode(mode)
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         logger.info('API -> set_mode -> ret={}'.format(ret[0]))
         return ret[0]
@@ -1594,7 +1647,7 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_cmdnum(self):
         ret = self.arm_cmd.get_cmdnum()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             if ret[1] != self._cmd_num:
                 self._report_cmdnum_changed_callback()
             self._cmd_num = ret[1]
@@ -1605,7 +1658,7 @@ class Base(Events):
     def get_err_warn_code(self, show=False, lang='en'):
         ret = self.arm_cmd.get_err_code()
         lang = lang if lang == 'cn' else 'en'
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             self._error_code, self._warn_code = ret[1:3]
             ret[0] = 0
         if show:
@@ -1659,7 +1712,7 @@ class Base(Events):
             ret = self.arm_cmd.motion_en(8, int(enable))
         else:
             ret = self.arm_cmd.motion_en(servo_id, int(enable))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             self._is_ready = bool(enable)
         self.get_state()
         if self._state in [4, 5]:
@@ -1718,7 +1771,7 @@ class Base(Events):
     @xarm_is_connected(_type='set')
     def _check_modbus_code(self, ret, length=2, only_check_code=False):
         code = ret[0]
-        if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(code):
             if not only_check_code:
                 if len(ret) < length:
                     return APIState.MODBUS_ERR_LENG

@@ -29,6 +29,7 @@ class UxbusCmd(object):
     def __init__(self):
         self._has_error = False
         self._has_warn = False
+        self._state_is_ready = False
         self._error_code = 0
         self._warn_code = 0
         self._cmd_num = 0

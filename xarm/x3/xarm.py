@@ -177,7 +177,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret[0], self._last_position, radius, self._last_tcp_speed, self._last_tcp_acc
         ))
         self._is_set_move = True
-        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+        if wait and self._code_is_success(ret[0], is_move_cmd=True):
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
             else:
@@ -236,7 +236,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret[0], mvpose, self._last_tcp_speed, self._last_tcp_acc
         ))
         self._is_set_move = True
-        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+        if wait and self._code_is_success(ret[0], is_move_cmd=True):
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
             else:
@@ -286,7 +286,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret[0], pose, self._last_tcp_speed, self._last_tcp_acc
         ))
         self._is_set_move = True
-        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+        if wait and self._code_is_success(ret[0], is_move_cmd=True):
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
             else:
@@ -446,7 +446,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc
         ))
         self._is_set_move = True
-        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+        if wait and self._code_is_success(ret[0], is_move_cmd=True):
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
             else:
@@ -549,7 +549,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         ))
         self._is_set_move = True
 
-        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+        if wait and self._code_is_success(ret[0], is_move_cmd=True):
             if not self._enable_report:
                 print('if you want to wait, please enable report')
             else:
@@ -619,11 +619,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret[0], self._last_joint_speed, self._last_joint_acc
         ))
         self._is_set_move = True
-        if ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
-            pass
-            # self._last_position = [201.5, 0, 140.5, -3.1415926, 0, 0]
-            # self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        if wait and ret[0] in [0, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.ERR_CODE]:
+        if wait and self._code_is_success(ret[0], is_move_cmd=True):
             if not self._enable_report:
                 warnings.warn('if you want to wait, please enable report')
             else:
@@ -769,7 +765,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_connected(_type='get')
     def get_reduced_mode(self):
         ret = self.arm_cmd.get_reduced_mode()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         return ret[0], ret[1]
 
@@ -777,7 +773,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def get_reduced_states(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge_1_2_11 else 21)
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
             if not is_radian:
                 ret[4] = round(math.degrees(ret[4]), 1)
@@ -897,7 +893,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_connected(_type='get')
     def get_joints_torque(self, servo_id=None):
         ret = self.arm_cmd.get_joint_tau()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) > 7:
+        if self._code_is_success(ret[0]) and len(ret) > 7:
             self._joints_torque = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]
             ret[0] = 0
         if servo_id is None or servo_id == 8 or len(self._joints_torque) < servo_id:
@@ -1076,7 +1072,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             pose = [pose[i] if i < 3 else math.radians(pose[i]) for i in range(6)]
         ret = self.arm_cmd.get_ik(pose)
         angles = []
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             # angles = [ret[i][0] for i in range(1, 8)]
             angles = [ret[i] for i in range(1, 8)]
             ret[0] = 0
@@ -1098,7 +1094,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
         ret = self.arm_cmd.get_fk(new_angles)
         pose = []
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             # pose = [ret[i][0] for i in range(1, 7)]
             pose = [ret[i] for i in range(1, 7)]
             ret[0] = 0
@@ -1119,7 +1115,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 pose[i] = math.radians(pose[i])
         ret = self.arm_cmd.is_tcp_limit(pose)
         logger.info('API -> is_tcp_limit -> ret={}, limit={}'.format(ret[0], ret[1]))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
             return ret[0], bool(ret[1])
         else:
@@ -1143,7 +1139,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
         ret = self.arm_cmd.is_joint_limit(new_angles)
         logger.info('API -> is_joint_limit -> ret={}, limit={}'.format(ret[0], ret[1]))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
             return ret[0], bool(ret[1])
         else:
@@ -1538,7 +1534,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_connected(_type='set')
     def reload_dynamics(self):
         ret = self.arm_cmd.reload_dynamics()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         logger.info('API -> reload_dynamics -> ret={}'.format(ret[0]))
         return ret[0]
@@ -1546,23 +1542,23 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_connected(_type='set')
     def set_counter_reset(self):
         ret = self.arm_cmd.cnter_reset()
-        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #     ret[0] = 0
+        if self._code_is_success(ret[0]):
+            ret[0] = 0
         logger.info('API -> set_counter_reset -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_counter_increase(self, val=1):
         ret = self.arm_cmd.cnter_plus()
-        # if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-        #     ret[0] = 0
+        if self._code_is_success(ret[0]):
+            ret[0] = 0
         logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_report_tau_or_i(self, tau_or_i=0):
         ret = self.arm_cmd.set_report_tau_or_i(int(tau_or_i))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         logger.info('API -> set_report_tau_or_i({}) -> ret={}'.format(tau_or_i, ret[0]))
         return ret[0]
@@ -1575,7 +1571,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_connected(_type='set')
     def set_self_collision_detection(self, on_off):
         ret = self.arm_cmd.set_self_collision_detection(int(on_off))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         logger.info('API -> set_self_collision_detection({}) -> ret={}'.format(on_off, ret[0]))
         return ret[0]
@@ -1599,7 +1595,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         else:
             params = [] if tool_type < XCONF.CollisionToolType.USE_PRIMITIVES else list(args)
         ret = self.arm_cmd.set_collision_tool_model(tool_type, params)
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             ret[0] = 0
         logger.info('API -> set_collision_tool_model({}, {}) -> ret={}'.format(tool_type, params, ret[0]))
         return ret[0]

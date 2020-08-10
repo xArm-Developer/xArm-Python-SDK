@@ -332,6 +332,7 @@ class XCONF(object):
         ERR_NOTTCP = 8  # 发送错误
         ERR_OTHER = 11  # 其它错误
         ERR_PARAM = 12  # 参数错误
+        STATE_NOT_READY = 13  # 未准备好运动
 
     class TrajState:
         IDLE = 0

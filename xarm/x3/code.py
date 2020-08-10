@@ -32,6 +32,7 @@ class APIState(object):
     NO_TCP = XCONF.UxbusState.ERR_NOTTCP  # 写数据异常
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
+    STATE_NOT_READY = XCONF.UxbusState.STATE_NOT_READY  # 参数错误
 
     TGPIO_ID_ERR = 20  # 末端IO主机ID错误
     MODBUS_BAUD_NOT_SUPPORT = 21  # modbus不支持此波特率

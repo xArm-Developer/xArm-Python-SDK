@@ -22,7 +22,7 @@ class Servo(Base):
         ret = self.arm_cmd.servo_get_dbmsg()
         dbmsg = []
         lang = lang if lang == 'cn' else 'en'
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             for i in range(1, 9):
                 servo_error = ServoError(ret[i * 2], status=ret[i * 2 - 1])
                 name = ('伺服-{}'.format(i) if lang == 'cn' else 'Servo-{}'.format(i)) if i < 8 else ('机械爪' if lang == 'cn' else 'Gripper')

@@ -154,7 +154,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='get')
     def _get_gripper_position(self):
         ret = self.arm_cmd.gripper_get_pos()
-        if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] or len(ret) <= 1:
+        if not self._code_is_success(ret[0]) or len(ret) <= 1:
             return ret[0], None
         elif ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             self.get_err_warn_code()
@@ -229,7 +229,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='get')
     def _get_gripper_err_code(self):
         ret = self.arm_cmd.gripper_get_errcode()
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._code_is_success(ret[0]):
             self._gripper_error_code = ret[1]
             if ret[0] == XCONF.UxbusState.ERR_CODE:
                 self.get_err_warn_code()

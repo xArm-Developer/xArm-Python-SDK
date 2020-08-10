@@ -57,13 +57,13 @@ class UxbusCmdTcp(UxbusCmd):
             bus_flag = TX2_BUS_FLAG_MAX
         else:
             bus_flag -= 1
-        self._state_is_ready = not (state & 0x10)
         if num != bus_flag:
             return XCONF.UxbusState.ERR_NUM
         if prot != TX2_PROT_CON:
             return XCONF.UxbusState.ERR_PROT
         if fun != funcode:
             return XCONF.UxbusState.ERR_FUN
+        self._state_is_ready = not (state & 0x10)
         if state & 0x40:
             self._has_err_warn = True
             return XCONF.UxbusState.ERR_CODE
@@ -73,8 +73,8 @@ class UxbusCmdTcp(UxbusCmd):
         self._has_err_warn = False
         if len(data) != length + 6:
             return XCONF.UxbusState.ERR_LENG
-        if state & 0x10:
-            return XCONF.UxbusState.STATE_NOT_READY
+        # if state & 0x10:
+        #     return XCONF.UxbusState.STATE_NOT_READY
         return 0
 
     def send_pend(self, funcode, num, timeout):

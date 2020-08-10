@@ -40,6 +40,7 @@ class UxbusCmdSer(UxbusCmd):
         self._has_err_warn = value
 
     def check_xbus_prot(self, data, funcode=0):
+        self._state_is_ready = not (data[3] & 0x10)
         if data[3] & 0x40:
             self._has_err_warn = True
             return XCONF.UxbusState.ERR_CODE

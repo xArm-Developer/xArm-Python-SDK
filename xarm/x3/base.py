@@ -209,12 +209,12 @@ class Base(Events):
             print('compare_time: {}, {}'.format(self._version, e))
 
     @property
-    def version_is_ge_1_5_20(self):
+    def version_is_ge_1_5_19(self):
         if self._version is None:
             self._check_version()
         return self._major_version_number > 1 or (
             self._major_version_number == 1 and self._minor_version_number > 5) or (
-                   self._major_version_number == 1 and self._minor_version_number == 5 and self._revision_version_number >= 20)
+                   self._major_version_number == 1 and self._minor_version_number == 5 and self._revision_version_number >= 19)
 
     @property
     def version_is_ge_1_2_11(self):
@@ -473,7 +473,7 @@ class Base(Events):
 
     @property
     def state_is_ready(self):
-        if self._check_is_ready and not self.version_is_ge_1_5_20:
+        if self._check_is_ready and not self.version_is_ge_1_5_19:
             return self.ready
         else:
             return True

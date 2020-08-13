@@ -434,12 +434,18 @@ class BlocklyTool(object):
         values = []
         for field in fields[:-1]:
             values.append(float(field.text))
+        radius_fields = self.get_nodes('field', root=block, name='r')
+        if len(radius_fields) > 0:
+            radius = values[-1]
+            values = values[:-1]
+        else:
+            radius = None
         wait = fields[-1].text == 'TRUE'
         if self._show_comment:
             self._append_to_file('{}# move joint and {}'.format(prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    code = arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
-                             'mvacc=params[\'angle_acc\'], wait={})'.format(prefix, values, wait))
+                             'mvacc=params[\'angle_acc\'], wait={}, radius={})'.format(prefix, values, wait, radius))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'set_servo_angle, code={{}}\'.format(code))'.format(prefix))
@@ -484,12 +490,18 @@ class BlocklyTool(object):
         for val_node in value_nodes:
             val = self.__get_condition_expression(val_node)
             values.append(val)
+        radius_fields = self.get_nodes('value', root=block, name='r')
+        if len(radius_fields) > 0:
+            radius = values[-1]
+            values = values[:-1]
+        else:
+            radius = None
         values = '[{}]'.format(','.join(values))
         if self._show_comment:
             self._append_to_file('{}# move joint and {}'.format(prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    code = arm.set_servo_angle(angle={}, speed=params[\'angle_speed\'], '
-                             'mvacc=params[\'angle_acc\'], wait={})'.format(prefix, values, wait))
+                             'mvacc=params[\'angle_acc\'], wait={}, radius={})'.format(prefix, values, wait, radius))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'set_servo_angle, code={{}}\'.format(code))'.format(prefix))

@@ -379,6 +379,11 @@ class UxbusCmd(object):
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_JOINT, txdata, 10)
 
+    def move_jointb(self, mvjoint, mvvelo, mvacc, mvradii):
+        txdata = [mvjoint[i] for i in range(7)]
+        txdata += [mvvelo, mvacc, mvradii]
+        return self.set_nfp32(XCONF.UxbusReg.MOVE_JOINTB, txdata, 10)
+
     def move_gohome(self, mvvelo, mvacc, mvtime):
         txdata = [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_HOME, txdata, 3)

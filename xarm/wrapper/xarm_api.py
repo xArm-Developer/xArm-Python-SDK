@@ -763,7 +763,7 @@ class XArmAPI(object):
         return self._arm.get_servo_angle(servo_id=servo_id, is_radian=is_radian)
 
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
-                        relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
+                        relative=False, is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         """
         Set the servo angle, the API will modify self.last_used_angles value
         Note:
@@ -791,6 +791,13 @@ class XArmAPI(object):
         :param is_radian: the angle in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+        :param radius: move radius, if radius is None or radius less than 0, will MoveJoint, else MoveArcJoint
+            Note: The blending radius cannot be greater than the track length.
+            MoveJoint: joint motion
+                ex: code = arm.set_servo_angle(..., radius=None)
+            MoveArcJoint: joint fusion motion with interpolation
+                ex: code = arm.set_servo_angle(..., radius=0)
+                Note: Need to set radius>=0
         :param kwargs: reserved
         :return: code
             code: See the API code documentation for details.
@@ -798,7 +805,7 @@ class XArmAPI(object):
                 code >= 0: the last_used_angles/last_used_joint_speed/last_used_joint_acc will be modified
         """
         return self._arm.set_servo_angle(servo_id=servo_id, angle=angle, speed=speed, mvacc=mvacc, mvtime=mvtime,
-                                         relative=relative, is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
+                                         relative=relative, is_radian=is_radian, wait=wait, timeout=timeout, radius=radius, **kwargs)
 
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
         """
@@ -1294,6 +1301,7 @@ class XArmAPI(object):
             2: joint teaching mode
                 Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
             3: cartesian teaching mode (invalid)
+            4: simulation mode
         :return: code
             code: See the API code documentation for details.
         """

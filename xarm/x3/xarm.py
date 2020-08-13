@@ -324,7 +324,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
-                        relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
+                        relative=False, is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
             or (1 <= servo_id <= 7 and angle is not None and not isinstance(angle, Iterable)), \
             'param servo_id or angle error'
@@ -444,9 +444,13 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 self._last_joint_acc = last_used_joint_acc
                 return APIState.JOINT_LIMIT
 
-        ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
-        logger.info('API -> set_servo_angle -> ret={}, angles={}, velo={}, acc={}'.format(
-            ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc
+        if radius is not None and radius >= 0:
+            ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
+        else:
+            ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
+
+        logger.info('API -> set_servo_angle -> ret={}, angles={}, velo={}, acc={}, radius={}'.format(
+            ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc, radius
         ))
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)

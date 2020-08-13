@@ -165,6 +165,7 @@ class XCONF(object):
         MOVE_LINE = 21
         MOVE_LINEB = 22
         MOVE_JOINT = 23
+        MOVE_JOINTB = 24
         MOVE_HOME = 25
         SLEEP_INSTT = 26
         MOVE_CIRCLE = 27

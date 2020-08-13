@@ -1638,7 +1638,7 @@ class Base(Events):
     def set_mode(self, mode=0):
         ret = self.arm_cmd.set_mode(mode)
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_mode -> ret={}'.format(ret[0]))
+        logger.info('API -> set_mode({}) -> ret={}'.format(mode, ret[0]))
         return ret[0]
 
     @xarm_is_connected(_type='get')

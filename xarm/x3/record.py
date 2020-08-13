@@ -124,6 +124,7 @@ class Record(Base):
     @xarm_is_connected(_type='set')
     def playback_trajectory(self, times=1, filename=None, wait=False, double_speed=1):
         assert isinstance(times, int)
+        mode = self.mode
         times = times if times > 0 else -1
         if isinstance(filename, str) and filename.strip():
             ret = self.load_trajectory(filename, wait=True, timeout=10)
@@ -172,7 +173,7 @@ class Record(Base):
             # while self.state != 4 and self.state != 2:
             #     time.sleep(0.1)
             if self.state not in [4]:
-                self.set_mode(0)
+                self.set_mode(mode)
                 self.set_state(0)
         return ret[0]
 

@@ -50,7 +50,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             if limit[0] == limit[1]:
                 return False
             if value < limit[0] - math.radians(0.1) or value > limit[1] + math.radians(0.1):
-                logger.info('API -> set_position -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, value))
+                self.log_api_info('API -> set_position -> out_of_tcp_range -> code={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, value), code=APIState.OUT_OF_RANGE)
                 return True
         return False
 
@@ -61,7 +61,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         if i < len(joint_limit):
             angle_range = joint_limit[i]
             if angle < angle_range[0] - math.radians(0.1) or angle > angle_range[1] + math.radians(0.1):
-                logger.info('API -> set_servo_angle -> ret={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle))
+                self.log_api_info('API -> set_servo_angle -> out_of_joint_range -> code={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle), code=APIState.OUT_OF_RANGE)
                 return True
         return False
 
@@ -72,7 +72,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                      wait=False, timeout=None, **kwargs):
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
-            logger.info('API -> set_position -> ret={}'.format(ret))
+            self.log_api_info('API -> set_position -> code={}'.format(ret), code=ret)
             return ret
 
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -159,9 +159,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret = self.arm_cmd.move_lineb(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius)
         else:
             ret = self.arm_cmd.move_line(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
-        logger.info('API -> set_position -> ret={}, pos={}, radius={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> set_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], self._last_position, radius, self._last_tcp_speed, self._last_tcp_acc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
@@ -219,9 +219,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             self._mvtime = mvtime
 
         ret = self.arm_cmd.move_line_tool(mvpose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
-        logger.info('API -> set_tool_position -> ret={}, pos={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], mvpose, self._last_tcp_speed, self._last_tcp_acc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
@@ -270,9 +270,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
 
         ret = self.arm_cmd.move_line_aa(pose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, mvcoord, int(relative))
-        logger.info('API -> set_position_aa -> ret={}, pos={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], pose, self._last_tcp_speed, self._last_tcp_acc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
@@ -301,9 +301,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
         ret = self.arm_cmd.move_servo_cart_aa(mvpose=pose, mvvelo=_speed, mvacc=_mvacc, tool_coord=tool_coord,
                                               relative=int(relative))
-        logger.info('API -> set_servo_cartesian_aa -> ret={}, pose={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> set_servo_cartesian_aa -> code={}, pose={}, velo={}, acc={}'.format(
             ret[0], pose, _speed, _mvacc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         return ret[0]
 
@@ -316,7 +316,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             'param servo_id or angle error'
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
-            logger.info('API -> set_servo_angle -> ret={}'.format(ret))
+            self.log_api_info('API -> set_servo_angle -> code={}'.format(ret), code=ret[0])
             return ret
 
         last_used_angle = self._last_angles.copy()

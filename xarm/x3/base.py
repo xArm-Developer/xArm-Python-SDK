@@ -1758,14 +1758,21 @@ class Base(Events):
         max_cnt = 2 if _ == 0 and state == 1 else 10
         while timeout is None or time.time() < expired:
             if not self.connected:
+                self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
                 return APIState.NOT_CONNECTED
             if time.time() - self._last_report_time > 0.4:
                 self.get_state()
                 self.get_err_warn_code()
             if self.error_code != 0:
+                self.log_api_info('wait_move, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
                 return APIState.HAS_ERROR
             if self.is_stop:
+                _, state = self.get_state()
+                if _ != 0 or state not in [4, 5]:
+                    time.sleep(0.02)
+                    continue
                 self._sleep_finish_time = 0
+                self.log_api_info('wait_move, xarm is stop, state={}'.format(self.state), code=APIState.EMERGENCY_STOP)
                 return APIState.EMERGENCY_STOP
             if time.time() < self._sleep_finish_time or self.state == 3:
                 time.sleep(0.02)

@@ -41,7 +41,7 @@ class Record(Base):
     @xarm_is_connected(_type='set')
     def start_record_trajectory(self):
         ret = self.arm_cmd.set_record_traj(1)
-        logger.info('API -> start_record_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> start_record_trajectory -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -51,7 +51,7 @@ class Record(Base):
             ret2 = self.save_record_trajectory(filename, wait=True, timeout=10)
             if ret2 != 0:
                 return ret2
-        logger.info('API -> stop_record_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> stop_record_trajectory -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -63,7 +63,7 @@ class Record(Base):
         else:
             full_filename = filename
         ret = self.arm_cmd.save_traj(full_filename, wait_time=0)
-        logger.info('API -> save_record_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> save_record_trajectory -> code={}'.format(ret[0]), code=ret[0])
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             if wait:
@@ -72,7 +72,7 @@ class Record(Base):
                     code, status = self.get_trajectory_rw_status()
                     if self._check_code(code) == 0:
                         if status == XCONF.TrajState.IDLE:
-                            logger.info('Save {} failed'.format(filename))
+                            logger.error('Save {} failed, idle'.format(filename))
                             return APIState.TRAJ_RW_FAILED
                         elif status == XCONF.TrajState.SAVE_SUCCESS:
                             logger.info('Save {} success'.format(filename))
@@ -97,7 +97,7 @@ class Record(Base):
         else:
             full_filename = filename
         ret = self.arm_cmd.load_traj(full_filename, wait_time=0)
-        logger.info('API -> load_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> load_trajectory -> code={}'.format(ret[0]), code=ret[0])
         if ret[0] == 0:
             if wait:
                 start_time = time.time()
@@ -105,7 +105,7 @@ class Record(Base):
                     code, status = self.get_trajectory_rw_status()
                     if code == 0:
                         if status == XCONF.TrajState.IDLE:
-                            logger.info('Load {} failed'.format(filename))
+                            logger.info('Load {} failed, idle'.format(filename))
                             return APIState.TRAJ_RW_FAILED
                         elif status == XCONF.TrajState.LOAD_SUCCESS:
                             logger.info('Load {} success'.format(filename))
@@ -136,7 +136,7 @@ class Record(Base):
             ret = self.arm_cmd.playback_traj(times, double_speed)
         else:
             ret = self.arm_cmd.playback_traj_old(times)
-        logger.info('API -> playback_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> playback_trajectory -> code={}'.format(ret[0]), code=ret[0])
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:

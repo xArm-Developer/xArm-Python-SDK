@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 from ..x3 import XArm
+from ..x3.utils import api_log
 
 
 class XArmAPI(object):
@@ -792,6 +793,7 @@ class XArmAPI(object):
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param radius: move radius, if radius is None or radius less than 0, will MoveJoint, else MoveArcJoint
+            Note: Only available if version > 1.5.20
             Note: The blending radius cannot be greater than the track length.
             MoveJoint: joint motion
                 ex: code = arm.set_servo_angle(..., radius=None)
@@ -2590,6 +2592,16 @@ class XArmAPI(object):
             code: See the code documentation for details.
         """
         return self._arm.set_tgpio_modbus_baudrate(baud)
+
+    def get_tgpio_modbus_baudrate(self):
+        """
+        Get the modbus baudrate of the tool gpio
+
+        :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.
+            code: See the code documentation for details.
+            baudrate: the modbus baudrate of the tool gpio
+        """
+        return self._arm.get_tgpio_modbus_baudrate()
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0):
         """

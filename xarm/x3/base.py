@@ -17,7 +17,7 @@ from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, pretty_print
 from ..core.utils import convert
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
-from .utils import xarm_is_connected, compare_time, compare_version
+from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode
 from .code import APIState
 
 controller_error_keys = ControllerErrorCodeMap.keys()
@@ -40,6 +40,7 @@ class Base(Events):
             self._check_tcp_limit = kwargs.get('check_tcp_limit', True)
             self._check_joint_limit = kwargs.get('check_joint_limit', True)
             self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
+            self._check_simulation_mode = kwargs.get('check_simulation_mode', True)
             self._max_cmd_num = kwargs.get('max_cmdnum', 256)
             if not isinstance(self._max_cmd_num, int):
                 self._max_cmd_num = 256
@@ -159,6 +160,13 @@ class Base(Events):
 
             if not do_not_open:
                 self.connect()
+
+    @staticmethod
+    def log_api_info(msg, *args, code=0, **kwargs):
+        if code == 0:
+            logger.info(msg, *args, **kwargs)
+        else:
+            logger.error(msg, *args, **kwargs)
 
     def _check_version(self, is_first=False):
         if is_first:
@@ -1055,7 +1063,7 @@ class Base(Events):
             if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
                     and ((error_code != 0 and error_code not in controller_error_keys) or (warn_code != 0 and warn_code not in controller_warn_keys)):
                 self._stream_report.close()
-                logger.info('ReportDataException: data={}'.format(rx_data))
+                logger.warn('ReportDataException: data={}'.format(rx_data))
                 return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
@@ -1519,6 +1527,20 @@ class Base(Events):
         else:
             return 0 if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY] else code
 
+    def _wait_until_cmdnum_lt_max(self):
+        if not self._check_cmdnum_limit:
+            return
+        while self.cmd_num >= self._max_cmd_num:
+            if not self.connected:
+                return APIState.NOT_CONNECTED
+            elif not self.state_is_ready:
+                return APIState.NOT_READY
+            elif self.is_stop:
+                return APIState.EMERGENCY_STOP
+            elif self.has_error:
+                return APIState.HAS_ERROR
+            time.sleep(0.05)
+
     @xarm_is_connected(_type='get')
     def get_version(self):
         ret = self.arm_cmd.get_version()
@@ -1604,7 +1626,7 @@ class Base(Events):
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             self._state = ret[1]
-        return ret[0], self._state
+        return ret[0], ret[1] if ret[0] == 0 else self._state
 
     @xarm_is_connected(_type='set')
     def set_state(self, state=0):
@@ -1631,14 +1653,14 @@ class Base(Events):
             if not self._is_ready:
                 pretty_print('[set_state], xArm is ready to move', color='green')
             self._is_ready = True
-        logger.info('set_state({}), ret={}, state={}'.format(state, ret[0], self._state))
+        self.log_api_info('API -> set_state({}) -> code={}, state={}'.format(state, ret[0], self._state), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_mode(self, mode=0):
         ret = self.arm_cmd.set_mode(mode)
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_mode({}) -> ret={}'.format(mode, ret[0]))
+        self.log_api_info('API -> set_mode({}) -> code={}'.format(mode, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1678,7 +1700,7 @@ class Base(Events):
                 controller_warn.title[lang]),
                          color='yellow' if self._warn_code != 0 else 'white')
             pretty_print('*' * 50, color='light_blue')
-        return ret[0], [self._error_code, self._warn_code]
+        return ret[0], ret[1:3] if ret[0] == 0 else [self._error_code, self._warn_code]
 
     @xarm_is_connected(_type='set')
     def clean_error(self):
@@ -1693,16 +1715,17 @@ class Base(Events):
             if not self._is_ready:
                 pretty_print('[clean_error], xArm is ready to move', color='green')
             self._is_ready = True
-        logger.info('API -> clean_error -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> clean_error -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def clean_warn(self):
         ret = self.arm_cmd.clean_war()
-        logger.info('API -> clean_warn -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> clean_warn -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
     def motion_enable(self, enable=True, servo_id=None):
         assert servo_id is None or (isinstance(servo_id, int) and 1 <= servo_id <= 8)
         if servo_id is None or servo_id == 8:
@@ -1722,7 +1745,7 @@ class Base(Events):
             if not self._is_ready:
                 pretty_print('[motion_enable], xArm is ready to move', color='green')
             self._is_ready = True
-        logger.info('API -> motion_enable -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> motion_enable -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     def wait_move(self, timeout=None):
@@ -1788,7 +1811,7 @@ class Base(Events):
             return 0
         if baudrate not in self.arm_cmd.BAUDRATES:
             return APIState.MODBUS_BAUD_NOT_SUPPORT
-        ret, cur_baud_inx = self._get_modbus_baudrate()
+        ret, cur_baud_inx = self._get_modbus_baudrate_inx()
         if ret == 0:
             baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
             if cur_baud_inx != baud_inx:
@@ -1804,8 +1827,8 @@ class Base(Events):
                     if self.error_code == 19 or self.error_code == 28:
                         self.clean_error()
                         if self._ignore_state:
-                            self.set_state(state)
-                        time.sleep(0.6)
+                            self.set_state(state if state >= 3 else 0)
+                    time.sleep(1)
                 except Exception as e:
                     self._ignore_error = False
                     self._ignore_state = False
@@ -1813,14 +1836,14 @@ class Base(Events):
                     return APIState.API_EXCEPTION
                 self._ignore_error = False
                 self._ignore_state = False
-                ret, cur_baud_inx = self._get_modbus_baudrate()
-                logger.info('checkset_modbus_baud, code={}, baud_inx={}'.format(ret, cur_baud_inx))
+                ret, cur_baud_inx = self._get_modbus_baudrate_inx()
+                self.log_api_info('API -> checkset_modbus_baud -> code={}, baud_inx={}'.format(ret, cur_baud_inx), code=ret)
             if ret == 0:
                 self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
         return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
 
     @xarm_is_connected(_type='get')
-    def _get_modbus_baudrate(self):
+    def _get_modbus_baudrate_inx(self):
         ret = self.arm_cmd.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
         if ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
             if self.error_code != 19 and self.error_code != 28:
@@ -1832,19 +1855,27 @@ class Base(Events):
     @xarm_is_connected(_type='set')
     def set_tgpio_modbus_timeout(self, timeout):
         ret = self.arm_cmd.set_modbus_timeout(timeout)
-        logger.info('set_tgpio_modbus_timeout, code={}'.format(ret[0]))
+        self.log_api_info('API -> set_tgpio_modbus_timeout -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_tgpio_modbus_baudrate(self, baud):
         code = self.checkset_modbus_baud(baud, check=False)
-        logger.info('set_tgpio_modbus_baudrate, code={}'.format(code))
+        self.log_api_info('API -> set_tgpio_modbus_baudrate -> code={}'.format(code), code=code)
         return code
+
+    @xarm_is_connected(_type='get')
+    def get_tgpio_modbus_baudrate(self):
+        code, baud_inx = self._get_modbus_baudrate_inx()
+        if code == 0:
+            self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
+        return code, self.modbus_baud
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
         ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas))
         ret[0] = self._check_modbus_code(ret, min_res_len + 2)
+        self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])
         return ret[0], ret[2:]
 

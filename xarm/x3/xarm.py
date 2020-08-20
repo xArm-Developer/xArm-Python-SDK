@@ -65,20 +65,6 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 return True
         return False
 
-    def _wait_until_cmdnum_lt_max(self):
-        if not self._check_cmdnum_limit:
-            return
-        while self.cmd_num >= self._max_cmd_num:
-            if not self.connected:
-                return APIState.NOT_CONNECTED
-            elif not self.ready:
-                return APIState.NOT_READY
-            elif self.is_stop:
-                return APIState.EMERGENCY_STOP
-            elif self.has_error:
-                return
-            time.sleep(0.1)
-
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
@@ -444,14 +430,14 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 self._last_joint_acc = last_used_joint_acc
                 return APIState.JOINT_LIMIT
 
-        if radius is not None and radius >= 0:
+        if self.version_is_ge_1_5_20 and radius is not None and radius >= 0:
             ret = self.arm_cmd.move_jointb(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
         else:
             ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
 
-        logger.info('API -> set_servo_angle -> ret={}, angles={}, velo={}, acc={}, radius={}'.format(
+        self.log_api_info('API -> set_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
             ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc, radius
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
@@ -480,9 +466,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         _mvacc = self._last_joint_acc if mvacc is None else mvacc
         _mvtime = self._mvtime if mvtime is None else mvtime
         ret = self.arm_cmd.move_servoj(_angles, _speed, _mvacc, _mvtime)
-        logger.info('API -> set_servo_angle_j -> ret={}, angles={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> set_servo_angle_j -> code={}, angles={}, velo={}, acc={}'.format(
             ret[0], _angles, _speed, _mvacc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         return ret[0]
 
@@ -500,9 +486,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         _mvtime = int(is_tool_coord)
 
         ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
-        logger.info('API -> set_servo_cartisian -> ret={}, pose={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> set_servo_cartisian -> code={}, pose={}, velo={}, acc={}'.format(
             ret[0], pose, _speed, _mvacc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         return ret[0]
 
@@ -511,7 +497,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
-            logger.info('API -> move_circle -> ret={}'.format(ret))
+            self.log_api_info('API -> move_circle -> code={}'.format(ret), code=ret)
             return ret
         last_used_tcp_speed = self._last_tcp_speed
         last_used_tcp_acc = self._last_tcp_acc
@@ -552,9 +538,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             self._mvtime = mvtime
 
         ret = self.arm_cmd.move_circle(pose_1, pose_2, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, percent)
-        logger.info('API -> move_circle -> ret={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
+        self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, self._last_tcp_speed, self._last_tcp_acc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
@@ -623,9 +609,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             self._mvtime = mvtime
 
         ret = self.arm_cmd.move_gohome(self._last_joint_speed, self._last_joint_acc, self._mvtime)
-        logger.info('API -> move_gohome -> ret={}, velo={}, acc={}'.format(
+        self.log_api_info('API -> move_gohome -> code={}, velo={}, acc={}'.format(
             ret[0], self._last_joint_speed, self._last_joint_acc
-        ))
+        ), code=ret[0])
         self._is_set_move = True
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
@@ -739,26 +725,26 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         """
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
         ret = self.arm_cmd.set_brake(servo_id, 1)
-        logger.info('API -> set_servo_detach -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> set_servo_detach -> code={}'.format(ret[0]), code=ret[0])
         self._sync()
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def shutdown_system(self, value=1):
         ret = self.arm_cmd.shutdown_system(value)
-        logger.info('API -> shutdown_system -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> shutdown_system -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_reduced_mode(self, on_off):
         ret = self.arm_cmd.set_reduced_mode(int(on_off))
-        logger.info('API -> set_reduced_mode -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> set_reduced_mode -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_reduced_max_tcp_speed(self, speed):
         ret = self.arm_cmd.set_reduced_linespeed(speed)
-        logger.info('API -> set_reduced_linespeed -> ret={}, speed={}'.format(ret[0], speed))
+        self.log_api_info('API -> set_reduced_linespeed -> code={}, speed={}'.format(ret[0], speed), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -768,7 +754,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         if not is_radian:
             speed = math.radians(speed)
         ret = self.arm_cmd.set_reduced_jointspeed(speed)
-        logger.info('API -> set_reduced_linespeed -> ret={}, speed={}'.format(ret[0], speed))
+        self.log_api_info('API -> set_reduced_linespeed -> code={}, speed={}'.format(ret[0], speed), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -799,7 +785,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         limits[2:4] = boundary[2:4] if boundary[2] >= boundary[3] else boundary[2:4][::-1]
         limits[4:6] = boundary[4:6] if boundary[4] >= boundary[5] else boundary[4:6][::-1]
         ret = self.arm_cmd.set_xyz_limits(limits)
-        logger.info('API -> set_reduced_tcp_boundary -> ret={}, boundary={}'.format(ret[0], limits))
+        self.log_api_info('API -> set_reduced_tcp_boundary -> code={}, boundary={}'.format(ret[0], limits), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -829,19 +815,19 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 if limits[i * 2 + 1] <= angle_range[0]:
                     return APIState.OUT_OF_RANGE
         ret = self.arm_cmd.set_reduced_jrange(limits)
-        logger.info('API -> set_reduced_joint_range -> ret={}, boundary={}'.format(ret[0], limits))
+        self.log_api_info('API -> set_reduced_joint_range -> code={}, boundary={}'.format(ret[0], limits), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_fense_mode(self, on_off):
         ret = self.arm_cmd.set_fense_on(int(on_off))
-        logger.info('API -> set_fense_mode -> ret={}, on={}'.format(ret[0], on_off))
+        self.log_api_info('API -> set_fense_mode -> code={}, on={}'.format(ret[0], on_off), code=ret[0])
         return ret
 
     @xarm_is_connected(_type='set')
     def set_collision_rebound(self, on_off):
         ret = self.arm_cmd.set_collis_reb(int(on_off))
-        logger.info('API -> set_collision_rebound -> ret={}, on={}'.format(ret[0], on_off))
+        self.log_api_info('API -> set_collision_rebound -> code={}, on={}'.format(ret[0], on_off), code=ret[0])
         return ret
 
     @xarm_is_connected(_type='set')
@@ -871,7 +857,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 else:
                     world_offset[i] = offset[i]
         ret = self.arm_cmd.set_world_offset(world_offset)
-        logger.info('API -> set_world_offset -> ret={}, offset={}'.format(ret[0], world_offset))
+        self.log_api_info('API -> set_world_offset -> code={}, offset={}'.format(ret[0], world_offset), code=ret[0])
         return ret[0]
 
     def reset(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
@@ -895,7 +881,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_ready(_type='set')
     def set_joints_torque(self, joints_torque):
         ret = self.arm_cmd.set_servot(joints_torque)
-        logger.info('API -> set_joints_torque -> ret={}, joints_torque={}'.format(ret[0], joints_torque))
+        self.log_api_info('API -> set_joints_torque -> code={}, joints_torque={}'.format(ret[0], joints_torque), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -917,7 +903,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     @xarm_is_connected(_type='set')
     def set_safe_level(self, level=4):
         ret = self.arm_cmd.set_safe_level(level)
-        logger.info('API -> set_safe_level -> ret={}, level={}'.format(ret[0], level))
+        self.log_api_info('API -> set_safe_level -> code={}, level={}'.format(ret[0], level), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -931,7 +917,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 self._sleep_finish_time = time.time() + sltime
             else:
                 self._sleep_finish_time += sltime
-        logger.info('API -> set_pause_time -> ret={}, sltime={}'.format(ret[0], sltime))
+        self.log_api_info('API -> set_pause_time -> code={}, sltime={}'.format(ret[0], sltime), code=ret[0])
         return ret[0]
 
     def set_sleep_time(self, sltime, wait=False):
@@ -956,19 +942,19 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         if kwargs.get('wait', False):
             self.wait_move()
         ret = self.arm_cmd.set_tcp_offset(tcp_offset)
-        logger.info('API -> set_tcp_offset -> ret={}, offset={}'.format(ret[0], tcp_offset))
+        self.log_api_info('API -> set_tcp_offset -> code={}, offset={}'.format(ret[0], tcp_offset), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_tcp_jerk(self, jerk):
         ret = self.arm_cmd.set_tcp_jerk(jerk)
-        logger.info('API -> set_tcp_jerk -> ret={}, jerk={}'.format(ret[0], jerk))
+        self.log_api_info('API -> set_tcp_jerk -> code={}, jerk={}'.format(ret[0], jerk), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_tcp_maxacc(self, acc):
         ret = self.arm_cmd.set_tcp_maxacc(acc)
-        logger.info('API -> set_tcp_maxacc -> ret={}, maxacc={}'.format(ret[0], acc))
+        self.log_api_info('API -> set_tcp_maxacc -> code={}, maxacc={}'.format(ret[0], acc), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -978,7 +964,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         if not is_radian:
             _jerk = math.radians(_jerk)
         ret = self.arm_cmd.set_joint_jerk(_jerk)
-        logger.info('API -> set_joint_jerk -> ret={}, jerk={}'.format(ret[0], _jerk))
+        self.log_api_info('API -> set_joint_jerk -> code={}, jerk={}'.format(ret[0], _jerk), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -988,7 +974,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         if not is_radian:
             _acc = math.radians(acc)
         ret = self.arm_cmd.set_joint_maxacc(_acc)
-        logger.info('API -> set_joint_maxacc -> ret={}, maxacc={}'.format(ret[0], acc))
+        self.log_api_info('API -> set_joint_maxacc -> code={}, maxacc={}'.format(ret[0], acc), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -999,7 +985,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         else:
             _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
         ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
-        logger.info('API -> set_tcp_load -> ret={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity))
+        self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1007,7 +993,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def set_collision_sensitivity(self, value):
         assert isinstance(value, int) and 0 <= value <= 5
         ret = self.arm_cmd.set_collis_sens(value)
-        logger.info('API -> set_collision_sensitivity -> ret={}, sensitivity={}'.format(ret[0], value))
+        self.log_api_info('API -> set_collision_sensitivity -> code={}, sensitivity={}'.format(ret[0], value), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1015,14 +1001,14 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def set_teach_sensitivity(self, value):
         assert isinstance(value, int) and 1 <= value <= 5
         ret = self.arm_cmd.set_teach_sens(value)
-        logger.info('API -> set_teach_sensitivity -> ret={}, sensitivity={}'.format(ret[0], value))
+        self.log_api_info('API -> set_teach_sensitivity -> code={}, sensitivity={}'.format(ret[0], value), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
     def set_gravity_direction(self, direction):
         ret = self.arm_cmd.set_gravity_dir(direction[:3])
-        logger.info('API -> set_gravity_direction -> ret={}, direction={}'.format(ret[0], direction))
+        self.log_api_info('API -> set_gravity_direction -> code={}, direction={}'.format(ret[0], direction), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1056,19 +1042,19 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             g_new[i] = Rot[i * 3 + 0] * G_normal[0] + Rot[i * 3 + 1] * G_normal[1] + Rot[i * 3 + 2] * G_normal[2]
 
         ret = self.arm_cmd.set_gravity_dir(g_new)
-        logger.info('API -> set_mount_direction -> ret={}, tilt={}, rotation={}, direction={}'.format(ret[0], base_tilt_deg, rotation_deg, g_new))
+        self.log_api_info('API -> set_mount_direction -> code={}, tilt={}, rotation={}, direction={}'.format(ret[0], base_tilt_deg, rotation_deg, g_new), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def clean_conf(self):
         ret = self.arm_cmd.clean_conf()
-        logger.info('API -> clean_conf -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> clean_conf -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def save_conf(self):
         ret = self.arm_cmd.save_conf()
-        logger.info('API -> save_conf -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> save_conf -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1122,7 +1108,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             elif i > 2 and not is_radian:
                 pose[i] = math.radians(pose[i])
         ret = self.arm_cmd.is_tcp_limit(pose)
-        logger.info('API -> is_tcp_limit -> ret={}, limit={}'.format(ret[0], ret[1]))
+        self.log_api_info('API -> is_tcp_limit -> code={}, limit={}'.format(ret[0], ret[1]), code=ret[0])
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             return ret[0], bool(ret[1])
@@ -1146,7 +1132,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             new_angles[i] = joint[i]
 
         ret = self.arm_cmd.is_joint_limit(new_angles)
-        logger.info('API -> is_joint_limit -> ret={}, limit={}'.format(ret[0], ret[1]))
+        self.log_api_info('API -> is_joint_limit -> code={}, limit={}'.format(ret[0], ret[1]), code=ret[0])
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             return ret[0], bool(ret[1])
@@ -1543,28 +1529,28 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def reload_dynamics(self):
         ret = self.arm_cmd.reload_dynamics()
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> reload_dynamics -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> reload_dynamics -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_counter_reset(self):
         ret = self.arm_cmd.cnter_reset()
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_counter_reset -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> set_counter_reset -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_counter_increase(self, val=1):
         ret = self.arm_cmd.cnter_plus()
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_counter_increase -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> set_counter_increase -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_report_tau_or_i(self, tau_or_i=0):
         ret = self.arm_cmd.set_report_tau_or_i(int(tau_or_i))
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_report_tau_or_i({}) -> ret={}'.format(tau_or_i, ret[0]))
+        self.log_api_info('API -> set_report_tau_or_i({}) -> code={}'.format(tau_or_i, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -1576,7 +1562,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
     def set_self_collision_detection(self, on_off):
         ret = self.arm_cmd.set_self_collision_detection(int(on_off))
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_self_collision_detection({}) -> ret={}'.format(on_off, ret[0]))
+        self.log_api_info('API -> set_self_collision_detection({}) -> code={}'.format(on_off, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1599,7 +1585,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             params = [] if tool_type < XCONF.CollisionToolType.USE_PRIMITIVES else list(args)
         ret = self.arm_cmd.set_collision_tool_model(tool_type, params)
         ret[0] = self._check_code(ret[0])
-        logger.info('API -> set_collision_tool_model({}, {}) -> ret={}'.format(tool_type, params, ret[0]))
+        self.log_api_info('API -> set_collision_tool_model({}, {}) -> code={}'.format(tool_type, params, ret[0]), code=ret[0])
         return ret[0]
 
     def get_firmware_config(self):

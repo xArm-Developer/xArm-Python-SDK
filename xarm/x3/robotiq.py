@@ -9,7 +9,7 @@
 import time
 from ..core.utils.log import logger
 from .code import APIState
-from .utils import xarm_is_connected, check_modbus_baud
+from .utils import xarm_is_connected, check_modbus_baud, xarm_is_not_simulation_mode
 from .base import Base
 
 ROBOTIQ_BAUD = 115200
@@ -77,22 +77,25 @@ class RobotIQ(Base):
                 self.robotiq_is_activated = False
         return code, ret
 
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_reset(self):
         params = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        ret = self.__robotiq_set(params)
-        logger.info('API -> robotiq_reset -> code={}, ret={}'.format(ret[0], ret[1]))
-        return ret
+        code, ret = self.__robotiq_set(params)
+        self.log_api_info('API -> robotiq_reset -> code={}, response={}'.format(code, ret), code=code)
+        return code, ret
 
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_set_activate(self, wait=True, timeout=3):
         params = [0x01, 0x00, 0x00, 0x00, 0x00, 0x00]
         code, ret = self.__robotiq_set(params)
         if wait and code == 0:
             code = self.robotiq_wait_activation_completed(timeout)
-        logger.info('API -> robotiq_set_activate ->code={}, ret={}'.format(code, ret))
+        self.log_api_info('API -> robotiq_set_activate ->code={}, response={}'.format(code, ret), code=code)
         if code == 0:
             self.robotiq_is_activated = True
         return code, ret
 
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         if kwargs.get('auto_enable') and not self.robotiq_is_activated:
             self.robotiq_reset()
@@ -108,7 +111,7 @@ class RobotIQ(Base):
         code, ret = self.__robotiq_set(params)
         if wait and code == 0:
             code = self.robotiq_wait_motion_completed(timeout, **kwargs)
-        logger.info('API -> robotiq_set_position ->code={}, ret={}'.format(code, ret))
+        self.log_api_info('API -> robotiq_set_position ->code={}, response={}'.format(code, ret), code=code)
         return code, ret
 
     def robotiq_open(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
@@ -118,6 +121,8 @@ class RobotIQ(Base):
         return self.robotiq_set_position(0xFF, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
     def robotiq_get_status(self, number_of_registers=3):
+        if self._check_simulation_mode and self.mode == 4:
+            return 0, 0
         number_of_registers = 3 if number_of_registers not in [1, 2, 3] else number_of_registers
         params = [0x07, 0xD0, 0x00, number_of_registers]
         # params = [0x07, 0xD0, 0x00, 0x01]

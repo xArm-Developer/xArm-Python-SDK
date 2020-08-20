@@ -424,6 +424,16 @@ GripperErrorCodeMap = {
 }
 
 ControllerErrorCodeMap = {
+    1: {
+        'en': {
+            'title': 'The Emergency Stop Button on the xArm Controller is pushed in to stop',
+            'desc': 'Please release the Emergency Stop Button, and then re-enable the robot'
+        },
+        'cn': {
+            'title': '控制器上的紧急停止按钮被按下',
+            'desc': '请释放紧急停止按钮，然后重新使能机械臂'
+        }
+    },
     10: {
         'en': {
             'title': 'Servo motor error',
@@ -507,11 +517,11 @@ ControllerErrorCodeMap = {
     19: {
         'en': {
             'title': 'Gripper Communication Error',
-            'desc': ''
+            'desc': 'Please check whether gripper is installed and the baud rate setting is correct'
         },
         'cn': {
             'title': '机械爪通信失败',
-            'desc': ''
+            'desc': '请检查机械爪是否安装，波特率设置是否正确'
         }
     },
     21: {
@@ -526,12 +536,12 @@ ControllerErrorCodeMap = {
     },
     22: {
         'en': {
-            'title': 'Collision Error',
-            'desc': 'Please click the "ZERO" button to return to the zero pozition.'
+            'title': 'Self-Collision Error',
+            'desc': 'The robot is about to collide with itself. Please re-plan the path. If the robot reports the self-collision error continually, please turn on the manual mode and drag the robotic back to the normal area.'
         },
         'cn': {
             'title': '自碰撞错误',
-            'desc': '请点击”零点“按钮回到关节零点。'
+            'desc': '机械臂即将发生自碰撞，请重新规划路径。如果机械臂持续报自碰撞错误，请开启手动模式将机械臂拖回正常位置。'
         }
     },
     23: {
@@ -662,6 +672,16 @@ ControllerErrorCodeMap = {
         'cn': {
             'title': '延时指令数量超限',
             'desc': '待执行的延时指令或位置检测指令超过36个，请检查代码中延时指令或位置检测指令是否过多。'
+        }
+    },
+    37: {
+        'en': {
+            'title': 'Abnormal movement in Manual Mode',
+            'desc': 'Please check whether the TCP payload setting and mounting setting of the robot arm are correct.'
+        },
+        'cn': {
+            'title': '手动模式运动异常',
+            'desc': '请检查机械臂的TCP负载设置和机械臂安装方式是否与实际匹配。'
         }
     },
     'other': {

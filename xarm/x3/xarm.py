@@ -434,7 +434,6 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             ret = self.arm_cmd.move_jointb(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
         else:
             ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
-
         self.log_api_info('API -> set_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
             ret[0], self._last_angles, self._last_joint_speed, self._last_joint_acc, radius
         ), code=ret[0])

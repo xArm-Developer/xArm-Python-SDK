@@ -1528,7 +1528,7 @@ class Base(Events):
             return 0 if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY] else code
 
     def _wait_until_cmdnum_lt_max(self):
-        if not self._check_cmdnum_limit:
+        if not self._check_cmdnum_limit or self._stream_type != 'socket' or not self._enable_report:
             return
         while self.cmd_num >= self._max_cmd_num:
             if not self.connected:
@@ -1845,7 +1845,7 @@ class Base(Events):
                 self._ignore_state = False
                 ret, cur_baud_inx = self._get_modbus_baudrate_inx()
                 self.log_api_info('API -> checkset_modbus_baud -> code={}, baud_inx={}'.format(ret, cur_baud_inx), code=ret)
-            if ret == 0:
+            if ret == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
                 self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
         return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
 
@@ -1874,7 +1874,7 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_tgpio_modbus_baudrate(self):
         code, baud_inx = self._get_modbus_baudrate_inx()
-        if code == 0:
+        if code == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
             self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
 

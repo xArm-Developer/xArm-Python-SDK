@@ -636,14 +636,14 @@ class UxbusCmd(object):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.ANALOG_IO1)
         value = [0] * 2
         value[0] = ret[0]
-        value[1] = ret[1] * 3.3 / 4096.0
+        value[1] = ret[1] * 3.3 / 4095.0
         return value
 
     def tgpio_get_analog2(self):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.ANALOG_IO2)
         value = [0] * 2
         value[0] = ret[0]
-        value[1] = ret[1] * 3.3 / 4096.0
+        value[1] = ret[1] * 3.3 / 4095.0
         return value
 
     def set_modbus_timeout(self, value):
@@ -858,14 +858,14 @@ class UxbusCmd(object):
         ret = self.get_nu16(XCONF.UxbusReg.CGPIO_GET_ANALOG1, 1)
         value = [0] * 2
         value[0] = ret[0]
-        value[1] = ret[1] * 10.0 / 4096.0
+        value[1] = ret[1] * 10.0 / 4095.0
         return value
 
     def cgpio_get_analog2(self):
         ret = self.get_nu16(XCONF.UxbusReg.CGPIO_GET_ANALOG2, 1)
         value = [0] * 2
         value[0] = ret[0]
-        value[1] = ret[1] * 10.0 / 4096.0
+        value[1] = ret[1] * 10.0 / 4095.0
         return value
 
     def cgpio_set_auxdigit(self, ionum, value):
@@ -883,11 +883,11 @@ class UxbusCmd(object):
         return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1)
 
     def cgpio_set_analog1(self, value):
-        txdata = [int(value / 10.0 * 4096.0)]
+        txdata = [int(value / 10.0 * 4095.0)]
         return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG1, txdata, 1)
 
     def cgpio_set_analog2(self, value):
-        txdata = [int(value / 10.0 * 4096.0)]
+        txdata = [int(value / 10.0 * 4095.0)]
         return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG2, txdata, 1)
 
     def cgpio_set_infun(self, num, fun):
@@ -906,10 +906,10 @@ class UxbusCmd(object):
         msg[2] = ret[2]
 
         msg[3:11] = convert.bytes_to_u16s(ret[3:19], 8)
-        msg[7] = msg[7] / 4096.0 * 10.0
-        msg[8] = msg[8] / 4096.0 * 10.0
-        msg[9] = msg[9] / 4096.0 * 10.0
-        msg[10] = msg[10] / 4096.0 * 10.0
+        msg[7] = msg[7] / 4095.0 * 10.0
+        msg[8] = msg[8] / 4095.0 * 10.0
+        msg[9] = msg[9] / 4095.0 * 10.0
+        msg[10] = msg[10] / 4095.0 * 10.0
         msg[11] = ret[19:27]
         msg[12] = ret[27:35]
 

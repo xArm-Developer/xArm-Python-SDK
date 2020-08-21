@@ -1288,7 +1288,7 @@ class Base(Events):
                 cgpio_states = []
                 cgpio_states.extend(rx_data[382:384])
                 cgpio_states.extend(convert.bytes_to_u16s(rx_data[384:400], 8))
-                cgpio_states[6:10] = list(map(lambda x: x / 4096.0 * 10.0, cgpio_states[6:10]))
+                cgpio_states[6:10] = list(map(lambda x: x / 4095.0 * 10.0, cgpio_states[6:10]))
                 cgpio_states.append(list(map(int, rx_data[400:408])))
                 cgpio_states.append(list(map(int, rx_data[408:416])))
                 self._cgpio_states = cgpio_states

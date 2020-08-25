@@ -154,7 +154,7 @@ class Base(Events):
 
             self._cmd_timeout = XCONF.UxbusConf.SET_TIMEOUT / 1000
 
-            self._is_collision_detection = 0
+            self._is_collision_detection = 1
             self._collision_tool_type = 0
             self._collision_tool_params = [0, 0, 0, 0, 0, 0]
 

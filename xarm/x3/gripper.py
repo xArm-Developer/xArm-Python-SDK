@@ -64,6 +64,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def set_gripper_enable(self, enable, is_modbus=True):
         if is_modbus:
             return self._set_modbus_gripper_enable(enable)
@@ -72,6 +73,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def set_gripper_mode(self, mode, is_modbus=True):
         if is_modbus:
             return self._set_modbus_gripper_mode(mode)
@@ -80,6 +82,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def set_gripper_speed(self, speed, is_modbus=True):
         if is_modbus:
             return self._set_modbus_gripper_speed(speed)
@@ -87,6 +90,7 @@ class Gripper(GPIO):
             return self._set_gripper_speed(speed)
 
     @xarm_is_connected(_type='get')
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=None)
     def get_gripper_position(self, is_modbus=True):
         if self._check_simulation_mode and self.mode == 4:
             return 0, 0
@@ -98,6 +102,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, is_modbus=True, **kwargs):
         if is_modbus:
             return self._set_modbus_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
@@ -105,6 +110,7 @@ class Gripper(GPIO):
             return self._set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
 
     @xarm_is_connected(_type='get')
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=0)
     def get_gripper_err_code(self, is_modbus=True):
         if self._check_simulation_mode and self.mode == 4:
             return 0, 0
@@ -115,6 +121,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def clean_gripper_error(self, is_modbus=True):
         if is_modbus:
             return self._clean_modbus_gripper_error()
@@ -123,6 +130,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def set_gripper_zero(self, is_modbus=True):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging
@@ -135,6 +143,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def set_gripper_status(self, status, delay_sec=0):
         if status:
             code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec)
@@ -178,7 +187,6 @@ class Gripper(GPIO):
         return ret[0], int(ret[1])
 
     @xarm_is_connected(_type='set')
-    @xarm_is_pause(_type='set')
     def _set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
         if auto_enable:
             self.arm_cmd.gripper_set_en(True)
@@ -272,7 +280,6 @@ class Gripper(GPIO):
 
     ########################### Modbus Protocol #################################
     @xarm_is_connected(_type='set')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_enable(self, enable):
         ret = self.arm_cmd.gripper_modbus_set_en(int(enable))
         _, err = self._get_modbus_gripper_err_code()
@@ -283,7 +290,6 @@ class Gripper(GPIO):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_mode(self, mode):
         ret = self.arm_cmd.gripper_modbus_set_mode(mode)
         _, err = self._get_modbus_gripper_err_code()
@@ -292,7 +298,6 @@ class Gripper(GPIO):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_speed(self, speed):
         ret = self.arm_cmd.gripper_modbus_set_posspd(speed)
         _, err = self._get_modbus_gripper_err_code()
@@ -303,7 +308,6 @@ class Gripper(GPIO):
         return ret[0]
 
     @xarm_is_connected(_type='get')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=None)
     def _get_modbus_gripper_position(self):
         ret = self.arm_cmd.gripper_modbus_get_pos()
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
@@ -317,8 +321,6 @@ class Gripper(GPIO):
             # return _ if err == 0 else XCONF.UxbusState.ERR_CODE, None
 
     @xarm_is_connected(_type='set')
-    @xarm_is_pause(_type='set')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
         if wait or kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
@@ -397,7 +399,6 @@ class Gripper(GPIO):
             return ret[0]
 
     @xarm_is_connected(_type='get')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=0)
     def _get_modbus_gripper_err_code(self):
         ret = self.arm_cmd.gripper_modbus_get_errcode()
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
@@ -415,7 +416,6 @@ class Gripper(GPIO):
         return ret[0], 0
 
     @xarm_is_connected(_type='set')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _clean_modbus_gripper_error(self):
         ret = self.arm_cmd.gripper_modbus_clean_err()
         self._gripper_error_code = 0
@@ -425,7 +425,6 @@ class Gripper(GPIO):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    @check_modbus_baud(baud=GRIPPER_BAUD, _type='set', default=None)
     def _set_modbus_gripper_zero(self):
         """
         Warnning, do not use, may cause the arm to be abnormal,  just for debugging

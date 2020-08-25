@@ -1593,54 +1593,55 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         tau_code, tau_flag = self.get_report_tau_or_i()
         code = cgpio_code if reduced_code == 0 and tau_code == 0 else reduced_code if cgpio_code == 0 and tau_code == 0 else tau_code
         return code, {
-            'collision_sensitivity': self.collision_sensitivity,  # 碰撞灵敏度
-            'teach_sensitivity': self.teach_sensitivity,  # 示教灵敏度
-            'gravity_direction': self.gravity_direction,  # 重力方向
-            'tcp_load': self.tcp_load,  # TCP负载
-            'tcp_offset': self.position_offset,  # TCP偏移
-            'tcp_maxacc': self.tcp_acc_limit[1],  # TCP的最大加速度
-            'tcp_jerk': self.tcp_jerk,  # TCP加加速度
-            'joint_maxacc': self.joint_acc_limit[1],  # 关节的最大加速度
-            'joint_jerk': self.joint_jerk,  # 关节加加速度
-            'world_offset': self.world_offset,  # 基坐标偏移
-            'report_tau_or_i': tau_flag,  # 上报力矩还是电流
-            'cgpio_auxin': cgpio_states[10],  # 控制器数字输入IO的配置功能
-            'cgpio_auxout': cgpio_states[11],  # 控制器数字输出IO的配置功能
-            'reduced_states': reduced_states,  # 缩减模式的状态
-            'gpio_reset_config': self.gpio_reset_config,  # gpio自动复位配置
+            'COLL_SENS': self.collision_sensitivity,  # 碰撞灵敏度
+            'TEACH_SENS': self.teach_sensitivity,  # 示教灵敏度
+            'GRAV_DIR': self.gravity_direction,  # 重力方向
+            'TCP_LOAD': self.tcp_load,  # TCP负载
+            'TCP_OFFSET': self.position_offset,  # TCP偏移
+            'TCP_MAXACC': self.tcp_acc_limit[1],  # TCP的最大加速度
+            'TCP_JERK': self.tcp_jerk,  # TCP加加速度
+            'JOINT_MAXACC': self.joint_acc_limit[1],  # 关节的最大加速度
+            'JOINT_JERK': self.joint_jerk,  # 关节加加速度
+            'WORLD_OFFSET': self.world_offset,  # 基坐标偏移
+            'REPORT_TAU_OR_I': tau_flag,  # 上报力矩还是电流
+            'CGPIO_INPUT_FUNC_CONFIG': cgpio_states[10],  # 控制器数字输入IO的配置功能
+            'CGPIO_OUTPUT_FUNC_CONFIG': cgpio_states[11],  # 控制器数字输出IO的配置功能
+            'REDUCED_STATES': reduced_states,  # 缩减模式的状态
+            'GPIO_RESET_CONFIG': self.gpio_reset_config,  # gpio自动复位配置
+            'COLL_PARAMS': self.self_collision_params,  # 碰撞模型参数
         }
 
     def set_firmware_config(self, config):
         code, old_config = self.get_firmware_config()
-        if 'collision_sensitivity' in config and config['collision_sensitivity'] != old_config['collision_sensitivity']:
-            self.set_collision_sensitivity(config['collision_sensitivity'])
-        if 'teach_sensitivity' in config and config['teach_sensitivity'] != old_config['teach_sensitivity']:
-            self.set_teach_sensitivity(config['teach_sensitivity'])
-        if 'gravity_direction' in config and config['gravity_direction'] != old_config['gravity_direction']:
-            self.set_gravity_direction(config['gravity_direction'])
-        if 'tcp_load' in config and config['tcp_load'] != old_config['tcp_load']:
-            self.set_tcp_load(config['tcp_load'])
-        if 'tcp_offset' in config and config['tcp_offset'] != old_config['tcp_offset']:
-            self.set_tcp_offset(config['tcp_offset'])
-        if 'tcp_maxacc' in config and config['tcp_maxacc'] != old_config['tcp_maxacc']:
-            self.set_tcp_maxacc(config['tcp_maxacc'])
-        if 'tcp_jerk' in config and config['tcp_jerk'] != old_config['tcp_jerk']:
-            self.set_tcp_jerk(config['tcp_jerk'])
-        if 'joint_maxacc' in config and config['joint_maxacc'] != old_config['joint_maxacc']:
-            self.set_joint_maxacc(config['joint_maxacc'])
-        if 'joint_jerk' in config and config['joint_jerk'] != old_config['joint_jerk']:
-            self.set_joint_jerk(config['joint_jerk'])
-        if 'world_offset' in config and config['world_offset'] != old_config['world_offset']:
-            self.set_world_offset(config['world_offset'])
-        if 'report_tau_or_i' in config and config['report_tau_or_i'] != old_config['report_tau_or_i']:
-            self.set_report_tau_or_i(config['report_tau_or_i'])
-        if 'gpio_reset_config' in config and config['gpio_reset_config'] != old_config['gpio_reset_config']:
-            self.config_io_reset_when_stop(0, config['gpio_reset_config'][0])
-            self.config_io_reset_when_stop(1, config['gpio_reset_config'][1])
+        if 'COLL_SENS' in config and config['COLL_SENS'] != old_config['COLL_SENS']:
+            self.set_collision_sensitivity(config['COLL_SENS'])
+        if 'TEACH_SENS' in config and config['TEACH_SENS'] != old_config['TEACH_SENS']:
+            self.set_teach_sensitivity(config['TEACH_SENS'])
+        if 'GRAV_DIR' in config and config['GRAV_DIR'] != old_config['GRAV_DIR']:
+            self.set_gravity_direction(config['GRAV_DIR'])
+        if 'TCP_LOAD' in config and config['TCP_LOAD'] != old_config['TCP_LOAD']:
+            self.set_tcp_load(config['TCP_LOAD'])
+        if 'TCP_OFFSET' in config and config['TCP_OFFSET'] != old_config['TCP_OFFSET']:
+            self.set_tcp_offset(config['TCP_OFFSET'])
+        if 'TCP_MAXACC' in config and config['TCP_MAXACC'] != old_config['TCP_MAXACC']:
+            self.set_tcp_maxacc(config['TCP_MAXACC'])
+        if 'TCP_JERK' in config and config['TCP_JERK'] != old_config['TCP_JERK']:
+            self.set_tcp_jerk(config['TCP_JERK'])
+        if 'JOINT_MAXACC' in config and config['JOINT_MAXACC'] != old_config['JOINT_MAXACC']:
+            self.set_joint_maxacc(config['JOINT_MAXACC'])
+        if 'JOINT_JERK' in config and config['JOINT_JERK'] != old_config['JOINT_JERK']:
+            self.set_joint_jerk(config['JOINT_JERK'])
+        if 'WORLD_OFFSET' in config and config['WORLD_OFFSET'] != old_config['WORLD_OFFSET']:
+            self.set_world_offset(config['WORLD_OFFSET'])
+        if 'REPORT_TAU_OR_I' in config and config['REPORT_TAU_OR_I'] != old_config['REPORT_TAU_OR_I']:
+            self.set_report_tau_or_i(config['REPORT_TAU_OR_I'])
+        if 'GPIO_RESET_CONFIG' in config and config['GPIO_RESET_CONFIG'] != old_config['GPIO_RESET_CONFIG']:
+            self.config_io_reset_when_stop(0, config['GPIO_RESET_CONFIG'][0])
+            self.config_io_reset_when_stop(1, config['GPIO_RESET_CONFIG'][1])
 
-        if 'reduced_states' in config:
-            states = config['reduced_states']
-            old_states = old_config['reduced_states']
+        if 'REDUCED_STATES' in config:
+            states = config['REDUCED_STATES']
+            old_states = old_config['REDUCED_STATES']
             if states[1] != old_states[1]:
                 self.set_reduced_tcp_boundary(states[1])
             if states[2] != old_states[2]:
@@ -1658,11 +1659,17 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                     self.set_collision_rebound(states[6])
             self.set_reduced_mode(states[0])
 
-        if 'cgpio_auxin' in config and config['cgpio_auxin'] != old_config['cgpio_auxin']:
-            for i in range(len(config['cgpio_auxin'])):
-                if config['cgpio_auxin'][i] != old_config['cgpio_auxin'][i]:
-                    self.set_cgpio_digital_input_function(i, config['cgpio_auxin'][i])
-        if 'cgpio_auxout' in config and config['cgpio_auxout'] != old_config['cgpio_auxout']:
-            for i in range(len(config['cgpio_auxout'])):
-                if config['cgpio_auxout'][i] != old_config['cgpio_auxout'][i]:
-                    self.set_cgpio_digital_output_function(i, config['cgpio_auxout'][i])
+        if 'CGPIO_INPUT_FUNC_CONFIG' in config and config['CGPIO_INPUT_FUNC_CONFIG'] != old_config['CGPIO_INPUT_FUNC_CONFIG']:
+            for i in range(len(config['CGPIO_INPUT_FUNC_CONFIG'])):
+                if config['CGPIO_INPUT_FUNC_CONFIG'][i] != old_config['CGPIO_INPUT_FUNC_CONFIG'][i]:
+                    self.set_cgpio_digital_input_function(i, config['CGPIO_INPUT_FUNC_CONFIG'][i])
+        if 'CGPIO_OUTPUT_FUNC_CONFIG' in config and config['CGPIO_OUTPUT_FUNC_CONFIG'] != old_config['CGPIO_OUTPUT_FUNC_CONFIG']:
+            for i in range(len(config['CGPIO_OUTPUT_FUNC_CONFIG'])):
+                if config['CGPIO_OUTPUT_FUNC_CONFIG'][i] != old_config['CGPIO_OUTPUT_FUNC_CONFIG'][i]:
+                    self.set_cgpio_digital_output_function(i, config['CGPIO_OUTPUT_FUNC_CONFIG'][i])
+
+        if 'COLL_PARAMS' in config and config['COLL_PARAMS'] != old_config['COLL_PARAMS']:
+            if config['COLL_PARAMS'][0] != old_config['COLL_PARAMS'][0]:
+                self.set_self_collision_detection(config['COLL_PARAMS'][0])
+            if config['COLL_PARAMS'][1] != old_config['COLL_PARAMS'][1] or config['COLL_PARAMS'][2] != old_config['COLL_PARAMS'][2]:
+                self.set_collision_tool_model(config['COLL_PARAMS'][1], *config['COLL_PARAMS'][2])

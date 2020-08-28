@@ -33,7 +33,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='get')
     def get_gripper_version(self):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, '*.*.*'
         code = self.checkset_modbus_baud(GRIPPER_BAUD)
         if code != 0:

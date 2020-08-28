@@ -225,6 +225,7 @@ class XCONF(object):
 
         SET_SELF_COLLIS_CHECK = 77
         SET_COLLIS_TOOL = 78
+        SET_SIMULATION_ROBOT = 79
 
         GET_TCP_POSE_AA = 91
         MOVE_LINE_AA = 92

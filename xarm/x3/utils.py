@@ -77,7 +77,7 @@ def xarm_is_not_simulation_mode(ret=0):
     def _xarm_is_not_simulation_mode(func):
         @functools.wraps(func)
         def decorator(*args, **kwargs):
-            if not args[0]._check_simulation_mode or args[0].mode != 4:
+            if not args[0].check_is_simulation_robot():
                 return func(*args, **kwargs)
             else:
                 return ret

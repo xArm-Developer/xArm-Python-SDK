@@ -927,3 +927,6 @@ class UxbusCmd(object):
             txdata = [tool_type]
             return self.set_nu8(XCONF.UxbusReg.SET_COLLIS_TOOL, txdata, 1)
 
+    def set_simulation_robot(self, on_off):
+        txdata = [int(on_off)]
+        return self.set_nu8(XCONF.UxbusReg.SET_SIMULATION_ROBOT, txdata, 1)

@@ -391,6 +391,13 @@ class XArmAPI(object):
         return self._arm.mode
 
     @property
+    def is_simulation_robot(self):
+        """
+        Is simulation robot not not
+        """
+        return self._arm.is_simulation_robot
+
+    @property
     def joints_torque(self):
         """
         Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'
@@ -2679,5 +2686,6 @@ class XArmAPI(object):
         """
         return self._arm.set_collision_tool_model(tool_type, *args, **kwargs)
 
-
+    def set_simulation_robot(self, on_off):
+        return self._arm.set_simulation_robot(on_off)
 

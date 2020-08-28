@@ -157,6 +157,7 @@ class Base(Events):
             self._is_collision_detection = 1
             self._collision_tool_type = 0
             self._collision_tool_params = [0, 0, 0, 0, 0, 0]
+            self._is_simulation_robot = False
 
             if not do_not_open:
                 self.connect()
@@ -255,6 +256,14 @@ class Base(Events):
     @property
     def default_is_radian(self):
         return self._default_is_radian
+
+    @property
+    def is_simulation_robot(self):
+        return self._is_simulation_robot
+
+    def check_is_simulation_robot(self):
+        return self._check_simulation_mode and self.is_simulation_robot
+        # return self._check_simulation_mode and self.mode != 4
 
     @property
     def version(self):
@@ -1274,23 +1283,24 @@ class Base(Events):
                     self._world_offset = world_offset
             if length >= 314:
                 self._cgpio_reset_enable, self._tgpio_reset_enable = rx_data[312:314]
-            if length >= 416:
-                self._is_collision_detection, self._collision_tool_type = rx_data[314:316]
-                self._collision_tool_params = convert.bytes_to_fp32s(rx_data[316:340], 6)
+            if length >= 417:
+                self._is_simulation_robot = bool(rx_data[314])
+                self._is_collision_detection, self._collision_tool_type = rx_data[315:317]
+                self._collision_tool_params = convert.bytes_to_fp32s(rx_data[317:341], 6)
 
-                voltages = convert.bytes_to_u16s(rx_data[340:354], 7)
+                voltages = convert.bytes_to_u16s(rx_data[341:355], 7)
                 voltages = list(map(lambda x: x / 100, voltages))
                 self._voltages = voltages
 
-                currents = convert.bytes_to_fp32s(rx_data[354:382], 7)
+                currents = convert.bytes_to_fp32s(rx_data[355:383], 7)
                 self._currents = currents
 
                 cgpio_states = []
-                cgpio_states.extend(rx_data[382:384])
-                cgpio_states.extend(convert.bytes_to_u16s(rx_data[384:400], 8))
+                cgpio_states.extend(rx_data[383:385])
+                cgpio_states.extend(convert.bytes_to_u16s(rx_data[385:401], 8))
                 cgpio_states[6:10] = list(map(lambda x: x / 4095.0 * 10.0, cgpio_states[6:10]))
-                cgpio_states.append(list(map(int, rx_data[400:408])))
-                cgpio_states.append(list(map(int, rx_data[408:416])))
+                cgpio_states.append(list(map(int, rx_data[401:409])))
+                cgpio_states.append(list(map(int, rx_data[409:417])))
                 self._cgpio_states = cgpio_states
 
         main_socket_connected = self._stream and self._stream.connected
@@ -1885,4 +1895,11 @@ class Base(Events):
         ret[0] = self._check_modbus_code(ret, min_res_len + 2)
         self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])
         return ret[0], ret[2:]
+
+    @xarm_is_connected(_type='set')
+    def set_simulation_robot(self, on_off):
+        ret = self.arm_cmd.set_simulation_robot(on_off)
+        ret[0] = self._check_code(ret[0])
+        self.log_api_info('API -> set_simulation_robot({}) -> code={}'.format(on_off, ret[0]), code=ret[0])
+        return ret[0]
 

@@ -713,10 +713,11 @@ class UxbusCmd(object):
 
     @lock_require
     def cgpio_position_set_analog(self, ionum, value, xyz, tol_r):
-        txdata = bytes([ionum, int(value / 10.0 * 4095.0)])
+        txdata = bytes([ionum])
+        txdata += convert.u16_to_bytes(int(value / 10.0 * 4095.0))
         txdata += convert.fp32s_to_bytes(xyz, 3)
         txdata += convert.fp32_to_bytes(tol_r)
-        ret = self.send_xbus(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, txdata, 18)
+        ret = self.send_xbus(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, txdata, 19)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
         return self.send_pend(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, 0, self._SET_TIMEOUT)

@@ -318,6 +318,7 @@ class GPIO(Base):
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     def set_tgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert isinstance(ionum, int) and 1 >= ionum >= 0
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
             self.log_api_info('API -> set_tgpio_digital_with_xyz -> code={}'.format(ret), code=ret)
@@ -330,6 +331,7 @@ class GPIO(Base):
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     def set_cgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert isinstance(ionum, int) and 7 >= ionum >= 0
         ret = self._wait_until_cmdnum_lt_max()
         if ret is not None:
             self.log_api_info('API -> set_cgpio_digital_with_xyz -> code={}'.format(ret), code=ret)
@@ -337,6 +339,19 @@ class GPIO(Base):
         assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
         ret = self.arm_cmd.cgpio_position_set_digital(ionum, value, xyz, fault_tolerance_radius)
         self.log_api_info('API -> set_cgpio_digital_with_xyz(ionum={}, value={}, xyz={}, fault_tolerance_radius={}) -> code={}'.format(ionum, value, xyz, fault_tolerance_radius, ret[0]), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    def set_cgpio_analog_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
+        ret = self._wait_until_cmdnum_lt_max()
+        if ret is not None:
+            self.log_api_info('API -> set_cgpio_analog_with_xyz -> code={}'.format(ret), code=ret)
+            return ret
+        assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
+        ret = self.arm_cmd.cgpio_position_set_analog(ionum, value, xyz, fault_tolerance_radius)
+        self.log_api_info('API -> set_cgpio_analog_with_xyz(ionum={}, value={}, xyz={}, fault_tolerance_radius={}) -> code={}'.format(ionum, value, xyz, fault_tolerance_radius, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')

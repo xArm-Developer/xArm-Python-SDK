@@ -2253,6 +2253,19 @@ class XArmAPI(object):
         """
         return self._arm.set_cgpio_digital_with_xyz(ionum, value, xyz, fault_tolerance_radius)
 
+    def set_cgpio_analog_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        """
+        Set the analog value of the specified Controller GPIO when the robot has reached the specified xyz position           
+
+        :param ionum: 0 ~ 1
+        :param value: value
+        :param xyz: position xyz, as [x, y, z]
+        :param fault_tolerance_radius: fault tolerance radius
+        :return: code
+            code: See the API code documentation for details.  
+        """
+        return self._arm.set_cgpio_analog_with_xyz(ionum, value, xyz, fault_tolerance_radius)
+
     def config_tgpio_reset_when_stop(self, on_off):
         """
         Config the Tool GPIO reset the digital output when the robot is in stop state

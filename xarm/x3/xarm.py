@@ -1620,7 +1620,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         if 'GRAV_DIR' in config and config['GRAV_DIR'] != old_config['GRAV_DIR']:
             self.set_gravity_direction(config['GRAV_DIR'])
         if 'TCP_LOAD' in config and config['TCP_LOAD'] != old_config['TCP_LOAD']:
-            self.set_tcp_load(config['TCP_LOAD'])
+            self.set_tcp_load(*config['TCP_LOAD'])
         if 'TCP_OFFSET' in config and config['TCP_OFFSET'] != old_config['TCP_OFFSET']:
             self.set_tcp_offset(config['TCP_OFFSET'])
         if 'TCP_MAXACC' in config and config['TCP_MAXACC'] != old_config['TCP_MAXACC']:

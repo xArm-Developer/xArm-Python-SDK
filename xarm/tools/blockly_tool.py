@@ -735,6 +735,27 @@ class BlocklyTool(object):
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'set_cgpio_digital_with_xyz, code={{}}\'.format(code))'.format(prefix))
 
+    def _handle_gpio_set_controller_analog_with_xyz(self, block, prefix=''):
+        fields = self.get_nodes('field', root=block)
+        x = fields[0].text
+        y = fields[1].text
+        z = fields[2].text
+        xyz = list(map(float, [x, y, z]))
+        tol_r = fields[3].text
+        io = fields[4].text
+        value = fields[5].text
+        # io = self.get_node('field', block).text
+        # value = self.get_node('value', root=block)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set cgpio-{} analog with pos {}'.format(prefix, io, xyz))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    code = arm.set_cgpio_analog_with_xyz({}, {}, {}, {})'.format(prefix, io, value, xyz, tol_r))
+        self._append_to_file('{}    if code != 0:'.format(prefix))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}        pprint(\'set_cgpio_analog_with_xyz, code={{}}\'.format(code))'.format(prefix))
+
+
     def _handle_gpio_set_controller_analog(self, block, prefix=''):
         io = self.get_node('field', block).text
         value = self.get_node('value', root=block)

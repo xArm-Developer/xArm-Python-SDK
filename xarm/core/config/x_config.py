@@ -262,6 +262,7 @@ class XCONF(object):
         POSITION_CGPIO_SET = 144
         POSITION_TGPIO_SET = 145
         SET_IO_STOP_RESET = 146
+        POSITION_CGPIO_SET_ANALOG = 147
 
     class UxbusConf:
         SET_TIMEOUT = 2000  # ms

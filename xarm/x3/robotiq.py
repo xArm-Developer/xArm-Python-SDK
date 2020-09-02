@@ -44,7 +44,7 @@ class RobotIQ(Base):
 
     @check_modbus_baud(baud=ROBOTIQ_BAUD, _type='get', default=-99)
     def __robotiq_send_modbus(self, data_frame, min_res_len=0):
-        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len)
+        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)
 
     @xarm_is_connected(_type='get')
     def __robotiq_set(self, params):

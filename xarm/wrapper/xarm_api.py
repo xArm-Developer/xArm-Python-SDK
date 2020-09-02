@@ -2406,7 +2406,7 @@ class XArmAPI(object):
         Reset the robotiq gripper (clear previous activation if any)
         
         :return: tuple((code, robotiq_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             robotiq_response: See the robotiq documentation
         """
         return self._arm.robotiq_reset()
@@ -2419,7 +2419,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
         
         :return: tuple((code, robotiq_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             robotiq_response: See the robotiq documentation 
         """
         return self._arm.robotiq_set_activate(wait=wait, timeout=timeout)
@@ -2435,7 +2435,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
         
         :return: tuple((code, robotiq_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             robotiq_response: See the robotiq documentation 
         """
         return self._arm.robotiq_set_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
@@ -2450,7 +2450,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
         
         :return: tuple((code, robotiq_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             robotiq_response: See the robotiq documentation 
         """
         return self._arm.robotiq_open(speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
@@ -2465,7 +2465,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
         
         :return: tuple((code, robotiq_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             robotiq_response: See the robotiq documentation
         """
         return self._arm.robotiq_close(speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
@@ -2484,7 +2484,7 @@ class XArmAPI(object):
                 register 0x07D1: Register FAULT STATUS and register POSITION REQUEST ECHO
                 register 0x07D2: Register POSITION and register CURRENT
         :return: tuple((code, robotiq_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             robotiq_response: See the robotiq documentation
         """
         return self._arm.robotiq_get_status(number_of_registers=number_of_registers)
@@ -2523,7 +2523,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_bio_gripper_enable(enable, wait=wait, timeout=timeout)
 
@@ -2534,7 +2534,7 @@ class XArmAPI(object):
         :param speed: speed
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_bio_gripper_speed(speed)
 
@@ -2547,7 +2547,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.open_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
@@ -2560,7 +2560,7 @@ class XArmAPI(object):
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.close_bio_gripper(speed=speed, wait=wait, timeout=timeout, **kwargs)
 
@@ -2569,7 +2569,7 @@ class XArmAPI(object):
         Get the status of the bio gripper
         
         :return: tuple((code, status))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             status: status
                 status & 0x03 == 0: stop
                 status & 0x03 == 1: motion
@@ -2586,7 +2586,7 @@ class XArmAPI(object):
         Get the error code of the bio gripper
         
         :return: tuple((code, error_code))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             error_code: See Chapter 7 of the xArm User Manual for details. 
         """
         return self._arm.get_bio_gripper_error()
@@ -2598,7 +2598,7 @@ class XArmAPI(object):
         :param timeout: timeout, seconds
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_tgpio_modbus_timeout(timeout)
 
@@ -2606,10 +2606,10 @@ class XArmAPI(object):
         """
         Set the modbus baudrate of the tool gpio
         
-        :param baud: 
+        :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_tgpio_modbus_baudrate(baud)
 
@@ -2618,7 +2618,7 @@ class XArmAPI(object):
         Get the modbus baudrate of the tool gpio
 
         :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             baudrate: the modbus baudrate of the tool gpio
         """
         return self._arm.get_tgpio_modbus_baudrate()
@@ -2631,7 +2631,7 @@ class XArmAPI(object):
         :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
         
         :return: tuple((code, modbus_response))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             modbus_response: modbus response data
         """
         return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len)
@@ -2645,7 +2645,7 @@ class XArmAPI(object):
             1: electric current
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_report_tau_or_i(tau_or_i=tau_or_i)
 
@@ -2654,7 +2654,7 @@ class XArmAPI(object):
         Get the reported torque or electric current
         
         :return: tuple((code, tau_or_i))
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
             tau_or_i: 
                 0: torque
                 1: electric current
@@ -2668,7 +2668,7 @@ class XArmAPI(object):
         :param on_off: enable or not
         
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_self_collision_detection(on_off)
 
@@ -2695,7 +2695,7 @@ class XArmAPI(object):
         :param args: additional parameters
         :param kwargs: additional parameters
         :return: code
-            code: See the code documentation for details.
+            code: See the API code documentation for details.
         """
         return self._arm.set_collision_tool_model(tool_type, *args, **kwargs)
 

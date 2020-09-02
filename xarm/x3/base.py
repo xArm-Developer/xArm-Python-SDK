@@ -1533,7 +1533,14 @@ class Base(Events):
 
     def _check_code(self, code, is_move_cmd=False):
         if is_move_cmd:
-            return 0 if code in [0, XCONF.UxbusState.WAR_CODE] and self.arm_cmd.state_is_ready else XCONF.UxbusState.STATE_NOT_READY if not self.arm_cmd.state_is_ready else code
+            if code in [0, XCONF.UxbusState.WAR_CODE]:
+                if self.arm_cmd.state_is_ready:
+                    return 0
+                else:
+                    return XCONF.UxbusState.STATE_NOT_READY
+            else:
+                return code
+            # return 0 if code in [0, XCONF.UxbusState.WAR_CODE] and self.arm_cmd.state_is_ready else XCONF.UxbusState.STATE_NOT_READY if not self.arm_cmd.state_is_ready else code
         else:
             return 0 if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY] else code
 
@@ -1543,12 +1550,12 @@ class Base(Events):
         while self.cmd_num >= self._max_cmd_num:
             if not self.connected:
                 return APIState.NOT_CONNECTED
+            elif self.has_error:
+                return APIState.HAS_ERROR
             elif not self.state_is_ready:
                 return APIState.NOT_READY
             elif self.is_stop:
                 return APIState.EMERGENCY_STOP
-            elif self.has_error:
-                return APIState.HAS_ERROR
             time.sleep(0.05)
 
     @xarm_is_connected(_type='get')
@@ -1888,12 +1895,13 @@ class Base(Events):
             self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
 
-    def getset_tgpio_modbus_data(self, datas, min_res_len=0):
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
         ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas))
         ret[0] = self._check_modbus_code(ret, min_res_len + 2)
-        self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])
+        if not ignore_log:
+            self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])
         return ret[0], ret[2:]
 
     @xarm_is_connected(_type='set')

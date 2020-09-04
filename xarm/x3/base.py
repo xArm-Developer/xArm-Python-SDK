@@ -881,7 +881,7 @@ class Base(Events):
             if not self._is_ready:
                 self._sleep_finish_time = 0
 
-            if error_code in [10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
                 self.gripper_is_enabled = False

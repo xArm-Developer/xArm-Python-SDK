@@ -663,6 +663,22 @@ class BlocklyTool(object):
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.arm.check_air_pump_state({}, timeout={})'.format(prefix, state, timeout))
 
+    def _handle_check_bio_gripper_is_catch(self, block, prefix=''):
+        if self._show_comment:
+            self._append_to_file('{}# check bio gripper is catch'.format(prefix))
+        fields = self.get_nodes('field', root=block)
+        timeout = float(fields[0].text)
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.arm.check_bio_gripper_is_catch(timeout={})'.format(prefix, timeout))
+
+    def _handle_check_robotiq_is_catch(self, block, prefix=''):
+        if self._show_comment:
+            self._append_to_file('{}# check robotiq is catch'.format(prefix))
+        fields = self.get_nodes('field', root=block)
+        timeout = float(fields[0].text)
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.arm.check_robotiq_is_catch(timeout={})'.format(prefix, timeout))
+
     def _handle_set_suction_cup(self, block, prefix=''):
         fields = self.get_nodes('field', root=block, name='trigger')
         on = True if fields[0].text == 'ON' else False
@@ -743,7 +759,7 @@ class BlocklyTool(object):
         xyz = list(map(float, [x, y, z]))
         tol_r = fields[3].text
         io = fields[4].text
-        value = fields[5].text
+        value = fields[5]
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
@@ -1398,6 +1414,14 @@ class BlocklyTool(object):
             state = 1 if fields[0].text == 'ON' else 0
             timeout = float(fields[1].text)
             return 'arm.arm.check_air_pump_state({}, timeout={})'.format(state, timeout)
+        elif block.attrib['type'] == 'check_bio_gripper_is_catch':
+            fields = self.get_nodes('field', root=block)
+            timeout = float(fields[0].text)
+            return 'arm.arm.check_bio_gripper_is_catch(timeout={}) == True'.format(timeout)
+        elif block.attrib['type'] == 'check_robotiq_is_catch':
+            fields = self.get_nodes('field', root=block)
+            timeout = float(fields[0].text)
+            return 'arm.arm.check_robotiq_is_catch(timeout={}) == True'.format(timeout)
         elif block.attrib['type'] == 'math_number':
             val = self.get_node('field', block).text
             return val

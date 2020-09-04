@@ -444,14 +444,14 @@ class Gripper(GPIO):
         failed_cnt = 0
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
-        # check_detected = kwargs.get('check_detected', False)
+        check_detected = kwargs.get('check_detected', False)
         while time.time() < expired:
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
                 code = code if (status & 0x03) == XCONF.BioGripperState.IS_MOTION \
                     else APIState.END_EFFECTOR_HAS_FAULT if (status & 0x03) == XCONF.BioGripperState.IS_FAULT \
-                    else 0
+                    else 0 if not check_detected or (status & 0x03) == XCONF.BioGripperState.IS_DETECTED else code
             else:
                 code = APIState.NOT_CONNECTED if _ == APIState.NOT_CONNECTED else APIState.CHECK_FAILED if failed_cnt > 10 else code
             if code != APIState.WAIT_FINISH_TIMEOUT:
@@ -476,6 +476,11 @@ class Gripper(GPIO):
                 break
             time.sleep(0.1)
         return code
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=False)
+    def check_bio_gripper_is_catch(self, timeout=3):
+        return self.__bio_gripper_wait_motion_completed(timeout=timeout, check_detected=True) == 0
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)

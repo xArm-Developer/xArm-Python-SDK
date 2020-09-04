@@ -172,6 +172,11 @@ class RobotIQ(Base):
             code = APIState.END_EFFECTOR_NOT_ENABLED
         return code
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=False)
+    def check_robotiq_is_catch(self, timeout=5):
+        return self.robotiq_wait_motion_completed(timeout=timeout, check_detected=True) == 0
+
     def robotiq_calibrate_mm(self, closemm, openmm):
         ret = self.robotiq_open(wait=True)
         if ret[0] == 0:

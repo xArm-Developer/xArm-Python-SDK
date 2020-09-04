@@ -168,6 +168,8 @@ class RobotIQ(Base):
             if code != APIState.WAIT_FINISH_TIMEOUT:
                 break
             time.sleep(0.05)
+        if code == 0 and not self.robotiq_is_activated:
+            code = APIState.END_EFFECTOR_NOT_ENABLED
         return code
 
     def robotiq_calibrate_mm(self, closemm, openmm):

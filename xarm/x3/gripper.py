@@ -457,6 +457,8 @@ class Gripper(GPIO):
             if code != APIState.WAIT_FINISH_TIMEOUT:
                 break
             time.sleep(0.1)
+        if code == 0 and not self.bio_gripper_is_enabled:
+            code = APIState.END_EFFECTOR_NOT_ENABLED
         return code
 
     def __bio_gripper_wait_enable_completed(self, timeout=3):

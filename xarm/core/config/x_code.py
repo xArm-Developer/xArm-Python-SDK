@@ -867,21 +867,31 @@ RobotiqErrorCodeMap = {
 BioGripperErrorCodeMap = {
     0x0B: {
         'en': {
-            'title': 'Bio Gripper',
+            'title': 'BIO Gripper Current Overlimit',
             'desc': 'Current Overlimit, please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
         },
         'cn': {
-            'title': 'Bio 机械爪',
+            'title': 'BIO 机械爪过流',
             'desc': '电流过大，请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    0x0C: {
+        'en': {
+            'title': 'The object slipped from the BIO Gripper',
+            'desc': 'The object slipped from the BIO Gripper, please clear the error and try again',
+        },
+        'cn': {
+            'title': 'BIO 机械爪夹取的物体脱落',
+            'desc': 'BIO 机械爪夹取的物体脱落，请清除错误后重试',
         }
     },
     'other': {
         'en': {
-            'title': 'Bio Gripper',
+            'title': 'BIO Gripper',
             'desc': 'Other fault'
         },
         'cn': {
-            'title': 'Bio 机械爪',
+            'title': 'BIO 机械爪',
             'desc': '其它故障'
         }
     },

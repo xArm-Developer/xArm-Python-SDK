@@ -589,3 +589,11 @@ class Gripper(GPIO):
     def get_bio_gripper_version(self):
         ret = self.get_bio_gripper_register(address=0x0801, number_of_registers=0x03)
         return ret
+
+    @xarm_is_connected(_type='set')
+    def clean_bio_gripper_error(self):
+        data_frame = [0x08, 0x06, 0x00, 0x0F, 0x00, 0x00]
+        code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        self.log_api_info('API -> clean_bio_gripper_error() ->code={}'.format(code), code=code)
+        self.get_bio_gripper_status()
+        return code

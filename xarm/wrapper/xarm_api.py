@@ -2635,6 +2635,15 @@ class XArmAPI(object):
         """
         return self._arm.get_bio_gripper_error()
 
+    def clean_bio_gripper_error(self):
+        """
+        Clean the error code of the bio gripper
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.clean_bio_gripper_error()
+
     def set_tgpio_modbus_timeout(self, timeout):
         """
         Set the modbus timeout of the tool gpio

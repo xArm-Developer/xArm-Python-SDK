@@ -759,7 +759,7 @@ class BlocklyTool(object):
         xyz = list(map(float, [x, y, z]))
         tol_r = fields[3].text
         io = fields[4].text
-        value = fields[5]
+        value = fields[5].text
         # io = self.get_node('field', block).text
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
@@ -770,7 +770,6 @@ class BlocklyTool(object):
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'set_cgpio_analog_with_xyz, code={{}}\'.format(code))'.format(prefix))
-
 
     def _handle_gpio_set_controller_analog(self, block, prefix=''):
         io = self.get_node('field', block).text

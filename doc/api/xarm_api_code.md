@@ -19,7 +19,7 @@
 - 6: tcp protocol flag error
 - 7: tcp reply command and send command do not match
 - 8: send command error, may be network exception
-- 9: reversed, no use
+- 9: state is not ready to move
 - 10: reversed, no use
 - 11: other error
 - 12: parameter error
@@ -34,6 +34,7 @@
 - 100: wait finish timeout
 - 101: too many consecutive failed tests
 - 102: end effector has error
+- 103: end effector is not endabled
 
 ## Controller warning code
 - 11: uxbux que is full
@@ -42,6 +43,7 @@
 - 14: command has no solution
 
 ## Controller error code
+- 1: The Emergency Stop Button is pushed
 - 10: Servo motor error
 - 11: Servo motor 1 error
 - 12: Servo motor 2 error
@@ -52,7 +54,7 @@
 - 17: Servo motor 7 error
 - 19: Gripper Communication Error
 - 21: Kinematic Error
-- 22: Collision Error
+- 22: Self-Collision Error
 - 23: Joints Angle Exceed Limit
 - 24: Speed Exceeds Limit
 - 25: Planning Error
@@ -67,6 +69,7 @@
 - 34: Recording Timeout
 - 35: Safety Boundary Limit
 - 36: The number of delay commands exceeds the limit
+- 37: Abnormal movement in Manual Mode
 
 ## Servo Error Code
 

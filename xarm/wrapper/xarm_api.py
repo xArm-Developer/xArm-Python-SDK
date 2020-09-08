@@ -566,18 +566,62 @@ class XArmAPI(object):
 
     @property
     def voltages(self):
+        """
+        Servos voltage
+        
+        :return: [servo-1-voltage, ..., servo-7-voltage]
+        """
         return self._arm.voltages
 
     @property
     def currents(self):
+        """
+        Servos electric current
+        
+        :return: [servo-1-current, ..., servo-7-current]
+        """
         return self._arm.currents
 
     @property
     def cgpio_states(self):
+        """
+        Controller gpio state
+        
+        :return: states
+            states[0]: contorller gpio module state
+                states[0] == 0: normal
+                states[0] == 1：wrong
+                states[0] == 6：communication failure
+            states[1]: controller gpio module error code
+                states[1] == 0: normal
+                states[1] != 0：error code
+            states[2]: digital input functional gpio state
+                Note: digital-i-input functional gpio state = states[2] >> i & 0x01
+            states[3]: digital input configuring gpio state
+                Note: digital-i-input configuring gpio state = states[3] >> i & 0x01
+            states[4]: digital output functional gpio state
+                Note: digital-i-output functional gpio state = states[4] >> i & 0x01
+            states[5]: digital output configuring gpio state
+                Note: digital-i-output configuring gpio state = states[5] >> i & 0x01
+            states[6]: analog-0 input value
+            states[7]: analog-1 input value
+            states[8]: analog-0 output value
+            states[9]: analog-1 output value
+            states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]
+            states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
+        """
         return self._arm.cgpio_states
 
     @property
     def self_collision_params(self):
+        """
+        Self collision params
+        
+        :return: params
+            params[0]: self collision detection or not
+            params[1]: self collision tool type
+            params[2]: self collision model params
+        """
         return self._arm.self_collision_params
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None):

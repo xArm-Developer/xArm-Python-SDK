@@ -92,7 +92,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='get')
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=None)
     def get_gripper_position(self, is_modbus=True):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, 0
         if is_modbus:
             return self._get_modbus_gripper_position()
@@ -112,7 +112,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='get')
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=0)
     def get_gripper_err_code(self, is_modbus=True):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, 0
         if is_modbus:
             return self._get_modbus_gripper_err_code()
@@ -561,7 +561,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='get')
     def get_bio_gripper_status(self):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, 0
         code, ret = self.get_bio_gripper_register(address=0x00)
         status = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
@@ -578,7 +578,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='get')
     def get_bio_gripper_error(self):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, 0
         code, ret = self.get_bio_gripper_register(address=0x0F)
         error_code = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
@@ -594,6 +594,6 @@ class Gripper(GPIO):
     def clean_bio_gripper_error(self):
         data_frame = [0x08, 0x06, 0x00, 0x0F, 0x00, 0x00]
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
-        self.log_api_info('API -> clean_bio_gripper_error() ->code={}'.format(code), code=code)
+        self.log_api_info('API -> clean_bio_gripper_error -> code={}'.format(code), code=code)
         self.get_bio_gripper_status()
         return code

@@ -121,7 +121,7 @@ class RobotIQ(Base):
         return self.robotiq_set_position(0xFF, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
     def robotiq_get_status(self, number_of_registers=3):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, 0
         number_of_registers = 3 if number_of_registers not in [1, 2, 3] else number_of_registers
         params = [0x07, 0xD0, 0x00, number_of_registers]

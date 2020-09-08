@@ -48,7 +48,7 @@ class GPIO(Base):
 
     @xarm_is_connected(_type='get')
     def get_tgpio_version(self):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, '*.*.*'
         versions = ['*', '*', '*']
         ret1 = self.arm_cmd.tgpio_addr_r16(0x0801)
@@ -82,7 +82,7 @@ class GPIO(Base):
     @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
-        if self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, [0, 0] if ionum is None else 0
         ret = self.arm_cmd.tgpio_get_digital()
         if ret[0] == 0:
@@ -112,7 +112,7 @@ class GPIO(Base):
 
     @xarm_is_connected(_type='get')
     def get_tgpio_analog(self, ionum=None):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, [0, 0] if ionum is None else 0
         if ionum is None:
             ret1 = self.arm_cmd.tgpio_get_analog1()
@@ -145,7 +145,7 @@ class GPIO(Base):
     @xarm_is_connected(_type='get')
     def get_cgpio_digital(self, ionum=None):
         assert ionum is None or (isinstance(ionum, int) and 7 >= ionum >= 0)
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, [1] * 8 if ionum is None else 1
         ret = self.arm_cmd.cgpio_get_auxdigit()
         # if ret[0] != 0:
@@ -159,7 +159,7 @@ class GPIO(Base):
 
     @xarm_is_connected(_type='get')
     def get_cgpio_analog(self, ionum=None):
-        if self._check_simulation_mode and self.mode == 4:
+        if self.check_is_simulation_robot():
             return 0, [0, 0] if ionum is None else 0
         if ionum is None:
             ret1 = self.arm_cmd.cgpio_get_analog1()

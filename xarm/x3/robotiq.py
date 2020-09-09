@@ -77,6 +77,7 @@ class RobotIQ(Base):
                 self.robotiq_is_activated = False
         return code, ret
 
+    @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_reset(self):
         params = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
@@ -84,6 +85,7 @@ class RobotIQ(Base):
         self.log_api_info('API -> robotiq_reset -> code={}, response={}'.format(code, ret), code=code)
         return code, ret
 
+    @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_set_activate(self, wait=True, timeout=3):
         params = [0x01, 0x00, 0x00, 0x00, 0x00, 0x00]
@@ -95,12 +97,8 @@ class RobotIQ(Base):
             self.robotiq_is_activated = True
         return code, ret
 
-    @xarm_is_not_simulation_mode(ret=(0, 0))
+    @xarm_is_connected(_type='get')
     def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
-        if kwargs.get('auto_enable') and not self.robotiq_is_activated:
-            self.robotiq_reset()
-            self.robotiq_set_activate(wait=True)
-        params = [0x09, 0x00, 0x00, pos, speed, force]
         if wait or kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
@@ -108,6 +106,12 @@ class RobotIQ(Base):
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code
+        if self.check_is_simulation_robot():
+            return 0, 0
+        if kwargs.get('auto_enable') and not self.robotiq_is_activated:
+            self.robotiq_reset()
+            self.robotiq_set_activate(wait=True)
+        params = [0x09, 0x00, 0x00, pos, speed, force]
         code, ret = self.__robotiq_set(params)
         if wait and code == 0:
             code = self.robotiq_wait_motion_completed(timeout, **kwargs)
@@ -120,6 +124,7 @@ class RobotIQ(Base):
     def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         return self.robotiq_set_position(0xFF, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
+    @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_get_status(self, number_of_registers=3):
         number_of_registers = 3 if number_of_registers not in [1, 2, 3] else number_of_registers

@@ -120,9 +120,8 @@ class RobotIQ(Base):
     def robotiq_close(self, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         return self.robotiq_set_position(0xFF, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     def robotiq_get_status(self, number_of_registers=3):
-        if self.check_is_simulation_robot():
-            return 0, 0
         number_of_registers = 3 if number_of_registers not in [1, 2, 3] else number_of_registers
         params = [0x07, 0xD0, 0x00, number_of_registers]
         # params = [0x07, 0xD0, 0x00, 0x01]

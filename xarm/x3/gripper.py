@@ -32,9 +32,8 @@ class Gripper(GPIO):
         self._gripper_error_code = val
 
     @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, '*.*.*'))
     def get_gripper_version(self):
-        if self.check_is_simulation_robot():
-            return 0, '*.*.*'
         code = self.checkset_modbus_baud(GRIPPER_BAUD)
         if code != 0:
             return code, '*.*.*'
@@ -90,10 +89,9 @@ class Gripper(GPIO):
             return self._set_gripper_speed(speed)
 
     @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=None)
     def get_gripper_position(self, is_modbus=True):
-        if self.check_is_simulation_robot():
-            return 0, 0
         if is_modbus:
             return self._get_modbus_gripper_position()
         else:
@@ -110,10 +108,9 @@ class Gripper(GPIO):
             return self._set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
 
     @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     @check_modbus_baud(baud=GRIPPER_BAUD, _type='get', default=0)
     def get_gripper_err_code(self, is_modbus=True):
-        if self.check_is_simulation_robot():
-            return 0, 0
         if is_modbus:
             return self._get_modbus_gripper_err_code()
         else:
@@ -560,9 +557,8 @@ class Gripper(GPIO):
         return self.__bio_gripper_send_modbus(data_frame, 3 + 2 * number_of_registers)
 
     @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     def get_bio_gripper_status(self):
-        if self.check_is_simulation_robot():
-            return 0, 0
         code, ret = self.get_bio_gripper_register(address=0x00)
         status = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
         if code == 0:
@@ -577,9 +573,8 @@ class Gripper(GPIO):
         return code, status
 
     @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
     def get_bio_gripper_error(self):
-        if self.check_is_simulation_robot():
-            return 0, 0
         code, ret = self.get_bio_gripper_register(address=0x0F)
         error_code = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
         if code == 0:

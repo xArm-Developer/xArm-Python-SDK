@@ -172,6 +172,8 @@ class RobotIQ(Base):
             if code != APIState.WAIT_FINISH_TIMEOUT:
                 break
             time.sleep(0.05)
+        if self.robotiq_error_code != 0:
+            print('ROBOTIQ Gripper ErrorCode: {}'.format(self.robotiq_error_code))
         if code == 0 and not self.robotiq_is_activated:
             code = APIState.END_EFFECTOR_NOT_ENABLED
         return code

@@ -353,8 +353,11 @@ class Gripper(GPIO):
                 self.gripper_speed = speed
         ret = self.arm_cmd.gripper_modbus_set_pos(pos)
         self.log_api_info('API -> set_modbus_gripper_position(pos={}) -> code={}'.format(pos, ret[0]), code=ret[0])
+        if self._gripper_error_code != 0:
+            print('xArm Gripper ErrorCode: {}'.format(self._gripper_error_code))
+            return APIState.END_EFFECTOR_HAS_FAULT
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
-        if wait:
+        if wait and ret[0] == 0:
             is_add = True
             last_pos = 0
             _, p = self._get_modbus_gripper_position()
@@ -368,13 +371,18 @@ class Gripper(GPIO):
             if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
                 timeout = 10
             expired = time.time() + timeout
+            failed_cnt = 0
+            code = APIState.WAIT_FINISH_TIMEOUT
             while self.connected and time.time() < expired:
                 _, p = self._get_modbus_gripper_position()
+                if self._gripper_error_code != 0:
+                    print('xArm Gripper ErrorCode: {}'.format(self._gripper_error_code))
+                    return APIState.END_EFFECTOR_HAS_FAULT
+                failed_cnt = 0 if _ == 0 and p is not None else failed_cnt + 1
                 if _ == 0 and p is not None:
                     cur_pos = int(p)
                     if abs(pos - cur_pos) <= 1:
-                        last_pos = cur_pos
-                        break
+                        return ret[0]
                     if is_add:
                         if cur_pos <= last_pos:
                             count += 1
@@ -385,7 +393,7 @@ class Gripper(GPIO):
                         else:
                             count2 += 1
                             if count2 >= 10:
-                                break
+                                return ret[0]
                     else:
                         if cur_pos >= last_pos:
                             count += 1
@@ -396,19 +404,15 @@ class Gripper(GPIO):
                         else:
                             count2 += 1
                             if count2 >= 10:
-                                break
+                                return ret[0]
                     if count >= 8:
-                        # print('gripper target: {}, current: {}'.format(pos, cur_pos))
-                        break
+                        return ret[0]
                 else:
-                    break
+                    if failed_cnt > 10:
+                        return APIState.CHECK_FAILED
                 time.sleep(0.2)
-            # print('gripper, pos: {}, last: {}'.format(pos, last_pos))
-            return ret[0]
-        else:
-            _, err = self._get_modbus_gripper_err_code()
-            # return ret[0] if ret[0] not in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] else _
-            return ret[0]
+            return code
+        return ret[0]
 
     @xarm_is_connected(_type='get')
     def _get_modbus_gripper_err_code(self):
@@ -469,6 +473,8 @@ class Gripper(GPIO):
             if code != APIState.WAIT_FINISH_TIMEOUT:
                 break
             time.sleep(0.1)
+        if self.bio_gripper_error_code != 0:
+            print('BIO Gripper ErrorCode: {}'.format(self.bio_gripper_error_code))
         if code == 0 and not self.bio_gripper_is_enabled:
             code = APIState.END_EFFECTOR_NOT_ENABLED
         return code

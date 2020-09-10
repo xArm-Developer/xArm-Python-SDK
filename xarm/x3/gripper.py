@@ -426,7 +426,7 @@ class Gripper(GPIO):
                         return 0
                     else:
                         not_start_move_cnt += 1
-                        if not_start_move_cnt > 10:
+                        if not_start_move_cnt > 20:
                             return 0
                 elif not start_move:
                     not_start_move_cnt = 0

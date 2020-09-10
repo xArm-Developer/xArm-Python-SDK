@@ -145,6 +145,7 @@ class Base(Events):
 
             self.gripper_is_enabled = False
             self.gripper_speed = 0
+            self.gripper_version_numbers = [-1, -1, -1]
 
             self.bio_gripper_is_enabled = False
             self.bio_gripper_speed = 0
@@ -889,6 +890,7 @@ class Base(Events):
                 self.bio_gripper_speed = 0
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
+                self.gripper_version_numbers = [-1, -1, -1]
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1082,8 +1084,8 @@ class Base(Events):
                 self.gripper_is_enabled = False
                 self.bio_gripper_is_enabled = False
                 self.bio_gripper_speed = -1
-                self.gripper_is_enabled = False
                 self.gripper_speed = -1
+                self.gripper_version_numbers = [-1, -1, -1]
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))

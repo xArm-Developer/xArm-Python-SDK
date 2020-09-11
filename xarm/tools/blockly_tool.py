@@ -953,7 +953,7 @@ class BlocklyTool(object):
         if self._show_comment:
             self._append_to_file('{}# robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code = arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
+        self._append_to_file('{}    code, ret = arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'robotiq_set_position, code={{}}\'.format(code))'.format(prefix))

@@ -86,6 +86,7 @@ class XArmAPI(object):
         self._arm = XArm(port=port,
                          is_radian=is_radian,
                          do_not_open=do_not_open,
+                         instance=self,
                          **kwargs)
         self.__attr_alias_map = {
             'get_ik': self.get_inverse_kinematics,

@@ -105,7 +105,7 @@ class RobotIQ(Base):
             code = self.wait_move()
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
-                return code
+                return code, 0
         if self.check_is_simulation_robot():
             return 0, 0
         if kwargs.get('auto_enable') and not self.robotiq_is_activated:

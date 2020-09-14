@@ -803,8 +803,8 @@ class BlocklyTool(object):
         z = fields[4].text
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.set_tcp_load({}, [{}, {}, {}])'.format(prefix, weight, x, y, z))
-        self._append_to_file('{}    arm.set_state(0)'.format(prefix))
-        self._append_to_file('{}    time.sleep(0.5)'.format(prefix))
+        # self._append_to_file('{}    arm.set_state(0)'.format(prefix))
+        # self._append_to_file('{}    time.sleep(0.5)'.format(prefix))
 
         # values = self.get_nodes('value', root=block)
         # weight = self.get_nodes('field', root=values[0], descendant=True)[0].text
@@ -930,13 +930,13 @@ class BlocklyTool(object):
         if self._show_comment:
             self._append_to_file('{}# set_robotiq_init()'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code = arm.robotiq_reset()'.format(prefix))
+        self._append_to_file('{}    code, _ = arm.robotiq_reset()'.format(prefix))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'robotiq_reset, code={{}}\'.format(code))'.format(prefix))
 
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code = arm.robotiq_set_activate(wait=True)'.format(prefix))
+        self._append_to_file('{}    code, _ = arm.robotiq_set_activate(wait=True)'.format(prefix))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'robotiq_set_activate, code={{}}\'.format(code))'.format(prefix))
@@ -953,7 +953,7 @@ class BlocklyTool(object):
         if self._show_comment:
             self._append_to_file('{}# robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code, ret = arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
+        self._append_to_file('{}    code, _ = arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(prefix, pos, speed, force, wait))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'robotiq_set_position, code={{}}\'.format(code))'.format(prefix))

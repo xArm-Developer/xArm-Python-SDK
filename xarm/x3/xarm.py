@@ -32,9 +32,10 @@ gcode_p = GcodeParser()
 
 
 class XArm(Gripper, Servo, Record, RobotIQ):
-    def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
+    def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
         kwargs['init'] = True
+        self._api_instance = instance
         Base.__init__(self, port, is_radian, do_not_open, **kwargs)
 
     def _is_out_of_tcp_range(self, value, i):
@@ -1506,11 +1507,11 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             if not os.path.exists(path):
                 raise FileNotFoundError
             blockly_tool = BlocklyTool(path)
-            succeed = blockly_tool.to_python(arm=self, **kwargs)
+            succeed = blockly_tool.to_python(arm=self._api_instance, **kwargs)
             if succeed:
                 times = kwargs.get('times', 1)
                 for i in range(times):
-                    exec(blockly_tool.codes, {'arm': self})
+                    exec(blockly_tool.codes, {'arm': self._api_instance})
                 return APIState.NORMAL
             else:
                 logger.error('The conversion is incomplete and some blocks are not yet supported.')

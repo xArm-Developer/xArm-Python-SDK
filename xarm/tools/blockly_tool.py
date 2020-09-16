@@ -127,7 +127,6 @@ class BlocklyTool(object):
         self._insert_to_file(self.index, 'import random')
         self._insert_to_file(self.index, 'import traceback')
         self._insert_to_file(self.index, 'import threading\n')
-        self._insert_to_file(self.index, 'import_libs = [\'sys\', \'math\', \'time\', \'datetime\', \'random\', \'traceback\', \'threading\']\n')
         self._insert_to_file(self.index, '"""')
         self._insert_to_file(self.index, '# xArm-Python-SDK: https://github.com/xArm-Developer/xArm-Python-SDK')
         self._insert_to_file(self.index, '# git clone git@github.com:xArm-Developer/xArm-Python-SDK.git')
@@ -139,7 +138,8 @@ class BlocklyTool(object):
         self._insert_to_file(self.index, 'except:')
         self._insert_to_file(self.index, '    pass')
         self._insert_to_file(self.index, 'from xarm import version')
-        self._insert_to_file(self.index, 'from xarm.wrapper import XArmAPI\n\n')
+        self._insert_to_file(self.index, 'from xarm.wrapper import XArmAPI\n')
+        self._insert_to_file(self.index, 'locals_keys = list(locals().keys())\n\n')
 
         self._insert_to_file(self.index, 'def pprint(*args, **kwargs):')
         self._insert_to_file(self.index, '    try:')
@@ -1262,7 +1262,7 @@ class BlocklyTool(object):
         expression = self.__get_condition_expression(value)
         # self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
 
-        self._append_to_file('{}if \'{}\' not in import_libs and \'{}\' in locals():'.format(prefix, field, field))
+        self._append_to_file('{}if \'{}\' not in locals_keys and \'{}\' in locals():'.format(prefix, field, field))
         self._append_to_file('{}    {} = {}'.format(prefix, field, expression))
         self._append_to_file('{}else:'.format(prefix))
         self._append_to_file('{}    params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
@@ -1274,7 +1274,7 @@ class BlocklyTool(object):
         val = self.get_node('field', root=shadow).text
         # self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
-        self._append_to_file('{}if \'{}\' not in import_libs and \'{}\' in locals():'.format(prefix, field, field))
+        self._append_to_file('{}if \'{}\' not in locals_keys and \'{}\' in locals():'.format(prefix, field, field))
         self._append_to_file('{}    {} += {}'.format(prefix, field, val))
         self._append_to_file('{}else:'.format(prefix))
         self._append_to_file('{}    params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
@@ -1568,7 +1568,7 @@ class BlocklyTool(object):
         #     pass
         elif block.attrib['type'] == 'variables_get':
             field = self.get_node('field', block).text
-            return '(params[\'variables\'].get(\'{}\', 0) if \'{}\' in import_libs or \'{}\' not in locals() else {})'.format(field, field, field, field)
+            return '(params[\'variables\'].get(\'{}\', 0) if \'{}\' in locals_keys or \'{}\' not in locals() else {})'.format(field, field, field, field)
             # return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
         elif block.attrib['type'] == 'move_var':
             val = self.get_node('field', block).text

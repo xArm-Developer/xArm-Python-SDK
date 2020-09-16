@@ -71,7 +71,7 @@ class XArmAPI(object):
             baudrate: serial baudrate, invalid, reserved.
             timeout: serial timeout, invalid, reserved.
             filters: serial port filters, invalid, reserved.
-            check_tcp_limit: check the tcp param value out of limit or not, default is True
+            check_tcp_limit: check the tcp param value out of limit or not, default is False
                 Note: only check the param roll/pitch/yaw of the interface `set_position`/`move_arc_lines`
             check_joint_limit: check the joint           param value out of limit or not, default is True
                 Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
@@ -872,7 +872,7 @@ class XArmAPI(object):
         :param speed: speed, reserved
         :param mvacc: acceleration, reserved
         :param mvtime: 0, reserved
-        :param is_radian: the angles in radians or not, defalut is self.default_is_radian
+        :param is_radian: the angles in radians or not, default is self.default_is_radian
         :param kwargs: reserved
         :return: code
             code: See the API code documentation for details.

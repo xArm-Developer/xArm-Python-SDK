@@ -73,6 +73,19 @@ def xarm_is_pause(_type='set'):
     return _xarm_is_pause
 
 
+def xarm_wait_until_cmdnum_lt_max(only_wait=False):
+    def _xarm_wait_until_cmdnum_lt_max(func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            ret = args[0].wait_until_cmdnum_lt_max()
+            if not only_wait and ret is not None:
+                args[0].log_api_info('API -> {} -> code={}'.format(func.__name__, ret), code=ret)
+                return ret
+            return func(*args, **kwargs)
+        return decorator
+    return _xarm_wait_until_cmdnum_lt_max
+
+
 def xarm_is_not_simulation_mode(ret=0):
     def _xarm_is_not_simulation_mode(func):
         @functools.wraps(func)

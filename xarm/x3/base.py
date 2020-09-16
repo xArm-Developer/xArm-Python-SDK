@@ -37,7 +37,7 @@ class Base(Events):
             self._enable_report = kwargs.get('enable_report', True)
             self._report_type = kwargs.get('report_type', 'rich')
 
-            self._check_tcp_limit = kwargs.get('check_tcp_limit', True)
+            self._check_tcp_limit = kwargs.get('check_tcp_limit', False)
             self._check_joint_limit = kwargs.get('check_joint_limit', True)
             self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
             self._check_simulation_mode = kwargs.get('check_simulation_mode', True)
@@ -1546,7 +1546,7 @@ class Base(Events):
         else:
             return 0 if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY] else code
 
-    def _wait_until_cmdnum_lt_max(self):
+    def wait_until_cmdnum_lt_max(self):
         if not self._check_cmdnum_limit or self._stream_type != 'socket' or not self._enable_report:
             return
         while self.cmd_num >= self._max_cmd_num:

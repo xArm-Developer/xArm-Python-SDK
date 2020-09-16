@@ -21,7 +21,7 @@ from .record import Record
 from .robotiq import RobotIQ
 from .parse import GcodeParser
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_version
+from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_version, xarm_wait_until_cmdnum_lt_max
 try:
     from ..tools.blockly_tool import BlocklyTool
 except:
@@ -68,14 +68,10 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
-        ret = self._wait_until_cmdnum_lt_max()
-        if ret is not None:
-            self.log_api_info('API -> set_position -> code={}'.format(ret), code=ret)
-            return ret
-
         is_radian = self._default_is_radian if is_radian is None else is_radian
         tcp_pos = [x, y, z, roll, pitch, yaw]
         last_used_position = self._last_position.copy()
@@ -180,6 +176,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_tool_position(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0,
                           speed=None, mvacc=None, mvtime=None, is_radian=None,
                           wait=False, timeout=None, **kwargs):
@@ -239,6 +236,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_position_aa(self, mvpose, speed=None, mvacc=None, mvtime=None,
                         is_radian=None, is_tool_coord=False, relative=False,
                         wait=False, timeout=None, **kwargs):
@@ -310,16 +308,12 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
                         relative=False, is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
             or (1 <= servo_id <= 7 and angle is not None and not isinstance(angle, Iterable)), \
             'param servo_id or angle error'
-        ret = self._wait_until_cmdnum_lt_max()
-        if ret is not None:
-            self.log_api_info('API -> set_servo_angle -> code={}'.format(ret), code=ret[0])
-            return ret
-
         last_used_angle = self._last_angles.copy()
         last_used_joint_speed = self._last_joint_speed
         last_used_joint_acc = self._last_joint_acc
@@ -494,11 +488,8 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
-        ret = self._wait_until_cmdnum_lt_max()
-        if ret is not None:
-            self.log_api_info('API -> move_circle -> code={}'.format(ret), code=ret)
-            return ret
         last_used_tcp_speed = self._last_tcp_speed
         last_used_tcp_acc = self._last_tcp_acc
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -557,21 +548,9 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        # if speed is None:
-        #     speed = 0.8726646259971648  # 50 °/s
-        # else:
-        #     if not is_radian:
-        #         speed = math.radians(speed)
-        # if mvacc is None:
-        #     mvacc = 17.453292519943297  # 1000 °/s^2
-        # else:
-        #     if not is_radian:
-        #         mvacc = math.radians(mvacc)
-        # if mvtime is None:
-        #     mvtime = 0
-
         if speed is not None:
             if isinstance(speed, str):
                 if speed.isdigit():
@@ -907,6 +886,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_pause_time(self, sltime, wait=False):
         assert isinstance(sltime, (int, float))
         ret = self.arm_cmd.sleep_instruction(sltime)
@@ -946,18 +926,21 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_tcp_jerk(self, jerk):
         ret = self.arm_cmd.set_tcp_jerk(jerk)
         self.log_api_info('API -> set_tcp_jerk -> code={}, jerk={}'.format(ret[0], jerk), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_tcp_maxacc(self, acc):
         ret = self.arm_cmd.set_tcp_maxacc(acc)
         self.log_api_info('API -> set_tcp_maxacc -> code={}, maxacc={}'.format(ret[0], acc), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_joint_jerk(self, jerk, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         _jerk = jerk
@@ -968,6 +951,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_joint_maxacc(self, acc, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         _acc = acc
@@ -979,6 +963,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_tcp_load(self, weight, center_of_gravity):
         if compare_version(self.version_number, (0, 2, 0)):
             _center_of_gravity = center_of_gravity
@@ -1533,6 +1518,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_counter_reset(self):
         ret = self.arm_cmd.cnter_reset()
         ret[0] = self._check_code(ret[0])
@@ -1540,6 +1526,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_counter_increase(self, val=1):
         ret = self.arm_cmd.cnter_plus()
         ret[0] = self._check_code(ret[0])

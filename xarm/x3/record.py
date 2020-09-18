@@ -13,11 +13,12 @@ from .utils import xarm_is_connected
 from .code import APIState
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
+from .base import Base
 
 
-class Record(object):
+class Record(Base):
     def __init__(self):
-        pass
+        super(Record, self).__init__()
 
     @xarm_is_connected(_type='get')
     def get_trajectories(self, ip=None):
@@ -40,7 +41,7 @@ class Record(object):
     @xarm_is_connected(_type='set')
     def start_record_trajectory(self):
         ret = self.arm_cmd.set_record_traj(1)
-        logger.info('API -> start_record_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> start_record_trajectory -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -50,7 +51,7 @@ class Record(object):
             ret2 = self.save_record_trajectory(filename, wait=True, timeout=10)
             if ret2 != 0:
                 return ret2
-        logger.info('API -> stop_record_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> stop_record_trajectory -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -62,15 +63,16 @@ class Record(object):
         else:
             full_filename = filename
         ret = self.arm_cmd.save_traj(full_filename, wait_time=0)
-        logger.info('API -> save_record_trajectory -> ret={}'.format(ret[0]))
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        self.log_api_info('API -> save_record_trajectory -> code={}'.format(ret[0]), code=ret[0])
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0:
             if wait:
                 start_time = time.time()
                 while time.time() - start_time < timeout:
                     code, status = self.get_trajectory_rw_status()
-                    if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+                    if self._check_code(code) == 0:
                         if status == XCONF.TrajState.IDLE:
-                            logger.info('Save {} failed'.format(filename))
+                            logger.error('Save {} failed, idle'.format(filename))
                             return APIState.TRAJ_RW_FAILED
                         elif status == XCONF.TrajState.SAVE_SUCCESS:
                             logger.info('Save {} success'.format(filename))
@@ -95,7 +97,7 @@ class Record(object):
         else:
             full_filename = filename
         ret = self.arm_cmd.load_traj(full_filename, wait_time=0)
-        logger.info('API -> load_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> load_trajectory -> code={}'.format(ret[0]), code=ret[0])
         if ret[0] == 0:
             if wait:
                 start_time = time.time()
@@ -103,7 +105,7 @@ class Record(object):
                     code, status = self.get_trajectory_rw_status()
                     if code == 0:
                         if status == XCONF.TrajState.IDLE:
-                            logger.info('Load {} failed'.format(filename))
+                            logger.info('Load {} failed, idle'.format(filename))
                             return APIState.TRAJ_RW_FAILED
                         elif status == XCONF.TrajState.LOAD_SUCCESS:
                             logger.info('Load {} success'.format(filename))
@@ -122,22 +124,23 @@ class Record(object):
     @xarm_is_connected(_type='set')
     def playback_trajectory(self, times=1, filename=None, wait=False, double_speed=1):
         assert isinstance(times, int)
+        mode = self.mode
         times = times if times > 0 else -1
         if isinstance(filename, str) and filename.strip():
             ret = self.load_trajectory(filename, wait=True, timeout=10)
             if ret != 0:
                 return ret
-        if self.state == 4:
+        if self.state in [4]:
             return APIState.NOT_READY
         if self.version_is_ge_1_2_11:
             ret = self.arm_cmd.playback_traj(times, double_speed)
         else:
             ret = self.arm_cmd.playback_traj_old(times)
-        logger.info('API -> playback_trajectory -> ret={}'.format(ret[0]))
+        self.log_api_info('API -> playback_trajectory -> code={}'.format(ret[0]), code=ret[0])
         if ret[0] == 0 and wait:
             start_time = time.time()
             while self.state != 1:
-                if self.state == 4:
+                if self.state in [4]:
                     return APIState.NOT_READY
                 if time.time() - start_time > 5:
                     return APIState.TRAJ_PLAYBACK_TOUT
@@ -150,14 +153,14 @@ class Record(object):
                     start_time = time.time()
                     time.sleep(0.1)
                     continue
-                if self.state == 4:
+                if self.state in [4]:
                     return APIState.NOT_READY
                 if time.time() - start_time > 5:
                     return APIState.TRAJ_PLAYBACK_TOUT
                 time.sleep(0.1)
             time.sleep(0.1)
             count = 0
-            while self.state != 4:
+            while self.state not in [4]:
                 if self.state == 2:
                     if times == 1:
                         break
@@ -169,8 +172,8 @@ class Record(object):
                 time.sleep(0.1)
             # while self.state != 4 and self.state != 2:
             #     time.sleep(0.1)
-            if self.state != 4:
-                self.set_mode(0)
+            if self.state not in [4]:
+                self.set_mode(mode)
                 self.set_state(0)
         return ret[0]
 

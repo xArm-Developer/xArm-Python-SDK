@@ -424,6 +424,16 @@ GripperErrorCodeMap = {
 }
 
 ControllerErrorCodeMap = {
+    1: {
+        'en': {
+            'title': 'The Emergency Stop Button on the xArm Controller is pushed in to stop',
+            'desc': 'Please release the Emergency Stop Button, and then re-enable the robot'
+        },
+        'cn': {
+            'title': '控制器上的紧急停止按钮被按下',
+            'desc': '请释放紧急停止按钮，然后重新使能机械臂'
+        }
+    },
     10: {
         'en': {
             'title': 'Servo motor error',
@@ -507,11 +517,11 @@ ControllerErrorCodeMap = {
     19: {
         'en': {
             'title': 'Gripper Communication Error',
-            'desc': ''
+            'desc': 'Please check whether gripper is installed and the baud rate setting is correct'
         },
         'cn': {
             'title': '机械爪通信失败',
-            'desc': ''
+            'desc': '请检查机械爪是否安装，波特率设置是否正确'
         }
     },
     21: {
@@ -526,12 +536,12 @@ ControllerErrorCodeMap = {
     },
     22: {
         'en': {
-            'title': 'Collision Error',
-            'desc': 'Please click the "ZERO" button to return to the zero pozition.'
+            'title': 'Self-Collision Error',
+            'desc': 'The robot is about to collide with itself. Please re-plan the path. If the robot reports the self-collision error continually, please turn on the manual mode and drag the robotic back to the normal area.'
         },
         'cn': {
             'title': '自碰撞错误',
-            'desc': '请点击”零点“按钮回到关节零点。'
+            'desc': '机械臂即将发生自碰撞，请重新规划路径。如果机械臂持续报自碰撞错误，请开启手动模式将机械臂拖回正常位置。'
         }
     },
     23: {
@@ -664,6 +674,16 @@ ControllerErrorCodeMap = {
             'desc': '待执行的延时指令或位置检测指令超过36个，请检查代码中延时指令或位置检测指令是否过多。'
         }
     },
+    37: {
+        'en': {
+            'title': 'Abnormal movement in Manual Mode',
+            'desc': 'Please check whether the TCP payload setting and mounting setting of the robot arm are correct.'
+        },
+        'cn': {
+            'title': '手动模式运动异常',
+            'desc': '请检查机械臂的TCP负载设置和机械臂安装方式是否与实际匹配。'
+        }
+    },
     'other': {
         'en': {
             'title': 'Other Errors',
@@ -730,6 +750,154 @@ ControllerWarnCodeMap = {
 }
 
 
+RobotiqErrorCodeMap = {
+    0x05: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Action delayed, activation(reactivation) must be completed prior to perfmoring the action'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '运动延迟, 机械爪运动之前必须先完成激活（重新激活）'
+        }
+    },
+    0x07: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'The activation bit must be set prior to action'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '激活位必须在机械爪运动前设置'
+        }
+    },
+    0x08: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Maximum operating temperature exceeded, wait for cool-down.'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '超过最高工作温度，请等待机械爪冷却'
+        }
+    },
+    0x09: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'No communication during at least 1 second'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '通信中断超过1秒'
+        }
+    },
+    0x0A: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Under minimum operating voltage'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '低于最小工作电压'
+        }
+    },
+    0x0B: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Automatic release in progress'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '正在自动释放'
+        }
+    },
+    0x0C: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Internal fault, please contact support@robotiq.com'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '内部故障，请联系技术支持 support@robotiq.com'
+        }
+    },
+    0x0D: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Activation fault, please verify that no interference or other erroro ccurred'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '激活故障，请确认没有干扰或其他错误发生'
+        }
+    },
+    0x0E: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Over current triggered'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '过流'
+        }
+    },
+    0x0F: {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Automatic release completed'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '自动松开完成'
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Robotiq Gripper',
+            'desc': 'Other fault'
+        },
+        'cn': {
+            'title': 'Robotiq 机械爪',
+            'desc': '其它故障'
+        }
+    },
+}
+
+
+BioGripperErrorCodeMap = {
+    0x0B: {
+        'en': {
+            'title': 'BIO Gripper Current Overlimit',
+            'desc': 'Current Overlimit, please click “OK” to re-enable the Gripper. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': 'BIO 机械爪过流',
+            'desc': '电流过大，请点击“确认”重新使能机械爪。如反复报错，请联系技术支持。',
+        }
+    },
+    0x0C: {
+        'en': {
+            'title': 'The object slipped from the BIO Gripper',
+            'desc': 'The object slipped from the BIO Gripper, please clear the error and try again',
+        },
+        'cn': {
+            'title': 'BIO 机械爪夹取的物体脱落',
+            'desc': 'BIO 机械爪夹取的物体脱落，请清除错误后重试',
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'BIO Gripper',
+            'desc': 'Other fault'
+        },
+        'cn': {
+            'title': 'BIO 机械爪',
+            'desc': '其它故障'
+        }
+    },
+}
+
+
 class BaseCode(object):
     def __init__(self, code, status=0):
         self._code = code
@@ -787,3 +955,16 @@ class GripperError(BaseCode):
     def __init__(self, code, status=0):
         self._code_map = GripperError
         super(GripperError, self).__init__(code, status=status)
+
+
+class BioGripperError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = BioGripperErrorCodeMap
+        super(BioGripperError, self).__init__(code, status=status)
+
+
+class RobotIqError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = RobotiqErrorCodeMap
+        super(RobotIqError, self).__init__(code, status=status)
+

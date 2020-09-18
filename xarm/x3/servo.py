@@ -10,18 +10,19 @@ from .utils import xarm_is_connected
 from ..core.config.x_config import XCONF
 from ..core.config.x_code import ServoError
 from ..core.utils.log import logger, pretty_print
+from .base import Base
 
 
-class Servo(object):
+class Servo(Base):
     def __init__(self):
-        pass
+        super(Servo, self).__init__()
 
     @xarm_is_connected(_type='get')
     def get_servo_debug_msg(self, show=False, lang='en'):
         ret = self.arm_cmd.servo_get_dbmsg()
         dbmsg = []
         lang = lang if lang == 'cn' else 'en'
-        if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
+        if self._check_code(ret[0]) == 0:
             for i in range(1, 9):
                 servo_error = ServoError(ret[i * 2], status=ret[i * 2 - 1])
                 name = ('伺服-{}'.format(i) if lang == 'cn' else 'Servo-{}'.format(i)) if i < 8 else ('机械爪' if lang == 'cn' else 'Gripper')
@@ -60,7 +61,7 @@ class Servo(object):
         """
         assert isinstance(servo_id, int) and 1 <= servo_id <= 8, 'The value of parameter servo_id can only be 1-8.'
         ret = self.arm_cmd.servo_set_zero(servo_id)
-        logger.info('API -> set_servo_zero -> ret={}, servo_id={}'.format(ret[0], servo_id))
+        self.log_api_info('API -> set_servo_zero(servo_id={}) -> code={}'.format(servo_id, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -78,7 +79,7 @@ class Servo(object):
         assert addr is not None, 'The value of parameter addr cannot be None.'
         assert value is not None, 'The value of parameter value cannot be None.'
         ret = self.arm_cmd.servo_addr_w16(servo_id, addr, value)
-        logger.info('API -> set_servo_addr_16 -> ret={}, servo_id={}, addr={}, value={}'.format(ret[0], servo_id, addr, value))
+        self.log_api_info('API -> set_servo_addr_16(servo_id={}, addr={}, value={}) -> code={}'.format(servo_id, addr, value, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
@@ -109,7 +110,7 @@ class Servo(object):
         assert addr is not None, 'The value of parameter addr cannot be None.'
         assert value is not None, 'The value of parameter value cannot be None.'
         ret = self.arm_cmd.servo_addr_w32(servo_id, addr, value)
-        logger.info('API -> set_servo_addr_32 -> ret={}, servo_id={}, addr={}, value={}'.format(ret[0], servo_id, addr, value))
+        self.log_api_info('API -> set_servo_addr_32(servo_id={}, addr={}, value={}) -> code={}'.format(servo_id, addr, value, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')

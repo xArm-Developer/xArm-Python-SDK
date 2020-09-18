@@ -35,18 +35,15 @@ arm.set_mode(0)
 arm.set_state(0)
 time.sleep(1)
 
-code = arm.set_gripper_mode(0)
-print('set gripper mode: location mode, code={}'.format(code))
+code = arm.set_bio_gripper_enable(True)
+print('set_bio_gripper_enable, code={}'.format(code))
 
-code = arm.set_gripper_enable(True)
-print('set gripper enable, code={}'.format(code))
+code = arm.set_bio_gripper_speed(300)
+print('set_bio_gripper_speed, code={}'.format(code))
 
-code = arm.set_gripper_speed(5000)
-print('set gripper speed, code={}'.format(code))
-
-code = arm.set_gripper_position(600, wait=True)
-print('[wait]set gripper pos, code={}'.format(code))
-
-code = arm.set_gripper_position(300, wait=True, speed=8000)
-print('[no wait]set gripper pos, code={}'.format(code))
+while arm.connected and arm.error_code == 0:
+    code = arm.open_bio_gripper()
+    print('open_bio_gripper, code={}'.format(code))
+    code = arm.close_bio_gripper()
+    print('close_bio_gripper, code={}'.format(code))
 

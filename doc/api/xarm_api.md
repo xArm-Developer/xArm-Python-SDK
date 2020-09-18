@@ -21,6 +21,34 @@ Note:
 Axis number, only available in socket way and enable_report is True and report_type is 'rich'
 ```
 
+#### __cgpio_states__
+```
+Controller gpio state
+
+:return: states
+    states[0]: contorller gpio module state
+        states[0] == 0: normal
+        states[0] == 1：wrong
+        states[0] == 6：communication failure
+    states[1]: controller gpio module error code
+        states[1] == 0: normal
+        states[1] != 0：error code
+    states[2]: digital input functional gpio state
+        Note: digital-i-input functional gpio state = states[2] >> i & 0x01
+    states[3]: digital input configuring gpio state
+        Note: digital-i-input configuring gpio state = states[3] >> i & 0x01
+    states[4]: digital output functional gpio state
+        Note: digital-i-output functional gpio state = states[4] >> i & 0x01
+    states[5]: digital output configuring gpio state
+        Note: digital-i-output configuring gpio state = states[5] >> i & 0x01
+    states[6]: analog-0 input value
+    states[7]: analog-1 input value
+    states[8]: analog-0 output value
+    states[9]: analog-1 output value
+    states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]
+    states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
+```
+
 #### __cmd_num__
 ```
 Number of command caches in the controller
@@ -46,6 +74,18 @@ Ex:
     self.core.move_lineb(...)
     self.core.move_joint(...)
     ...
+```
+
+#### __count__
+```
+Counter val
+```
+
+#### __currents__
+```
+Servos electric current
+
+:return: [servo-1-current, ..., servo-7-current]
 ```
 
 #### __default_is_radian__
@@ -90,6 +130,11 @@ Controller have an error or not
 #### __has_warn__
 ```
 Controller have an warnning or not
+```
+
+#### __is_simulation_robot__
+```
+Is simulation robot not not
 ```
 
 #### __joint_acc_limit__
@@ -243,6 +288,50 @@ The real time speed of tcp motion, only available if version > 1.2.11
 :return: real time speed (mm/s)
 ```
 
+#### __robotiq_status__
+```
+The last state value obtained
+
+Note:
+    1. Successfully call the robotiq related interface with wait parameter (when the parameter wait = True is set) will update this value
+    2. Successfully calling interface robotiq_get_status will partially or completely update this value
+
+:return status dict
+    {
+        'gOBJ': 0,  # Object detection status, is a built-in feature that provides information on possible object pick-up
+        'gSTA': 0,  # Gripper status, returns the current status & motion of the Gripper fingers
+        'gGTO': 0,  # Action status, echo of the rGTO bit(go to bit)
+        'gACT': 0,  # Activation status, echo of the rACT bit(activation bit)
+        'kFLT': 0,  # Echo of the requested position for the Gripper
+        'gFLT': 0,  # Fault status
+        'gPR': 0,  # Echo of the requested position for the Gripper
+        'gPO': 0,  # Actual position of the Gripper obtained via the encoders
+        'gCU': 0,  # The current is read instantaneously from the motor drive
+    }
+    Note: -1 means never updated
+```
+
+#### __self_collision_params__
+```
+Self collision params
+
+:return: params
+    params[0]: self collision detection or not
+    params[1]: self collision tool type
+    params[2]: self collision model params
+```
+
+#### __servo_codes__
+```
+Servos status and error_code
+:return: [
+    [servo-1-status, servo-1-code],
+    ...,
+    [servo-7-status, servo-7-code], 
+    [tool-gpio-status, tool-gpio-code]
+]
+```
+
 #### __slave_id__
 ```
 Slave id, only available in socket way and enable_report is True and report_type is 'rich'
@@ -328,6 +417,13 @@ Frimware version number
 :return: (major_version_number, minor_version_number, revision_version_number)
 ```
 
+#### __voltages__
+```
+Servos voltage
+
+:return: [servo-1-voltage, ..., servo-7-voltage]
+```
+
 #### __warn_code__
 ```
 Controller warn code. See Chapter 7 of the xArm User Manual for details.
@@ -407,17 +503,14 @@ Note: Orientation of attitude angle
     baudrate: serial baudrate, invalid, reserved.
     timeout: serial timeout, invalid, reserved.
     filters: serial port filters, invalid, reserved.
-    check_tcp_limit: check the tcp param value out of limit or not, default is True
+    check_tcp_limit: check the tcp param value out of limit or not, default is False
         Note: only check the param roll/pitch/yaw of the interface `set_position`/`move_arc_lines`
-    check_joint_limit: check the joint           param value out of limit or not, default is True
+    check_joint_limit: check the joint param value out of limit or not, default is True
         Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
     check_cmdnum_limit: check the cmdnum out of limit or not, default is True
-        Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
     max_cmdnum: max cmdnum, default is 256
         Note: only available in the param `check_cmdnum_limit` is True
-        Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
     check_is_ready: check if the arm is in motion, default is True
-        Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`set_servo_cartesian`/`move_circle`/`move_gohome`/`move_arc_lines`
 ```
 
 #### def __check_verification__(self):
@@ -430,6 +523,15 @@ check verification
     status:
         0: verified
         other: not verified
+```
+
+#### def __clean_bio_gripper_error__(self):
+
+```
+Clean the error code of the bio gripper
+
+:return: code
+    code: See the API code documentation for details.
 ```
 
 #### def __clean_conf__(self):
@@ -465,6 +567,19 @@ Clean the gripper error
 
 ```
 Clean the warn
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __close_bio_gripper__(self, speed=0, wait=True, timeout=5, **kwargs):
+
+```
+Close the bio gripper
+
+:param speed: speed value, default is 0 (not set the speed)
+:param wait: whether to wait for the bio gripper motion complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
 
 :return: code
     code: See the API code documentation for details.
@@ -513,6 +628,33 @@ Disconnect
 Emergency stop (set_state(4) -> motion_enable(True) -> set_state(0))
 Note:
     1. This interface does not automatically clear the error. If there is an error, you need to handle it according to the error code.
+```
+
+#### def __get_bio_gripper_error__(self):
+
+```
+Get the error code of the bio gripper
+
+:return: tuple((code, error_code))
+    code: See the API code documentation for details.
+    error_code: See Chapter 7 of the xArm User Manual for details.
+```
+
+#### def __get_bio_gripper_status__(self):
+
+```
+Get the status of the bio gripper
+
+:return: tuple((code, status))
+    code: See the API code documentation for details.
+    status: status
+        status & 0x03 == 0: stop
+        status & 0x03 == 1: motion
+        status & 0x03 == 2: catch
+        status & 0x03 == 3: error
+        (status >> 2) & 0x03 == 0: not enabled
+        (status >> 2) & 0x03 == 1: enabling
+        (status >> 2) & 0x03 == 2: enabled
 ```
 
 #### def __get_cgpio_analog__(self, ionum=None):
@@ -667,6 +809,16 @@ Check xArm is moving or not
 :return: True/False
 ```
 
+#### def __get_joints_torque__(self):
+
+```
+Get joints torque
+
+:return: tuple((code, joints_torque))
+    code: See the API code documentation for details.
+    joints_torque: joints torque
+```
+
 #### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
 
 ```
@@ -749,6 +901,18 @@ Note:
             ]`
 ```
 
+#### def __get_report_tau_or_i__(self):
+
+```
+Get the reported torque or electric current
+
+:return: tuple((code, tau_or_i))
+    code: See the API code documentation for details.
+    tau_or_i: 
+        0: torque
+        1: electric current
+```
+
 #### def __get_robot_sn__(self):
 
 ```
@@ -756,6 +920,16 @@ Get the xArm sn
 
 :return: tuple((code, sn)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
+```
+
+#### def __get_safe_level__(self):
+
+```
+Get safe level
+
+:return: tuple((code, safe_level))
+    code: See the API code documentation for details.
+    safe_level: safe level
 ```
 
 #### def __get_servo_angle__(self, servo_id=None, is_radian=None):
@@ -829,6 +1003,16 @@ Get the digital value of the specified Tool GPIO
     code: See the API code documentation for details.
 ```
 
+#### def __get_tgpio_modbus_baudrate__(self):
+
+```
+Get the modbus baudrate of the tool gpio
+
+:return: tuple((code, baudrate)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    baudrate: the modbus baudrate of the tool gpio
+```
+
 #### def __get_tgpio_version__(self):
 
 ```
@@ -891,6 +1075,19 @@ Get the xArm firmware version
 
 :return: tuple((code, version)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
+```
+
+#### def __getset_tgpio_modbus_data__(self, datas, min_res_len=0):
+
+```
+Send the modbus data to the tool gpio
+
+:param datas: data_list
+:param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
+
+:return: tuple((code, modbus_response))
+    code: See the API code documentation for details.
+    modbus_response: modbus response data
 ```
 
 #### def __is_joint_limit__(self, joint, is_radian=None):
@@ -1009,6 +1206,19 @@ Note:
 :param is_radian: the speed and acceleration are in radians or not, default is self.default_is_radian
 :param wait: whether to wait for the arm to complete, default is False
 :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __open_bio_gripper__(self, speed=0, wait=True, timeout=5, **kwargs):
+
+```
+Open the bio gripper
+
+:param speed: speed value, default is 0 (not set the speed)
+:param wait: whether to wait for the bio gripper motion complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1292,6 +1502,94 @@ Note:
 :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
 ```
 
+#### def __robotiq_close__(self, speed=255, force=255, wait=True, timeout=5, **kwargs):
+
+```
+Close the robotiq gripper
+
+:param speed: gripper speed between 0 and 255
+:param force: gripper force between 0 and 255
+:param wait: whether to wait for the robotiq motion to complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+
+:return: tuple((code, robotiq_response))
+    code: See the API code documentation for details.
+    robotiq_response: See the robotiq documentation
+```
+
+#### def __robotiq_get_status__(self, number_of_registers=3):
+
+```
+Reading the status of robotiq gripper
+
+:param number_of_registers: number of registers, 1/2/3, default is 3
+    number_of_registers=1: reading the content of register 0x07D0
+    number_of_registers=2: reading the content of register 0x07D0/0x07D1
+    number_of_registers=3: reading the content of register 0x07D0/0x07D1/0x07D2
+    
+    Note: 
+        register 0x07D0: Register GRIPPER STATUS
+        register 0x07D1: Register FAULT STATUS and register POSITION REQUEST ECHO
+        register 0x07D2: Register POSITION and register CURRENT
+:return: tuple((code, robotiq_response))
+    code: See the API code documentation for details.
+    robotiq_response: See the robotiq documentation
+```
+
+#### def __robotiq_open__(self, speed=255, force=255, wait=True, timeout=5, **kwargs):
+
+```
+Open the robotiq gripper
+
+:param speed: gripper speed between 0 and 255
+:param force: gripper force between 0 and 255
+:param wait: whether to wait for the robotiq motion to complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+
+:return: tuple((code, robotiq_response))
+    code: See the API code documentation for details.
+    robotiq_response: See the robotiq documentation
+```
+
+#### def __robotiq_reset__(self):
+
+```
+Reset the robotiq gripper (clear previous activation if any)
+
+:return: tuple((code, robotiq_response))
+    code: See the API code documentation for details.
+    robotiq_response: See the robotiq documentation
+```
+
+#### def __robotiq_set_activate__(self, wait=True, timeout=3):
+
+```
+If not already activated. Activate the robotiq gripper
+
+:param wait: whether to wait for the robotiq activate complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+
+:return: tuple((code, robotiq_response))
+    code: See the API code documentation for details.
+    robotiq_response: See the robotiq documentation
+```
+
+#### def __robotiq_set_position__(self, pos, speed=255, force=255, wait=True, timeout=5, **kwargs):
+
+```
+Go to the position with determined speed and force.
+
+:param pos: position of the gripper. Integer between 0 and 255. 0 being the open position and 255 being the close position.
+:param speed: gripper speed between 0 and 255
+:param force: gripper force between 0 and 255
+:param wait: whether to wait for the robotion motion complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+
+:return: tuple((code, robotiq_response))
+    code: See the API code documentation for details.
+    robotiq_response: See the robotiq documentation
+```
+
 #### def __run_blockly_app__(self, path, **kwargs):
 
 ```
@@ -1404,6 +1702,30 @@ Note:
     code: See the API code documentation for details.
 ```
 
+#### def __set_bio_gripper_enable__(self, enable=True, wait=True, timeout=3):
+
+```
+If not already enabled. Enable the bio gripper
+
+:param enable: enable or not
+:param wait: whether to wait for the bio gripper enable complete, default is True
+:param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_bio_gripper_speed__(self, speed):
+
+```
+Set the speed of the bio gripper
+
+:param speed: speed
+
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_cgpio_analog__(self, ionum, value):
 
 ```
@@ -1411,6 +1733,19 @@ Set the analog value of the specified Controller GPIO
 
 :param ionum: 0 or 1
 :param value: value
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_cgpio_analog_with_xyz__(self, ionum, value, xyz, fault_tolerance_radius):
+
+```
+Set the analog value of the specified Controller GPIO when the robot has reached the specified xyz position           
+
+:param ionum: 0 ~ 1
+:param value: value
+:param xyz: position xyz, as [x, y, z]
+:param fault_tolerance_radius: fault tolerance radius
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1501,6 +1836,33 @@ Note:
     4. The clean_conf interface can restore system default settings
 
 :param value: sensitivity value, 0~5
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_collision_tool_model__(self, tool_type, *args, **kwargs):
+
+```
+Set the geometric model of the end effector for self collision detection
+ 
+:param tool_type: the geometric model type
+    0: No end effector, no additional parameters required
+    1: xArm Gripper, no additional parameters required
+    2: xArm Vacuum Gripper, no additional parameters required
+    3: xArm Bio Gripper, no additional parameters required
+    4: Robotiq-2F-85 Gripper, no additional parameters required
+    5: Robotiq-2F-140 Gripper, no additional parameters required
+    21: Cylinder, need additional parameters radius, height
+        self.set_collision_tool_model(21, radius=45, height=137)
+        :param radius: the radius of cylinder, (unit: mm)
+        :param height: the height of cylinder, (unit: mm)
+    22: Cuboid, need additional parameters x, y, z
+        self.set_collision_tool_model(22, x=234, y=323, z=23)
+        :param x: the length of the cuboid in the x coordinate direction, (unit: mm)
+        :param y: the length of the cuboid in the y coordinate direction, (unit: mm)
+        :param z: the length of the cuboid in the z coordinate direction, (unit: mm)
+:param args: additional parameters
+:param kwargs: additional parameters
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1632,6 +1994,17 @@ Note:
     code: See the API code documentation for details.
 ```
 
+#### def __set_joints_torque__(self, joints_torque):
+
+```
+Set joints torque,
+    Warning: If necessary, please do not set it randomly, it may damage the robot arm
+
+:param joints_torque: 
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_mode__(self, mode=0):
 
 ```
@@ -1645,6 +2018,7 @@ Set the xArm mode
     2: joint teaching mode
         Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
     3: cartesian teaching mode (invalid)
+    4: simulation mode
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1806,7 +2180,41 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __set_servo_angle__(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __set_report_tau_or_i__(self, tau_or_i=0):
+
+```
+Set the reported torque or electric current
+
+:param tau_or_i: 
+    0: torque
+    1: electric current
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_safe_level__(self, level=4):
+
+```
+Set safe level,
+
+:param level: safe level, default is 4
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_self_collision_detection__(self, on_off):
+
+```
+Set whether to enable self-collision detection 
+
+:param on_off: enable or not
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_servo_angle__(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
 
 ```
 Set the servo angle, the API will modify self.last_used_angles value
@@ -1835,6 +2243,14 @@ Note:
 :param is_radian: the angle in radians or not, default is self.default_is_radian
 :param wait: whether to wait for the arm to complete, default is False
 :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+:param radius: move radius, if radius is None or radius less than 0, will MoveJoint, else MoveArcJoint
+    Note: Only available if version > 1.5.20
+    Note: The blending radius cannot be greater than the track length.
+    MoveJoint: joint motion
+        ex: code = arm.set_servo_angle(..., radius=None)
+    MoveArcJoint: joint fusion motion with interpolation
+        ex: code = arm.set_servo_angle(..., radius=0)
+        Note: Need to set radius>=0
 :param kwargs: reserved
 :return: code
     code: See the API code documentation for details.
@@ -1854,7 +2270,7 @@ Note:
 :param speed: speed, reserved
 :param mvacc: acceleration, reserved
 :param mvtime: 0, reserved
-:param is_radian: the angles in radians or not, defalut is self.default_is_radian
+:param is_radian: the angles in radians or not, default is self.default_is_radian
 :param kwargs: reserved
 :return: code
     code: See the API code documentation for details.
@@ -1878,9 +2294,6 @@ Attach the servo
 
 ```
 Set the servo cartesian, execute only the last instruction, need to be set to servo motion mode(self.set_mode(1))
-Note:
-    1. only available if firmware_version >= 1.4.0
-    2. This interface is only used in the base coordinate system.
 
 :param mvpose: cartesian position, [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)]
 :param speed: move speed (mm/s), reserved
@@ -1923,6 +2336,9 @@ Detach the servo, be sure to do protective work before unlocking to avoid injury
 :return: code
     code: See the API code documentation for details.
 ```
+
+#### def __set_simulation_robot__(self, on_off):
+
 
 #### def __set_state__(self, state=0):
 
@@ -1984,7 +2400,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __set_tcp_offset__(self, offset, is_radian=None):
+#### def __set_tcp_offset__(self, offset, is_radian=None, **kwargs):
 
 ```
 Set the tool coordinate system offset at the end
@@ -2040,6 +2456,36 @@ Set the digital value of the specified Tool GPIO when the robot has reached the 
 :param fault_tolerance_radius: fault tolerance radius
 :return: code
     code: See the API code documentation for details.
+```
+
+#### def __set_tgpio_modbus_baudrate__(self, baud):
+
+```
+Set the modbus baudrate of the tool gpio
+
+:param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_tgpio_modbus_timeout__(self, timeout):
+
+```
+Set the modbus timeout of the tool gpio
+
+:param timeout: timeout, seconds
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_timeout__(self, timeout):
+
+```
+Set the timeout of cmd response
+
+:param timeout: seconds
 ```
 
 #### def __set_tool_position__(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):

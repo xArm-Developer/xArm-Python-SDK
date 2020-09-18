@@ -149,6 +149,8 @@ class XCONF(object):
         GET_ROBOT_SN = 2
         CHECK_VERIFY = 3
         RELOAD_DYNAMICS = 4
+        GET_REPORT_TAU_OR_I = 5
+
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
         SET_STATE = 12
@@ -163,6 +165,7 @@ class XCONF(object):
         MOVE_LINE = 21
         MOVE_LINEB = 22
         MOVE_JOINT = 23
+        MOVE_JOINTB = 24
         MOVE_HOME = 25
         SLEEP_INSTT = 26
         MOVE_CIRCLE = 27
@@ -211,6 +214,7 @@ class XCONF(object):
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
 
+        REPORT_TAU_OR_I = 70
         SET_TIMER = 71
         CANCEL_TIMER = 72
         SET_WORLD_OFFSET = 73
@@ -218,6 +222,11 @@ class XCONF(object):
         CNTER_PLUS = 75
 
         CAL_POSE_OFFSET = 76
+
+        SET_SELF_COLLIS_CHECK = 77
+        SET_COLLIS_TOOL = 78
+        SET_SIMULATION_ROBOT = 79
+
         GET_TCP_POSE_AA = 91
         MOVE_LINE_AA = 92
         MOVE_SERVO_CART_AA = 93
@@ -253,10 +262,11 @@ class XCONF(object):
         POSITION_CGPIO_SET = 144
         POSITION_TGPIO_SET = 145
         SET_IO_STOP_RESET = 146
+        POSITION_CGPIO_SET_ANALOG = 147
 
     class UxbusConf:
-        SET_TIMEOUT = 1000  # ms
-        GET_TIMEOUT = 1000  # ms
+        SET_TIMEOUT = 2000  # ms
+        GET_TIMEOUT = 2000  # ms
 
     class ServoConf:
         CON_EN = 0x0100
@@ -323,6 +333,7 @@ class XCONF(object):
         ERR_PROT = 6  # TCP协议标志错误
         ERR_FUN = 7  # TCP回复指令和发送指令不匹配
         ERR_NOTTCP = 8  # 发送错误
+        STATE_NOT_READY = 9  # 未准备好运动
         ERR_OTHER = 11  # 其它错误
         ERR_PARAM = 12  # 参数错误
 
@@ -334,6 +345,27 @@ class XCONF(object):
         SAVING = 4
         SAVE_SUCCESS = 5
         SAVE_FAIL = 6
+
+    class BioGripperState:
+        IS_STOP = 0
+        IS_MOTION = 1
+        IS_DETECTED = 2
+        IS_FAULT = 3
+        IS_NOT_ENABLED = 0
+        IS_ENABLING = 1
+        IS_ENABLED = 2
+
+    class CollisionToolType:
+        NONE = 0
+        XARM_GRIPPER = 1
+        XARM_VACUUM_GRIPPER = 2
+        XARM_BIO_GRIPPER = 3
+        ROBOTIQ_2F85 = 4
+        ROBOTIQ_2F140 = 5
+
+        USE_PRIMITIVES = 20  # just for judgement, threshold.
+        CYLINDER = 21  # radius, height
+        BOX = 22  # x, y, z in tool coordinate direction
 
 
 

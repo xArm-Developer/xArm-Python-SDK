@@ -7,12 +7,13 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 """
-Description: Move Circle
+Description: Move Arc Joint
 """
 
 import os
 import sys
 import time
+import math
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 
@@ -46,22 +47,18 @@ arm.set_state(state=0)
 
 arm.reset(wait=True)
 
-poses = [
-    [300,  0,   100, -180, 0, 0],
-    [300,  100, 100, -180, 0, 0],
-    [400,  100, 100, -180, 0, 0],
-    [400, -100, 100, -180, 0, 0],
-    [300,  0,   300, -180, 0, 0]
+speed = 50
+
+angles = [
+    [0, 14, -25, 0, 12.9, 0],
+    [-14, 40, -75, 0, 33.4, -13.8],
+    [21.9, 50, -80, 50, 37, 29]
 ]
+arm.set_pause_time(1)
 
-ret = arm.set_position(*poses[0], speed=50, mvacc=100, wait=False)
-print('set_position, ret: {}'.format(ret))
-
-ret = arm.move_circle(pose1=poses[1], pose2=poses[2], percent=50, speed=200, mvacc=1000, wait=True)
-print('move_circle, ret: {}'.format(ret))
-
-ret = arm.move_circle(pose1=poses[3], pose2=poses[4], percent=200, speed=200, mvacc=1000, wait=True)
-print('move_circle, ret: {}'.format(ret))
+for _ in range(10):
+    for angle in angles:
+        code = arm.set_servo_angle(angle=angle, speed=speed, radius=60, wait=False)
 
 arm.reset(wait=True)
 arm.disconnect()

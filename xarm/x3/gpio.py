@@ -7,15 +7,24 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
-from .utils import xarm_is_connected, xarm_is_pause
+from .utils import xarm_is_connected, xarm_is_pause, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max
 from ..core.utils.log import logger
 from ..core.config.x_config import XCONF
 from .code import APIState
+from .base import Base
 
 
-class GPIO(object):
+class GPIO(Base):
     def __init__(self):
-        pass
+        super(GPIO, self).__init__()
+        self.cgpio_state = {
+            'digital': [-1] * 8,
+            'analog': [9999] * 2
+        }
+        self.tgpio_state = {
+            'digital': [-1] * 2,
+            'analog': [9999] * 2
+        }
 
     # @xarm_is_connected(_type='set')
     # def set_tgpio_addr_16(self, addr, value):
@@ -38,6 +47,7 @@ class GPIO(object):
     #     return ret[0], ret[1]
 
     @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, '*.*.*'))
     def get_tgpio_version(self):
         versions = ['*', '*', '*']
         ret1 = self.arm_cmd.tgpio_addr_r16(0x0801)
@@ -71,7 +81,11 @@ class GPIO(object):
     @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
+        if self.check_is_simulation_robot():
+            return 0, [0, 0] if ionum is None else 0
         ret = self.arm_cmd.tgpio_get_digital()
+        if ret[0] == 0:
+            self.tgpio_state['digital'] = ret[1:]
         # if ret[0] != 0:
         #     self.get_err_warn_code()
         #     if self.error_code != 19:
@@ -80,18 +94,22 @@ class GPIO(object):
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_tgpio_digital(self, ionum, value, delay_sec=0):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
         if delay_sec is not None and delay_sec > 0:
             ret = self.arm_cmd.tgpio_delay_set_digital(ionum, value, delay_sec)
-            logger.info('API -> set_tgpio_digital -> ret={}, io={}, value={}, delay: {}'.format(ret[0], ionum, value, delay_sec))
+            self.log_api_info('API -> set_tgpio_digital(ionum={}, value={}, delay_sec={}) -> code={}'.format(ionum, value, delay_sec, ret[0]), code=ret[0])
         else:
             ret = self.arm_cmd.tgpio_set_digital(ionum+1, value)
-            logger.info('API -> set_tgpio_digital -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
+            self.log_api_info('API -> set_tgpio_digital(ionum={}, value={}) -> code={}'.format(ionum, value, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
     def get_tgpio_analog(self, ionum=None):
+        if self.check_is_simulation_robot():
+            return 0, [0, 0] if ionum is None else 0
         if ionum is None:
             ret1 = self.arm_cmd.tgpio_get_analog1()
             ret2 = self.arm_cmd.tgpio_get_analog2()
@@ -99,13 +117,21 @@ class GPIO(object):
                 code = ret2[0]
             else:
                 code = ret1[0]
+            if ret1[0] == 0:
+                self.tgpio_state['analog'][0] = ret1[1]
+            if ret2[0] == 0:
+                self.tgpio_state['analog'][1] = ret2[1]
             ret = [code, [ret1[1], ret2[1]]]
         else:
             assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
             if ionum == 0:
                 ret = self.arm_cmd.tgpio_get_analog1()
+                if ret[0] == 0:
+                    self.tgpio_state['analog'][0] = ret[1]
             else:
                 ret = self.arm_cmd.tgpio_get_analog2()
+                if ret[0] == 0:
+                    self.tgpio_state['analog'][1] = ret[1]
         # if ret[0] != 0:
         #     self.get_err_warn_code()
         #     if self.error_code != 19:
@@ -115,6 +141,8 @@ class GPIO(object):
     @xarm_is_connected(_type='get')
     def get_cgpio_digital(self, ionum=None):
         assert ionum is None or (isinstance(ionum, int) and 7 >= ionum >= 0)
+        if self.check_is_simulation_robot():
+            return 0, [1] * 8 if ionum is None else 1
         ret = self.arm_cmd.cgpio_get_auxdigit()
         # if ret[0] != 0:
         #     self.get_err_warn_code()
@@ -127,6 +155,8 @@ class GPIO(object):
 
     @xarm_is_connected(_type='get')
     def get_cgpio_analog(self, ionum=None):
+        if self.check_is_simulation_robot():
+            return 0, [0, 0] if ionum is None else 0
         if ionum is None:
             ret1 = self.arm_cmd.cgpio_get_analog1()
             ret2 = self.arm_cmd.cgpio_get_analog2()
@@ -149,44 +179,52 @@ class GPIO(object):
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_cgpio_digital(self, ionum, value, delay_sec=0):
         assert isinstance(ionum, int) and 7 >= ionum >= 0
         if delay_sec is not None and delay_sec > 0:
             ret = self.arm_cmd.cgpio_delay_set_digital(ionum, value, delay_sec)
-            logger.info('API -> set_cgpio_digital -> ret={}, io={}, value={}, delay={}'.format(ret[0], ionum, value, delay_sec))
+            self.log_api_info('API -> set_cgpio_digital(ionum={}, value={}, delay_sec={}) -> code={}'.format(ionum, value, delay_sec, ret[0]), code=ret[0])
         else:
             ret = self.arm_cmd.cgpio_set_auxdigit(ionum, value)
-            logger.info('API -> set_cgpio_digital -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
+            self.log_api_info('API -> set_cgpio_digital(ionum={}, value={}) -> code={}'.format(ionum, value, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_cgpio_analog(self, ionum, value):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
         if ionum == 0:
             ret = self.arm_cmd.cgpio_set_analog1(value)
         else:
             ret = self.arm_cmd.cgpio_set_analog2(value)
-        logger.info('API -> set_cgpio_analog -> ret={}, io={}, value={}'.format(ret[0], ionum, value))
+        self.log_api_info('API -> set_cgpio_analog(ionum={}, value={}) -> code={}'.format(ionum, value, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_cgpio_digital_input_function(self, ionum, fun):
         assert isinstance(ionum, int) and 7 >= ionum >= 0
         ret = self.arm_cmd.cgpio_set_infun(ionum, fun)
-        logger.info('API -> set_cgpio_infun -> ret={}, io={}, fun={}'.format(ret[0], ionum, fun))
+        self.log_api_info('API -> set_cgpio_digital_input_function(ionum={}, fun={}) -> code={}'.format(ionum, fun, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
     def set_cgpio_digital_output_function(self, ionum, fun):
         assert isinstance(ionum, int) and 7 >= ionum >= 0
         ret = self.arm_cmd.cgpio_set_outfun(ionum, fun)
-        logger.info('API -> set_cgpio_outfun -> ret={}, io={}, fun={}'.format(ret[0], ionum, fun))
+        self.log_api_info('API -> set_cgpio_digital_output_function(ionum={}, fun={}) -> code={}'.format(ionum, fun, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='get')
     def get_cgpio_state(self):
         ret = self.arm_cmd.cgpio_get_state()
+        code, states = ret[0], ret[1:]
+        if code == 0 and states[0] == 0 and states[1] == 0:
+            self.cgpio_state['digital'] = [states[3] >> i & 0x01 if states[10][i] in [0, 255] else 1 for i in range(8)]
+            self.cgpio_state['analog'] = [states[6], states[7]]
         # data = {
         #     'state': ret[1],
         #     'error_code': ret[2],
@@ -226,6 +264,8 @@ class GPIO(object):
         return ret[0], ret[1:]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_suction_cup(self, on, wait=True, timeout=3, delay_sec=None):
         if on:
             code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec)
@@ -255,7 +295,7 @@ class GPIO(object):
                     code = APIState.EMERGENCY_STOP
                     break
                 time.sleep(0.1)
-        logger.info('API -> set_suction_cup -> ret={}, on={}, wait={}, delay: {}'.format(code, on, wait, delay_sec))
+        self.log_api_info('API -> set_suction_cup(on={}, wait={}, delay_sec={}) -> code={}'.format(on, wait, delay_sec, code), code=code)
         return code
 
     @xarm_is_connected(_type='get')
@@ -263,15 +303,33 @@ class GPIO(object):
         return self.get_tgpio_digital(ionum=0)
 
     @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_tgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert isinstance(ionum, int) and 1 >= ionum >= 0
         assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
         ret = self.arm_cmd.tgpio_position_set_digital(ionum, value, xyz, fault_tolerance_radius)
+        self.log_api_info('API -> set_tgpio_digital_with_xyz(ionum={}, value={}, xyz={}, fault_tolerance_radius={}) -> code={}'.format(ionum, value, xyz, fault_tolerance_radius, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
     def set_cgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert isinstance(ionum, int) and 7 >= ionum >= 0
         assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
         ret = self.arm_cmd.cgpio_position_set_digital(ionum, value, xyz, fault_tolerance_radius)
+        self.log_api_info('API -> set_cgpio_digital_with_xyz(ionum={}, value={}, xyz={}, fault_tolerance_radius={}) -> code={}'.format(ionum, value, xyz, fault_tolerance_radius, ret[0]), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
+    def set_cgpio_analog_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
+        assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
+        assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
+        ret = self.arm_cmd.cgpio_position_set_analog(ionum, value, xyz, fault_tolerance_radius)
+        self.log_api_info('API -> set_cgpio_analog_with_xyz(ionum={}, value={}, xyz={}, fault_tolerance_radius={}) -> code={}'.format(ionum, value, xyz, fault_tolerance_radius, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -280,6 +338,7 @@ class GPIO(object):
         return ret[0]
 
     @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=False)
     def check_air_pump_state(self, state, timeout=3):
         start_time = time.time()
         is_first = True
@@ -297,3 +356,5 @@ class GPIO(object):
                     return True
             time.sleep(0.1)
         return False
+
+

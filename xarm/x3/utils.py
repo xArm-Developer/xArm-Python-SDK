@@ -12,6 +12,20 @@ from ..core.utils.log import logger
 from .code import APIState
 
 
+def check_modbus_baud(baud=2000000, _type='set', default=None):
+    def _check_modbus_baud(func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            code = args[0].checkset_modbus_baud(baud)
+            if code != 0:
+                logger.error('check modbus baud is failed, code={}'.format(code))
+                return code if _type == 'set' else (code, default if default != -99 else [])
+            else:
+                return func(*args, **kwargs)
+        return decorator
+    return _check_modbus_baud
+
+
 def xarm_is_connected(_type='set'):
     def _xarm_is_connected(func):
         @functools.wraps(func)
@@ -35,7 +49,7 @@ def xarm_is_ready(_type='set'):
                     args[0].set_mode(0)
                     args[0].set_state(0)
             if args[0].connected:
-                if not args[0]._check_is_ready or args[0].ready:
+                if args[0].state_is_ready:
                     return func(*args, **kwargs)
                 else:
                     logger.error('xArm is not ready')
@@ -55,57 +69,43 @@ def xarm_is_pause(_type='set'):
         def decorator(*args, **kwargs):
             args[0].check_is_pause()
             return func(*args, **kwargs)
-            # try:
-            #     if args[0].connected:
-            #         return func(*args, **kwargs)
-            #     else:
-            #         logger.error('xArm is not connect')
-            #         return APIState.NOT_CONNECTED if _type == 'set' else APIState.NOT_CONNECTED, 'xArm is not connect'
-            # except Exception as e:
-            #     logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-            #     return APIState.API_EXCEPTION if _type == 'set' else APIState.API_EXCEPTION, str(e)
         return decorator
     return _xarm_is_pause
 
 
-# def xarm_is_connected(_type='set'):
-#     def _xarm_is_connected(func):
-#         @functools.wraps(func)
-#         def decorator(*args, **kwargs):
-#             try:
-#                 if args[0].connected:
-#                     return func(*args, **kwargs)
-#                 else:
-#                     logger.error('xArm is not connect')
-#                     return APIState.NOT_CONNECTED if _type == 'set' else APIState.NOT_CONNECTED, 'xArm is not connect'
-#             except Exception as e:
-#                 logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-#                 return APIState.API_EXCEPTION if _type == 'set' else APIState.API_EXCEPTION, str(e)
-#         return decorator
-#     return _xarm_is_connected
-#
-#
-# def xarm_is_ready(_type='set'):
-#     def _xarm_is_ready(func):
-#         @functools.wraps(func)
-#         def decorator(*args, **kwargs):
-#             try:
-#                 if args[0].connected and kwargs.get('auto_enable', False):
-#                     args[0].motion_enable(enable=True)
-#                     args[0].set_state(0)
-#                 if args[0].connected and args[0].ready:
-#                     return func(*args, **kwargs)
-#                 elif not args[0].connected:
-#                     logger.error('xArm is not connect')
-#                     return APIState.NOT_CONNECTED if _type == 'set' else APIState.NOT_CONNECTED, 'xArm is not connect'
-#                 else:
-#                     logger.error('xArm is not ready')
-#                     return APIState.NOT_READY if _type == 'set' else APIState.NOT_READY, 'xArm is not ready'
-#             except Exception as e:
-#                 logger.error('{} - {} - {}'.format(type(e).__name__, func.__name__, e))
-#                 return APIState.API_EXCEPTION if _type == 'set' else APIState.API_EXCEPTION, str(e)
-#         return decorator
-#     return _xarm_is_ready
+def xarm_wait_until_cmdnum_lt_max(only_wait=False):
+    def _xarm_wait_until_cmdnum_lt_max(func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            ret = args[0].wait_until_cmdnum_lt_max()
+            if not only_wait and ret is not None:
+                args[0].log_api_info('API -> {} -> code={}'.format(func.__name__, ret), code=ret)
+                return ret
+            return func(*args, **kwargs)
+        return decorator
+    return _xarm_wait_until_cmdnum_lt_max
+
+
+def xarm_is_not_simulation_mode(ret=0):
+    def _xarm_is_not_simulation_mode(func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            if not args[0].check_is_simulation_robot():
+                return func(*args, **kwargs)
+            else:
+                return ret
+        return decorator
+    return _xarm_is_not_simulation_mode
+
+
+def api_log(func):
+    @functools.wraps(func)
+    def decorator(*args, **kwargs):
+        ret = func(*args, **kwargs)
+        logger.info('{}, ret={}, args={}, kwargs={}'.format(func.__name__, ret, args[1:], kwargs))
+        return ret
+    return decorator
+
 
 def compare_time(time1, time2):
     try:

@@ -30,8 +30,17 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
-- > ### 1.5.1
-  - Fix timeout of `motion_enable` interface
+- > ### 1.6.0
+
+  - Support the xArm BIO gripper, Robotiq 2F-85 gripper and Robotiq 2F-140 gripper
+  - Support position detection trigger the controller analog IO
+  - Support self-collision model parameter setting
+  - Support Modbus communication of end tools
+  - Supports TCP timeout for setting instructions
+  - Support joint motion with circular interpolation
+  - Support for blocky code conversion and operation of xArmStudio1.6.0
+  - Optimize logic, enhance API security, Fix several bugs
+
 - > ### 1.5.0
   - The new parameter of `set_servo_cartisian` interface is used to support servo cartisian movement of tool coordinate system
   - Support delayed trigger digital IO
@@ -40,11 +49,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   - Support motion commands based on axis angle
   - Support to calculate the offset between two points
   - Support for blocky code conversion and operation of xArmStudio1.5.0
-
-- > ### 1.4.0
-
-  - Support servo cartesian interface
-  - Support for blocky code conversion and operation of xArmStudio1.4.0
 
 - >### [More](ReleaseNotes.md)
 
@@ -87,11 +91,15 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### 2004-move_joint --> [xarm5](example/wrapper/xarm5/2004-move_joint.py) --- [xarm6](example/wrapper/xarm6/2004-move_joint.py) --- [xarm7](example/wrapper/xarm7/2004-move_joint.py)
 
+- ##### 2005-move_arc_joint --> [xarm5](example/wrapper/xarm5/2005-move_arc_joint.py) --- [xarm6](example/wrapper/xarm6/2005-move_arc_joint.py) --- [xarm7](example/wrapper/xarm7/2005-move_arc_joint.py)
+
 - ##### [3001-move_circle](example/wrapper/common/3001-move_circle.py)
 
 - ##### [3002-record_trajectory](example/wrapper/common/3002-record_trajectory.py)
 
 - ##### [3003-playback_trajectory](example/wrapper/common/3003-playback_trajectory.py)
+
+- ##### [5000-set_tgpio_modbus](example/wrapper/common/5000-set_tgpio_modbus.py)
 
 - ##### [5001-get_tgpio_digital](example/wrapper/common/5001-get_tgpio_digital.py)
 
@@ -109,6 +117,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### [5008-get_cgpio_state](example/wrapper/common/5008-get_cgpio_state.py)
 
+- ##### [5009-set_bio_gripper](example/wrapper/common/5009-set_bio_gripper.py)
+
 - ##### [6001-set_reduced_mode](example/wrapper/common/6001-set_reduced_mode.py)
 
 - ##### [6002-set_fense_mode](example/wrapper/common/6002-set_fense_mode.py)
@@ -120,6 +130,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - [__7003-servo_cartesian_aa__](example/wrapper/common/7003-servo_cartesian_aa.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
+
+- ##### [get_report_data_with_protocol](example/wrapper/common/get_report_data_with_protocol.py)
 
 
 - #### Import
@@ -187,6 +199,9 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_gravity_direction(...)
   arm.config_tgpio_reset_when_stop(...)
   arm.config_cgpio_reset_when_stop(...)
+  arm.set_report_tau_or_i(...)
+  arm.set_self_collision_detection(...)
+  arm.set_collision_tool_model(...)
   arm.clean_conf()
   arm.save_conf()
   ```
@@ -202,7 +217,40 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.clean_gripper_error()
   ```
 
+- #### BIO Gripper
+
+  ```python
+  arm.set_bio_gripper_enable(...)
+  arm.set_bio_gripper_speed(...)
+  arm.open_bio_grippe(...)
+  arm.close_bio_gripper(...)
+  arm.get_bio_gripper_status()
+  arm.get_bio_gripper_error()
+  arm.clean_bio_gripper_error()
+  ```
+
+- #### RobotIQ Gripper
+
+  ```python
+  arm.robotiq_reset()
+  arm.robotiq_set_activate(...)
+  arm.robotiq_set_position(...)
+  arm.robotiq_open(...)
+  arm.robotiq_close(...)
+  arm.robotiq_get_status(...)
+  ```
+
+- #### Modbus of the end tools
+
+  ```python
+  arm.set_tgpio_modbus_timeout(...)
+  arm.set_tgpio_modbus_baudrate(...)
+  arm.get_tgpio_modbus_baudrate(...)
+  arm.getset_tgpio_modbus_data(...)
+  ```
+
 - #### GPIO
+
   ```python
   # Tool GPIO
   arm.get_tgpio_digital(...)
@@ -218,6 +266,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_cgpio_digital_output_function(...)
   arm.get_cgpio_state()
   arm.set_cgpio_digital_with_xyz(...)
+  arm.set_cgpio_analog_with_xyz(...)
   ```
 
 - #### Other
@@ -290,5 +339,10 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.axis
   arm.gravity_direction
   arm.gpio_reset_config
+  arm.count
+  arm.temperatures
+  arm.voltages
+  arm.currents
+  arm.cgpio_states
   ```
 

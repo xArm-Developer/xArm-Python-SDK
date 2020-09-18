@@ -78,4 +78,3 @@ def pretty_print(*args, sep=' ', end='\n', file=None, color='none'):
     # msg = colors.get(color, '{}').format(msg)
     print(msg, end=end, file=file)
 
-

@@ -73,15 +73,12 @@ class XArmAPI(object):
             filters: serial port filters, invalid, reserved.
             check_tcp_limit: check the tcp param value out of limit or not, default is False
                 Note: only check the param roll/pitch/yaw of the interface `set_position`/`move_arc_lines`
-            check_joint_limit: check the joint           param value out of limit or not, default is True
+            check_joint_limit: check the joint param value out of limit or not, default is True
                 Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
             check_cmdnum_limit: check the cmdnum out of limit or not, default is True
-                Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
             max_cmdnum: max cmdnum, default is 256
                 Note: only available in the param `check_cmdnum_limit` is True
-                Note: only available in the interface `set_position`/`set_servo_angle`/`move_circle`/`move_arc_lines`
             check_is_ready: check if the arm is in motion, default is True
-                Note: only available in the interface `set_position`/`set_servo_angle`/`set_servo_angle_j`/`set_servo_cartesian`/`move_circle`/`move_gohome`/`move_arc_lines`
         """
         self._arm = XArm(port=port,
                          is_radian=is_radian,

@@ -47,7 +47,6 @@ class GPIO(Base):
     #     return ret[0], ret[1]
 
     @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, '*.*.*'))
     def get_tgpio_version(self):
         versions = ['*', '*', '*']
         ret1 = self.arm_cmd.tgpio_addr_r16(0x0801)

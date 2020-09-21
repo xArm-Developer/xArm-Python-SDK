@@ -536,7 +536,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
             if not self._enable_report:
-                print('if you want to wait, please enable report')
+                warnings.warn('if you want to wait, please enable report')
             else:
                 code = self.wait_move(timeout)
                 self._sync()

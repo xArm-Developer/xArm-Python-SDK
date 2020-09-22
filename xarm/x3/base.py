@@ -1323,7 +1323,7 @@ class Base(Events):
                 if not report_socket_connected:
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                recv_data = self._stream_report.read()
+                recv_data = self._stream_report.read(1)
                 if recv_data != -1:
                     buffer += recv_data
                     if len(buffer) < 4:
@@ -1349,9 +1349,25 @@ class Base(Events):
                             data = buffer[:size]
                             buffer = buffer[size:]
                             __handle_report_normal(data)
+                else:
+                    if self._stream and self._stream.connected:
+                        code, err_warn = self.get_err_warn_code()
+                        if code == -1 or code == 3:
+                            break
+                    if not self._stream or not self._stream.connected:
+                        break
+                    elif not self._stream_report or not self._stream_report.connected:
+                        self._connect_report()
             except Exception as e:
                 logger.error(e)
-                self._connect_report()
+                if self._stream and self._stream.connected:
+                    code, err_warn = self.get_err_warn_code()
+                    if code == -1 or code == 3:
+                        break
+                if not self._stream or not self._stream.connected:
+                    break
+                if not self._stream_report or not self._stream_report.connected:
+                    self._connect_report()
             time.sleep(0.001)
         self.disconnect()
         self._report_connect_changed_callback(False, False)

@@ -100,6 +100,9 @@ class Base(Events):
             axis = kwargs.get('axis', self._arm_axis)
             if axis in [5, 6, 7]:
                 self._arm_axis = axis
+            arm_type = kwargs.get('type', self._arm_type)
+            if arm_type in [3, 5, 6, 7]:
+                self._arm_type = arm_type
             self._arm_master_id = 0
             self._arm_slave_id = 0
             self._arm_motor_tid = 0
@@ -510,11 +513,13 @@ class Base(Events):
                 if not self._timed_comm_t_alive or not self.connected:
                     break
 
-    def connect(self, port=None, baudrate=None, timeout=None, axis=None):
+    def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
         if self.connected:
             return
         if axis in [5, 6, 7]:
             self._arm_axis = axis
+        if arm_type in [3, 5, 6, 7]:
+            self._arm_type = arm_type
         self._is_ready = True
         self._port = port if port is not None else self._port
         self._baudrate = baudrate if baudrate is not None else self._baudrate
@@ -1417,7 +1422,7 @@ class Base(Events):
 
                 if self._cmd_num >= self._max_cmd_num:
                     time.sleep(1)
-
+                self._first_report_over = True
                 time.sleep(0.1)
             except:
                 pass

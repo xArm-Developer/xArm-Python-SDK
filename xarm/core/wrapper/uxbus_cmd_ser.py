@@ -56,7 +56,8 @@ class UxbusCmdSer(UxbusCmd):
         expired = time.time() + timeout
         ret[0] = XCONF.UxbusState.ERR_TOUT
         while time.time() < expired:
-            rx_data = self.arm_port.read()
+            remaining = expired - time.time()
+            rx_data = self.arm_port.read(remaining)
             if rx_data != -1 and len(rx_data) > 5:
                 if self._debug:
                     debug_log_datas(rx_data, label='recv')

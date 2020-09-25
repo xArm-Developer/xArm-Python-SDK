@@ -622,7 +622,7 @@ class XArmAPI(object):
         """
         return self._arm.self_collision_params
 
-    def connect(self, port=None, baudrate=None, timeout=None, axis=None):
+    def connect(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
         """
         Connect to xArm
 
@@ -631,7 +631,7 @@ class XArmAPI(object):
         :param timeout: timeout, only available in serial way, default is the value when initializing an instance
         :param axis: number of axes, required only when using a serial port connection, default is 7
         """
-        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout, axis=axis)
+        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout, axis=axis, **kwargs)
 
     def disconnect(self):
         """

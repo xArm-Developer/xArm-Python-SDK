@@ -1076,10 +1076,22 @@ class Base(Events):
             pose_offset = convert.bytes_to_fp32s(rx_data[91:6 * 4 + 91], 6)
             tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
-            if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
-                    and ((error_code != 0 and error_code not in controller_error_keys) or (warn_code != 0 and warn_code not in controller_warn_keys)):
+            # if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
+            #         and ((error_code != 0 and error_code not in controller_error_keys) or (warn_code != 0 and warn_code not in controller_warn_keys)):
+            #     self._stream_report.close()
+            #     logger.warn('ReportDataException: data={}'.format(rx_data))
+            #     return
+            length = convert.bytes_to_u32(rx_data[0:4])
+            data_len = len(rx_data)
+            if length != data_len or collis_sens not in list(range(6)) or teach_sens not in list(range(6)) \
+                or mode not in list(range(12)) or state not in list(range(10)):
                 self._stream_report.close()
-                logger.warn('ReportDataException: data={}'.format(rx_data))
+                logger.warn('ReportDataException: length={}, data_len={}, '
+                            'state={}, mode={}, collis_sens={}, teach_sens={}, '
+                            'error_code={}, warn_code={}'.format(
+                    length, data_len,
+                    state, mode, collis_sens, teach_sens, error_code, warn_code
+                ))
                 return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 

@@ -1661,3 +1661,8 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 self.set_self_collision_detection(config['COLL_PARAMS'][0])
             if config['COLL_PARAMS'][1] != old_config['COLL_PARAMS'][1] or config['COLL_PARAMS'][2] != old_config['COLL_PARAMS'][2]:
                 self.set_collision_tool_model(config['COLL_PARAMS'][1], *config['COLL_PARAMS'][2])
+
+    def get_power_board_version(self):
+        ret = self.arm_cmd.get_power_board_version()
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1:]

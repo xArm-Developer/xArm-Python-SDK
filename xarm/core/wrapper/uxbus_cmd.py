@@ -941,3 +941,6 @@ class UxbusCmd(object):
     def set_simulation_robot(self, on_off):
         txdata = [int(on_off)]
         return self.set_nu8(XCONF.UxbusReg.SET_SIMULATION_ROBOT, txdata, 1)
+
+    def get_power_board_version(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 3)

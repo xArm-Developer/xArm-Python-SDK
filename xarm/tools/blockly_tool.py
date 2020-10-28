@@ -164,9 +164,12 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, 'arm.set_state({})'.format(state))
         if wait_seconds > 0:
             self._insert_to_file(self.index, 'time.sleep({})\n'.format(wait_seconds))
+        variables = self.parse_vars()
+        variables = {var: 0 for var in variables}
+        self._insert_to_file(self.index, 'variables = {}'.format(variables))
         self._insert_to_file(self.index, 'params = {\'speed\': 100, \'acc\': 2000, '
                                          '\'angle_speed\': 20, \'angle_acc\': 500, '
-                                         '\'events\': {}, \'variables\': {}, '
+                                         '\'events\': {}, \'variables\': variables, '
                                          '\'callback_in_thread\': True, \'quit\': False}')
         if error_exit:
             self._insert_to_file(self.index, '\n\n# Register error/warn changed callback')
@@ -230,6 +233,14 @@ class BlocklyTool(object):
             with open(path, 'w', encoding='utf-8') as f:
                 f.write('{}\n'.format(self.codes))
         return self._succeed
+
+    def parse_vars(self):
+        var_list = []
+        variables = self.get_nodes('variables')
+        for vars in variables:
+            for variable in self.get_nodes('variable', root=vars):
+                var_list.append(variable.text)
+        return var_list
 
     def parse(self, root=None, prefix=''):
         blocks = self.get_nodes('block', root=root)
@@ -1262,10 +1273,11 @@ class BlocklyTool(object):
         expression = self.__get_condition_expression(value)
         # self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
 
-        self._append_to_file('{}if \'{}\' not in locals_keys and \'{}\' in locals():'.format(prefix, field, field))
-        self._append_to_file('{}    {} = {}'.format(prefix, field, expression))
-        self._append_to_file('{}else:'.format(prefix))
-        self._append_to_file('{}    params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
+        self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
+        # self._append_to_file('{}if \'{}\' not in locals_keys and \'{}\' in locals():'.format(prefix, field, field))
+        # self._append_to_file('{}    {} = {}'.format(prefix, field, expression))
+        # self._append_to_file('{}else:'.format(prefix))
+        # self._append_to_file('{}    params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
 
     def _handle_math_change(self, block, prefix=''):
         field = self.get_node('field', block).text
@@ -1274,10 +1286,11 @@ class BlocklyTool(object):
         val = self.get_node('field', root=shadow).text
         # self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
-        self._append_to_file('{}if \'{}\' not in locals_keys and \'{}\' in locals():'.format(prefix, field, field))
-        self._append_to_file('{}    {} += {}'.format(prefix, field, val))
-        self._append_to_file('{}else:'.format(prefix))
-        self._append_to_file('{}    params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
+        self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
+        # self._append_to_file('{}if \'{}\' not in locals_keys and \'{}\' in locals():'.format(prefix, field, field))
+        # self._append_to_file('{}    {} += {}'.format(prefix, field, val))
+        # self._append_to_file('{}else:'.format(prefix))
+        # self._append_to_file('{}    params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
     def _handle_controls_repeat_ext(self, block, prefix=''):
         value = self.get_node('value', root=block)
@@ -1568,8 +1581,8 @@ class BlocklyTool(object):
         #     pass
         elif block.attrib['type'] == 'variables_get':
             field = self.get_node('field', block).text
-            return '(params[\'variables\'].get(\'{}\', 0) if \'{}\' in locals_keys or \'{}\' not in locals() else {})'.format(field, field, field, field)
-            # return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
+            # return '(params[\'variables\'].get(\'{}\', 0) if \'{}\' in locals_keys or \'{}\' not in locals() else {})'.format(field, field, field, field)
+            return 'params[\'variables\'].get(\'{}\', 0)'.format(field)
         elif block.attrib['type'] == 'move_var':
             val = self.get_node('field', block).text
             return val

@@ -880,13 +880,16 @@ class UxbusCmd(object):
         return value
 
     def cgpio_set_auxdigit(self, ionum, value):
-        """
-        ionum: 0~7
-        value: 0 / 1
-        """
-        if ionum > 7:
-            return [-1, -1]
-
+        # tmp = [0] * 2
+        # if ionum > 7:
+        #     tmp[1] = tmp[1] | (0x0100 << (ionum - 8))
+        #     if value:
+        #         tmp[1] = tmp[1] | (0x0001 << (ionum - 8))
+        # else:
+        #     tmp[0] = tmp[0] | (0x0100 << ionum)
+        #     if value:
+        #         tmp[0] = tmp[0] | (0x0001 << ionum)
+        # return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2)
         tmp = [0] * 1
         tmp[0] = tmp[0] | (0x0100 << ionum)
         if value:
@@ -911,6 +914,7 @@ class UxbusCmd(object):
 
     def cgpio_get_state(self):
         ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, 34)
+        # ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, 50)
         msg = [0] * 13
         msg[0] = ret[0]
         msg[1] = ret[1]
@@ -923,6 +927,8 @@ class UxbusCmd(object):
         msg[10] = msg[10] / 4095.0 * 10.0
         msg[11] = ret[19:27]
         msg[12] = ret[27:35]
+        # msg[11] = ret[19:27] + ret[35:43]
+        # msg[12] = ret[27:35] + ret[43:50]
 
         return msg
 

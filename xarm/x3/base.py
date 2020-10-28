@@ -163,8 +163,102 @@ class Base(Events):
             self._collision_tool_params = [0, 0, 0, 0, 0, 0]
             self._is_simulation_robot = False
 
+            self._last_update_err_time = 0
+            self._last_update_state_time = 0
+            self._last_update_cmdnum_time = 0
+
             if not do_not_open:
                 self.connect()
+
+    def _init(self):
+        self._last_position = [201.5, 0, 140.5, 3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
+        self._last_angles = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]  # [servo_1(rad), servo_2(rad), servo_3(rad), servo_4(rad), servo_5(rad), servo_6(rad), servo_7(rad)]
+        self._last_tcp_speed = 100  # mm/s, rad/s
+        self._last_tcp_acc = 2000  # mm/s^2, rad/s^2
+        self._last_joint_speed = 0.3490658503988659  # 20 °/s
+        self._last_joint_acc = 8.726646259971648  # 500 °/s^2
+        self._mvtime = 0
+        self._version = None
+        self._robot_sn = None
+        self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
+        self._angles = [0] * 7
+        self._position_offset = [0] * 6
+        self._world_offset = [0] * 6
+        self._state = 4
+        self._mode = 0
+        self._joints_torque = [0, 0, 0, 0, 0, 0, 0]  # 力矩
+        self._tcp_load = [0, [0, 0, 0]]  # 负载[重量, 重心], [weight, [x, y, z]]
+        self._collision_sensitivity = 0  # 碰撞灵敏度
+        self._teach_sensitivity = 0  # 示教灵敏度
+        self._error_code = 0
+        self._warn_code = 0
+        self._servo_codes = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
+        self._cmd_num = 0
+        self._arm_master_id = 0
+        self._arm_slave_id = 0
+        self._arm_motor_tid = 0
+        self._arm_motor_fid = 0
+        self._arm_motor_brake_states = [-1, -1, -1, -1, -1, -1, -1,
+                                        -1]  # [motor-1-brake-state, ..., motor-7-brake, reserved]
+        self._arm_motor_enable_states = [-1, -1, -1, -1, -1, -1, -1,
+                                         -1]  # [motor-1-enable-state, ..., motor-7-enable, reserved]
+        self._gravity_direction = [0, 0, -1]
+
+        self._is_ready = False
+        self._is_sync = False
+        self._is_first_report = True
+        self._first_report_over = False
+
+        self._sleep_finish_time = time.time()
+        self._is_old_protocol = False
+
+        self._major_version_number = 0  # 固件主版本号
+        self._minor_version_number = 0  # 固件次版本号
+        self._revision_version_number = 0  # 固件修正版本号
+
+        self._temperatures = [0, 0, 0, 0, 0, 0, 0]
+        self._voltages = [0, 0, 0, 0, 0, 0, 0]
+        self._currents = [0, 0, 0, 0, 0, 0, 0]
+
+        self._is_set_move = False
+        self._cond_pause = threading.Condition()
+
+        self._realtime_tcp_speed = 0
+        self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
+
+        self._count = -1
+        self._last_report_time = time.time()
+        self._max_report_interval = 0
+
+        self._cgpio_reset_enable = 0
+        self._tgpio_reset_enable = 0
+        self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0],
+                              [0, 0, 0, 0, 0, 0, 0, 0]]
+
+        self._ignore_error = False
+        self._ignore_state = False
+        self.modbus_baud = -1
+
+        self.gripper_is_enabled = False
+        self.gripper_speed = 0
+        self.gripper_version_numbers = [-1, -1, -1]
+
+        self.bio_gripper_is_enabled = False
+        self.bio_gripper_speed = 0
+        self.bio_gripper_error_code = 0
+
+        self.robotiq_is_activated = False
+
+        self._cmd_timeout = XCONF.UxbusConf.SET_TIMEOUT / 1000
+
+        self._is_collision_detection = 1
+        self._collision_tool_type = 0
+        self._collision_tool_params = [0, 0, 0, 0, 0, 0]
+        self._is_simulation_robot = False
+
+        self._last_update_err_time = 0
+        self._last_update_state_time = 0
+        self._last_update_cmdnum_time = 0
 
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
@@ -187,23 +281,34 @@ class Base(Events):
                     time.sleep(0.1)
                     count -= 1
             if self._version and isinstance(self._version, str):
-                pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+                pattern = re.compile(
+                    r'.*[vV](\d+)\.(\d+)\.(\d+),[vV](\d+)\.(\d+)\.(\d+),[vV](\d+)\.(\d+)\.(\d+),(\d+),(\d+)')
                 m = re.match(pattern, self._version)
                 if m:
-                    (self._major_version_number,
+                    (arg1, arg2, arg3, arg4, arg5, arg6,
+                     self._major_version_number,
                      self._minor_version_number,
-                     self._revision_version_number) = map(int, m.groups())
+                     self._revision_version_number,
+                     arg10, arg11) = map(int, m.groups())
+                    pass
                 else:
-                    version_date = '-'.join(self._version.split('-')[-3:])
-                    self._is_old_protocol = compare_time('2019-02-01', version_date)
-                    if self._is_old_protocol:
-                        self._major_version_number = 0
-                        self._minor_version_number = 0
-                        self._revision_version_number = 1
+                    pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+                    m = re.match(pattern, self._version)
+                    if m:
+                        (self._major_version_number,
+                         self._minor_version_number,
+                         self._revision_version_number) = map(int, m.groups())
                     else:
-                        self._major_version_number = 0
-                        self._minor_version_number = 1
-                        self._revision_version_number = 0
+                        version_date = '-'.join(self._version.split('-')[-3:])
+                        self._is_old_protocol = compare_time('2019-02-01', version_date)
+                        if self._is_old_protocol:
+                            self._major_version_number = 0
+                            self._minor_version_number = 0
+                            self._revision_version_number = 1
+                        else:
+                            self._major_version_number = 0
+                            self._minor_version_number = 1
+                            self._revision_version_number = 0
             if is_first:
                 if self._check_robot_sn:
                     count = 2
@@ -535,6 +640,7 @@ class Base(Events):
                 pass
         self._is_first_report = True
         self._first_report_over = False
+        self._init()
         if isinstance(self._port, (str, bytes)):
             if self._port == 'localhost' or re.match(
                     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
@@ -909,6 +1015,11 @@ class Base(Events):
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
 
+            update_time = time.time()
+            self._last_update_cmdnum_time = update_time
+            self._last_update_state_time = update_time
+            self._last_update_err_time = update_time
+
             for i in range(len(pose)):
                 if i < 3:
                     pose[i] = float('{:.3f}'.format(pose[i]))
@@ -942,6 +1053,10 @@ class Base(Events):
                 self._is_sync = True
 
         def __handle_report_rich(rx_data):
+            report_time = time.time()
+            interval = report_time - self._last_report_time
+            self._max_report_interval = max(self._max_report_interval, interval)
+            self._last_report_time = report_time
             __handle_report_normal(rx_data)
             (self._arm_type,
              arm_axis,
@@ -1174,6 +1289,12 @@ class Base(Events):
                     self._cond_pause.notifyAll()
             self._mode = mode
             self._cmd_num = cmd_num
+
+            update_time = time.time()
+            self._last_update_cmdnum_time = update_time
+            self._last_update_state_time = update_time
+            self._last_update_err_time = update_time
+
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
             self._joints_torque = torque
@@ -1320,6 +1441,9 @@ class Base(Events):
                 cgpio_states[6:10] = list(map(lambda x: x / 4095.0 * 10.0, cgpio_states[6:10]))
                 cgpio_states.append(list(map(int, rx_data[401:409])))
                 cgpio_states.append(list(map(int, rx_data[409:417])))
+                if length >= 433:
+                    cgpio_states[-2].extend(list(map(int, rx_data[417:425])))
+                    cgpio_states[-1].extend(list(map(int, rx_data[425:433])))
                 self._cgpio_states = cgpio_states
 
         main_socket_connected = self._stream and self._stream.connected
@@ -1582,6 +1706,8 @@ class Base(Events):
     def wait_until_cmdnum_lt_max(self):
         if not self._check_cmdnum_limit or self._stream_type != 'socket' or not self._enable_report:
             return
+        # if time.time() - self._last_report_time > 0.4:
+        #     self.get_cmdnum()
         while self.cmd_num >= self._max_cmd_num:
             if not self.connected:
                 return APIState.NOT_CONNECTED
@@ -1678,6 +1804,7 @@ class Base(Events):
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             self._state = ret[1]
+            self._last_update_state_time = time.time()
         return ret[0], ret[1] if ret[0] == 0 else self._state
 
     @xarm_is_connected(_type='set')
@@ -1723,6 +1850,7 @@ class Base(Events):
             if ret[1] != self._cmd_num:
                 self._report_cmdnum_changed_callback()
             self._cmd_num = ret[1]
+            self._last_update_cmdnum_time = time.time()
         return ret[0], self._cmd_num
 
     @xarm_is_connected(_type='get')
@@ -1732,6 +1860,7 @@ class Base(Events):
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             self._error_code, self._warn_code = ret[1:3]
+            self._last_update_err_time = time.time()
         if show:
             pretty_print('************* {}, {}: {} **************'.format(
                          '获取控制器错误警告码' if lang == 'cn' else 'GetErrorWarnCode',

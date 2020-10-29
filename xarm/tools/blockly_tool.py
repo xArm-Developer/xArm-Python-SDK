@@ -1060,7 +1060,6 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '\n    def run(self):')
             self._insert_to_file(self.index, '        self.alive = True')
             self._insert_to_file(self.index, '        while arm.connected and arm.error_code == 0 and not params[\'quit\']:')
-
             self._insert_to_file(self.index, '            if len(self.tgpio_digital_callbacks) > 0:')
             self._insert_to_file(self.index, '                _, values = arm.get_tgpio_digital()')
             self._insert_to_file(self.index, '                if _ == 0:')
@@ -1088,12 +1087,12 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '            if len(self.cgpio_callbacks) > 0:')
             self._insert_to_file(self.index, '                _, values = arm.get_cgpio_state()')
             self._insert_to_file(self.index, '                if _ == 0:')
-            self._insert_to_file(self.index, '                    digitals = [values[3] >> i & 0x01 if values[10][i] in [0, 255] else 1 for i in range(8)]')
+            self._insert_to_file(self.index, '                    digitals = [values[3] >> i & 0x0001 if values[10][i] in [0, 255] else 1 for i in range(len(values[10]))]')
             self._insert_to_file(self.index, '                    analogs = [values[6], values[7]]')
             self._insert_to_file(self.index, '                    if self.is_init_cgpio_state:')
             self._insert_to_file(self.index, '                        for item in self.cgpio_callbacks:')
             self._insert_to_file(self.index, '                            if item[\'type\'] == \'digital\':')
-            self._insert_to_file(self.index, '                                for io in range(8):')
+            self._insert_to_file(self.index, '                                for io in range(len(digitals)):')
             self._insert_to_file(self.index, '                                    if item[\'io\'] == io and eval(\'{} {} {}\'.format(digitals[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self.values[\'cgpio\'][\'digital\'][io], item[\'op\'], item[\'trigger\'])):')
             # self._insert_to_file(self.index, '                                    if item[\'io\'] == io and values[io] {op} item[\'trigger\'] and not (values[io] {op} self.values[\'cgpio\'][\'digital\'][io]):'.format(op='item[\'op\']'))
             self._insert_to_file(self.index, '                                        item[\'callback\']()')
@@ -1358,20 +1357,51 @@ class BlocklyTool(object):
         self._append_to_file('{}# {}'.format(prefix, field.text))
 
     def _handle_controls_if(self, block, prefix=''):
-        value = self.get_node('value', root=block)
-        expression = self.__get_condition_expression(value)
-        self._append_to_file('{}if {}:'.format(prefix, expression))
+        values = self.get_nodes('value', root=block)
+        statements = self.get_nodes('statement', root=block)
         old_prefix = prefix
-        prefix = '    ' + prefix
-        statement_if = self.get_nodes('statement', root=block, name='DO0')
-        statement_else = self.get_nodes('statement', root=block, name='ELSE')
-        if statement_if:
-            self.parse(statement_if[0], prefix)
-            if statement_else:
-                self._append_to_file('{}else:'.format(old_prefix))
-                self.parse(statement_else[0], prefix)
-        else:
-            self._append_to_file('{}pass'.format(prefix))
+        has_if = False
+        for i, value in enumerate(values):
+            prefix = old_prefix
+            expression = self.__get_condition_expression(value)
+            if not has_if:
+                has_if = True
+                self._append_to_file('{}if {}:'.format(prefix, expression))
+            else:
+                self._append_to_file('{}elif {}:'.format(prefix, expression))
+            old_prefix = prefix
+            prefix = '    ' + prefix
+            statement = None
+            for st in statements:
+                if st.attrib['name'][2:] == value.attrib['name'][2:]:
+                    statement = st
+                    break
+            if statement:
+                self.parse(statement, prefix)
+            else:
+                self._append_to_file('{}pass'.format(prefix))
+        for st in statements:
+            if st.attrib['name'] == 'ELSE':
+                if has_if:
+                    self._append_to_file('{}else:'.format(old_prefix))
+                self.parse(st, old_prefix if not has_if else '    ' + old_prefix)
+                break
+
+        # value = self.get_node('value', root=block)
+        # expression = self.__get_condition_expression(value)
+        # self._append_to_file('{}if {}:'.format(prefix, expression))
+        # old_prefix = prefix
+        # prefix = '    ' + prefix
+        # statement_if = self.get_nodes('statement', root=block, name='DO0')
+        # statement_else = self.get_nodes('statement', root=block, name='ELSE')
+        # if statement_if:
+        #     self.parse(statement_if[0], prefix)
+        #     if statement_else:
+        #         self._append_to_file('{}else:'.format(old_prefix))
+        #         self.parse(statement_else[0], prefix)
+        # else:
+        #     self._append_to_file('{}pass'.format(prefix))
+
         # statement = self.get_node('statement', root=block)
         # if statement:
         #     self.parse(statement, prefix)

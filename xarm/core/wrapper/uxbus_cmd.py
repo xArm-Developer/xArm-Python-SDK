@@ -913,8 +913,9 @@ class UxbusCmd(object):
         return self.set_nu8(XCONF.UxbusReg.CGPIO_SET_OUT_FUN, txdata, 2)
 
     def cgpio_get_state(self):
-        ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, 34)
+        # ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, 34)
         # ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, 50)
+        ret = self.get_nu8(XCONF.UxbusReg.CGPIO_GET_STATE, -1)
         msg = [0] * 13
         msg[0] = ret[0]
         msg[1] = ret[1]
@@ -927,8 +928,9 @@ class UxbusCmd(object):
         msg[10] = msg[10] / 4095.0 * 10.0
         msg[11] = ret[19:27]
         msg[12] = ret[27:35]
-        # msg[11] = ret[19:27] + ret[35:43]
-        # msg[12] = ret[27:35] + ret[43:50]
+        if len(ret) >= 50:
+            msg[11] = ret[19:27] + ret[35:43]
+            msg[12] = ret[27:35] + ret[43:50]
 
         return msg
 

@@ -218,7 +218,7 @@ class GPIO(Base):
         ret = self.arm_cmd.cgpio_get_state()
         code, states = ret[0], ret[1:]
         if code == 0 and states[0] == 0 and states[1] == 0:
-            self.cgpio_state['digital'] = [states[3] >> i & 0x01 if states[10][i] in [0, 255] else 1 for i in range(8)]
+            self.cgpio_state['digital'] = [states[3] >> i & 0x0001 if states[10][i] in [0, 255] else 1 for i in range(len(states[10]))]
             self.cgpio_state['analog'] = [states[6], states[7]]
         # data = {
         #     'state': ret[1],

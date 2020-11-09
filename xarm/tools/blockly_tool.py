@@ -295,6 +295,10 @@ class BlocklyTool(object):
         #     else:
         #         print('block {} can\'t convert to python code'.format(block.attrib['type']))
 
+    def __check_is_quit(self, prefix):
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        return '    {}'.format(prefix)
+
     def _handle_set_speed(self, block, prefix='', arg_map=None):
         field = self.get_node('field', root=block)
         if field is not None:
@@ -302,6 +306,7 @@ class BlocklyTool(object):
         else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}params[\'speed\'] = {}'.format(prefix, value))
 
     def _handle_set_acceleration(self, block, prefix='', arg_map=None):
@@ -311,6 +316,7 @@ class BlocklyTool(object):
         else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}params[\'acc\'] = {}'.format(prefix, value))
 
     def _handle_set_angle_speed(self, block, prefix='', arg_map=None):
@@ -320,6 +326,7 @@ class BlocklyTool(object):
         else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}params[\'angle_speed\'] = {}'.format(prefix, value))
 
     def _handle_set_angle_acceleration(self, block, prefix='', arg_map=None):
@@ -329,6 +336,7 @@ class BlocklyTool(object):
         else:
             value = self.get_node('value', root=block)
             value = self.get_nodes('field', root=value, descendant=True)[0].text
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}params[\'angle_acc\'] = {}'.format(prefix, value))
 
     def _handle_set_counter_increase(self, block, prefix='', arg_map=None):
@@ -340,11 +348,13 @@ class BlocklyTool(object):
         #     value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
             self._append_to_file('{}# set counter increase'.format(prefix))
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}arm.set_counter_increase()'.format(prefix))
 
     def _handle_set_counter_reset(self, block, prefix='', arg_map=None):
         if self._show_comment:
             self._append_to_file('{}# set counter reset'.format(prefix))
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}arm.set_counter_reset()'.format(prefix))
 
     def _handle_reset(self, block, prefix='', arg_map=None):
@@ -559,11 +569,13 @@ class BlocklyTool(object):
         state = fields[0].text
         if self._show_comment:
             self._append_to_file('{}# set state'.format(prefix))
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}arm.set_state({})'.format(prefix, state))
 
     def _handle_motion_stop(self, block, prefix='', arg_map=None):
         if self._show_comment:
             self._append_to_file('{}# emergency stop'.format(prefix))
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}arm.emergency_stop()'.format(prefix))
 
     def _handle_studio_run_traj(self, block, prefix='', arg_map=None):
@@ -591,6 +603,7 @@ class BlocklyTool(object):
     def _handle_tool_message(self, block, prefix='', arg_map=None):
         fields = self.get_nodes('field', block)
         msg = json.dumps(fields[-1].text, ensure_ascii=False)
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}print({})'.format(prefix, msg))
         # msg = fields[-1].text
         # self._append_to_file('{}print(\'{}\')'.format(prefix, message))
@@ -599,6 +612,7 @@ class BlocklyTool(object):
     def _handle_tool_console(self, block, prefix='', arg_map=None):
         fields = self.get_nodes('field', block)
         msg = json.dumps(fields[1].text, ensure_ascii=False)
+        prefix = self.__check_is_quit(prefix)
         self._append_to_file('{}print({})'.format(prefix, msg))
         # msg = fields[1].text
         # self._append_to_file('{}print(\'{}\')'.format(prefix, msg))
@@ -610,6 +624,7 @@ class BlocklyTool(object):
         value = self.get_node('value', block)
         expression = self.__get_condition_expression(value, arg_map=arg_map)
         # self._append_to_file('{}value = {}'.format(prefix, expression))
+        prefix = self.__check_is_quit(prefix)
         if msg:
             self._append_to_file('{}print({}.format({}))'.format(prefix, json.dumps(msg+'{}', ensure_ascii=False), expression))
             # self._append_to_file('{}pprint(\'{}{{}}\'.format({}))'.format(prefix, msg, expression))
@@ -1319,6 +1334,7 @@ class BlocklyTool(object):
         value = self.get_node('value', root=block)
         expression = self.__get_condition_expression(value, arg_map=arg_map)
         # self._append_to_file('{}params[\'variables\'][\'{}\'] = {}'.format(prefix, field, expression))
+        prefix = self.__check_is_quit(prefix)
         if arg_map and field in arg_map:
             self._append_to_file('{}{} = {}'.format(prefix, arg_map[field], expression))
         else:
@@ -1335,6 +1351,7 @@ class BlocklyTool(object):
         val = self.get_node('field', root=shadow).text
         # self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
+        prefix = self.__check_is_quit(prefix)
         if arg_map and field in arg_map:
             self._append_to_file('{}{} += {}'.format(prefix, arg_map[field], val))
         else:
@@ -1353,8 +1370,13 @@ class BlocklyTool(object):
         self._append_to_file('{}    break'.format(prefix))
         statement = self.get_node('statement', root=block)
         if statement:
+            if self._highlight_callback:
+                self._append_to_file('{}t1 = time.time()'.format(prefix))
             self.parse(statement, prefix, arg_map=arg_map)
-            # self._append_to_file('{}time.sleep(0.001)'.format(prefix))
+            if self._highlight_callback:
+                self._append_to_file('{}interval = time.time() - t1'.format(prefix))
+                self._append_to_file('{}if interval < 0.001:'.format(prefix))
+                self._append_to_file('{}    time.sleep(0.001 - interval)'.format(prefix))
         else:
             self._append_to_file('{}pass'.format(prefix))
 
@@ -1374,8 +1396,13 @@ class BlocklyTool(object):
         prefix = '    ' + prefix
         statement = self.get_node('statement', root=block)
         if statement:
+            if self._highlight_callback:
+                self._append_to_file('{}t1 = time.time()'.format(prefix))
             self.parse(statement, prefix, arg_map=arg_map)
-            # self._append_to_file('{}time.sleep(0.001)'.format(prefix))
+            if self._highlight_callback:
+                self._append_to_file('{}interval = time.time() - t1'.format(prefix))
+                self._append_to_file('{}if interval < 0.001:'.format(prefix))
+                self._append_to_file('{}    time.sleep(0.001 - interval)'.format(prefix))
         else:
             self._append_to_file('{}pass'.format(prefix))
 
@@ -1386,8 +1413,13 @@ class BlocklyTool(object):
         self._append_to_file('{}    break'.format(prefix))
         statement = self.get_node('statement', root=block)
         if statement:
+            if self._highlight_callback:
+                self._append_to_file('{}t1 = time.time()'.format(prefix))
             self.parse(statement, prefix, arg_map=arg_map)
-            # self._append_to_file('{}time.sleep(0.001)'.format(prefix))
+            if self._highlight_callback:
+                self._append_to_file('{}interval = time.time() - t1'.format(prefix))
+                self._append_to_file('{}if interval < 0.001:'.format(prefix))
+                self._append_to_file('{}    time.sleep(0.001 - interval)'.format(prefix))
         else:
             self._append_to_file('{}pass'.format(prefix))
 

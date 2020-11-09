@@ -605,7 +605,7 @@ Config the Tool GPIO reset the digital output when the robot is in stop state
     code: See the API code documentation for details.
 ```
 
-#### def __connect__(self, port=None, baudrate=None, timeout=None, axis=None):
+#### def __connect__(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
 
 ```
 Connect to xArm
@@ -2018,7 +2018,6 @@ Set the xArm mode
     2: joint teaching mode
         Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
     3: cartesian teaching mode (invalid)
-    4: simulation mode
 :return: code
     code: See the API code documentation for details.
 ```

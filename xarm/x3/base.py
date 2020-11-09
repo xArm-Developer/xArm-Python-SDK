@@ -41,9 +41,9 @@ class Base(Events):
             self._check_joint_limit = kwargs.get('check_joint_limit', True)
             self._check_cmdnum_limit = kwargs.get('check_cmdnum_limit', True)
             self._check_simulation_mode = kwargs.get('check_simulation_mode', True)
-            self._max_cmd_num = kwargs.get('max_cmdnum', 256)
+            self._max_cmd_num = kwargs.get('max_cmdnum', 512)
             if not isinstance(self._max_cmd_num, int):
-                self._max_cmd_num = 256
+                self._max_cmd_num = 512
             self._max_cmd_num = min(XCONF.MAX_CMD_NUM, self._max_cmd_num)
             self._check_robot_sn = kwargs.get('check_robot_sn', False)
             self._check_is_ready = kwargs.get('check_is_ready', True)
@@ -1198,7 +1198,7 @@ class Base(Events):
             #     return
             length = convert.bytes_to_u32(rx_data[0:4])
             data_len = len(rx_data)
-            if length != data_len or collis_sens not in list(range(6)) or teach_sens not in list(range(6)) \
+            if (length != data_len and (length != 233 or data_len != 245)) or collis_sens not in list(range(6)) or teach_sens not in list(range(6)) \
                 or mode not in list(range(12)) or state not in list(range(10)):
                 self._stream_report.close()
                 logger.warn('ReportDataException: length={}, data_len={}, '
@@ -1708,6 +1708,8 @@ class Base(Events):
             return
         # if time.time() - self._last_report_time > 0.4:
         #     self.get_cmdnum()
+        if self._max_cmd_num / 2 < self.cmd_num < self._max_cmd_num:
+            self.get_cmdnum()
         while self.cmd_num >= self._max_cmd_num:
             if not self.connected:
                 return APIState.NOT_CONNECTED

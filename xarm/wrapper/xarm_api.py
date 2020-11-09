@@ -1352,7 +1352,6 @@ class XArmAPI(object):
             2: joint teaching mode
                 Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
             3: cartesian teaching mode (invalid)
-            4: simulation mode
         :return: code
             code: See the API code documentation for details.
         """

@@ -13,7 +13,7 @@ class XCONF(object):
     ARM_AXIS_NUM = 7
     GRIPPER_ID = 8
     TGPIO_ID = 9
-    MAX_CMD_NUM = 1000
+    MAX_CMD_NUM = 1024
 
     def __init__(self):
         pass

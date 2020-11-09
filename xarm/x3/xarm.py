@@ -1495,8 +1495,10 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             succeed = blockly_tool.to_python(arm=self._api_instance, **kwargs)
             if succeed:
                 times = kwargs.get('times', 1)
+                highlight_callback = kwargs.get('highlight_callback', None)
+                blockly_print = kwargs.get('blockly_print', print)
                 for i in range(times):
-                    exec(blockly_tool.codes, {'arm': self._api_instance})
+                    exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
                 return APIState.NORMAL
             else:
                 logger.error('The conversion is incomplete and some blocks are not yet supported.')

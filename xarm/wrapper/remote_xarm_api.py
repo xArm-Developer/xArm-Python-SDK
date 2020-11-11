@@ -31,13 +31,16 @@ def _call_studio_api(*args, **kwargs):
 
 
 class _RemoteXArm(object):
-    def __init__(self, ip):
+    def __init__(self, ip, _arm):
         self.ip = ip
+        self._arm = _arm
 
     def __getattr__(self, item, *args, **kwargs):
         kwargs['ip'] = self.ip
         kwargs['api_name'] = item
-        return functools.partial(_call_studio_api, *args, **kwargs)
+        attr = getattr(self._arm, item)
+        remote_api = functools.partial(_call_studio_api, *args, **kwargs)
+        return remote_api if callable(attr) else remote_api()
 
 
 class RemoteXArmAPI(XArmAPI):
@@ -46,7 +49,8 @@ class RemoteXArmAPI(XArmAPI):
         warnings.warn("don't use it for now, just for debugging")
         XArmAPI.__init__(self, do_not_open=True)
         self.__ip = ip
-        self._arm = _RemoteXArm(ip)
+        self.__old_arm = self._arm
+        self._arm = _RemoteXArm(ip, self.__old_arm)
 
     def delete_blockly_app(self, name):
         return _call_studio_api(None, 0, {

@@ -11,7 +11,7 @@ import functools
 from .xarm_api import XArmAPI
 
 
-def _call_remote_sdk_api(*args, **kwargs):
+def _call_studio_api(*args, **kwargs):
     api_name = kwargs.pop('api_name', None)
     ip = kwargs.pop('ip', None)
     path = kwargs.pop('path', 'api')
@@ -37,7 +37,7 @@ class _RemoteXArm(object):
     def __getattr__(self, item, *args, **kwargs):
         kwargs['ip'] = self.ip
         kwargs['api_name'] = item
-        return functools.partial(_call_remote_sdk_api, *args, **kwargs)
+        return functools.partial(_call_studio_api, *args, **kwargs)
 
 
 class RemoteXArmAPI(XArmAPI):
@@ -47,3 +47,11 @@ class RemoteXArmAPI(XArmAPI):
         XArmAPI.__init__(self, do_not_open=True)
         self.__ip = ip
         self._arm = _RemoteXArm(ip)
+
+    def delete_blockly_app(self, name):
+        return _call_studio_api(None, 0, {
+            'parentPath': name,
+            'selectNode': {
+                'type': 'file'
+            }
+        }, api_name='app_delete_item', path='cmd', ip=self.__ip)

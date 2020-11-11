@@ -180,7 +180,7 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '\n\n# Register error/warn changed callback')
             self._insert_to_file(self.index, 'def error_warn_change_callback(data):')
             self._insert_to_file(self.index, '    if data and data[\'error_code\'] != 0:')
-            self._insert_to_file(self.index, '        arm.set_state(4)')
+            # self._insert_to_file(self.index, '        arm.set_state(4)')
             self._insert_to_file(self.index, '        params[\'quit\'] = True')
             self._insert_to_file(self.index, '        pprint(\'err={}, quit\'.format(data[\'error_code\']))')
             self._insert_to_file(self.index, '        arm.release_error_warn_changed_callback(error_warn_change_callback)')
@@ -198,7 +198,8 @@ class BlocklyTool(object):
         self._insert_to_file(self.index, '\n\n# Register counter value changed callback')
         self._insert_to_file(self.index, 'if hasattr(arm, \'register_count_changed_callback\'):')
         self._insert_to_file(self.index, '    def count_changed_callback(data):')
-        self._insert_to_file(self.index, '        pprint(\'counter val: {}\'.format(data[\'count\']))')
+        self._insert_to_file(self.index, '        if not params[\'quit\']:')
+        self._insert_to_file(self.index, '            pprint(\'counter val: {}\'.format(data[\'count\']))')
         self._insert_to_file(self.index, '    arm.register_count_changed_callback(count_changed_callback)')
 
         self._insert_to_file(self.index, '\n\n# Register connect changed callback')
@@ -215,7 +216,7 @@ class BlocklyTool(object):
         if self._hasEvent:
             self._append_to_file('\n# Main loop')
             self._append_to_file('while arm.connected and arm.error_code == 0 and not params[\'quit\']:')
-            self._append_to_file('    time.sleep(1)')
+            self._append_to_file('    time.sleep(0.5)')
 
         self._append_to_file('\n# release all event')
         self._append_to_file('if hasattr(arm, \'release_count_changed_callback\'):')

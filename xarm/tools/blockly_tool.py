@@ -423,9 +423,13 @@ class BlocklyTool(object):
 
     def _handle_move_circle(self, block, prefix='', arg_map=None):
         values = self.get_nodes('value', root=block)
-        percent = self.get_nodes('field', root=values[2], descendant=True)[0].text
-        percent = round(float(percent) / 360 * 100, 2)
-        wait = self.get_nodes('field', root=values[3], descendant=True)[0].text == 'TRUE'
+        # percent = self.get_nodes('field', root=values[2], descendant=True)[0].text
+        # percent = round(float(percent) / 360 * 100, 2)
+        # wait = self.get_nodes('field', root=values[3], descendant=True)[0].text == 'TRUE'
+        percent = self.__get_block_val(values[2], arg_map=arg_map)
+        wait = self.__get_block_val(values[3], arg_map=arg_map)
+        if wait == 'TRUE' or wait == 'FALSE':
+            wait = wait == 'TRUE'
 
         p1_block = self.get_node('block', root=values[0])
         fields = self.get_nodes('field', root=p1_block)
@@ -442,7 +446,7 @@ class BlocklyTool(object):
             self._append_to_file('{}# move circle and {}'.format(
                 prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code = arm.move_circle({}, {}, {}, speed=params[\'speed\'], mvacc=params[\'acc\'], '
+        self._append_to_file('{}    code = arm.move_circle({}, {}, float({}) / 360 * 100, speed=params[\'speed\'], mvacc=params[\'acc\'], '
                              'wait={})'.format(prefix, pose1, pose2, percent, wait))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
@@ -1364,7 +1368,8 @@ class BlocklyTool(object):
 
     def _handle_controls_repeat_ext(self, block, prefix='', arg_map=None):
         value = self.get_node('value', root=block)
-        times = self.get_nodes('field', root=value, descendant=True)[0].text
+        # times = self.get_nodes('field', root=value, descendant=True)[0].text
+        times = self.__get_block_val(value, arg_map=arg_map)
         self._append_to_file('{}for i in range(int({})):'.format(prefix, times))
         prefix = '    ' + prefix
         self._append_to_file('{}if params[\'quit\']:'.format(prefix))

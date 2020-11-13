@@ -63,6 +63,19 @@ class XArmStudioAPI(object):
             }
         }, api_name='app_delete_item')
 
+    def playback_trajectory(self, filename, times=1, double_speed=1):
+        return self.call_studio_api(None, 0, {
+            'filename': filename,
+            'times': times,
+            'speed': double_speed,
+            'wait': False,
+        }, api_name='xarm_playback_traj')
+
+    def delete_trajectory(self, filename):
+        return self.call_studio_api(None, 0, {
+            'filename': filename,
+        }, api_name='xarm_delete_traj')
+
     def call_studio_api(self, *args, **kwargs):
         kwargs['path'] = 'cmd'
         return self.__call_remote_api(*args, **kwargs)

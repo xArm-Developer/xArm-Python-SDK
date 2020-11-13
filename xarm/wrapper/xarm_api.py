@@ -7,7 +7,6 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 from ..x3 import XArm
-from ..x3.utils import api_log
 
 
 class XArmAPI(object):

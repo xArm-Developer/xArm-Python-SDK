@@ -117,8 +117,8 @@ class XArmStudioAPI(object):
                 self.__arm = _arm
 
             def __getattr__(self, item):
-                if item.startswith(('register', 'release')):
-                    raise Exception('Cannot call an interface with callback parameters remotely')
+                if item.startswith(('register', 'release', 'arm_cmd')):
+                    raise Exception('Cannot remotely call interfaces that cannot serialize parameters or results')
                 attr = getattr(self.__arm, item)
                 remote_api = functools.partial(self.__call_sdk_func, api_name=item)
                 return remote_api if callable(attr) else remote_api()

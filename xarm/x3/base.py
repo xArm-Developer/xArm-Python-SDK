@@ -101,7 +101,7 @@ class Base(Events):
             if axis in [5, 6, 7]:
                 self._arm_axis = axis
             arm_type = kwargs.get('type', self._arm_type)
-            if arm_type in [3, 5, 6, 7]:
+            if arm_type in [3, 5, 6, 7, 8]:
                 self._arm_type = arm_type
             self._arm_master_id = 0
             self._arm_slave_id = 0

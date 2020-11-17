@@ -364,7 +364,8 @@ class BlocklyTool(object):
 
     def _handle_sleep(self, block, prefix='', arg_map=None):
         value = self.get_node('value', root=block)
-        value = self.get_nodes('field', root=value, descendant=True)[0].text
+        value = self.__get_block_val(value, arg_map=arg_map)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
             self._append_to_file('{}# set pause time'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
@@ -818,7 +819,8 @@ class BlocklyTool(object):
     def _handle_gpio_set_controller_analog(self, block, prefix='', arg_map=None):
         io = self.get_node('field', block).text
         value = self.get_node('value', root=block)
-        value = self.get_nodes('field', root=value, descendant=True)[0].text
+        value = self.__get_block_val(value, arg_map=arg_map)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
             self._append_to_file('{}# set cgpio-{} digital'.format(prefix, io))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))

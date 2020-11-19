@@ -63,12 +63,12 @@ class XArmStudioAPI(object):
             }
         }, api_name='app_delete_item')
 
-    def playback_trajectory(self, filename, times=1, double_speed=1):
+    def playback_trajectory(self, filename, times=1, wait=False, double_speed=1):
         return self._call_studio_api({
             'filename': filename,
             'times': times,
             'speed': double_speed,
-            'wait': False,
+            'wait': wait,
         }, api_name='xarm_playback_traj')
 
     def delete_trajectory(self, filename):

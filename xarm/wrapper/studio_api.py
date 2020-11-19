@@ -49,14 +49,14 @@ class XArmStudioAPI(object):
 
     def run_blockly_app(self, name, **kwargs):
         try:
-            self.call_studio_api(None, 0, {}, api_name='xarm_set_blockly_init', show_fail_log=False)
+            self._call_studio_api({}, api_name='xarm_set_blockly_init', show_fail_log=False)
         except:
             pass
         kwargs['appName'] = name
-        return self.call_studio_api(None, 0, kwargs, api_name='run_blockly')
+        return self._call_studio_api(kwargs, api_name='run_blockly')
 
     def delete_blockly_app(self, name):
-        return self.call_studio_api(None, 0, {
+        return self._call_studio_api({
             'parentPath': name,
             'selectNode': {
                 'type': 'file'
@@ -64,7 +64,7 @@ class XArmStudioAPI(object):
         }, api_name='app_delete_item')
 
     def playback_trajectory(self, filename, times=1, double_speed=1):
-        return self.call_studio_api(None, 0, {
+        return self._call_studio_api({
             'filename': filename,
             'times': times,
             'speed': double_speed,
@@ -72,13 +72,13 @@ class XArmStudioAPI(object):
         }, api_name='xarm_playback_traj')
 
     def delete_trajectory(self, filename):
-        return self.call_studio_api(None, 0, {
+        return self._call_studio_api({
             'filename': filename,
         }, api_name='xarm_delete_traj')
 
-    def call_studio_api(self, *args, **kwargs):
+    def _call_studio_api(self, *args, **kwargs):
         kwargs['path'] = 'cmd'
-        return self.__call_remote_api(*args, **kwargs)
+        return self.__call_remote_api(None, 0, *args, **kwargs)
 
     def _call_sdk_api(self, *args, **kwargs):
         kwargs['path'] = 'api'

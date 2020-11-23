@@ -40,6 +40,7 @@ class Events(object):
             REPORT_MODE_CHANGED_ID: [],
             REPORT_MTABLE_MTBRAKE_CHANGED_ID: [],
             REPORT_CMDNUM_CHANGED_ID: [],
+            REPORT_COUNT_CHANGED_ID: []
         }
 
     def _register_report_callback(self, report_id, callback):

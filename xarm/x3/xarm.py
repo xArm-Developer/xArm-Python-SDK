@@ -1497,8 +1497,12 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 times = kwargs.get('times', 1)
                 highlight_callback = kwargs.get('highlight_callback', None)
                 blockly_print = kwargs.get('blockly_print', print)
-                for i in range(times):
-                    exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
+                try:
+                    for i in range(times):
+                        exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
+                except Exception as e:
+                    blockly_print(e)
+                    logger.error('run blockly app error, {}'.format(e))
                 return APIState.NORMAL
             else:
                 logger.error('The conversion is incomplete and some blocks are not yet supported.')

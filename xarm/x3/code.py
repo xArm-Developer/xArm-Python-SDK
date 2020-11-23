@@ -21,6 +21,7 @@ class APIState(object):
     EMERGENCY_STOP = -9  # 紧急停止
     SERVO_NOT_EXIST = -10  # 不存在此ID的关节
     CONVERT_FAILED = -11  # 转换Blockly失败
+    RUN_BLOCKLY_EXCEPTION = -12  # 运行blockly app异常
     NORMAL = 0  # 正常
     HAS_ERROR = XCONF.UxbusState.ERR_CODE  # 有尚未清除的错误
     HAS_WARN = XCONF.UxbusState.WAR_CODE  # 有尚未清除的警告

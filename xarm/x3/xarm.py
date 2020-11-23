@@ -1501,16 +1501,18 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 state_changed_callbacks = self._report_callbacks[self.REPORT_STATE_CHANGED_ID].copy()
                 error_warn_changed_callbacks = self._report_callbacks[self.REPORT_ERROR_WARN_CHANGED_ID].copy()
                 count_changed_callbacks = self._report_callbacks[self.REPORT_COUNT_CHANGED_ID].copy()
+                code = APIState.NORMAL
                 try:
                     for i in range(times):
                         exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
                 except Exception as e:
+                    code = APIState.RUN_BLOCKLY_EXCEPTION
                     blockly_print('run blockly app error: {}'.format(e))
                 self._report_callbacks[self.REPORT_CONNECT_CHANGED_ID] = connect_changed_callbacks
                 self._report_callbacks[self.REPORT_STATE_CHANGED_ID] = state_changed_callbacks
                 self._report_callbacks[self.REPORT_ERROR_WARN_CHANGED_ID] = error_warn_changed_callbacks
                 self._report_callbacks[self.REPORT_COUNT_CHANGED_ID] = count_changed_callbacks
-                return APIState.NORMAL
+                return code
             else:
                 logger.error('The conversion is incomplete and some blocks are not yet supported.')
                 return APIState.CONVERT_FAILED

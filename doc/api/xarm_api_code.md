@@ -1,6 +1,8 @@
 # xArmSDK API code description
 
 ## API return value status code
+- -12: run blockly app exception
+- -11: convert blockly app to pythen exception
 - -9: emergency stop
 - -8: out of range
 - -7: joint angle limit

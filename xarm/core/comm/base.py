@@ -44,7 +44,10 @@ class Port(threading.Thread):
                 self.com.shutdown(socket.SHUT_RDWR)
             except:
                 pass
-        self.com.close()
+        try:
+            self.com.close()
+        except:
+            pass
         # start_time = time.time()
         # while self.connected and time.time() - start_time < 5:
         #     time.sleep(0.01)

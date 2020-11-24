@@ -7,7 +7,6 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 from ..x3 import XArm
-from ..x3.utils import api_log
 
 
 class XArmAPI(object):
@@ -622,7 +621,7 @@ class XArmAPI(object):
         """
         return self._arm.self_collision_params
 
-    def connect(self, port=None, baudrate=None, timeout=None, axis=None):
+    def connect(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
         """
         Connect to xArm
 
@@ -631,7 +630,7 @@ class XArmAPI(object):
         :param timeout: timeout, only available in serial way, default is the value when initializing an instance
         :param axis: number of axes, required only when using a serial port connection, default is 7
         """
-        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout, axis=axis)
+        self._arm.connect(port=port, baudrate=baudrate, timeout=timeout, axis=axis, **kwargs)
 
     def disconnect(self):
         """
@@ -1352,7 +1351,6 @@ class XArmAPI(object):
             2: joint teaching mode
                 Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
             3: cartesian teaching mode (invalid)
-            4: simulation mode
         :return: code
             code: See the API code documentation for details.
         """

@@ -536,7 +536,7 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         if wait and ret[0] == 0:
             if not self._enable_report:
-                print('if you want to wait, please enable report')
+                warnings.warn('if you want to wait, please enable report')
             else:
                 code = self.wait_move(timeout)
                 self._sync()
@@ -1495,9 +1495,24 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             succeed = blockly_tool.to_python(arm=self._api_instance, **kwargs)
             if succeed:
                 times = kwargs.get('times', 1)
-                for i in range(times):
-                    exec(blockly_tool.codes, {'arm': self._api_instance})
-                return APIState.NORMAL
+                highlight_callback = kwargs.get('highlight_callback', None)
+                blockly_print = kwargs.get('blockly_print', print)
+                connect_changed_callbacks = self._report_callbacks[self.REPORT_CONNECT_CHANGED_ID].copy()
+                state_changed_callbacks = self._report_callbacks[self.REPORT_STATE_CHANGED_ID].copy()
+                error_warn_changed_callbacks = self._report_callbacks[self.REPORT_ERROR_WARN_CHANGED_ID].copy()
+                count_changed_callbacks = self._report_callbacks[self.REPORT_COUNT_CHANGED_ID].copy()
+                code = APIState.NORMAL
+                try:
+                    for i in range(times):
+                        exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
+                except Exception as e:
+                    code = APIState.RUN_BLOCKLY_EXCEPTION
+                    blockly_print('run blockly app error: {}'.format(e))
+                self._report_callbacks[self.REPORT_CONNECT_CHANGED_ID] = connect_changed_callbacks
+                self._report_callbacks[self.REPORT_STATE_CHANGED_ID] = state_changed_callbacks
+                self._report_callbacks[self.REPORT_ERROR_WARN_CHANGED_ID] = error_warn_changed_callbacks
+                self._report_callbacks[self.REPORT_COUNT_CHANGED_ID] = count_changed_callbacks
+                return code
             else:
                 logger.error('The conversion is incomplete and some blocks are not yet supported.')
                 return APIState.CONVERT_FAILED
@@ -1661,3 +1676,8 @@ class XArm(Gripper, Servo, Record, RobotIQ):
                 self.set_self_collision_detection(config['COLL_PARAMS'][0])
             if config['COLL_PARAMS'][1] != old_config['COLL_PARAMS'][1] or config['COLL_PARAMS'][2] != old_config['COLL_PARAMS'][2]:
                 self.set_collision_tool_model(config['COLL_PARAMS'][1], *config['COLL_PARAMS'][2])
+
+    def get_power_board_version(self):
+        ret = self.arm_cmd.get_power_board_version()
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1:]

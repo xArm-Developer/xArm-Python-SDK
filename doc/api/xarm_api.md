@@ -605,7 +605,7 @@ Config the Tool GPIO reset the digital output when the robot is in stop state
     code: See the API code documentation for details.
 ```
 
-#### def __connect__(self, port=None, baudrate=None, timeout=None, axis=None):
+#### def __connect__(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
 
 ```
 Connect to xArm

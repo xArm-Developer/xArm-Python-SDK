@@ -13,7 +13,7 @@ class XCONF(object):
     ARM_AXIS_NUM = 7
     GRIPPER_ID = 8
     TGPIO_ID = 9
-    MAX_CMD_NUM = 1000
+    MAX_CMD_NUM = 1024
 
     def __init__(self):
         pass
@@ -32,6 +32,7 @@ class XCONF(object):
             XARM5_X4 = 5
             XARM6_X4 = 6
             XARM7_X4 = 7
+            XARM6_X8 = 8
 
         JOINT_LIMITS = {
             Axis.XARM5: {
@@ -48,6 +49,14 @@ class XCONF(object):
                     (-2 * math.pi, 2 * math.pi),
                     (-2.059488, 2.094395),  # (-2.18, 2.18),
                     (-3.92699, 0.191986),  # (-4.01, 0.1),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+                Type.XARM6_X8: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.059488, 2.094395),  # (-2.18, 2.18),
+                    (-0.191986, 3.92699),
                     (-2 * math.pi, 2 * math.pi),
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
@@ -98,6 +107,14 @@ class XCONF(object):
                     (-750, 750),
                     (-750, 750),
                     (-400, 1000),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
+                Type.XARM6_X8: [
+                    (-1000, 1000),
+                    (-1000, 1000),
+                    (-600, 1200),
                     (-math.pi, math.pi),
                     (-math.pi, math.pi),
                     (-math.pi, math.pi)
@@ -256,6 +273,7 @@ class XCONF(object):
         CGPIO_SET_OUT_FUN = 138
         CGPIO_GET_STATE = 139
 
+        GET_PWR_VERSION = 140
         GET_HD_TYPES = 141
         DELAYED_CGPIO_SET = 142
         DELAYED_TGPIO_SET = 143

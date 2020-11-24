@@ -72,6 +72,7 @@
 - 35: Safety Boundary Limit
 - 36: The number of delay commands exceeds the limit
 - 37: Abnormal movement in Manual Mode
+- 38: Abnormal Joint Angle
 
 ## Servo Error Code
 

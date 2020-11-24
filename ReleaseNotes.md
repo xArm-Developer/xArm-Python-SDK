@@ -2,6 +2,10 @@
 
 ## Update Summary
 
+- > ### 1.6.5
+
+  - Support for blocky code conversion and operation of xArmStudio1.6.5
+
 - > ### 1.6.0
 
   - Support the xArm BIO gripper, Robotiq 2F-85 gripper and Robotiq 2F-140 gripper

@@ -597,11 +597,11 @@ ControllerErrorCodeMap = {
     28: {
         'en': {
             'title': 'End Module Communication Error',
-            'desc': ''
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the Control Box. If multiple reboots are not working, please contact technical support.'
         },
         'cn': {
             'title': '末端通信失败',
-            'desc': ''
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。'
         }
     },
     30: {
@@ -682,6 +682,16 @@ ControllerErrorCodeMap = {
         'cn': {
             'title': '手动模式运动异常',
             'desc': '请检查机械臂的TCP负载设置和机械臂安装方式是否与实际匹配。'
+        }
+    },
+    38: {
+        'en': {
+            'title': 'Abnormal Joint Angle',
+            'desc': 'Please stop the xArm by pressing the Emergency Stop Button on the Control Box and then contact technical support.'
+        },
+        'cn': {
+            'title': '关节角度异常',
+            'desc': '请通过控制器上的紧急停止按钮停止机械臂，并联系技术支持。'
         }
     },
     'other': {

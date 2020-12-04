@@ -39,7 +39,7 @@ else:
 ########################################################
 
 
-arm = XArmAPI(ip, is_radian=True)
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
@@ -58,7 +58,7 @@ time.sleep(1)
 rp = 0.2
 for i in range(450):
     time.sleep(0.005)
-    code = arm.set_servo_cartesian_aa([0, 0, 0, 0, rp, 0], relative=True, wait=False, is_radian=False)
+    code = arm.set_servo_cartesian_aa([0, 0, 0, 0, rp, 0], relative=True, wait=False)
     print('set_servo_cartesian_aa, code={}, i={}, rp={}'.format(code, i, rp))
 
 

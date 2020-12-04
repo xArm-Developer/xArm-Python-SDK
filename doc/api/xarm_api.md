@@ -1488,11 +1488,9 @@ Release the temperature changed callback
 Reset the xArm
 Warnning: without limit detection
 Note:
-    1. The API will change self.last_used_position value into [201.5, 0, 140.5, -180, 0, 0]
-    2. The API will change self.last_used_angles value into [0, 0, 0, 0, 0, 0, 0]
-    3. If there are errors or warnings, this interface will clear the warnings and errors.
-    4. If not ready, the api will auto enable motion and set state
-    5. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
+    1. If there are errors or warnings, this interface will clear the warnings and errors.
+    2. If not ready, the api will auto enable motion and set state
+    3. This interface does not modify the value of last_used_angles/last_used_joint_speed/last_used_joint_acc
 
 :param speed: reset speed (unit: rad/s if is_radian is True else °/s), default is 50 °/s
 :param mvacc: reset acceleration (unit: rad/s^2 if is_radian is True else °/s^2), default is 5000 °/s^2

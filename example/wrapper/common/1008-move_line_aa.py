@@ -39,7 +39,7 @@ else:
 ########################################################
 
 
-arm = XArmAPI(ip, is_radian=True)
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
@@ -49,19 +49,19 @@ arm.move_gohome()
 
 arm.set_position(300, 0, 300, 180, 0, 0)
 # test pitch, pitch +50
-ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, 50, 0], relative=True, wait=True, is_radian=False)
+ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, 50, 0], relative=True, wait=True)
 print('set_position_aa, ret={}'.format(ret))
 
 # test pitch, pitch -50
-ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, -50, 0], relative=True, wait=True, is_radian=False)
+ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, -50, 0], relative=True, wait=True)
 print('set_position_aa, ret={}'.format(ret))
 
 # test yaw, yaw +80
-ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, 0, 80], relative=True, wait=True, is_radian=False)
+ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, 0, 80], relative=True, wait=True)
 print('set_position_aa, ret={}'.format(ret))
 
 # test yaw, yaw -80
-ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, 0, -80], relative=True, wait=True, is_radian=False)
+ret = arm.set_position_aa(axis_angle_pose=[0, 0, 0, 0, 0, -80], relative=True, wait=True)
 print('set_position_aa, ret={}'.format(ret))
 
 

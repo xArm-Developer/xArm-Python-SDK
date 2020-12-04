@@ -39,7 +39,7 @@ else:
 ########################################################
 
 
-arm = XArmAPI(ip, is_radian=True)
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
@@ -66,12 +66,12 @@ arm.set_pause_time(0.2)
 
 
 def move():
-    ret = arm.set_servo_angle(angle=angles, is_radian=False, speed=50, wait=False)
+    ret = arm.set_servo_angle(angle=angles, speed=50, wait=False)
     if ret < 0:
         print('set_servo_angle, ret={}'.format(ret))
         return -1
     for path in paths:
-        ret = arm.set_position(*path[:6], radius=0, is_radian=False, wait=False, speed=300)
+        ret = arm.set_position(*path[:6], radius=0, wait=False, speed=300)
         if ret < 0:
             print('set_position, ret={}'.format(ret))
             return -1

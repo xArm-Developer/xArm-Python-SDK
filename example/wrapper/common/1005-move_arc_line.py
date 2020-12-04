@@ -39,7 +39,7 @@ else:
 ########################################################
 
 
-arm = XArmAPI(ip, is_radian=True)
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
@@ -60,7 +60,7 @@ paths = [
     [300, 0, 350, -180, 0, 0],
 ]
 
-arm.move_arc_lines(paths, is_radian=False, speed=300, times=10, wait=True)
+arm.move_arc_lines(paths, speed=300, times=10, wait=True)
 
 arm.reset(wait=True)
 arm.disconnect()

@@ -39,25 +39,25 @@ else:
 ########################################################
 
 
-arm = XArmAPI(ip, is_radian=True)
+arm = XArmAPI(ip)
 arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
 arm.reset(wait=True)
 
-arm.set_tool_position(x=100, y=0, z=0, roll=0, pitch=0, yaw=0, speed=100, is_radian=False, wait=True)
-print(arm.get_position(), arm.get_position(is_radian=False))
-arm.set_tool_position(x=0, y=200, z=0, roll=0, pitch=0, yaw=0, speed=200, is_radian=False, wait=True)
-print(arm.get_position(), arm.get_position(is_radian=False))
-arm.set_tool_position(x=200, y=0, z=0, roll=0, pitch=0, yaw=0, speed=300, is_radian=False, wait=True)
-print(arm.get_position(), arm.get_position(is_radian=False))
-arm.set_tool_position(x=0, y=-400, z=0, roll=0, pitch=0, yaw=0, speed=400, is_radian=False, wait=True)
-print(arm.get_position(), arm.get_position(is_radian=False))
-arm.set_tool_position(x=-200, y=0, z=0, roll=0, pitch=0, yaw=0, speed=500, is_radian=False, wait=True)
-print(arm.get_position(), arm.get_position(is_radian=False))
-arm.set_tool_position(x=0, y=200, z=0, roll=0, pitch=0, yaw=0, speed=600, is_radian=False, wait=True)
-print(arm.get_position(), arm.get_position(is_radian=False))
+arm.set_tool_position(x=100, y=0, z=0, roll=0, pitch=0, yaw=0, speed=100, wait=True)
+print(arm.get_position(), arm.get_position(is_radian=True))
+arm.set_tool_position(x=0, y=200, z=0, roll=0, pitch=0, yaw=0, speed=200, wait=True)
+print(arm.get_position(), arm.get_position(is_radian=True))
+arm.set_tool_position(x=200, y=0, z=0, roll=0, pitch=0, yaw=0, speed=300, wait=True)
+print(arm.get_position(), arm.get_position(is_radian=True))
+arm.set_tool_position(x=0, y=-400, z=0, roll=0, pitch=0, yaw=0, speed=400, wait=True)
+print(arm.get_position(), arm.get_position(is_radian=True))
+arm.set_tool_position(x=-200, y=0, z=0, roll=0, pitch=0, yaw=0, speed=500, wait=True)
+print(arm.get_position(), arm.get_position(is_radian=True))
+arm.set_tool_position(x=0, y=200, z=0, roll=0, pitch=0, yaw=0, speed=600, wait=True)
+print(arm.get_position(), arm.get_position(is_radian=True))
 
 arm.reset(wait=True)
 arm.disconnect()

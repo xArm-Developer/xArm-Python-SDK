@@ -696,6 +696,7 @@ class Base(Events):
                 self._check_version(is_first=True)
                 self.arm_cmd.set_debug(self._debug)
             self.set_timeout(self._cmd_timeout)
+            # setattr(self.arm_cmd, 'set_modbus_baudrate', self.set_tgpio_modbus_baudrate)
 
     def disconnect(self):
         try:
@@ -2009,8 +2010,9 @@ class Base(Events):
                     self._ignore_error = True
                     self._ignore_state = True if self.state not in [4, 5] else False
                     state = self.state
-                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
+                    # self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
+                    time.sleep(0.3)
                     self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
                     if self.error_code != 19 and self.error_code != 28:
                         self.get_err_warn_code()

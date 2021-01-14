@@ -657,8 +657,9 @@ class UxbusCmd(object):
         if ret[0] == 0:
             baud_val = self.BAUDRATES.index(baudrate)
             if ret[1] != baud_val:
-                self.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_val)
+                # self.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_val)
                 self.tgpio_addr_w16(0x1A0B, baud_val)
+                time.sleep(0.3)
                 return self.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
         return ret[:2]
 

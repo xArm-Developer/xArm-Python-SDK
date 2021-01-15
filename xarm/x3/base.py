@@ -2039,7 +2039,7 @@ class Base(Events):
                         self.clean_error()
                         if self._ignore_state:
                             self.set_state(state if state >= 3 else 0)
-                    time.sleep(1)
+                        time.sleep(1)
                 except Exception as e:
                     self._ignore_error = False
                     self._ignore_state = False

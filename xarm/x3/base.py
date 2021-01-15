@@ -52,6 +52,7 @@ class Base(Events):
             self._timed_comm_interval = kwargs.get('timed_comm_interval', 180)
             self._timed_comm_t = None
             self._timed_comm_t_alive = False
+            self._rewrite_modbus_baudrate_method = kwargs.get('rewrite_modbus_baudrate_method', True)
 
             self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
             self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
@@ -696,7 +697,25 @@ class Base(Events):
                 self._check_version(is_first=True)
                 self.arm_cmd.set_debug(self._debug)
             self.set_timeout(self._cmd_timeout)
-            # setattr(self.arm_cmd, 'set_modbus_baudrate', self.set_tgpio_modbus_baudrate)
+            if self._rewrite_modbus_baudrate_method:
+                setattr(self.arm_cmd, 'set_modbus_baudrate_old', self.arm_cmd.set_modbus_baudrate)
+                setattr(self.arm_cmd, 'set_modbus_baudrate', self._core_set_modbus_baudrate)
+
+    def _core_set_modbus_baudrate(self, baudrate, use_old=False):
+        """
+        此函数是用于覆盖core.set_modbus_baudrate方法，主要用于兼容旧代码
+        新代码建议直接使用set_tgpio_modbus_baudrate此接口
+        :param baudrate: 
+        :param use_old: 
+            为True时调用原来的core.set_modbus_baudrate方法
+            为False时使用新的set_tgpio_modbus_baudrate
+        :return [code, ...]
+        """
+        if not use_old:
+            ret = self.set_tgpio_modbus_baudrate(baudrate)
+            return [ret, self.modbus_baud]
+        else:
+            return self.arm_cmd.set_modbus_baudrate_old(baudrate)
 
     def disconnect(self):
         try:
@@ -2030,8 +2049,8 @@ class Base(Events):
                 self._ignore_state = False
                 ret, cur_baud_inx = self._get_modbus_baudrate_inx()
                 self.log_api_info('API -> checkset_modbus_baud -> code={}, baud_inx={}'.format(ret, cur_baud_inx), code=ret)
-            if ret == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
-                self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
+            # if ret == 0 and cur_baud_inx < len(self.arm_cmd.BAUDRATES):
+            #     self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
         return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
 
     @xarm_is_connected(_type='get')
@@ -2042,6 +2061,8 @@ class Base(Events):
                 self.get_err_warn_code()
             if self.error_code != 19 and self.error_code != 28:
                 ret[0] = 0
+        if ret[0] == 0 and 0 <= ret[1] < len(self.arm_cmd.BAUDRATES):
+            self.modbus_baud = self.arm_cmd.BAUDRATES[ret[1]]
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
@@ -2059,8 +2080,8 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_tgpio_modbus_baudrate(self):
         code, baud_inx = self._get_modbus_baudrate_inx()
-        if code == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
-            self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
+        # if code == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
+        #     self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False):

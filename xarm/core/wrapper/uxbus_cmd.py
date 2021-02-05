@@ -953,3 +953,9 @@ class UxbusCmd(object):
 
     def get_power_board_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 3)
+
+    def vc_set_jointv(self, jnt_v, jnt_sync):
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_JOINTV, jnt_v, 7, bytes([jnt_sync]))
+
+    def vc_set_linev(self, line_v, coord):
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, bytes([coord]))

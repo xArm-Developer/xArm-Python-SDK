@@ -244,6 +244,9 @@ class XCONF(object):
         SET_COLLIS_TOOL = 78
         SET_SIMULATION_ROBOT = 79
 
+        VC_SET_JOINTV = 81
+        VC_SET_CARTV = 82
+
         GET_TCP_POSE_AA = 91
         MOVE_LINE_AA = 92
         MOVE_SERVO_CART_AA = 93

@@ -45,6 +45,8 @@ class APIState(object):
     TRAJ_PLAYBACK_TOUT = 33  # 回放轨迹超时(多种情况)
     SUCTION_CUP_TOUT = 41  # 等待吸泵设置超时
 
+    MODE_IS_NOT_CORRECT = 51  # 模式不正确
+
     WAIT_FINISH_TIMEOUT = 100  # 等待操作完成超时
     CHECK_FAILED = 101  # 等待操作完成过程检测状态连续失败次数过多
     END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误

@@ -2016,6 +2016,8 @@ Set the xArm mode
     2: joint teaching mode
         Note: use this mode to ensure that the arm has been identified and the control box and arm used for identification are one-to-one.
     3: cartesian teaching mode (invalid)
+    4: joint velocity control mode
+    5: cartesian velocity control mode
 :return: code
     code: See the API code documentation for details.
 ```
@@ -2336,6 +2338,13 @@ Detach the servo, be sure to do protective work before unlocking to avoid injury
 
 #### def __set_simulation_robot__(self, on_off):
 
+```
+Set the simulation robot
+
+:param on_off: True/False
+:return: code
+    code: See the API code documentation for details.
+```
 
 #### def __set_state__(self, state=0):
 
@@ -2580,6 +2589,30 @@ Note:
     3. If the filename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost
     4. This action will overwrite the trajectory with the same name
     5. Empty the trajectory in memory after saving
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __vc_set_cartesian_velocity__(self, speeds, is_radian=None, is_tool_coord=False, **kwargs):
+
+```
+Cartesian velocity control, need to be set to cartesian velocity control mode(self.set_mode(5))
+
+:param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
+:param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
+:param is_tool_coord: is tool coordinate or not, default is False
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __vc_set_joint_velocity__(self, speeds, is_radian=None, is_sync=True, **kwargs):
+
+```
+Joint velocity control, need to be set to joint velocity control mode(self.set_mode(4))
+
+:param speeds: [spd_J1, spd_J2, ..., spd_J7]
+:param is_radian: the spd_Jx in radians or not, default is self.default_is_radian
+:param is_sync: whether all joints accelerate and decelerate synchronously, default is True
 :return: code
     code: See the API code documentation for details.
 ```

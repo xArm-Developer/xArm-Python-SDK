@@ -21,6 +21,7 @@ TX2_BUS_FLAG_MAX = 5000  # cmd序号 最大值
 
 
 def debug_log_datas(datas, label=''):
+    print('>>', datas)
     print('{}:'.format(label), end=' ')
     for i in range(len(datas)):
         print('{:x}'.format(datas[i]).zfill(2), end=' ')

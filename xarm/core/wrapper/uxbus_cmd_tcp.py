@@ -21,7 +21,6 @@ TX2_BUS_FLAG_MAX = 5000  # cmd序号 最大值
 
 
 def debug_log_datas(datas, label=''):
-    print('>>', datas)
     print('{}:'.format(label), end=' ')
     for i in range(len(datas)):
         print('{:x}'.format(datas[i]).zfill(2), end=' ')
@@ -37,6 +36,7 @@ class UxbusCmdTcp(UxbusCmd):
         self.bus_flag = TX2_BUS_FLAG_MIN
         self.prot_flag = TX2_PROT_CON
         self._has_err_warn = False
+        self._last_comm_time = time.time()
 
     @property
     def has_err_warn(self):
@@ -86,6 +86,7 @@ class UxbusCmdTcp(UxbusCmd):
             remaining = expired - time.time()
             rx_data = self.arm_port.read(remaining)
             if rx_data != -1 and len(rx_data) > 7:
+                self._last_comm_time = time.time()
                 if self._debug:
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
                 ret[0] = self.check_xbus_prot(rx_data, funcode)

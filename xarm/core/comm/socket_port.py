@@ -57,7 +57,6 @@ class SocketPort(Port):
             self.buffer_size = buffer_size
             # time.sleep(1)
 
-            self.rx_parse = -1
             self.com_read = self.com.recv
             self.com_write = self.com.send
             self.write_lock = threading.Lock()

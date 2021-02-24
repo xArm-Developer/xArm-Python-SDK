@@ -49,9 +49,10 @@ class Base(Events):
             self._check_is_ready = kwargs.get('check_is_ready', True)
             self._check_is_pause = kwargs.get('check_is_pause', True)
             self._timed_comm = kwargs.get('timed_comm', True)
-            self._timed_comm_interval = kwargs.get('timed_comm_interval', 180)
+            self._timed_comm_interval = kwargs.get('timed_comm_interval', 30)
             self._timed_comm_t = None
             self._timed_comm_t_alive = False
+
             self._rewrite_modbus_baudrate_method = kwargs.get('rewrite_modbus_baudrate_method', True)
 
             self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
@@ -619,17 +620,35 @@ class Base(Events):
 
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
+        cnt = 0
         while self.connected and self._timed_comm_t_alive:
-            try:
-                self.get_cmdnum()
-            except:
-                pass
-            count = self._timed_comm_interval * 10
-            while count > 0:
-                count -= 1
-                time.sleep(0.1)
-                if not self._timed_comm_t_alive or not self.connected:
-                    break
+            if self.arm_cmd and time.time() - self.arm_cmd.last_comm_time > self._timed_comm_interval:
+                try:
+                    if cnt == 0:
+                        code, _ = self.get_cmdnum()
+                    elif cnt == 1:
+                        code, _ = self.get_state()
+                    else:
+                        code, _ = self.get_err_warn_code()
+                    cnt = (cnt + 1) % 3
+                except:
+                    pass
+            time.sleep(0.5)
+
+        # while self.connected and self._timed_comm_t_alive:
+        #     if not self.arm_cmd or (time.time() - self.arm_cmd.last_comm_time < self._timed_comm_interval):
+        #         time.sleep(0.1)
+        #         continue
+        #     try:
+        #         self.get_cmdnum()
+        #     except:
+        #         pass
+        #     count = self._timed_comm_interval * 10
+        #     while count > 0:
+        #         count -= 1
+        #         time.sleep(0.1)
+        #         if not self._timed_comm_t_alive or not self.connected:
+        #             break
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
         if self.connected:
@@ -664,6 +683,11 @@ class Base(Events):
                 if not self.connected:
                     raise Exception('connect socket failed')
 
+                self._report_error_warn_changed_callback()
+
+                self.arm_cmd = UxbusCmdTcp(self._stream)
+                self._stream_type = 'socket'
+
                 try:
                     if self._timed_comm:
                         self._timed_comm_t = threading.Thread(target=self._timed_comm_thread, daemon=True)
@@ -671,10 +695,6 @@ class Base(Events):
                 except:
                     pass
 
-                self._report_error_warn_changed_callback()
-
-                self.arm_cmd = UxbusCmdTcp(self._stream)
-                self._stream_type = 'socket'
                 self._stream_report = None
 
                 try:

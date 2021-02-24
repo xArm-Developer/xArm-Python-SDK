@@ -60,12 +60,14 @@ def log(msg, *args, **kwargs):
     if logger.findCaller != findCaller:
         logger.findCaller = findCaller
 
-logger.verbose = functools.partial(log, level=logger.VERBOSE)
-logger.debug = functools.partial(log, level=logger.DEBUG)
-logger.info = functools.partial(log, level=logger.INFO)
-logger.warning = functools.partial(log, level=logger.WARNING)
-logger.error = functools.partial(log, level=logger.ERROR)
-logger.critical = functools.partial(log, level=logger.CRITICAL)
+logger.verbose = functools.partial(logger.log, logger.VERBOSE)
+
+# logger.verbose = functools.partial(log, level=logger.VERBOSE)
+# logger.debug = functools.partial(log, level=logger.DEBUG)
+# logger.info = functools.partial(log, level=logger.INFO)
+# logger.warning = functools.partial(log, level=logger.WARNING)
+# logger.error = functools.partial(log, level=logger.ERROR)
+# logger.critical = functools.partial(log, level=logger.CRITICAL)
 
 colors = {
     'none': '{}',
@@ -94,4 +96,3 @@ def pretty_print(*args, sep=' ', end='\n', file=None, color='none'):
     msg = msg.rstrip(sep)
     # msg = colors.get(color, '{}').format(msg)
     print(msg, end=end, file=file)
-

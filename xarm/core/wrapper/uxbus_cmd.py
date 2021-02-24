@@ -37,6 +37,11 @@ class UxbusCmd(object):
         self.lock = threading.Lock()
         self._GET_TIMEOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
         self._SET_TIMEOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
+        self._last_comm_time = time.time()
+
+    @property
+    def last_comm_time(self):
+        return self._last_comm_time
 
     @property
     def state_is_ready(self):

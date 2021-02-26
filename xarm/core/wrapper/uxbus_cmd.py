@@ -936,8 +936,7 @@ class UxbusCmd(object):
         msg[12] = ret[27:35]
         if len(ret) >= 50:
             msg[11] = ret[19:27] + ret[35:43]
-            msg[12] = ret[27:35] + ret[43:50]
-
+            msg[12] = ret[27:35] + ret[43:51]
         return msg
 
     def set_self_collision_detection(self, on_off):

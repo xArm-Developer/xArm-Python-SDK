@@ -144,7 +144,7 @@ class GPIO(Base):
             return 0, [1] * 16 if ionum is None else 1
         ret = self.arm_cmd.cgpio_get_auxdigit()
         digitals = [ret[0]]
-        for i in range(16):
+        for i in range(16 if self._control_box_type_is_1300 else 8):
             digitals.append(ret[1] >> i & 0x0001)
         return digitals[0], digitals[1:] if ionum is None else digitals[ionum+1]
 

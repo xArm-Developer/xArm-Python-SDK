@@ -170,7 +170,7 @@ class Base(Events):
             self._last_update_cmdnum_time = 0
 
             self._arm_type_is_1300 = False
-            self._is_new_control_box = False
+            self._control_box_type_is_1300 = False
 
             if not do_not_open:
                 self.connect()
@@ -266,7 +266,7 @@ class Base(Events):
         self._last_update_cmdnum_time = 0
 
         self._arm_type_is_1300 = False
-        self._is_new_control_box = False
+        self._control_box_type_is_1300 = False
 
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
@@ -303,8 +303,8 @@ class Base(Events):
                     self._minor_version_number = int(minor_version_number)
                     self._revision_version_number = int(revision_version_number)
 
-                    self._arm_type_is_1300 = xarm_sn[2:6] == '1300'
-                    self._is_new_control_box = ac_version[2:6] == '1300'
+                    self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300
+                    self._control_box_type_is_1300 = int(ac_version[2:6]) == 1300
                 else:
                     pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
                     m = re.match(pattern, self._version)
@@ -1451,7 +1451,7 @@ class Base(Events):
                 cgpio_states[6:10] = list(map(lambda x: x / 4095.0 * 10.0, cgpio_states[6:10]))
                 cgpio_states.append(list(map(int, rx_data[401:409])))
                 cgpio_states.append(list(map(int, rx_data[409:417])))
-                if length >= 433:
+                if self._control_box_type_is_1300 and length >= 433:
                     cgpio_states[-2].extend(list(map(int, rx_data[417:425])))
                     cgpio_states[-1].extend(list(map(int, rx_data[425:433])))
                 self._cgpio_states = cgpio_states

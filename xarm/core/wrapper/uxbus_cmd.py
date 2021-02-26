@@ -886,21 +886,21 @@ class UxbusCmd(object):
         return value
 
     def cgpio_set_auxdigit(self, ionum, value):
-        # tmp = [0] * 2
-        # if ionum > 7:
-        #     tmp[1] = tmp[1] | (0x0100 << (ionum - 8))
-        #     if value:
-        #         tmp[1] = tmp[1] | (0x0001 << (ionum - 8))
-        # else:
-        #     tmp[0] = tmp[0] | (0x0100 << ionum)
-        #     if value:
-        #         tmp[0] = tmp[0] | (0x0001 << ionum)
-        # return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2)
-        tmp = [0] * 1
-        tmp[0] = tmp[0] | (0x0100 << ionum)
-        if value:
-            tmp[0] = tmp[0] | (0x0001 << ionum)
-        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1)
+        tmp = [0] * 2
+        if ionum > 7:
+            tmp[1] = tmp[1] | (0x0100 << (ionum - 8))
+            if value:
+                tmp[1] = tmp[1] | (0x0001 << (ionum - 8))
+        else:
+            tmp[0] = tmp[0] | (0x0100 << ionum)
+            if value:
+                tmp[0] = tmp[0] | (0x0001 << ionum)
+        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2 if ionum > 7 else 1)
+        # tmp = [0] * 1
+        # tmp[0] = tmp[0] | (0x0100 << ionum)
+        # if value:
+        #     tmp[0] = tmp[0] | (0x0001 << ionum)
+        # return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1)
 
     def cgpio_set_analog1(self, value):
         txdata = [int(value / 10.0 * 4095.0)]

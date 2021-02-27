@@ -660,9 +660,15 @@ class Gripper(GPIO):
             self.bio_gripper_error_code = error_code
         return code, error_code
 
+    @xarm_is_not_simulation_mode(ret=(0, '*.*.*'))
     def get_bio_gripper_version(self):
-        ret = self.get_bio_gripper_register(address=0x0801, number_of_registers=0x03)
-        return ret
+        code, ret = self.get_bio_gripper_register(address=0x0801, number_of_registers=0x03)
+        versions = ['*', '*', '*']
+        if code == 0:
+            versions[0] = convert.bytes_to_u16(ret[3:5])
+            versions[1] = convert.bytes_to_u16(ret[5:7])
+            versions[2] = convert.bytes_to_u16(ret[7:9])
+        return code, '.'.join(map(str, versions))
 
     @xarm_is_connected(_type='set')
     def clean_bio_gripper_error(self):

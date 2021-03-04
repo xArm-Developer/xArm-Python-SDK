@@ -189,6 +189,13 @@ class XArmAPI(object):
         xArm sn
         """
         return self._arm.sn
+    
+    @property
+    def control_box_sn(self):
+        """
+        Control box sn
+        """
+        return self._arm.control_box_sn
 
     @property
     def position(self):

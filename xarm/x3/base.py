@@ -83,6 +83,7 @@ class Base(Events):
 
             self._version = None
             self._robot_sn = None
+            self._control_box_sn = None
             self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
             self._angles = [0] * 7
             self._position_offset = [0] * 6
@@ -185,6 +186,7 @@ class Base(Events):
         self._mvtime = 0
         self._version = None
         self._robot_sn = None
+        self._control_box_sn = None
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
@@ -279,6 +281,7 @@ class Base(Events):
         if is_first:
             self._version = None
             self._robot_sn = None
+            self._control_box_sn = None
         try:
             if not self._version:
                 self.get_version()
@@ -302,6 +305,9 @@ class Base(Events):
                     self._major_version_number = int(major_version_number)
                     self._minor_version_number = int(minor_version_number)
                     self._revision_version_number = int(revision_version_number)
+                    
+                    self._robot_sn = xarm_sn
+                    self._control_box_sn = ac_version
 
                     self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300
                     self._control_box_type_is_1300 = int(ac_version[2:6]) == 1300
@@ -326,6 +332,7 @@ class Base(Events):
             if is_first:
                 if self._check_robot_sn:
                     count = 2
+                    self.get_robot_sn()
                     while not self._robot_sn and count and self.warn_code == 0:
                         self.get_robot_sn()
                         self.get_err_warn_code()
@@ -398,6 +405,10 @@ class Base(Events):
     @property
     def sn(self):
         return self._robot_sn
+    
+    @property
+    def control_box_sn(self):
+        return self._control_box_sn
 
     @property
     def position(self):
@@ -1756,7 +1767,11 @@ class Base(Events):
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             robot_sn = ''.join(list(map(chr, ret[1:])))
-            self._robot_sn = robot_sn[:robot_sn.find('\0')]
+            split_inx = robot_sn.find('\0')
+            self._robot_sn = robot_sn[:split_inx]
+            control_box_sn = robot_sn[split_inx+1:]
+            self._control_box_sn = control_box_sn[:control_box_sn.find('\0')]
+            print(robot_sn)
         return ret[0], self._robot_sn
 
     @xarm_is_connected(_type='get')

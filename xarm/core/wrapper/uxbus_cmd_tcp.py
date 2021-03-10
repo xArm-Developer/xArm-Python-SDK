@@ -65,6 +65,8 @@ class UxbusCmdTcp(UxbusCmd):
         if fun != funcode:
             return XCONF.UxbusState.ERR_FUN
         self._state_is_ready = not (state & 0x10)
+        if state & 0x08:
+            return XCONF.UxbusState.INVALID
         if state & 0x40:
             self._has_err_warn = True
             return XCONF.UxbusState.ERR_CODE

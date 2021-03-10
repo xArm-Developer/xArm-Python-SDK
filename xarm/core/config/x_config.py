@@ -258,6 +258,11 @@ class XCONF(object):
         SERVO_ZERO = 105
         SERVO_DBMSG = 106
 
+        CALI_TCP_POSE = 111
+        CALI_TCP_ORIENT = 112
+        CALI_WRLD_ORIENT = 113
+        CALI_WRLD_POSE = 114
+
         TGPIO_MB_TIOUT = 123
         TGPIO_MODBUS = 124
         TGPIO_ERR = 125
@@ -284,6 +289,16 @@ class XCONF(object):
         POSITION_TGPIO_SET = 145
         SET_IO_STOP_RESET = 146
         POSITION_CGPIO_SET_ANALOG = 147
+
+        # FTSENSOR_ENABLE = 201
+        # FTSENSOR_SET_APP = 202
+        # FTSENSOR_GET_APP = 203
+        # FTSENSOR_IDEN_LOAD = 204
+        # FTSENSOR_CALI_LOAD_OFFSET = 205
+        # FTSENSOR_SET_ZERO = 206
+        # IMPEDANCE_CONFIG = 207
+        # FORCE_CTRL_PID = 208
+        # FORCE_CTRL_CONFIG = 209
 
     class UxbusConf:
         SET_TIMEOUT = 2000  # ms
@@ -355,6 +370,7 @@ class XCONF(object):
         ERR_FUN = 7  # TCP回复指令和发送指令不匹配
         ERR_NOTTCP = 8  # 发送错误
         STATE_NOT_READY = 9  # 未准备好运动
+        INVALID = 10  # 结果无效
         ERR_OTHER = 11  # 其它错误
         ERR_PARAM = 12  # 参数错误
 

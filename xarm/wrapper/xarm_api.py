@@ -2789,3 +2789,60 @@ class XArmAPI(object):
         """
         return self._arm.vc_set_cartesian_velocity(speeds, is_radian=is_radian, is_tool_coord=is_tool_coord, **kwargs)
 
+    def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
+        """
+        Four-point method to calibrate tool coordinate system position offset
+
+        :param four_points: a list of four teaching coordinate positions [x, y, z, roll, pitch, yaw]
+        :param is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian
+        :return: tuple((code, xyz_offset)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            xyz_offset: calculated xyz(mm) TCP offset, [x, y, z] 
+        """
+        return self._arm.calibrate_tcp_coordinate_offset(four_points, is_radian=is_radian)
+
+    def calibrate_tcp_orientation_offset(self, rpy_be, rpy_bt, input_is_radian=None, return_is_radian=None):
+        """
+        An additional teaching point to calibrate the tool coordinate system attitude offset
+
+        :param rpy_be: the rpy value of the teaching point without TCP offset [roll, pitch, yaw]
+        :param rpy_bt: the rpy value of the teaching point with TCP offset [roll, pitch, yaw]
+        :param input_is_radian: the roll/pitch/yaw value of rpy_be and rpy_bt in radians or not, default is self.default_is_radian
+        :param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
+        :return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
+        """
+        return self._arm.calibrate_tcp_orientation_offset(rpy_be, rpy_bt, input_is_radian=input_is_radian, return_is_radian=return_is_radian)
+
+    def calibrate_user_orientation_offset(self, three_points, input_is_radian=None, return_is_radian=None):
+        """
+        Three-point method teaches user coordinate system posture offset
+        
+        Note:
+            First determine a point in the working space, move along the desired coordinate system x+ to determine the second point,
+            and then move along the desired coordinate system y+ to determine the third point. 
+            Note that the x+ direction is as accurate as possible. 
+            If the y+ direction is not completely perpendicular to x+, it will be corrected in the calculation process.
+
+        :param three_points: a list of teaching TCP coordinate positions [x, y, z, roll, pitch, yaw]
+        :param input_is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian
+        :param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
+        :return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
+        """
+        return self._arm.calibrate_user_orientation_offset(three_points, input_is_radian=input_is_radian, return_is_radian=return_is_radian)
+    
+    def calibrate_user_coordinate_offset(self, rpy_ub, pos_b_uorg, is_radian=None):
+        """
+        An additional teaching point determines the position offset of the user coordinate system.
+
+        :param rpy_ub: the confirmed offset of the base coordinate system in the user coordinate system [roll, pitch, yaw], which is the result of calibrate_user_orientation_offset()
+        :param pos_b_uorg: the position of the teaching point in the base coordinate system [x, y, z], if the arm cannot reach the target position, the user can manually input the position of the target in the base coordinate.
+        :param is_radian: the roll/pitch/yaw value of rpy_ub in radians or not, default is self.default_is_radian
+        :return: tuple((code, xyz_offset)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            xyz_offset: calculated xyz(mm) TCP offset, [x, y, z] 
+        """
+        return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)

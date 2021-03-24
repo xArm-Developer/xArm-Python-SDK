@@ -310,7 +310,7 @@ class Base(Events):
                     self._control_box_sn = ac_version
 
                     self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300 if xarm_sn[2:6].isdigit() else False
-                    self._control_box_type_is_1300 = int(ac_version[2:6]) >= 1300 if if ac_version[2:6].isdigit() else False
+                    self._control_box_type_is_1300 = int(ac_version[2:6]) >= 1300 if ac_version[2:6].isdigit() else False
                 else:
                     pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
                     m = re.match(pattern, self._version)
@@ -1772,7 +1772,7 @@ class Base(Events):
             control_box_sn = robot_sn[split_inx+1:]
             self._control_box_sn = control_box_sn[:control_box_sn.find('\0')]
             self._arm_type_is_1300 = int(self._robot_sn[2:6]) >= 1300 if self._robot_sn[2:6].isdigit() else False
-            self._control_box_type_is_1300 = int(self._control_box_sn[2:6]) >= 1300 if if self._control_box_sn[2:6].isdigit() else False
+            self._control_box_type_is_1300 = int(self._control_box_sn[2:6]) >= 1300 if self._control_box_sn[2:6].isdigit() else False
         return ret[0], self._robot_sn
 
     @xarm_is_connected(_type='get')

@@ -2768,6 +2768,8 @@ class XArmAPI(object):
     def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, **kwargs):
         """
         Joint velocity control, need to be set to joint velocity control mode(self.set_mode(4))
+        Note:
+            1. only available if firmware_version >= 1.6.9
         
         :param speeds: [spd_J1, spd_J2, ..., spd_J7]
         :param is_radian: the spd_Jx in radians or not, default is self.default_is_radian
@@ -2780,7 +2782,9 @@ class XArmAPI(object):
     def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, **kwargs):
         """
         Cartesian velocity control, need to be set to cartesian velocity control mode(self.set_mode(5))
-        
+        Note:
+            1. only available if firmware_version >= 1.6.9
+            
         :param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
         :param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
         :param is_tool_coord: is tool coordinate or not, default is False
@@ -2792,6 +2796,8 @@ class XArmAPI(object):
     def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
         """
         Four-point method to calibrate tool coordinate system position offset
+        Note:
+            1. only available if firmware_version >= 1.6.9
 
         :param four_points: a list of four teaching coordinate positions [x, y, z, roll, pitch, yaw]
         :param is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian
@@ -2804,6 +2810,8 @@ class XArmAPI(object):
     def calibrate_tcp_orientation_offset(self, rpy_be, rpy_bt, input_is_radian=None, return_is_radian=None):
         """
         An additional teaching point to calibrate the tool coordinate system attitude offset
+        Note:
+            1. only available if firmware_version >= 1.6.9
 
         :param rpy_be: the rpy value of the teaching point without TCP offset [roll, pitch, yaw]
         :param rpy_bt: the rpy value of the teaching point with TCP offset [roll, pitch, yaw]
@@ -2815,9 +2823,11 @@ class XArmAPI(object):
         """
         return self._arm.calibrate_tcp_orientation_offset(rpy_be, rpy_bt, input_is_radian=input_is_radian, return_is_radian=return_is_radian)
 
-    def calibrate_user_orientation_offset(self, three_points, input_is_radian=None, return_is_radian=None):
+    def calibrate_user_orientation_offset(self, three_points, mode=0, trust_ind=0, input_is_radian=None, return_is_radian=None):
         """
         Three-point method teaches user coordinate system posture offset
+        Note:
+            1. only available if firmware_version >= 1.6.9
         
         Note:
             First determine a point in the working space, move along the desired coordinate system x+ to determine the second point,
@@ -2832,11 +2842,13 @@ class XArmAPI(object):
             code: See the API code documentation for details.
             rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
         """
-        return self._arm.calibrate_user_orientation_offset(three_points, input_is_radian=input_is_radian, return_is_radian=return_is_radian)
+        return self._arm.calibrate_user_orientation_offset(three_points, mode=mode, trust_ind=trust_ind, input_is_radian=input_is_radian, return_is_radian=return_is_radian)
     
     def calibrate_user_coordinate_offset(self, rpy_ub, pos_b_uorg, is_radian=None):
         """
         An additional teaching point determines the position offset of the user coordinate system.
+        Note:
+            1. only available if firmware_version >= 1.6.9
 
         :param rpy_ub: the confirmed offset of the base coordinate system in the user coordinate system [roll, pitch, yaw], which is the result of calibrate_user_orientation_offset()
         :param pos_b_uorg: the position of the teaching point in the base coordinate system [x, y, z], if the arm cannot reach the target position, the user can manually input the position of the target in the base coordinate.
@@ -2846,3 +2858,40 @@ class XArmAPI(object):
             xyz_offset: calculated xyz(mm) TCP offset, [x, y, z] 
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
+
+
+    def set_impedance(self, coord, c_axis, M, K, B):
+        return self._arm.set_impedance(coord, c_axis, M, K, B)
+
+    def set_impedance_mbk(self, M, K, B):
+        return self._arm.set_impedance_mbk(M, K, B)
+
+    def set_impedance_config(self, coord, c_axis):
+        return self._arm.set_impedance_config(coord, c_axis)
+
+    def config_force_control(self, coord, c_axis, f_ref, limits):
+        return self._arm.config_force_control(coord, c_axis, f_ref, limits)
+
+    def set_force_control_pid(self, kp, ki, kd, xe_limit):
+        return self._arm.set_force_control_pid(kp, ki, kd, xe_limit)
+
+    def ft_sensor_set_zero(self):
+        return self._arm.ft_sensor_set_zero()
+
+    def ft_sensor_iden_load(self):
+        return self._arm.ft_sensor_iden_load()
+
+    def ft_sensor_cali_load(self, iden_result_list):
+        return self._arm.ft_sensor_cali_load(iden_result_list)
+
+    def ft_sensor_enable(self, on_off):
+        return self._arm.ft_sensor_enable(on_off)
+
+    def ft_sensor_app_set(self, app_code):
+        return self._arm.ft_sensor_app_set(app_code)
+
+    def ft_sensor_app_get(self):
+        return self._arm.ft_sensor_app_get()
+
+    def get_exe_ft(self):
+        return self._arm.get_exe_ft()

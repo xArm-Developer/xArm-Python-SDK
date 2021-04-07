@@ -3,442 +3,6 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 ## class __XArmAPI__
 ****************************************
 
-### __Attributes__
-****************************************
-#### __angles__
-```
-Servo angles
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-
-:return: [angle1(° or rad), angle2(° or rad), ..., anglen7(° or rad)]
-```
-
-#### __arm__
-
-#### __axis__
-```
-Axis number, only available in socket way and enable_report is True and report_type is 'rich'
-```
-
-#### __cgpio_states__
-```
-Controller gpio state
-
-:return: states
-    states[0]: contorller gpio module state
-        states[0] == 0: normal
-        states[0] == 1：wrong
-        states[0] == 6：communication failure
-    states[1]: controller gpio module error code
-        states[1] == 0: normal
-        states[1] != 0：error code
-    states[2]: digital input functional gpio state
-        Note: digital-i-input functional gpio state = states[2] >> i & 0x01
-    states[3]: digital input configuring gpio state
-        Note: digital-i-input configuring gpio state = states[3] >> i & 0x01
-    states[4]: digital output functional gpio state
-        Note: digital-i-output functional gpio state = states[4] >> i & 0x01
-    states[5]: digital output configuring gpio state
-        Note: digital-i-output configuring gpio state = states[5] >> i & 0x01
-    states[6]: analog-0 input value
-    states[7]: analog-1 input value
-    states[8]: analog-0 output value
-    states[9]: analog-1 output value
-    states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]
-    states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
-```
-
-#### __cmd_num__
-```
-Number of command caches in the controller
-```
-
-#### __collision_sensitivity__
-```
-The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'
-
-:return: 0~5
-```
-
-#### __connected__
-```
-Connection status
-```
-
-#### __core__
-```
-Core layer API, set only for advanced developers, please do not use
-Ex:
-    self.core.move_line(...)
-    self.core.move_lineb(...)
-    self.core.move_joint(...)
-    ...
-```
-
-#### __count__
-```
-Counter val
-```
-
-#### __currents__
-```
-Servos electric current
-
-:return: [servo-1-current, ..., servo-7-current]
-```
-
-#### __default_is_radian__
-```
-The default unit is radians or not
-```
-
-#### __device_type__
-```
-Device type, only available in socket way and  enable_report is True and report_type is 'rich'
-```
-
-#### __error_code__
-```
-Controller error code. See Chapter 7 of the xArm User Manual for details.
-```
-
-#### __gpio_reset_config__
-```
-The gpio reset enable config
-:return: [cgpio_reset_enable, tgpio_reset_enable]
-```
-
-#### __gravity_direction__
-```
-gravity direction, only available in socket way and enable_report is True and report_type is 'rich'
-:return:
-```
-
-#### __has_err_warn__
-```
-Contorller have an error or warning or not
-
-:return: True/False
-```
-
-#### __has_error__
-```
-Controller have an error or not
-```
-
-#### __has_warn__
-```
-Controller have an warnning or not
-```
-
-#### __is_simulation_robot__
-```
-Is simulation robot not not
-```
-
-#### __joint_acc_limit__
-```
-Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-
-:return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]
-```
-
-#### __joint_jerk__
-```
-Joint jerk
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-
-:return: jerk (°/s^3 or rad/s^3)
-```
-
-#### __joint_speed_limit__
-```
-Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-
-:return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]
-```
-
-#### __joints_torque__
-```
-Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'
-
-:return: [joint-1, ....]
-```
-
-#### __last_used_angles__
-```
-The last used servo angles, default value of parameter angle of interface set_servo_angle
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-    2. self.set_servo_angle(servo_id=1, angle=75) <==> self.set_servo_angle(angle=[75] + self.last_used_angles[1:])
-    3. self.set_servo_angle(servo_id=5, angle=30) <==> self.set_servo_angle(angle=self.last_used_angles[:4] + [30] + self.last_used_angles[5:])
-
-:return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
-```
-
-#### __last_used_joint_acc__
-```
-The last used joint acceleration, default value of parameter mvacc of interface set_servo_angle
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-
-:return: acceleration (°/s^2 or rad/s^2)
-```
-
-#### __last_used_joint_speed__
-```
-The last used joint speed, default value of parameter speed of interface set_servo_angle
-Note:
-    1. If self.default_is_radian is True, the returned value is in radians
-
-:return: speed (°/s or rad/s)
-```
-
-#### __last_used_position__
-```
-The last used cartesion position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position
-Note:
-    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
-    2. self.set_position(x=300) <==> self.set_position(x=300, *last_used_position[1:])
-    2. self.set_position(roll=-180) <==> self.set_position(x=self.last_used_position[:3], roll=-180, *self.last_used_position[4:])
-
-:return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
-```
-
-#### __last_used_tcp_acc__
-```
-The last used cartesion acceleration, default value of parameter mvacc of interface set_position/move_circle
-
-:return: acceleration (mm/s^2)
-```
-
-#### __last_used_tcp_speed__
-```
-The last used cartesion speed, default value of parameter speed of interface set_position/move_circle
-
-:return: speed (mm/s)
-```
-
-#### __master_id__
-```
-Master id, only available in socket way and enable_report is True and report_type is 'rich'
-```
-
-#### __mode__
-```
-xArm mode，only available in socket way and  enable_report is True
-
-:return:
-    0: position control mode
-    1: servo motion mode
-    2: joint teaching mode
-    3: cartesian teaching mode (invalid)
-```
-
-#### __motor_brake_states__
-```
-Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'
-Note:
-    For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
-
-:return: [motor-1-brake-state, ..., motor-7-brake-state, reserved]
-    motor-{i}-brake-state:
-        0: enable
-        1: disable
-```
-
-#### __motor_enable_states__
-```
-Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'
-Note:
-    For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
-
-:return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]
-    motor-{i}-enable-state:
-        0: disable
-        1: enable
-```
-
-#### __position__
-```
-Cartesion position
-Note:
-    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
-
-return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
-```
-
-#### __realtime_joint_speeds__
-```
-The real time speed of joint motion, only available if version > 1.2.11
-
-:return: [joint-1-speed(°/s or rad/s), ...., joint-7-speed(°/s or rad/s)]
-```
-
-#### __realtime_tcp_speed__
-```
-The real time speed of tcp motion, only available if version > 1.2.11
-
-:return: real time speed (mm/s)
-```
-
-#### __robotiq_status__
-```
-The last state value obtained
-
-Note:
-    1. Successfully call the robotiq related interface with wait parameter (when the parameter wait = True is set) will update this value
-    2. Successfully calling interface robotiq_get_status will partially or completely update this value
-
-:return status dict
-    {
-        'gOBJ': 0,  # Object detection status, is a built-in feature that provides information on possible object pick-up
-        'gSTA': 0,  # Gripper status, returns the current status & motion of the Gripper fingers
-        'gGTO': 0,  # Action status, echo of the rGTO bit(go to bit)
-        'gACT': 0,  # Activation status, echo of the rACT bit(activation bit)
-        'kFLT': 0,  # Echo of the requested position for the Gripper
-        'gFLT': 0,  # Fault status
-        'gPR': 0,  # Echo of the requested position for the Gripper
-        'gPO': 0,  # Actual position of the Gripper obtained via the encoders
-        'gCU': 0,  # The current is read instantaneously from the motor drive
-    }
-    Note: -1 means never updated
-```
-
-#### __self_collision_params__
-```
-Self collision params
-
-:return: params
-    params[0]: self collision detection or not
-    params[1]: self collision tool type
-    params[2]: self collision model params
-```
-
-#### __servo_codes__
-```
-Servos status and error_code
-:return: [
-    [servo-1-status, servo-1-code],
-    ...,
-    [servo-7-status, servo-7-code], 
-    [tool-gpio-status, tool-gpio-code]
-]
-```
-
-#### __slave_id__
-```
-Slave id, only available in socket way and enable_report is True and report_type is 'rich'
-```
-
-#### __sn__
-```
-xArm sn
-```
-
-#### __state__
-```
-xArm state
-
-:return:
-    1: in motion
-    2: sleeping
-    3: suspended
-    4: stopping
-```
-
-#### __tcp_acc_limit__
-```
-Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
-
-:return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
-```
-
-#### __tcp_jerk__
-```
-Tcp jerk
-
-:return: jerk (mm/s^3)
-```
-
-#### __tcp_load__
-```
-xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
-
-:return: [weight, center of gravity]
-    such as: [weight(kg), [x(mm), y(mm), z(mm)]]
-```
-
-#### __tcp_offset__
-```
-Cartesion position offset, only available in socket way and enable_report is True
-Note:
-    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
-
-:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
-```
-
-#### __tcp_speed_limit__
-```
-Tcp speed limit, only available in socket way and enable_report is True and report_type is 'rich'
-
-:return: [min_tcp_speed(mm/s), max_tcp_speed(mm/s)]
-```
-
-#### __teach_sensitivity__
-```
-The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
-
-:return: 1~5
-```
-
-#### __temperatures__
-```
-Motor temperature, only available if version > 1.2.11
-
-:return: [motor-1-temperature, ..., motor-7-temperature]
-```
-
-#### __version__
-```
-xArm version
-```
-
-#### __version_number__
-```
-Frimware version number
-
-:return: (major_version_number, minor_version_number, revision_version_number)
-```
-
-#### __voltages__
-```
-Servos voltage
-
-:return: [servo-1-voltage, ..., servo-7-voltage]
-```
-
-#### __warn_code__
-```
-Controller warn code. See Chapter 7 of the xArm User Manual for details.
-```
-
-#### __world_offset__
-```
-Base coordinate offset, only available if version > 1.2.11
-
-Note:
-    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
-
-:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
-```
-
 ****************************************
 ### __Methods__
 ****************************************
@@ -511,6 +75,72 @@ Note: Orientation of attitude angle
     max_cmdnum: max cmdnum, default is 256
         Note: only available in the param `check_cmdnum_limit` is True
     check_is_ready: check if the arm is in motion, default is True
+```
+
+#### def __calibrate_tcp_coordinate_offset__(self, four_points, is_radian=None):
+
+```
+Four-point method to calibrate tool coordinate system position offset
+Note:
+    1. only available if firmware_version >= 1.6.9
+
+:param four_points: a list of four teaching coordinate positions [x, y, z, roll, pitch, yaw]
+:param is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian
+:return: tuple((code, xyz_offset)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    xyz_offset: calculated xyz(mm) TCP offset, [x, y, z]
+```
+
+#### def __calibrate_tcp_orientation_offset__(self, rpy_be, rpy_bt, input_is_radian=None, return_is_radian=None):
+
+```
+An additional teaching point to calibrate the tool coordinate system attitude offset
+Note:
+    1. only available if firmware_version >= 1.6.9
+
+:param rpy_be: the rpy value of the teaching point without TCP offset [roll, pitch, yaw]
+:param rpy_bt: the rpy value of the teaching point with TCP offset [roll, pitch, yaw]
+:param input_is_radian: the roll/pitch/yaw value of rpy_be and rpy_bt in radians or not, default is self.default_is_radian
+:param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
+:return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
+```
+
+#### def __calibrate_user_coordinate_offset__(self, rpy_ub, pos_b_uorg, is_radian=None):
+
+```
+An additional teaching point determines the position offset of the user coordinate system.
+Note:
+    1. only available if firmware_version >= 1.6.9
+
+:param rpy_ub: the confirmed offset of the base coordinate system in the user coordinate system [roll, pitch, yaw], which is the result of calibrate_user_orientation_offset()
+:param pos_b_uorg: the position of the teaching point in the base coordinate system [x, y, z], if the arm cannot reach the target position, the user can manually input the position of the target in the base coordinate.
+:param is_radian: the roll/pitch/yaw value of rpy_ub in radians or not, default is self.default_is_radian
+:return: tuple((code, xyz_offset)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    xyz_offset: calculated xyz(mm) TCP offset, [x, y, z]
+```
+
+#### def __calibrate_user_orientation_offset__(self, three_points, mode=0, trust_ind=0, input_is_radian=None, return_is_radian=None):
+
+```
+Three-point method teaches user coordinate system posture offset
+Note:
+    1. only available if firmware_version >= 1.6.9
+
+Note:
+    First determine a point in the working space, move along the desired coordinate system x+ to determine the second point,
+    and then move along the desired coordinate system y+ to determine the third point. 
+    Note that the x+ direction is as accurate as possible. 
+    If the y+ direction is not completely perpendicular to x+, it will be corrected in the calculation process.
+
+:param three_points: a list of teaching TCP coordinate positions [x, y, z, roll, pitch, yaw]
+:param input_is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian
+:param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
+:return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
 ```
 
 #### def __check_verification__(self):
@@ -2597,7 +2227,9 @@ Note:
 
 ```
 Cartesian velocity control, need to be set to cartesian velocity control mode(self.set_mode(5))
-
+Note:
+    1. only available if firmware_version >= 1.6.9
+    
 :param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
 :param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
 :param is_tool_coord: is tool coordinate or not, default is False
@@ -2609,6 +2241,8 @@ Cartesian velocity control, need to be set to cartesian velocity control mode(se
 
 ```
 Joint velocity control, need to be set to joint velocity control mode(self.set_mode(4))
+Note:
+    1. only available if firmware_version >= 1.6.9
 
 :param speeds: [spd_J1, spd_J2, ..., spd_J7]
 :param is_radian: the spd_Jx in radians or not, default is self.default_is_radian

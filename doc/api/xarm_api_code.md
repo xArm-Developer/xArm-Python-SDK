@@ -22,12 +22,12 @@
 - 7: tcp reply command and send command do not match
 - 8: send command error, may be network exception
 - 9: state is not ready to move
-- 10: reversed, no use
+- 10: the result is invalid
 - 11: other error
 - 12: parameter error
 - 20: tgpio id error
 - 21: modbus baudrate not supported
-- 22:  modbus baudrate not correct
+- 22: modbus baudrate not correct
 - 23: modbus reply length error
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
@@ -46,6 +46,8 @@
 
 ## Controller error code
 - 1: The Emergency Stop Button is pushed
+- 2: The Emergency IO of the Control Box is triggered
+- 3: The Emergency Stop Button of the Three-state Switch is pressed
 - 10: Servo motor error
 - 11: Servo motor 1 error
 - 12: Servo motor 2 error
@@ -73,6 +75,7 @@
 - 36: The number of delay commands exceeds the limit
 - 37: Abnormal movement in Manual Mode
 - 38: Abnormal Joint Angle
+- 39: Abnormal Communication Between Master and Slave IC of Power Board
 
 ## Servo Error Code
 

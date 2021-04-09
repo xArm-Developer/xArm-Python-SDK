@@ -2860,37 +2860,122 @@ class XArmAPI(object):
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
 
     def set_impedance(self, coord, c_axis, M, K, B):
+        """
+        
+        :param coord: 
+        :param c_axis: 
+        :param M: 
+        :param K: 
+        :param B: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_impedance(coord, c_axis, M, K, B)
 
     def set_impedance_mbk(self, M, K, B):
+        """
+        
+        :param M: 
+        :param K: 
+        :param B: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_impedance_mbk(M, K, B)
 
     def set_impedance_config(self, coord, c_axis):
+        """
+        
+        :param coord: 
+        :param c_axis: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_impedance_config(coord, c_axis)
 
     def config_force_control(self, coord, c_axis, f_ref, limits):
+        """
+        
+        :param coord: 
+        :param c_axis: 
+        :param f_ref: 
+        :param limits: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.config_force_control(coord, c_axis, f_ref, limits)
 
     def set_force_control_pid(self, kp, ki, kd, xe_limit):
+        """
+        
+        :param kp: 
+        :param ki: 
+        :param kd: 
+        :param xe_limit: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.set_force_control_pid(kp, ki, kd, xe_limit)
 
     def ft_sensor_set_zero(self):
+        """
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.ft_sensor_set_zero()
 
     def ft_sensor_iden_load(self):
+        """
+        
+        :return: tuple((code, load))
+            code: See the API code documentation for details.
+            load: 
+        """
         return self._arm.ft_sensor_iden_load()
 
     def ft_sensor_cali_load(self, iden_result_list):
+        """
+        
+        :param iden_result_list: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.ft_sensor_cali_load(iden_result_list)
 
     def ft_sensor_enable(self, on_off):
+        """
+        
+        :param on_off: 
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.ft_sensor_enable(on_off)
 
     def ft_sensor_app_set(self, app_code):
+        """
+        
+        :param app_code: 
+        :return: tuple((code, status))
+            code: See the API code documentation for details.
+            status: 
+        """
         return self._arm.ft_sensor_app_set(app_code)
 
     def ft_sensor_app_get(self):
+        """
+        
+        :return: tuple((code, status))
+            code: See the API code documentation for details.
+            status: 
+        """
         return self._arm.ft_sensor_app_get()
 
     def get_exe_ft(self):
+        """
+        
+        :return: tuple((code, exe_ft))
+            code: See the API code documentation for details.
+            exe_ft:
+        """
         return self._arm.get_exe_ft()

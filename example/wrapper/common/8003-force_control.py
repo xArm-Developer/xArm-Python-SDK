@@ -45,10 +45,10 @@ arm.set_state(0)
 time.sleep(0.1)
 
 # set parmeters
-Kp = 0.005	# 值越小，调整时间越长
-Ki = 0.00006  # 值越大，调整时间越小，但超调会变大
+Kp = 0.005
+Ki = 0.00006
 Kd = 0.000
-xe_max = 1.0
+xe_max = 100.0
 arm.set_force_control_pid([Kp]*6, [Ki]*6, [Kd]*6, [xe_max]*6)
 
 ref_frame = 0        # 1 : base , 0 : tool

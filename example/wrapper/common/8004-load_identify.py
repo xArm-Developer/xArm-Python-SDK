@@ -59,10 +59,11 @@ if response == 'y':
         exit()
     arm.ft_sensor_cali_load(result)
 else:
-	# don't  identify , write load parameters：
-	# [load mass : (kg)，Centroid x : (m)，Centroid y : (m)，Centroid z :(m)，offset_Fx (N)，offset_Fx (N)，offset_Fx(N)，offset_Mx(Nm)，offset_My (Nm)，offset_Mz (Nm)]
-	result = [0.7131531834602356, -0.0005494913784787059, -0.0026768327224999666, 0.06637067347764969, -17.749963760375977, 2.7701117992401123, -30.62084197998047, 0.13900014758110046, -0.37988412380218506, -0.14760535955429077]
-	arm.ft_sensor_cali_load(result)
+    # no need to identify and write load parameters：
+    # [load mass : (kg)，Centroid x : (m)，Centroid y : (m)，Centroid z :(m)，offset_Fx (N)，offset_Fx (N)，offset_Fx(N)，offset_Mx(Nm)，offset_My (Nm)，offset_Mz (Nm)]
+    result = [0.7131531834602356, -0.0005494913784787059, -0.0026768327224999666, 0.06637067347764969, -17.749963760375977, 2.7701117992401123, -30.62084197998047, 0.13900014758110046, -0.37988412380218506, -0.14760535955429077]
+    arm.ft_sensor_cali_load(result)
+
 # wait vaild
 time.sleep(1)
 arm.ft_sensor_app_set(0)

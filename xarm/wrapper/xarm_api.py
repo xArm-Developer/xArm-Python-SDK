@@ -2861,12 +2861,15 @@ class XArmAPI(object):
 
     def set_impedance(self, coord, c_axis, M, K, B):
         """
-        
-        :param coord: 
-        :param c_axis: 
-        :param M: 
-        :param K: 
-        :param B: 
+        set all parameters of impedance control.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param coord: task frame. 0: base frame. 1: tool frame.
+        :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+        :param M: mass. (kg)
+        :param K: stiffness coefficient.
+        :param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
         :return: code
             code: See the API code documentation for details.
         """
@@ -2874,10 +2877,13 @@ class XArmAPI(object):
 
     def set_impedance_mbk(self, M, K, B):
         """
-        
-        :param M: 
-        :param K: 
-        :param B: 
+        set mbk parameters of impedance control.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param M: mass. (kg)
+        :param K: stiffness coefficient.
+        :param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
         :return: code
             code: See the API code documentation for details.
         """
@@ -2885,9 +2891,12 @@ class XArmAPI(object):
 
     def set_impedance_config(self, coord, c_axis):
         """
-        
-        :param coord: 
-        :param c_axis: 
+        set impedance control parameters of impedance control.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param coord: task frame. 0: base frame. 1: tool frame.
+        :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
         :return: code
             code: See the API code documentation for details.
         """
@@ -2895,11 +2904,15 @@ class XArmAPI(object):
 
     def config_force_control(self, coord, c_axis, f_ref, limits):
         """
-        
-        :param coord: 
-        :param c_axis: 
-        :param f_ref: 
-        :param limits: 
+        set force control parameters.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param coord:  task frame. 0: base frame. 1: tool frame.
+        :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
+        :param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in
+                       order to achieve the specified force/torque.
+        :param limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
         :return: code
             code: See the API code documentation for details.
         """
@@ -2907,11 +2920,14 @@ class XArmAPI(object):
 
     def set_force_control_pid(self, kp, ki, kd, xe_limit):
         """
-        
-        :param kp: 
-        :param ki: 
-        :param kd: 
-        :param xe_limit: 
+        set force control pid parameters.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param kp: proportional gain. default : 0.005
+        :param ki: integral gain. default : 0.00006
+        :param kd: differential gain. default : 0.0
+        :param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
         :return: code
             code: See the API code documentation for details.
         """
@@ -2919,7 +2935,10 @@ class XArmAPI(object):
 
     def ft_sensor_set_zero(self):
         """
-        
+        set force/torque offset.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
         :return: code
             code: See the API code documentation for details.
         """
@@ -2927,17 +2946,23 @@ class XArmAPI(object):
 
     def ft_sensor_iden_load(self):
         """
-        
-        :return: tuple((code, load))
-            code: See the API code documentation for details.
-            load: 
+        start load identification.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :return: tuple((code, load)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            load:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
         """
         return self._arm.ft_sensor_iden_load()
 
     def ft_sensor_cali_load(self, iden_result_list):
         """
-        
-        :param iden_result_list: 
+        write load parameter value
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
         :return: code
             code: See the API code documentation for details.
         """
@@ -2945,8 +2970,11 @@ class XArmAPI(object):
 
     def ft_sensor_enable(self, on_off):
         """
-        
-        :param on_off: 
+        used for enabling and disabling the use of external F/T measurements in the controller.
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param on_off: enable or disable F/T data sampling.
         :return: code
             code: See the API code documentation for details.
         """
@@ -2954,8 +2982,11 @@ class XArmAPI(object):
 
     def ft_sensor_app_set(self, app_code):
         """
-        
-        :param app_code: 
+        set robot to be controlled in force mode
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
+        :param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
         :return: tuple((code, status))
             code: See the API code documentation for details.
             status: 
@@ -2964,18 +2995,26 @@ class XArmAPI(object):
 
     def ft_sensor_app_get(self):
         """
-        
+        get force mode
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
         :return: tuple((code, status))
             code: See the API code documentation for details.
-            status: 
+            status: 0: non-force mode
+                    1: impedance control mode
+                    2: force control mode
         """
         return self._arm.ft_sensor_app_get()
 
     def get_exe_ft(self):
         """
-        
+        get extenal force/torque
+        Note:
+            1. only available if firmware_version >= 1.7.0
+
         :return: tuple((code, exe_ft))
             code: See the API code documentation for details.
-            exe_ft:
+            exe_ft: only when code is 0, the returned result is correct.
         """
         return self._arm.get_exe_ft()

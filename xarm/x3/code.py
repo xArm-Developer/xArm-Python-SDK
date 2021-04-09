@@ -32,6 +32,7 @@ class APIState(object):
     FUN_ERROR = XCONF.UxbusState.ERR_FUN  # TCP回复指令和发送指令不匹配
     NO_TCP = XCONF.UxbusState.ERR_NOTTCP  # 写数据异常
     STATE_NOT_READY = XCONF.UxbusState.STATE_NOT_READY  # 参数错误
+    RET_IS_INVALID = XCONF.UxbusState.INVALID  # 结果无效
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
 
@@ -44,6 +45,8 @@ class APIState(object):
     TRAJ_RW_TOUT = 32  # 读写轨迹等待超时(加载轨迹或保存轨迹)
     TRAJ_PLAYBACK_TOUT = 33  # 回放轨迹超时(多种情况)
     SUCTION_CUP_TOUT = 41  # 等待吸泵设置超时
+
+    MODE_IS_NOT_CORRECT = 51  # 模式不正确
 
     WAIT_FINISH_TIMEOUT = 100  # 等待操作完成超时
     CHECK_FAILED = 101  # 等待操作完成过程检测状态连续失败次数过多

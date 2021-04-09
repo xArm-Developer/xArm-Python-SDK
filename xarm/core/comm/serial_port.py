@@ -35,8 +35,6 @@ class SerialPort(Port):
                 self.rx_parse = Ux2HexProtocol(self.rx_que,
                                                XCONF.SerialConf.UXBUS_DEF_FROMID,
                                                XCONF.SerialConf.UXBUS_DEF_TOID)
-            else:
-                self.rx_parse = -1
             self.com_read = self.com.read
             self.com_write = self.com.write
             self.start()

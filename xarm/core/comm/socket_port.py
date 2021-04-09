@@ -47,6 +47,10 @@ class SocketPort(Port):
             socket.setdefaulttimeout(1)
             self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
+            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 10)
+            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
             self.com.setblocking(True)
             self.com.settimeout(1)
             self.com.connect((server_ip, server_port))
@@ -57,7 +61,6 @@ class SocketPort(Port):
             self.buffer_size = buffer_size
             # time.sleep(1)
 
-            self.rx_parse = -1
             self.com_read = self.com.recv
             self.com_write = self.com.send
             self.write_lock = threading.Lock()

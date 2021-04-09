@@ -141,10 +141,11 @@ class GPIO(Base):
     def get_cgpio_digital(self, ionum=None):
         assert ionum is None or (isinstance(ionum, int) and 15 >= ionum >= 0)
         if self.check_is_simulation_robot():
-            return 0, [1] * 16 if ionum is None else 1
+            return 0, [1] * (16 if self._control_box_type_is_1300 else 8) if ionum is None else 1
         ret = self.arm_cmd.cgpio_get_auxdigit()
+        print(ret)
         digitals = [ret[0]]
-        for i in range(16):
+        for i in range(16 if self._control_box_type_is_1300 else 8):
             digitals.append(ret[1] >> i & 0x0001)
         return digitals[0], digitals[1:] if ionum is None else digitals[ionum+1]
 
@@ -217,6 +218,9 @@ class GPIO(Base):
     def get_cgpio_state(self):
         ret = self.arm_cmd.cgpio_get_state()
         code, states = ret[0], ret[1:]
+        if not self._control_box_type_is_1300:
+            states[-1] = states[-1][:8]
+            states[-2] = states[-2][:8]
         if code == 0 and states[0] == 0 and states[1] == 0:
             self.cgpio_state['digital'] = [states[3] >> i & 0x0001 if states[10][i] in [0, 255] else 1 for i in range(len(states[10]))]
             self.cgpio_state['analog'] = [states[6], states[7]]
@@ -256,7 +260,7 @@ class GPIO(Base):
         # print('cgpio_analog_2_output:', ret[10])
         # print('cgpio_digital_input_fun:', ret[11])
         # print('cgpio_digital_output_fun:', ret[12])
-        return ret[0], ret[1:]
+        return code, states
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)

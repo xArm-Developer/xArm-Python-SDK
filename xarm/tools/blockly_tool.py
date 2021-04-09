@@ -753,6 +753,13 @@ class BlocklyTool(object):
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    arm.get_cgpio_digital({})'.format(prefix, io))
 
+    def _handle_gpio_get_controller_digital_di(self, block, prefix='', arg_map=None):
+        io = self.get_node('field', block).text
+        if self._show_comment:
+            self._append_to_file('{}# get cgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    arm.get_cgpio_digital({})'.format(prefix, io))
+
     def _handle_gpio_get_controller_analog(self, block, prefix='', arg_map=None):
         io = self.get_node('field', block).text
         if self._show_comment:
@@ -777,6 +784,42 @@ class BlocklyTool(object):
         self._append_to_file('{}        pprint(\'set_cgpio_digital, code={{}}\'.format(code))'.format(prefix))
 
     def _handle_gpio_set_controller_digital_with_xyz(self, block, prefix='', arg_map=None):
+        fields = self.get_nodes('field', root=block)
+        x = fields[0].text
+        y = fields[1].text
+        z = fields[2].text
+        xyz = list(map(float, [x, y, z]))
+        tol_r = fields[3].text
+        io = fields[4].text
+        value = 0 if fields[5].text == 'LOW' else 1
+        # io = self.get_node('field', block).text
+        # value = self.get_node('value', root=block)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set cgpio-{} digital with pos {}'.format(prefix, io, xyz))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    code = arm.set_cgpio_digital_with_xyz({}, {}, {}, {})'.format(prefix, io, value, xyz, tol_r))
+        self._append_to_file('{}    if code != 0:'.format(prefix))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}        pprint(\'set_cgpio_digital_with_xyz, code={{}}\'.format(code))'.format(prefix))
+
+    def _handle_gpio_set_controller_digital_do(self, block, prefix='', arg_map=None):
+        fields = self.get_nodes('field', root=block)
+        io = fields[0].text
+        value = 0 if fields[1].text == 'LOW' else 1
+        delay_sec = fields[2].text if len(fields) > 2 else 0
+        # io = self.get_node('field', block).text
+        # value = self.get_node('value', root=block)
+        # value = self.get_nodes('field', root=value, descendant=True)[0].text
+        if self._show_comment:
+            self._append_to_file('{}# set cgpio-{} digital'.format(prefix, io))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    code = arm.set_cgpio_digital({}, {}, delay_sec={})'.format(prefix, io, value, delay_sec))
+        self._append_to_file('{}    if code != 0:'.format(prefix))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}        pprint(\'set_cgpio_digital, code={{}}\'.format(code))'.format(prefix))
+
+    def _handle_gpio_set_controller_digital_with_xyz_do(self, block, prefix='', arg_map=None):
         fields = self.get_nodes('field', root=block)
         x = fields[0].text
         y = fields[1].text
@@ -1193,6 +1236,8 @@ class BlocklyTool(object):
     def _handle_gpio_controller_digitals_listen(self, block, prefix, arg_map=None):
         self.__handle_gpio_event('listen_cgpio_state', block, prefix, arg_map=arg_map)
 
+    def _handle_event_gpio_controller_digital_di(self, block, prefix, arg_map=None):
+        self.__handle_gpio_event('cgpio_digital', block, prefix, arg_map=arg_map)
     # def _handle_event_gpio_digital(self, block, prefix=''):
     #     fields = self.get_nodes('field', root=block)
     #     io = fields[0].text

@@ -10,8 +10,20 @@
 import threading
 import queue
 import socket
+import select
 import time
 from ..utils.log import logger
+
+
+class RxParse(object):
+    def __init__(self, rx_que):
+        self.rx_que = rx_que
+
+    def flush(self, fromid=-1, toid=-1):
+        pass
+
+    def put(self, data):
+        self.rx_que.put(data)
 
 
 class Port(threading.Thread):
@@ -22,7 +34,7 @@ class Port(threading.Thread):
         self.write_lock = threading.Lock()
         self._connected = False
         self.com = None
-        self.rx_parse = -1
+        self.rx_parse = RxParse(self.rx_que)
         self.com_read = None
         self.com_write = None
         self.port_type = ''
@@ -36,6 +48,7 @@ class Port(threading.Thread):
 
     def run(self):
         self.recv_proc()
+        # self.recv_loop()
 
     def close(self):
         self.alive = False
@@ -57,8 +70,7 @@ class Port(threading.Thread):
             return -1
         while not(self.rx_que.empty()):
             self.rx_que.queue.clear()
-        if self.rx_parse != -1:
-            self.rx_parse.flush(fromid, toid)
+        self.rx_parse.flush(fromid, toid)
         return 0
 
     def write(self, data):
@@ -91,6 +103,30 @@ class Port(threading.Thread):
         #     return buf
         # else:
         #     return -1
+
+    def recv_loop(self):
+        self.alive = True
+        logger.debug('[{}] recv thread start'.format(self.port_type))
+        try:
+            while self.connected and self.alive:
+                if 'socket' in self.port_type:
+                    ready_input, ready_output, ready_exception = select.select([self.com], [], [])
+                    for indata in ready_input:
+                        if indata == self.com:
+                            rx_data = self.com_read(self.buffer_size)
+                            break
+                    else:
+                        continue
+                else:
+                    rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
+                self.rx_parse.put(rx_data)
+        except Exception as e:
+            if self.alive:
+                logger.error('[{}] recv error: {}'.format(self.port_type, e))
+        finally:
+            self.close()
+        logger.debug('[{}] recv thread had stopped'.format(self.port_type))
+        self._connected = False
 
     def recv_proc(self):
         self.alive = True
@@ -133,12 +169,7 @@ class Port(threading.Thread):
                     break
                 timeout_count = 0
                 failed_read_count = 0
-                if -1 == self.rx_parse:
-                    # if self.rx_que.full():
-                    #     self.rx_que.get()
-                    self.rx_que.put(rx_data)
-                else:
-                    self.rx_parse.put(rx_data)
+                self.rx_parse.put(rx_data)
         except Exception as e:
             if self.alive:
                 logger.error('[{}] recv error: {}'.format(self.port_type, e))

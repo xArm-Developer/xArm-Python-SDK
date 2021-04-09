@@ -449,6 +449,8 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     def set_servo_angle_j(self, angles, speed=None, mvacc=None, mvtime=None, is_radian=None, **kwargs):
+        # if not self._check_mode_is_correct(1):
+        #     return APIState.MODE_IS_NOT_CORRECT
         is_radian = self._default_is_radian if is_radian is None else is_radian
         _angles = [angle if is_radian else math.radians(angle) for angle in angles]
         for i in range(self.axis):
@@ -468,6 +470,8 @@ class XArm(Gripper, Servo, Record, RobotIQ):
 
     @xarm_is_ready(_type='set')
     def set_servo_cartesian(self, mvpose, speed=None, mvacc=None, mvtime=None, is_radian=None, is_tool_coord=False, **kwargs):
+        # if not self._check_mode_is_correct(1):
+        #     return APIState.MODE_IS_NOT_CORRECT
         assert len(mvpose) >= 6
         is_radian = self._default_is_radian if is_radian is None else is_radian
         if not is_radian:
@@ -1677,7 +1681,143 @@ class XArm(Gripper, Servo, Record, RobotIQ):
             if config['COLL_PARAMS'][1] != old_config['COLL_PARAMS'][1] or config['COLL_PARAMS'][2] != old_config['COLL_PARAMS'][2]:
                 self.set_collision_tool_model(config['COLL_PARAMS'][1], *config['COLL_PARAMS'][2])
 
+    @xarm_is_connected(_type='get')
     def get_power_board_version(self):
         ret = self.arm_cmd.get_power_board_version()
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1:]
+
+    @xarm_is_connected(_type='set')
+    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, check_mode=True):
+        # if check_mode and not self._check_mode_is_correct(4):
+        #     return APIState.MODE_IS_NOT_CORRECT
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        jnt_v = [0] * 7
+        for i, spd in enumerate(speeds):
+            if i >= 7:
+                break
+            jnt_v[i] = spd if is_radian else math.radians(spd)
+        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0)
+        self.log_api_info('API -> vc_set_joint_velocity -> code={}, speeds={}, is_sync={}'.format(
+            ret[0], jnt_v, is_sync
+        ), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, check_mode=True):
+        # if check_mode and not self._check_mode_is_correct(5):
+        #     return APIState.MODE_IS_NOT_CORRECT
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        line_v = [0] * 6
+        for i, spd in enumerate(speeds):
+            if i >= 6:
+                break
+            line_v[i] = spd if i < 3 or is_radian else math.radians(spd)
+        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0)
+        self.log_api_info('API -> vc_set_cartesian_velocity -> code={}, speeds={}, is_tool_coord={}'.format(
+            ret[0], line_v, is_tool_coord
+        ), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_impedance(self, coord, c_axis, M, K, B):
+        ret = self.arm_cmd.set_impedance(coord, c_axis, M, K, B)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='set')
+    def set_impedance_mbk(self, M, K, B):
+        ret = self.arm_cmd.set_impedance_mbk(M, K, B)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='set')
+    def set_impedance_config(self, coord, c_axis):
+        ret = self.arm_cmd.set_impedance_config(coord, c_axis)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='set')
+    def config_force_control(self, coord, c_axis, f_ref, limits):
+        ret = self.arm_cmd.config_force_control(coord, c_axis, f_ref, limits)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='set')
+    def set_force_control_pid(self, kp, ki, kd, xe_limit):
+        ret = self.arm_cmd.set_force_control_pid(kp, ki, kd, xe_limit)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='set')
+    def ft_sensor_set_zero(self):
+        ret = self.arm_cmd.ft_sensor_set_zero()
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='get')
+    def ft_sensor_iden_load(self):
+        ret = self.arm_cmd.ft_sensor_iden_load()
+        return self._check_code(ret[0]), ret[1:11]
+
+    @xarm_is_connected(_type='set')
+    def ft_sensor_cali_load(self, iden_result_list):
+        ret = self.arm_cmd.ft_sensor_cali_load(iden_result_list)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='set')
+    def ft_sensor_enable(self, on_off):
+        ret = self.arm_cmd.ft_sensor_enable(on_off)
+        return self._check_code(ret[0])
+
+    @xarm_is_connected(_type='get')
+    def ft_sensor_app_set(self, app_code):
+        ret = self.arm_cmd.ft_sensor_app_set(app_code)
+        return self._check_code(ret[0]), ret[1]
+
+    @xarm_is_connected(_type='get')
+    def ft_sensor_app_get(self):
+        ret = self.arm_cmd.ft_sensor_app_get()
+        return self._check_code(ret[0]), ret[1]
+
+    @xarm_is_connected(_type='get')
+    def get_exe_ft(self):
+        ret = self.arm_cmd.get_exe_ft()
+        return self._check_code(ret[0]), ret[1:7]
+
+    @xarm_is_connected(_type='get')
+    def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
+        assert len(four_points) >= 4, 'The parameter four_points must contain 4 TCP points'
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        points = []
+        for i in range(4):
+            assert len(four_points[i]) >= 6, 'Each TCP point in the parameter four_points must contain x/y/z/roll/pitch/yaw'
+            points.append([four_points[i][j] if j < 3 or is_radian else math.radians(four_points[i][j]) for j in range(6)])
+        ret = self.arm_cmd.cali_tcp_pose(points)
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1:]
+
+    @xarm_is_connected(_type='get')
+    def calibrate_tcp_orientation_offset(self, rpy_be, rpy_bt, input_is_radian=None, return_is_radian=None):
+        input_is_radian = self._default_is_radian if input_is_radian is None else input_is_radian
+        return_is_radian = self._default_is_radian if return_is_radian is None else return_is_radian
+        rpy_be_ = [rpy_be[i] if input_is_radian else math.radians(rpy_be[i]) for i in range(3)]
+        rpy_bt_ = [rpy_bt[i] if input_is_radian else math.radians(rpy_bt[i]) for i in range(3)]
+        ret = self.arm_cmd.cali_tcp_orient(rpy_be_, rpy_bt_)
+        ret[0] = self._check_code(ret[0])
+        return ret[0], [ret[i+1] if return_is_radian else math.degrees(ret[i+1]) for i in range(3)]
+
+    @xarm_is_connected(_type='get')
+    def calibrate_user_orientation_offset(self, three_points, mode=0, trust_ind=0, input_is_radian=None, return_is_radian=None):
+        assert len(three_points) >= 3, 'The parameter three_points must contain 3 TCP points'
+        input_is_radian = self._default_is_radian if input_is_radian is None else input_is_radian
+        return_is_radian = self._default_is_radian if return_is_radian is None else return_is_radian
+        points = []
+        for i in range(3):
+            assert len(three_points[i]) >= 6, 'Each TCP point in the parameter three_points must contain x/y/z/roll/pitch/yaw'
+            points.append([three_points[i][j] if j < 3 or input_is_radian else math.radians(three_points[i][j]) for j in range(6)])
+        ret = self.arm_cmd.cali_user_orient(points, mode=mode, trust_ind=trust_ind)
+        ret[0] = self._check_code(ret[0])
+        return ret[0], [ret[i+1] if return_is_radian else math.degrees(ret[i+1]) for i in range(3)]
+    
+    @xarm_is_connected(_type='get')
+    def calibrate_user_coordinate_offset(self, rpy_ub, pos_b_uorg, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        rpy_ub_ = [rpy_ub[i] if is_radian else math.radians(rpy_ub[i]) for i in range(3)]
+        ret = self.arm_cmd.cali_user_pos(rpy_ub_, pos_b_uorg)
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1:4]

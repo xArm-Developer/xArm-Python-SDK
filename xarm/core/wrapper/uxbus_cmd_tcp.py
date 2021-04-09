@@ -36,6 +36,7 @@ class UxbusCmdTcp(UxbusCmd):
         self.bus_flag = TX2_BUS_FLAG_MIN
         self.prot_flag = TX2_PROT_CON
         self._has_err_warn = False
+        self._last_comm_time = time.time()
 
     @property
     def has_err_warn(self):
@@ -64,6 +65,8 @@ class UxbusCmdTcp(UxbusCmd):
         if fun != funcode:
             return XCONF.UxbusState.ERR_FUN
         self._state_is_ready = not (state & 0x10)
+        if state & 0x08:
+            return XCONF.UxbusState.INVALID
         if state & 0x40:
             self._has_err_warn = True
             return XCONF.UxbusState.ERR_CODE
@@ -85,6 +88,7 @@ class UxbusCmdTcp(UxbusCmd):
             remaining = expired - time.time()
             rx_data = self.arm_port.read(remaining)
             if rx_data != -1 and len(rx_data) > 7:
+                self._last_comm_time = time.time()
                 if self._debug:
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
                 ret[0] = self.check_xbus_prot(rx_data, funcode)

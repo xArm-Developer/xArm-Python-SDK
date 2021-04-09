@@ -49,9 +49,11 @@ class Base(Events):
             self._check_is_ready = kwargs.get('check_is_ready', True)
             self._check_is_pause = kwargs.get('check_is_pause', True)
             self._timed_comm = kwargs.get('timed_comm', True)
-            self._timed_comm_interval = kwargs.get('timed_comm_interval', 180)
+            self._timed_comm_interval = kwargs.get('timed_comm_interval', 30)
             self._timed_comm_t = None
             self._timed_comm_t_alive = False
+
+            self._rewrite_modbus_baudrate_method = kwargs.get('rewrite_modbus_baudrate_method', True)
 
             self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
             self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
@@ -81,6 +83,7 @@ class Base(Events):
 
             self._version = None
             self._robot_sn = None
+            self._control_box_sn = None
             self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
             self._angles = [0] * 7
             self._position_offset = [0] * 6
@@ -167,6 +170,9 @@ class Base(Events):
             self._last_update_state_time = 0
             self._last_update_cmdnum_time = 0
 
+            self._arm_type_is_1300 = False
+            self._control_box_type_is_1300 = False
+
             if not do_not_open:
                 self.connect()
 
@@ -180,6 +186,7 @@ class Base(Events):
         self._mvtime = 0
         self._version = None
         self._robot_sn = None
+        self._control_box_sn = None
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
@@ -260,6 +267,9 @@ class Base(Events):
         self._last_update_state_time = 0
         self._last_update_cmdnum_time = 0
 
+        self._arm_type_is_1300 = False
+        self._control_box_type_is_1300 = False
+
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
         if code == 0:
@@ -271,6 +281,7 @@ class Base(Events):
         if is_first:
             self._version = None
             self._robot_sn = None
+            self._control_box_sn = None
         try:
             if not self._version:
                 self.get_version()
@@ -282,15 +293,24 @@ class Base(Events):
                     count -= 1
             if self._version and isinstance(self._version, str):
                 pattern = re.compile(
-                    r'.*[vV](\d+)\.(\d+)\.(\d+),[vV](\d+)\.(\d+)\.(\d+),[vV](\d+)\.(\d+)\.(\d+),(\d+),(\d+)')
+                    r'.*(\d+),(\d+),(\S+),(\S+),.*[vV](\d+)\.(\d+)\.(\d+)')
                 m = re.match(pattern, self._version)
                 if m:
-                    (arg1, arg2, arg3, arg4, arg5, arg6,
-                     self._major_version_number,
-                     self._minor_version_number,
-                     self._revision_version_number,
-                     arg10, arg11) = map(int, m.groups())
-                    pass
+                    (xarm_axis, xarm_type, xarm_sn, ac_version,
+                     major_version_number,
+                     minor_version_number,
+                     revision_version_number) = m.groups()
+                    self._arm_axis = int(xarm_axis)
+                    self._arm_type = int(xarm_type)
+                    self._major_version_number = int(major_version_number)
+                    self._minor_version_number = int(minor_version_number)
+                    self._revision_version_number = int(revision_version_number)
+                    
+                    self._robot_sn = xarm_sn
+                    self._control_box_sn = ac_version
+
+                    self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300 if xarm_sn[2:6].isdigit() else False
+                    self._control_box_type_is_1300 = int(ac_version[2:6]) >= 1300 if ac_version[2:6].isdigit() else False
                 else:
                     pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
                     m = re.match(pattern, self._version)
@@ -312,6 +332,7 @@ class Base(Events):
             if is_first:
                 if self._check_robot_sn:
                     count = 2
+                    self.get_robot_sn()
                     while not self._robot_sn and count and self.warn_code == 0:
                         self.get_robot_sn()
                         self.get_err_warn_code()
@@ -384,6 +405,10 @@ class Base(Events):
     @property
     def sn(self):
         return self._robot_sn
+    
+    @property
+    def control_box_sn(self):
+        return self._control_box_sn
 
     @property
     def position(self):
@@ -606,17 +631,35 @@ class Base(Events):
 
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
+        cnt = 0
         while self.connected and self._timed_comm_t_alive:
-            try:
-                self.get_cmdnum()
-            except:
-                pass
-            count = self._timed_comm_interval * 10
-            while count > 0:
-                count -= 1
-                time.sleep(0.1)
-                if not self._timed_comm_t_alive or not self.connected:
-                    break
+            if self.arm_cmd and time.time() - self.arm_cmd.last_comm_time > self._timed_comm_interval:
+                try:
+                    if cnt == 0:
+                        code, _ = self.get_cmdnum()
+                    elif cnt == 1:
+                        code, _ = self.get_state()
+                    else:
+                        code, _ = self.get_err_warn_code()
+                    cnt = (cnt + 1) % 3
+                except:
+                    pass
+            time.sleep(0.5)
+
+        # while self.connected and self._timed_comm_t_alive:
+        #     if not self.arm_cmd or (time.time() - self.arm_cmd.last_comm_time < self._timed_comm_interval):
+        #         time.sleep(0.1)
+        #         continue
+        #     try:
+        #         self.get_cmdnum()
+        #     except:
+        #         pass
+        #     count = self._timed_comm_interval * 10
+        #     while count > 0:
+        #         count -= 1
+        #         time.sleep(0.1)
+        #         if not self._timed_comm_t_alive or not self.connected:
+        #             break
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
         if self.connected:
@@ -651,6 +694,11 @@ class Base(Events):
                 if not self.connected:
                     raise Exception('connect socket failed')
 
+                self._report_error_warn_changed_callback()
+
+                self.arm_cmd = UxbusCmdTcp(self._stream)
+                self._stream_type = 'socket'
+
                 try:
                     if self._timed_comm:
                         self._timed_comm_t = threading.Thread(target=self._timed_comm_thread, daemon=True)
@@ -658,10 +706,6 @@ class Base(Events):
                 except:
                     pass
 
-                self._report_error_warn_changed_callback()
-
-                self.arm_cmd = UxbusCmdTcp(self._stream)
-                self._stream_type = 'socket'
                 self._stream_report = None
 
                 try:
@@ -696,6 +740,25 @@ class Base(Events):
                 self._check_version(is_first=True)
                 self.arm_cmd.set_debug(self._debug)
             self.set_timeout(self._cmd_timeout)
+            if self._rewrite_modbus_baudrate_method:
+                setattr(self.arm_cmd, 'set_modbus_baudrate_old', self.arm_cmd.set_modbus_baudrate)
+                setattr(self.arm_cmd, 'set_modbus_baudrate', self._core_set_modbus_baudrate)
+
+    def _core_set_modbus_baudrate(self, baudrate, use_old=False):
+        """
+        此函数是用于覆盖core.set_modbus_baudrate方法，主要用于兼容旧代码
+        新代码建议直接使用set_tgpio_modbus_baudrate此接口
+        :param baudrate: 
+        :param use_old: 
+            为True时调用原来的core.set_modbus_baudrate方法
+            为False时使用新的set_tgpio_modbus_baudrate
+        :return [code, ...]
+        """
+        if not use_old:
+            ret = self.set_tgpio_modbus_baudrate(baudrate)
+            return [ret, self.modbus_baud]
+        else:
+            return self.arm_cmd.set_modbus_baudrate_old(baudrate)
 
     def disconnect(self):
         try:
@@ -726,48 +789,6 @@ class Base(Events):
         if self.arm_cmd is not None:
             self._cmd_timeout = self.arm_cmd.set_timeout(self._cmd_timeout)
         return self._cmd_timeout
-
-    # def _check_version(self):
-    #     self._version = None
-    #     self._robot_sn = None
-    #     try:
-    #         count = 2
-    #         while not self._version and count:
-    #             self.get_version()
-    #             time.sleep(0.1)
-    #             count -= 1
-    #         if self._version and isinstance(self._version, str):
-    #             pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
-    #             m = re.match(pattern, self._version)
-    #             if m:
-    #                 self._major_version_number, self._minor_version_number, self._revision_version_number = map(int,
-    #                                                                                                             m.groups())
-    #             else:
-    #                 version_date = '-'.join(self._version.split('-')[-3:])
-    #                 self._is_old_protocol = compare_time('2019-02-01', version_date)
-    #                 if self._is_old_protocol:
-    #                     self._major_version_number = 0
-    #                     self._minor_version_number = 0
-    #                     self._revision_version_number = 1
-    #                 else:
-    #                     self._major_version_number = 0
-    #                     self._minor_version_number = 1
-    #                     self._revision_version_number = 0
-    #         if self._check_robot_sn:
-    #             count = 2
-    #             while not self._robot_sn and count and self.warn_code == 0:
-    #                 self.get_robot_sn()
-    #                 self.get_err_warn_code()
-    #                 if not self._robot_sn and self.warn_code == 0 and count:
-    #                     time.sleep(0.1)
-    #                 count -= 1
-    #         if self.warn_code != 0:
-    #             self.clean_warn()
-    #         print('is_old_protocol: {}'.format(self._is_old_protocol))
-    #         print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
-    #                                                 self._revision_version_number))
-    #     except Exception as e:
-    #         print('compare_time: {}, {}'.format(self._version, e))
 
     def _connect_report(self):
         if self._enable_report:
@@ -1299,9 +1320,9 @@ class Base(Events):
             self._arm_motor_enable_states = mtable
             self._joints_torque = torque
             if compare_version(self.version_number, (0, 2, 0)):
-                self._tcp_load = [tcp_load[0], [i for i in tcp_load[1:]]]
+                self._tcp_load = [float('{:.3f}'.format(tcp_load[0])), [float('{:.3f}'.format(i)) for i in tcp_load[1:]]]
             else:
-                self._tcp_load = [tcp_load[0], [i * 1000 for i in tcp_load[1:]]]
+                self._tcp_load = [float('{:.3f}'.format(tcp_load[0])), [float('{:.3f}'.format(i * 1000)) for i in tcp_load[1:]]]
             self._collision_sensitivity = collis_sens
             self._teach_sensitivity = teach_sens
 
@@ -1441,7 +1462,7 @@ class Base(Events):
                 cgpio_states[6:10] = list(map(lambda x: x / 4095.0 * 10.0, cgpio_states[6:10]))
                 cgpio_states.append(list(map(int, rx_data[401:409])))
                 cgpio_states.append(list(map(int, rx_data[409:417])))
-                if length >= 433:
+                if self._control_box_type_is_1300 and length >= 433:
                     cgpio_states[-2].extend(list(map(int, rx_data[417:425])))
                     cgpio_states[-1].extend(list(map(int, rx_data[425:433])))
                 self._cgpio_states = cgpio_states
@@ -1703,6 +1724,16 @@ class Base(Events):
         else:
             return 0 if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY] else code
 
+    def _check_mode_is_correct(self, mode, timeout=1):
+        if self._enable_report and self._stream_type == 'socket':
+            cnt = int(10 * timeout)
+            while cnt > 0 and self.mode != mode:
+                time.sleep(0.1)
+                cnt -= 1
+            if self.mode != mode:
+                return False
+        return True
+
     def wait_until_cmdnum_lt_max(self):
         if not self._check_cmdnum_limit or self._stream_type != 'socket' or not self._enable_report:
             return
@@ -1736,7 +1767,12 @@ class Base(Events):
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             robot_sn = ''.join(list(map(chr, ret[1:])))
-            self._robot_sn = robot_sn[:robot_sn.find('\0')]
+            split_inx = robot_sn.find('\0')
+            self._robot_sn = robot_sn[:split_inx]
+            control_box_sn = robot_sn[split_inx+1:]
+            self._control_box_sn = control_box_sn[:control_box_sn.find('\0')]
+            self._arm_type_is_1300 = int(self._robot_sn[2:6]) >= 1300 if self._robot_sn[2:6].isdigit() else False
+            self._control_box_type_is_1300 = int(self._control_box_sn[2:6]) >= 1300 if self._control_box_sn[2:6].isdigit() else False
         return ret[0], self._robot_sn
 
     @xarm_is_connected(_type='get')
@@ -1805,6 +1841,9 @@ class Base(Events):
         ret = self.arm_cmd.get_state()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
+            # if ret[1] != self._state:
+            #     self._state = ret[1]
+            #     self._report_state_changed_callback()
             self._state = ret[1]
             self._last_update_state_time = time.time()
         return ret[0], ret[1] if ret[0] == 0 else self._state
@@ -1861,6 +1900,10 @@ class Base(Events):
         lang = lang if lang == 'cn' else 'en'
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
+            # if ret[1] != self._error_code or ret[2] != self._warn_code:
+            #     self._error_code, self._warn_code = ret[1:3]
+            #     self._report_error_warn_changed_callback()
+
             self._error_code, self._warn_code = ret[1:3]
             self._last_update_err_time = time.time()
         if show:
@@ -1938,7 +1981,7 @@ class Base(Events):
             expired = 0
         count = 0
         _, state = self.get_state()
-        max_cnt = 2 if _ == 0 and state == 1 else 10
+        max_cnt = 4 if _ == 0 and state == 1 else 10
         while timeout is None or time.time() < expired:
             if not self.connected:
                 self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
@@ -2009,8 +2052,9 @@ class Base(Events):
                     self._ignore_error = True
                     self._ignore_state = True if self.state not in [4, 5] else False
                     state = self.state
-                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
+                    # self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
+                    time.sleep(0.3)
                     self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
                     if self.error_code != 19 and self.error_code != 28:
                         self.get_err_warn_code()
@@ -2018,7 +2062,7 @@ class Base(Events):
                         self.clean_error()
                         if self._ignore_state:
                             self.set_state(state if state >= 3 else 0)
-                    time.sleep(1)
+                        time.sleep(1)
                 except Exception as e:
                     self._ignore_error = False
                     self._ignore_state = False
@@ -2028,8 +2072,8 @@ class Base(Events):
                 self._ignore_state = False
                 ret, cur_baud_inx = self._get_modbus_baudrate_inx()
                 self.log_api_info('API -> checkset_modbus_baud -> code={}, baud_inx={}'.format(ret, cur_baud_inx), code=ret)
-            if ret == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
-                self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
+            # if ret == 0 and cur_baud_inx < len(self.arm_cmd.BAUDRATES):
+            #     self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
         return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
 
     @xarm_is_connected(_type='get')
@@ -2040,6 +2084,8 @@ class Base(Events):
                 self.get_err_warn_code()
             if self.error_code != 19 and self.error_code != 28:
                 ret[0] = 0
+        if ret[0] == 0 and 0 <= ret[1] < len(self.arm_cmd.BAUDRATES):
+            self.modbus_baud = self.arm_cmd.BAUDRATES[ret[1]]
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
@@ -2057,8 +2103,8 @@ class Base(Events):
     @xarm_is_connected(_type='get')
     def get_tgpio_modbus_baudrate(self):
         code, baud_inx = self._get_modbus_baudrate_inx()
-        if code == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
-            self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
+        # if code == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
+        #     self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False):

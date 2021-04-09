@@ -30,6 +30,12 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.6.9
+
+  - Support for blocky code conversion and operation of xArmStudio1.6.9
+  - Support velocity control
+  - Support calibrate tcp offset and user offset
+
 - > ### 1.6.5
 
   - Support for blocky code conversion and operation of xArmStudio1.6.5
@@ -44,15 +50,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   - Support joint motion with circular interpolation
   - Support for blocky code conversion and operation of xArmStudio1.6.0
   - Optimize logic, enhance API security, Fix several bugs
-
-- > ### 1.5.0
-  - The new parameter of `set_servo_cartisian` interface is used to support servo cartisian movement of tool coordinate system
-  - Support delayed trigger digital IO
-  - Support position detection trigger digital IO
-  - Support configure the stop state to automatically reset IO signal
-  - Support motion commands based on axis angle
-  - Support to calculate the offset between two points
-  - Support for blocky code conversion and operation of xArmStudio1.5.0
 
 - >### [More](ReleaseNotes.md)
 
@@ -86,6 +83,10 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - #####  [1007-counter](example/wrapper/common/1007-counter.py)
 
 - [__1008-move_line_aa__](example/wrapper/common/1008-move_line_aa.py)
+
+- [__1009-cartesian_velocity_control__](example/wrapper/common/1009-cartesian_velocity_control.py)
+
+- [__2000-joint_velocity_control__](example/wrapper/common/2000-joint_velocity_control.py)
 
 - ##### 2001-move_joint --> [xarm5](example/wrapper/xarm5/2001-move_joint.py) --- [xarm6](example/wrapper/xarm6/2001-move_joint.py) --- [xarm7](example/wrapper/xarm7/2001-move_joint.py)
 
@@ -165,6 +166,8 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.emergency_stop()
   arm.set_position_aa(...)
   arm.set_servo_cartesian_aa(...)
+  arm.vc_set_joint_velocity(...)
+  arm.vc_set_cartesian_velocity(...)
   ```
 
 - #### Set

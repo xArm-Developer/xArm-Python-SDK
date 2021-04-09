@@ -2859,7 +2859,6 @@ class XArmAPI(object):
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
 
-
     def set_impedance(self, coord, c_axis, M, K, B):
         return self._arm.set_impedance(coord, c_axis, M, K, B)
 

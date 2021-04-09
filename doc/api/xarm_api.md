@@ -119,7 +119,7 @@ Note:
 :param is_radian: the roll/pitch/yaw value of rpy_ub in radians or not, default is self.default_is_radian
 :return: tuple((code, xyz_offset)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
-    xyz_offset: calculated xyz(mm) TCP offset, [x, y, z]
+    xyz_offset: calculated xyz(mm) user offset, [x, y, z]
 ```
 
 #### def __calibrate_user_orientation_offset__(self, three_points, mode=0, trust_ind=0, input_is_radian=None, return_is_radian=None):
@@ -140,7 +140,7 @@ Note:
 :param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
 :return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
-    rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
+    rpy_offset: calculated rpy user offset, [roll, pitch, yaw]
 ```
 
 #### def __check_verification__(self):
@@ -225,6 +225,22 @@ Config the Controller GPIO reset the digital output when the robot is in stop st
     code: See the API code documentation for details.
 ```
 
+#### def __config_force_control__(self, coord, c_axis, f_ref, limits):
+
+```
+set force control parameters.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param coord:  task frame. 0: base frame. 1: tool frame.
+:param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
+:param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in
+               order to achieve the specified force/torque.
+:param limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __config_tgpio_reset_when_stop__(self, on_off):
 
 ```
@@ -258,6 +274,80 @@ Disconnect
 Emergency stop (set_state(4) -> motion_enable(True) -> set_state(0))
 Note:
     1. This interface does not automatically clear the error. If there is an error, you need to handle it according to the error code.
+```
+
+#### def __ft_sensor_app_get__(self):
+
+```
+get force mode
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:return: tuple((code, status))
+    code: See the API code documentation for details.
+    status: 0: non-force mode
+            1: impedance control mode
+            2: force control mode
+```
+
+#### def __ft_sensor_app_set__(self, app_code):
+
+```
+set robot to be controlled in force mode
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
+:return: tuple((code, status))
+    code: See the API code documentation for details.
+    status:
+```
+
+#### def __ft_sensor_cali_load__(self, iden_result_list):
+
+```
+write load parameter value
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __ft_sensor_enable__(self, on_off):
+
+```
+used for enabling and disabling the use of external F/T measurements in the controller.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param on_off: enable or disable F/T data sampling.
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __ft_sensor_iden_load__(self):
+
+```
+start load identification.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:return: tuple((code, load)) only when code is 0, the returned result is correct.
+    code:  See the API code documentation for details.
+    load:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
+```
+
+#### def __ft_sensor_set_zero__(self):
+
+```
+set force/torque offset.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:return: code
+    code: See the API code documentation for details.
 ```
 
 #### def __get_bio_gripper_error__(self):
@@ -355,6 +445,18 @@ Get the controller error and warn code
     code: See the API code documentation for details.
     error_code: See Chapter 7 of the xArm User Manual for details.
     warn_code: See Chapter 7 of the xArm User Manual for details.
+```
+
+#### def __get_exe_ft__(self):
+
+```
+get extenal force/torque
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:return: tuple((code, exe_ft))
+    code: See the API code documentation for details.
+    exe_ft: only when code is 0, the returned result is correct.
 ```
 
 #### def __get_forward_kinematics__(self, angles, input_is_radian=None, return_is_radian=None):
@@ -1527,6 +1629,21 @@ Note:
     code: See the API code documentation for details.
 ```
 
+#### def __set_force_control_pid__(self, kp, ki, kd, xe_limit):
+
+```
+set force control pid parameters.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param kp: proportional gain. default : 0.005
+:param ki: integral gain. default : 0.00006
+:param kd: differential gain. default : 0.0
+:param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_gravity_direction__(self, direction):
 
 ```
@@ -1587,6 +1704,49 @@ Set the gripper speed
 :param speed:
 :return: code
     code: See the Gripper code documentation for details.
+```
+
+#### def __set_impedance__(self, coord, c_axis, M, K, B):
+
+```
+set all parameters of impedance control.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param coord: task frame. 0: base frame. 1: tool frame.
+:param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+:param M: mass. (kg)
+:param K: stiffness coefficient.
+:param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_impedance_config__(self, coord, c_axis):
+
+```
+set impedance control parameters of impedance control.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param coord: task frame. 0: base frame. 1: tool frame.
+:param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_impedance_mbk__(self, M, K, B):
+
+```
+set mbk parameters of impedance control.
+Note:
+    1. only available if firmware_version >= 1.7.0
+
+:param M: mass. (kg)
+:param K: stiffness coefficient.
+:param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+:return: code
+    code: See the API code documentation for details.
 ```
 
 #### def __set_joint_jerk__(self, jerk, is_radian=None):

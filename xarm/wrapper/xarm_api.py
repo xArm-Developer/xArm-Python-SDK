@@ -2840,7 +2840,7 @@ class XArmAPI(object):
         :param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
         :return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
-            rpy_offset: calculated rpy TCP offset, [roll, pitch, yaw]
+            rpy_offset: calculated rpy user offset, [roll, pitch, yaw]
         """
         return self._arm.calibrate_user_orientation_offset(three_points, mode=mode, trust_ind=trust_ind, input_is_radian=input_is_radian, return_is_radian=return_is_radian)
     
@@ -2855,7 +2855,7 @@ class XArmAPI(object):
         :param is_radian: the roll/pitch/yaw value of rpy_ub in radians or not, default is self.default_is_radian
         :return: tuple((code, xyz_offset)), only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
-            xyz_offset: calculated xyz(mm) TCP offset, [x, y, z] 
+            xyz_offset: calculated xyz(mm) user offset, [x, y, z] 
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
 

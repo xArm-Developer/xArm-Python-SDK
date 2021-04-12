@@ -16,6 +16,7 @@ from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
 from .gripper import Gripper
+from .base_board import BaseBoard
 from .servo import Servo
 from .record import Record
 from .robotiq import RobotIQ
@@ -31,7 +32,7 @@ except:
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, Record, RobotIQ):
+class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
     def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
         kwargs['init'] = True

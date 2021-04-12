@@ -2846,3 +2846,13 @@ class XArmAPI(object):
             xyz_offset: calculated xyz(mm) TCP offset, [x, y, z] 
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
+
+    def get_base_board_version(self, board_id=10):
+        """
+         Get base board version
+
+        :param board_id: int
+        :return: : (code, version)
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_base_board_version(board_id)

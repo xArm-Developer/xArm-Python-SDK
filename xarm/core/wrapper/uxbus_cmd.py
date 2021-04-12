@@ -125,13 +125,13 @@ class UxbusCmd(object):
         return self.send_pend(funcode, 0, self._SET_TIMEOUT)
 
     @lock_require
-    def set_nfp32_with_bytes(self, funcode, datas, num, additional_bytes):
+    def set_nfp32_with_bytes(self, funcode, datas, num, additional_bytes, rx_len=0):
         hexdata = convert.fp32s_to_bytes(datas, num)
         hexdata += additional_bytes
         ret = self.send_xbus(funcode, hexdata, num * 4 + len(additional_bytes))
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.send_pend(funcode, 0, self._SET_TIMEOUT)
+        return self.send_pend(funcode, rx_len, self._SET_TIMEOUT)
 
     @lock_require
     def set_nint32(self, funcode, datas, num):
@@ -964,62 +964,81 @@ class UxbusCmd(object):
     def vc_set_linev(self, line_v, coord):
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, bytes([coord]))
 
-    # @lock_require
-    # def set_impedance(self, coord, c_axis, M, K, B):
-    #     txdata = bytes([coord])
-    #     txdata += bytes(c_axis)
-    #     txdata += convert.fp32s_to_bytes(M, 6)
-    #     txdata += convert.fp32s_to_bytes(K, 6)
-    #     txdata += convert.fp32s_to_bytes(B, 6)
-    #     ret = self.send_xbus(XCONF.UxbusReg.IMPEDANCE_CONFIG, txdata, 79)
-    #     if ret != 0:
-    #         return [XCONF.UxbusState.ERR_NOTTCP]
-    #     return self.send_pend(XCONF.UxbusReg.IMPEDANCE_CONFIG, 0, self._SET_TIMEOUT)
+    @lock_require
+    def set_impedance(self, coord, c_axis, M, K, B):
+        txdata = bytes([coord])
+        txdata += bytes(c_axis)
+        txdata += convert.fp32s_to_bytes(M, 6)
+        txdata += convert.fp32s_to_bytes(K, 6)
+        txdata += convert.fp32s_to_bytes(B, 6)
+        ret = self.send_xbus(XCONF.UxbusReg.IMPEDANCE_CONFIG, txdata, 79)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.IMPEDANCE_CONFIG, 0, self._SET_TIMEOUT)
+    
+    @lock_require
+    def set_impedance_mbk(self, M, K, B):
+        txdata = convert.fp32s_to_bytes(M, 6)
+        txdata += convert.fp32s_to_bytes(K, 6)
+        txdata += convert.fp32s_to_bytes(B, 6)
+        ret = self.send_xbus(XCONF.UxbusReg.IMPEDANCE_CTRL_MBK, txdata, 72)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.IMPEDANCE_CTRL_MBK, 0, self._SET_TIMEOUT)
 
-    # @lock_require
-    # def config_force_control(self, coord, c_axis, f_ref, limits):
-    #     txdata = bytes([coord])
-    #     txdata += bytes(c_axis)
-    #     txdata += convert.fp32s_to_bytes(f_ref, 6)
-    #     txdata += convert.fp32s_to_bytes(limits, 6)
-    #     ret = self.send_xbus(XCONF.UxbusReg.FORCE_CTRL_CONFIG, txdata, 55)
-    #     if ret != 0:
-    #         return [XCONF.UxbusState.ERR_NOTTCP]
-    #     return self.send_pend(XCONF.UxbusReg.FORCE_CTRL_CONFIG, 0, self._SET_TIMEOUT)
+    @lock_require
+    def set_impedance_config(self, coord, c_axis):
+        txdata = bytes([coord])
+        txdata += bytes(c_axis)
+        ret = self.send_xbus(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, txdata, 7)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, 0, self._SET_TIMEOUT)
 
-    # @lock_require
-    # def set_force_control_pid(self, kp, ki, kd, xe_limit):
-    #     txdata = convert.fp32s_to_bytes(kp, 6)
-    #     txdata += convert.fp32s_to_bytes(ki, 6)
-    #     txdata += convert.fp32s_to_bytes(kd, 6)
-    #     txdata += convert.fp32s_to_bytes(xe_limit, 6)
-    #     ret = self.send_xbus(XCONF.UxbusReg.FORCE_CTRL_PID, txdata, 96)
-    #     if ret != 0:
-    #         return [XCONF.UxbusState.ERR_NOTTCP]
-    #     return self.send_pend(XCONF.UxbusReg.FORCE_CTRL_PID, 0, self._SET_TIMEOUT)
+    @lock_require
+    def config_force_control(self, coord, c_axis, f_ref, limits):
+        txdata = bytes([coord])
+        txdata += bytes(c_axis)
+        txdata += convert.fp32s_to_bytes(f_ref, 6)
+        txdata += convert.fp32s_to_bytes(limits, 6)
+        ret = self.send_xbus(XCONF.UxbusReg.FORCE_CTRL_CONFIG, txdata, 55)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.FORCE_CTRL_CONFIG, 0, self._SET_TIMEOUT)
 
-    # def ft_sensor_set_zero(self):
-    #     return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, 0, 0)
+    @lock_require
+    def set_force_control_pid(self, kp, ki, kd, xe_limit):
+        txdata = convert.fp32s_to_bytes(kp, 6)
+        txdata += convert.fp32s_to_bytes(ki, 6)
+        txdata += convert.fp32s_to_bytes(kd, 6)
+        txdata += convert.fp32s_to_bytes(xe_limit, 6)
+        ret = self.send_xbus(XCONF.UxbusReg.FORCE_CTRL_PID, txdata, 96)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.send_pend(XCONF.UxbusReg.FORCE_CTRL_PID, 0, self._SET_TIMEOUT)
 
-    # def ft_sensor_iden_load(self):
-    #     # return self.set_nu8(XCONF.UxbusReg.FTSENSOR_IDEN_LOAD, 0, 0)
-    #     # return self.get_nfp32_hold(XCONF.UxbusReg.FTSENSOR_IDEN_LOAD, 10, 500)
-    #     return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_IDEN_LOAD, 10, timeout=500)
+    def ft_sensor_set_zero(self):
+        return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, 0, 0)
 
-    # def ft_sensor_cali_load(self, iden_result_list):
-    #     param_list = iden_result_list
-    #     return self.set_nfp32(XCONF.UxbusReg.FTSENSOR_CALI_LOAD_OFFSET, param_list, 10)
+    def ft_sensor_iden_load(self):
+        return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_IDEN_LOAD, 10, timeout=500)
 
-    # def ft_sensor_enable(self, on_off):
-    #     txdata = [on_off]
-    #     return self.set_nu8(XCONF.UxbusReg.FTSENSOR_ENABLE, txdata, 1)
+    def ft_sensor_cali_load(self, iden_result_list):
+        return self.set_nfp32(XCONF.UxbusReg.FTSENSOR_CALI_LOAD_OFFSET, iden_result_list, 10)
 
-    # def ft_sensor_app_set(self, app_code):
-    #     txdata = [app_code]
-    #     return self.set_get_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+    def ft_sensor_enable(self, on_off):
+        txdata = [on_off]
+        return self.set_nu8(XCONF.UxbusReg.FTSENSOR_ENABLE, txdata, 1)
 
-    # def ft_sensor_app_get(self):
-    #     return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)
+    def ft_sensor_app_set(self, app_code):
+        txdata = [app_code]
+        return self.set_get_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+
+    def ft_sensor_app_get(self):
+        return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)
+
+    def get_exe_ft(self):
+        return self.get_nfp32(XCONF.UxbusReg.GET_EXE_FT, 6)
 
     def cali_tcp_pose(self, four_pnts):
         txdata = []
@@ -1028,24 +1047,34 @@ class UxbusCmd(object):
         return self.swop_nfp32(XCONF.UxbusReg.CALI_TCP_POSE, txdata, 24, 3)
 
     # default: mode: x+ then y+; trust_ind: trust x+ dir
-    @lock_require
+    # @lock_require
     def cali_user_orient(self, three_pnts, mode=0, trust_ind=0):
-        fpdata = []
+        txdata = []
         for k in range(3):
-            fpdata += [three_pnts[k][i] for i in range(6)]
-        # return self.swop_nfp32(XCONF.UxbusReg.CALI_USER_ORIENT, fpdata, 18, 3)
-        hexdata = convert.fp32s_to_bytes(fpdata, 18)
-        hexdata += bytes([mode, trust_ind]) 
-        funcode = XCONF.UxbusReg.CALI_WRLD_ORIENT
-        ret = self.send_xbus(funcode, hexdata, 18 * 4 + 2)
-        rxn = 3; # to receive 3 fps as result 
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (rxn + 1)
-        ret = self.send_pend(funcode, rxn * 4, self._GET_TIMEOUT)
+            txdata += [three_pnts[k][i] for i in range(6)]
+        byte_data = bytes([mode, trust_ind])
+        rxn = 3
+        ret = self.set_nfp32_with_bytes(XCONF.UxbusReg.CALI_WRLD_ORIENT, txdata, 18, byte_data, rxn * 4)
         data = [0] * (1 + rxn)
         data[0] = ret[0]
         data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
         return data
+        # fpdata = []
+        # for k in range(3):
+        #     fpdata += [three_pnts[k][i] for i in range(6)]
+        # # return self.swop_nfp32(XCONF.UxbusReg.CALI_USER_ORIENT, fpdata, 18, 3)
+        # hexdata = convert.fp32s_to_bytes(fpdata, 18)
+        # hexdata += bytes([mode, trust_ind]) 
+        # funcode = XCONF.UxbusReg.CALI_WRLD_ORIENT
+        # ret = self.send_xbus(funcode, hexdata, 18 * 4 + 2)
+        # rxn = 3; # to receive 3 fps as result 
+        # if ret != 0:
+        #     return [XCONF.UxbusState.ERR_NOTTCP] * (rxn + 1)
+        # ret = self.send_pend(funcode, rxn * 4, self._GET_TIMEOUT)
+        # data = [0] * (1 + rxn)
+        # data[0] = ret[0]
+        # data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
+        # return data
 
     def cali_tcp_orient(self, rpy_be, rpy_bt):
         txdata = [rpy_be[i] for i in range(3)]

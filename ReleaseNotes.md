@@ -2,7 +2,13 @@
 
 ## Update Summary
 
-- > ### 1.6.5
+- > ### 1.6.9
+
+  - Support for blocky code conversion and operation of xArmStudio1.6.9
+  - Support velocity control
+  - Support calibrate tcp offset and user offset
+
+- - > ### 1.6.5
 
   - Support for blocky code conversion and operation of xArmStudio1.6.5
 

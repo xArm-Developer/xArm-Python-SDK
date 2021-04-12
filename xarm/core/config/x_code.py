@@ -434,6 +434,26 @@ ControllerErrorCodeMap = {
             'desc': '请释放紧急停止按钮，然后重新使能机械臂'
         }
     },
+    2: {
+        'en': {
+            'title': 'The Emergency IO of the Control Box is triggered',
+            'desc': 'Please ground the 2 EIs of the Control Box, and then re-enable the robot'
+        },
+        'cn': {
+            'title': '控制器上的紧急停止IO被触发',
+            'desc': '请将控制器的2组EI接地，然后重新使能机械臂'
+        }
+    },
+    3: {
+        'en': {
+            'title': 'The Emergency Stop Button of the Three-state Switch is pressed',
+            'desc': 'Please release the Emergency Stop Button of the Three-state Switch, and then re-enable the robot'
+        },
+        'cn': {
+            'title': '三态开关的紧急停止按钮被按下',
+            'desc': '请释放三态开关的紧急停止按钮，然后重新使能机械臂'
+        }
+    },
     10: {
         'en': {
             'title': 'Servo motor error',
@@ -692,6 +712,16 @@ ControllerErrorCodeMap = {
         'cn': {
             'title': '关节角度异常',
             'desc': '请通过控制器上的紧急停止按钮停止机械臂，并联系技术支持。'
+        }
+    },
+    39: {
+        'en': {
+            'title': 'Abnormal Communication Between Master and Slave IC of Power Board',
+            'desc': 'Please contact technical support'
+        },
+        'cn': {
+            'title': '电源板主从IC通信异常',
+            'desc': '请联系技术支持。'
         }
     },
     'other': {

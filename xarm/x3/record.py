@@ -173,7 +173,8 @@ class Record(Base):
             # while self.state != 4 and self.state != 2:
             #     time.sleep(0.1)
             if self.state not in [4]:
-                self.set_mode(mode)
+                # self.set_mode(mode)
+                self.set_mode(0)
                 self.set_state(0)
         return ret[0]
 

@@ -2859,7 +2859,6 @@ class XArmAPI(object):
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
 
-
     def get_base_board_version(self, board_id=10):
         """
          Get base board version
@@ -3030,3 +3029,17 @@ class XArmAPI(object):
         """
         return self._arm.get_exe_ft()
 
+    def check_place_mode(self):
+        """
+         Get base board version
+
+        :return: : (code, place_mode)
+            code: See the API code documentation for details.
+            place_mode:
+                1   Floor       (0°~0°)
+                2   Ceiling     (180°~0°)
+                3   WallUp      (90°~180°)
+                4   WallDown    (90°~0°)
+                5   None
+        """
+        return self._arm.check_place_mode()

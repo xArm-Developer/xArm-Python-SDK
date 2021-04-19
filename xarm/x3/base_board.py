@@ -11,6 +11,8 @@ from .base import Base
 
 
 class BaseBoard(Base):
+    BASE_BOARD_ID = 10
+
     def __init__(self):
         super(BaseBoard, self).__init__()
 
@@ -37,5 +39,22 @@ class BaseBoard(Base):
 
         return code, '.'.join(map(str, versions))
 
+    def check_place_mode(self):
+        acc_x = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C00)
+        acc_y = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C02)
+        acc_z = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C04)
+        print("ax: %f ,ay: %f az: %f\r\n" % (acc_x[1], acc_y[1], acc_z[1]))
 
-
+        if acc_z[1] > -1.3 and acc_z[1] < -0.7:
+            print("吊装")
+            return 0, 2
+        if acc_z[1] < 1.3 and acc_z[1] > 0.7:
+            print("水平")
+            return 0, 1
+        if acc_x[1] < 1.3 and acc_x[1] > 0.9:
+            print("壁装向下")
+            return 0, 4
+        if acc_x[1] > -1.3 and acc_x[1] < -0.9:
+            print("壁装向上")
+            return 0, 3
+        return 0, 0

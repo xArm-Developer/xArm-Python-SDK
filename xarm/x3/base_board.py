@@ -2,16 +2,14 @@
 # __author: rock
 # @time: 2021-04-02
 
-import time
-from .utils import xarm_is_connected, xarm_is_pause, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max
 from ..core.utils.log import logger
-from ..core.config.x_config import XCONF
-from .code import APIState
 from .base import Base
+import math
 
 
 class BaseBoard(Base):
     BASE_BOARD_ID = 10
+    init_angle = 0
 
     def __init__(self):
         super(BaseBoard, self).__init__()
@@ -39,22 +37,49 @@ class BaseBoard(Base):
 
         return code, '.'.join(map(str, versions))
 
-    def check_place_mode(self):
-        acc_x = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C00)
-        acc_y = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C02)
-        acc_z = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C04)
-        print("ax: %f ,ay: %f az: %f\r\n" % (acc_x[1], acc_y[1], acc_z[1]))
+    def get_current_angle(self):
+        ret1 = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C00)
+        ret2 = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C02)
+        ret3 = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, addr=0x0C04)
+        code = 0
+        if ret1[0] == 0 and ret2[0] == 0 and ret3[0] == 0:
+            acc_x = ret1[1]
+            acc_y = ret2[1]
+            acc_z = ret3[1]
+            logger.info("ax: {} ,ay: {} az: {}".format(acc_x, acc_y, acc_z))
+            angle = self.__get_z_axios_offset_angle(acc_x, acc_y, acc_z)
+            return code, angle
 
-        if acc_z[1] > -1.3 and acc_z[1] < -0.7:
-            print("吊装")
-            return 0, 2
-        if acc_z[1] < 1.3 and acc_z[1] > 0.7:
-            print("水平")
-            return 0, 1
-        if acc_x[1] < 1.3 and acc_x[1] > 0.9:
-            print("壁装向下")
-            return 0, 4
-        if acc_x[1] > -1.3 and acc_x[1] < -0.9:
-            print("壁装向上")
-            return 0, 3
-        return 0, 0
+        else:
+            code = ret1[0] or ret2[0] or ret3[0]
+            return code, 0
+
+    def get_init_angle(self):
+        cmds = [0x0C00, 0x0C02, 0x0C04]
+        times = 10
+        offset_angle_li = []
+        axyz = []
+        code = 0
+        while times:
+            times = times - 1
+            for cmd in cmds:
+                ret = self.arm_cmd.base_tool_addr_r32(self.BASE_BOARD_ID, cmd)
+                code = ret[0]
+                if code == 0:
+                    axyz.append(ret[1])
+                else:
+                    raise Exception('Get value failed')
+            angle = self.__get_z_axios_offset_angle(*axyz)
+            axyz = []
+            offset_angle_li.append(angle)
+        self.init_angle = (sum(offset_angle_li))/len(offset_angle_li)
+        # print('init_angle:', self.init_angle)
+        return code, self.init_angle
+
+    def __get_z_axios_offset_angle(self, x=1, y=1, z=1):
+
+        angle = math.degrees(math.atan(z / (math.sqrt(abs((x ** 2) + (y ** 2))))))
+        angle = 90 - angle
+        return angle
+
+

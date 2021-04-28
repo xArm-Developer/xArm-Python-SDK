@@ -3029,17 +3029,27 @@ class XArmAPI(object):
         """
         return self._arm.get_exe_ft()
 
-    def check_place_mode(self):
+    def get_current_angle(self):
         """
-         Get base board version
-
-        :return: : (code, place_mode)
+        get current install angle
+        Note:
+            1. only available the arm has base board
+        :return: : (code, angle)
             code: See the API code documentation for details.
-            place_mode:
-                1   Floor       (0°~0°)
-                2   Ceiling     (180°~0°)
-                3   WallUp      (90°~180°)
-                4   WallDown    (90°~0°)
-                5   None
+            init_offset_angle: Initial offset angle
+            angle: current xArm's install angle
+
         """
-        return self._arm.check_place_mode()
+        return self._arm.get_current_angle()
+
+    def get_init_angle(self):
+        """
+        get initial angle
+        Note:
+            1. only available the arm has base board
+        :return: : (code, init_angle)
+            code: See the API code documentation for details.
+            init_angle: Initial angle
+        """
+        return self._arm.get_init_angle()
+

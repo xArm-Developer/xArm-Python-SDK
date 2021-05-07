@@ -5,7 +5,7 @@
 # All rights reserved.
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
-
+import os
 import json
 import time
 from urllib import request
@@ -101,7 +101,8 @@ class Record(Base):
         if ret[0] == 0:
             if wait:
                 start_time = time.time()
-                while time.time() - start_time < timeout:
+                # while time.time() - start_time < timeout:
+                while 1:
                     code, status = self.get_trajectory_rw_status()
                     if code == 0:
                         if status == XCONF.TrajState.IDLE:
@@ -114,8 +115,8 @@ class Record(Base):
                             logger.error('Load {} failed'.format(filename))
                             return APIState.TRAJ_RW_FAILED
                     time.sleep(0.1)
-                logger.warning('Load {} timeout'.format(filename))
-                return APIState.TRAJ_RW_TOUT
+                # logger.warning('Load {} timeout'.format(filename))
+                # return APIState.TRAJ_RW_TOUT
             else:
                 return ret[0]
         logger.error('Load {} failed, ret={}'.format(filename, ret))
@@ -127,9 +128,31 @@ class Record(Base):
         mode = self.mode
         times = times if times > 0 else -1
         if isinstance(filename, str) and filename.strip():
-            ret = self.load_trajectory(filename, wait=True, timeout=10)
-            if ret != 0:
-                return ret
+            if not filename.endswith('.traj'):
+                full_filename = '{}.traj'.format(filename)
+            else:
+                full_filename = filename
+
+            is_tarj_exist = False
+            tarj_pro_path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects',
+                                             'test', 'xarm{}'.format(self.axis), 'traj', '.tarj_pro')
+            linux_tarj_pro_path = '/home/uf/xArm/traj/{}'.format(full_filename)
+            is_tarj_exist = os.path.exists(linux_tarj_pro_path)
+
+            if os.path.exists(tarj_pro_path):
+                with open(tarj_pro_path, 'r', encoding='utf8') as f:
+                    tarjs = json.load(f)
+                    for tarj in tarjs:
+                        tarj_name = tarj.get('name', None)
+                        if '{}.traj'.format(tarj_name) == full_filename:
+                            is_tarj_exist = True
+
+            ret = self.arm_cmd.get_cmdnum()
+            self.log_api_info('API -> get_cmdnum -> code={}'.format(ret[0]))
+            if is_tarj_exist and ret[0] == 0 and ret[1] == 0:
+                ret = self.load_trajectory(filename, wait=True, timeout=10)
+                if ret != 0:
+                    return ret
         if self.state in [4]:
             return APIState.NOT_READY
         if self.version_is_ge_1_2_11:

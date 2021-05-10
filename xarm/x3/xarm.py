@@ -1822,3 +1822,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         ret = self.arm_cmd.cali_user_pos(rpy_ub_, pos_b_uorg)
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1:4]
+
+    @xarm_is_connected(_type='set')
+    def get_tcp_rotation_radius(self, value=6):
+        ret = self.arm_cmd.get_tcp_rotation_radius(value)
+        self.log_api_info('API -> get_tcp_rotation_radius -> code={}'.format(ret[0]), code=ret[0])
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1][0]

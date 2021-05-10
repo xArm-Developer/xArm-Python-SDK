@@ -167,6 +167,7 @@ class XCONF(object):
         CHECK_VERIFY = 3
         RELOAD_DYNAMICS = 4
         GET_REPORT_TAU_OR_I = 5
+        GET_TCP_ROTATION_RADIUS = 6
 
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11

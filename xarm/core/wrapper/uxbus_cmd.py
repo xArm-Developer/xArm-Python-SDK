@@ -1135,3 +1135,10 @@ class UxbusCmd(object):
         return ret1
         # return [ret[0], convert.bytes_to_fp32_big(ret[1:5])]
 
+    def get_tcp_rotation_radius(self, value):
+        txdata = [value]
+        data = [0] * 2
+        ret = self.set_get_nu8(XCONF.UxbusReg.GET_TCP_ROTATION_RADIUS, txdata, 1, 4)
+        data[0] = ret[0]
+        data[1] = convert.bytes_to_fp32s(ret[1:], 1)
+        return data

@@ -83,7 +83,7 @@ class UxbusCmd(object):
         return self.send_pend(funcode, 0, self._SET_TIMEOUT if timeout is None else timeout)
 
     @lock_require
-    def set_get_nu8(self, funcode, datas, num_send, num_get):
+    def getset_nu8(self, funcode, datas, num_send, num_get):
         ret = self.send_xbus(funcode, datas, num_send)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -1032,7 +1032,7 @@ class UxbusCmd(object):
 
     def ft_sensor_app_set(self, app_code):
         txdata = [app_code]
-        return self.set_get_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+        return self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
 
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)

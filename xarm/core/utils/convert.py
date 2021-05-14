@@ -110,3 +110,13 @@ def bytes_to_long_big(data):
     byte += bytes([data[3]])
     ret = struct.unpack(">l", byte)
     return ret[0]
+
+
+def bytes_to_fp32_big(data):
+    """大端字节序"""
+    byte = bytes([data[3]])
+    byte += bytes([data[2]])
+    byte += bytes([data[1]])
+    byte += bytes([data[0]])
+    ret = struct.unpack("<f", byte)
+    return ret[0]

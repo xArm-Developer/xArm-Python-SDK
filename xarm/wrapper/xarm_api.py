@@ -2859,6 +2859,16 @@ class XArmAPI(object):
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
 
+    def get_base_board_version(self, board_id=10):
+        """
+         Get base board version
+
+        :param board_id: int
+        :return: : (code, version)
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_base_board_version(board_id)
+
     def set_impedance(self, coord, c_axis, M, K, B):
         """
         set all parameters of impedance control.
@@ -3018,3 +3028,28 @@ class XArmAPI(object):
             exe_ft: only when code is 0, the returned result is correct.
         """
         return self._arm.get_exe_ft()
+
+    def get_current_angle(self):
+        """
+        get current install angle
+        Note:
+            1. only available the arm has base board
+        :return: : (code, angle)
+            code: See the API code documentation for details.
+            init_offset_angle: Initial offset angle
+            angle: current xArm's install angle
+
+        """
+        return self._arm.get_current_angle()
+
+    def get_init_angle(self):
+        """
+        get initial angle
+        Note:
+            1. only available the arm has base board
+        :return: : (code, init_angle)
+            code: See the API code documentation for details.
+            init_angle: Initial angle
+        """
+        return self._arm.get_init_angle()
+

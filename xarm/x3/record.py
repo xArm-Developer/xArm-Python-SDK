@@ -153,6 +153,8 @@ class Record(Base):
                 ret = self.load_trajectory(filename, wait=True, timeout=10)
                 if ret != 0:
                     return ret
+            else:
+                return APIState.TRAJ_RW_TOUT
         if self.state in [4]:
             return APIState.NOT_READY
         if self.version_is_ge_1_2_11:

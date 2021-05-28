@@ -3029,27 +3029,6 @@ class XArmAPI(object):
         """
         return self._arm.get_exe_ft()
 
-    def get_current_angle(self):
-        """
-        get current install angle
-        Note:
-            1. only available the arm has base board
-        :return: : (code, angle)
-            code: See the API code documentation for details.
-            init_offset_angle: Initial offset angle
-            angle: current xArm's install angle
 
-        """
-        return self._arm.get_current_angle()
 
-    def get_init_angle(self):
-        """
-        get initial angle
-        Note:
-            1. only available the arm has base board
-        :return: : (code, init_angle)
-            code: See the API code documentation for details.
-            init_angle: Initial angle
-        """
-        return self._arm.get_init_angle()
 

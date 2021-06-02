@@ -1878,6 +1878,8 @@ class XArmAPI(object):
             5: reversed, three-state switching signal
             11: offline task
             12: teaching mode
+            13: reduced mode
+            14: enable arm
         :return: code
             code: See the API code documentation for details.
         """
@@ -1896,6 +1898,9 @@ class XArmAPI(object):
             13: in collision
             14: in teaching
             15: in offline task
+            16: reduced mode
+            17: enable arm
+            18: emergency stop is pressed
         :return: code
             code: See the API code documentation for details.
         """

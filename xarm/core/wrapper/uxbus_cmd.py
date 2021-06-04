@@ -1142,3 +1142,8 @@ class UxbusCmd(object):
         data[0] = ret[0]
         data[1] = convert.bytes_to_fp32s(ret[1:], 1)
         return data
+
+    def get_max_joint_velocity(self, eveloc, joint_pos):
+        txdata = [eveloc]
+        txdata += [joint_pos[i] for i in range(7)]
+        return self.swop_nfp32(XCONF.UxbusReg.GET_MAX_JOINT_VELOCITY, txdata, 8, 1)

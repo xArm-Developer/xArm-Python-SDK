@@ -85,7 +85,7 @@ class BaseBoard(Base):
                 # print(i, data)
                 for j, d in enumerate(data):
                     ret = self.arm_cmd.base_tool_addr_w32(servo_id, addr=(cmds[i] + (2 * j)) | 0x1000, value=d)
-                    print("%x, %f, ret:%d" % (cmds[i] + (2 * j), d, ret[0]))
+                    # print("%x, %f, ret:%d" % (cmds[i] + (2 * j), d, ret[0]))
 
                     time.sleep(0.1)
                     code = ret[0]

@@ -303,6 +303,7 @@ class XCONF(object):
         FORCE_CTRL_CONFIG = 209
         IMPEDANCE_CTRL_MBK = 210
         IMPEDANCE_CTRL_CONFIG = 211
+        GET_MAX_JOINT_VELOCITY = 231
 
     class UxbusConf:
         SET_TIMEOUT = 2000  # ms

@@ -1878,6 +1878,8 @@ class XArmAPI(object):
             5: reversed, three-state switching signal
             11: offline task
             12: teaching mode
+            13: reduced mode
+            14: enable arm
         :return: code
             code: See the API code documentation for details.
         """
@@ -1896,6 +1898,9 @@ class XArmAPI(object):
             13: in collision
             14: in teaching
             15: in offline task
+            16: reduced mode
+            17: enable arm
+            18: emergency stop is pressed
         :return: code
             code: See the API code documentation for details.
         """
@@ -3029,27 +3034,6 @@ class XArmAPI(object):
         """
         return self._arm.get_exe_ft()
 
-    def get_current_angle(self):
-        """
-        get current install angle
-        Note:
-            1. only available the arm has base board
-        :return: : (code, angle)
-            code: See the API code documentation for details.
-            init_offset_angle: Initial offset angle
-            angle: current xArm's install angle
 
-        """
-        return self._arm.get_current_angle()
 
-    def get_init_angle(self):
-        """
-        get initial angle
-        Note:
-            1. only available the arm has base board
-        :return: : (code, init_angle)
-            code: See the API code documentation for details.
-            init_angle: Initial angle
-        """
-        return self._arm.get_init_angle()
 

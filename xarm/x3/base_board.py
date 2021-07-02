@@ -39,11 +39,11 @@ class BaseBoard(Base):
     def get_current_angle(self, board_id=10):
         code, acc_x, acc_y, acc_z = self.get_imu_data(board_id)
         ret = self.arm_cmd.base_tool_addr_w16(board_id, addr=0x0606, value=1)
-        if code == 0:
+        if code == 0 and acc_x != 0 and acc_y != 0 and acc_z != 0:
             angle = self.__get_z_axios_offset_angle(acc_x, acc_y, acc_z)
             return code, angle
         else:
-            return ret[0], 0
+            return code, 0
 
     @staticmethod
     def __get_z_axios_offset_angle(x=1, y=1, z=1):
@@ -105,7 +105,7 @@ class BaseBoard(Base):
                 acc_x = ret1[1]
                 acc_y = ret2[1]
                 acc_z = ret3[1]
-                if acc_x != 0 and acc_y != 0 and acc_z != 0:
-                    return 0, acc_x, acc_y, acc_z
-
-        return [1, 1, 1, 1]
+                return 0, acc_x, acc_y, acc_z
+            else:
+                return [ret1[0] or ret2[0] or ret3[0], 1, 1, 1]
+        return [ret[0], 1, 1, 1]

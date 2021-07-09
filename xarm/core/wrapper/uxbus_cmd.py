@@ -494,49 +494,19 @@ class UxbusCmd(object):
 
     @lock_require
     def gripper_addr_w16(self, addr, value):
-        txdata = bytes([XCONF.GRIPPER_ID])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W16B, 0, self._GET_TIMEOUT)
-        return ret
+        return self.tgpio_addr_w16(addr, value, bid=XCONF.GRIPPER_ID)
 
     @lock_require
     def gripper_addr_r16(self, addr):
-        txdata = bytes([XCONF.GRIPPER_ID])
-        txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R16B, 4, self._GET_TIMEOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
+        return self.tgpio_addr_r16(addr, bid=XCONF.GRIPPER_ID)
 
     @lock_require
     def gripper_addr_w32(self, addr, value):
-        txdata = bytes([XCONF.GRIPPER_ID])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W32B, txdata, 7)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W32B, 0, self._GET_TIMEOUT)
-        return ret
+        return self.tgpio_addr_w32(addr, value, bid=XCONF.GRIPPER_ID)
 
     @lock_require
     def gripper_addr_r32(self, addr):
-        txdata = bytes([XCONF.GRIPPER_ID])
-        txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, self._GET_TIMEOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
+        return self.tgpio_addr_r32(addr, bid=XCONF.GRIPPER_ID)
 
     def gripper_set_en(self, value):
         return self.gripper_addr_w16(XCONF.ServoConf.CON_EN, value)
@@ -564,8 +534,8 @@ class UxbusCmd(object):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
     @lock_require
-    def tgpio_addr_w16(self, addr, value):
-        txdata = bytes([XCONF.TGPIO_ID])
+    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_ID):
+        txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
@@ -576,22 +546,19 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r16(self, addr):
-        txdata = bytes([XCONF.TGPIO_ID])
+    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_ID):
+        txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_R16B, 4, self._GET_TIMEOUT)
-        ret1 = [0] * 2
-        ret1[0] = ret[0]
-        ret1[1] = convert.bytes_to_long_big(ret[1:5])
-        return ret1
+        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
 
     @lock_require
-    def tgpio_addr_w32(self, addr, value):
-        txdata = bytes([XCONF.TGPIO_ID])
+    def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_ID):
+        txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W32B, txdata, 7)
@@ -602,18 +569,15 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r32(self, addr):
-        txdata = bytes([XCONF.TGPIO_ID])
+    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_ID):
+        txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, self._GET_TIMEOUT)
-        ret1 = [0] * 2
-        ret1[0] = ret[0]
-        ret1[1] = convert.bytes_to_long_big(ret[1:5])
-        return ret1
+        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
 
     def tgpio_get_digital(self):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
@@ -1086,59 +1050,10 @@ class UxbusCmd(object):
         txdata += [pos_b_uorg[i] for i in range(3)]
         return self.swop_nfp32(XCONF.UxbusReg.CALI_WRLD_POSE, txdata, 6, 3)
 
-    def base_tool_addr_w16(self, servo_id, addr, value):
-        txdata = bytes([servo_id])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W16B, 0, self._GET_TIMEOUT)
-        return ret
-
-    def base_tool_addr_r16(self, servo_id, addr):
-        txdata = bytes([servo_id])
-        txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R16B, 4, self._GET_TIMEOUT)
-        ret1 = [0] * 2
-        ret1[0] = ret[0]
-        ret1[1] = convert.bytes_to_long_big(ret[1:5])
-        return ret1
-
-    def base_tool_addr_w32(self, servo_id, addr, value):
-        txdata = bytes([servo_id])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_W32B, txdata, 7)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_W32B, 0, self._GET_TIMEOUT)
-        return ret
-
-    def base_tool_addr_r32(self, servo_id, addr):
-        txdata = bytes([servo_id])
-        txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
-        ret1 = [0] * 2
-        ret1[0] = ret[0]
-        ret1[1] = convert.bytes_to_fp32_big(ret[1:5])
-        return ret1
-        # return [ret[0], convert.bytes_to_fp32_big(ret[1:5])]
-
     def get_tcp_rotation_radius(self, value):
         txdata = [value]
         data = [0] * 2
-        ret = self.set_get_nu8(XCONF.UxbusReg.GET_TCP_ROTATION_RADIUS, txdata, 1, 4)
+        ret = self.getset_nu8(XCONF.UxbusReg.GET_TCP_ROTATION_RADIUS, txdata, 1, 4)
         data[0] = ret[0]
         data[1] = convert.bytes_to_fp32s(ret[1:], 1)
         return data

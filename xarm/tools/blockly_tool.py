@@ -1340,7 +1340,8 @@ class BlocklyTool(object):
             return arg_map_
         except:
             self._succeed = False
-        self._is_insert = False
+        finally:
+            self._is_insert = False
 
     def _handle_procedures_defreturn(self, block, prefix='', arg_map=None):
         arg_map_ = self._handle_procedures_defnoreturn(block, prefix)

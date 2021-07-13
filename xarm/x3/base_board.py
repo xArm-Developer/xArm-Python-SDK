@@ -104,14 +104,14 @@ class BaseBoard(Base):
     def get_imu_data(self, board_id=10):
         ret = self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=1, bid=board_id)
         if ret[0] == 0:
-            ret1 = self.arm_cmd.tgpio_addr_r32(addr=0x0C00, bid=board_id)
-            ret2 = self.arm_cmd.tgpio_addr_r32(addr=0x0C02, bid=board_id)
-            ret3 = self.arm_cmd.tgpio_addr_r32(addr=0x0C04, bid=board_id)
+            ret1 = self.arm_cmd.get_imu_data(board_id, addr=0x0C00)
+            ret2 = self.arm_cmd.get_imu_data(board_id, addr=0x0C02)
+            ret3 = self.arm_cmd.get_imu_data(board_id, addr=0x0C04)
             if ret1[0] == 0 and ret2[0] == 0 and ret3[0] == 0:
                 acc_x = ret1[1]
                 acc_y = ret2[1]
                 acc_z = ret3[1]
                 return 0, acc_x, acc_y, acc_z
             else:
-                return [ret1[0] or ret2[0] or ret3[0], 1, 1, 1]
-        return [ret[0], 1, 1, 1]
+                return ret1[0] or ret2[0] or ret3[0], [1, 1, 1]
+        return ret[0], [1, 1, 1]

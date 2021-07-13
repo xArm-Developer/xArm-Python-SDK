@@ -1589,6 +1589,9 @@ class BlocklyTool(object):
         elif block.attrib['type'] == 'gpio_get_controller_digital':
             io = self.get_node('field', block).text
             return 'arm.get_cgpio_digital({})[{}]'.format(io, 1)
+        elif block.attrib['type'] == 'gpio_get_controller_digital_di':
+            io = self.get_node('field', block).text
+            return 'arm.get_cgpio_digital({})[{}]'.format(io, 1)
         elif block.attrib['type'] == 'gpio_get_controller_analog':
             io = self.get_node('field', block).text
             return 'arm.get_cgpio_analog({})[{}]'.format(io, 1)

@@ -1062,3 +1062,12 @@ class UxbusCmd(object):
         txdata = [eveloc]
         txdata += [joint_pos[i] for i in range(7)]
         return self.swop_nfp32(XCONF.UxbusReg.GET_MAX_JOINT_VELOCITY, txdata, 8, 1)
+
+    def get_imu_data(self, servo_id, addr):
+        txdata = bytes([servo_id])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        return [ret[0], convert.bytes_to_fp32_big(ret[1:5])]

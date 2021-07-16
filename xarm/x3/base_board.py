@@ -40,10 +40,10 @@ class BaseBoard(Base):
 
     @xarm_is_connected(_type='get')
     def get_current_angle(self, board_id=10):
-        code, acc_x, acc_y, acc_z = self.get_imu_data(board_id)
-        ret = self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=1, bid=board_id)
-        if code == 0 and acc_x != 0 and acc_y != 0 and acc_z != 0:
-            angle = self.__get_z_axios_offset_angle(acc_x, acc_y, acc_z)
+        code, acc_xyz = self.get_imu_data(board_id)
+        self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=1, bid=board_id)
+        if code == 0 and acc_xyz[0] != 0 and acc_xyz[1] != 0 and acc_xyz[2] != 0:
+            angle = self.__get_z_axios_offset_angle(acc_xyz[0], acc_xyz[1], acc_xyz[2])
             return code, angle
         else:
             return code, 0
@@ -64,8 +64,6 @@ class BaseBoard(Base):
                 if ret[0] != 0:
                     return 1
                 code = ret[0]
-
-        # logger.info("write_sn: {}".format(sn))
         return code
 
     @xarm_is_connected(_type='get')
@@ -104,14 +102,11 @@ class BaseBoard(Base):
     def get_imu_data(self, board_id=10):
         ret = self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=1, bid=board_id)
         if ret[0] == 0:
-            ret1 = self.arm_cmd.get_imu_data(board_id, addr=0x0C00)
-            ret2 = self.arm_cmd.get_imu_data(board_id, addr=0x0C02)
-            ret3 = self.arm_cmd.get_imu_data(board_id, addr=0x0C04)
-            if ret1[0] == 0 and ret2[0] == 0 and ret3[0] == 0:
-                acc_x = ret1[1]
-                acc_y = ret2[1]
-                acc_z = ret3[1]
-                return 0, acc_x, acc_y, acc_z
-            else:
-                return ret1[0] or ret2[0] or ret3[0], [1, 1, 1]
+            ret1 = self.arm_cmd.tgpio_addr_r32(addr=0x0C00, bid=board_id, fmt='>f')
+            ret2 = self.arm_cmd.tgpio_addr_r32(addr=0x0C02, bid=board_id, fmt='>f')
+            ret3 = self.arm_cmd.tgpio_addr_r32(addr=0x0C04, bid=board_id, fmt='>f')
+            code = 0 if ret1[0] == 0 else ret1[0]
+            code = code if ret2[0] == 0 else ret2[0]
+            code = code if ret3[0] == 0 else ret3[0]
+            return code, [ret1[1], ret2[1], ret3[1]]
         return ret[0], [1, 1, 1]

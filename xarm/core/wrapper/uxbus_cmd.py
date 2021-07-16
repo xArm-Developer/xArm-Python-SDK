@@ -546,7 +546,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_ID):
+    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_ID, fmt='>l'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
@@ -554,7 +554,7 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_R16B, 4, self._GET_TIMEOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
+        return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     @lock_require
     def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_ID):
@@ -569,7 +569,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_ID):
+    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_ID, fmt='>l'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
@@ -577,7 +577,7 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, self._GET_TIMEOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
+        return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     def tgpio_get_digital(self):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
@@ -1063,11 +1063,3 @@ class UxbusCmd(object):
         txdata += [joint_pos[i] for i in range(7)]
         return self.swop_nfp32(XCONF.UxbusReg.GET_MAX_JOINT_VELOCITY, txdata, 8, 1)
 
-    def get_imu_data(self, servo_id, addr):
-        txdata = bytes([servo_id])
-        txdata += convert.u16_to_bytes(addr)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
-        if ret != 0:
-            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_R32B, 4, XCONF.UxbusConf.GET_TIMEOUT)
-        return [ret[0], convert.bytes_to_fp32_big(ret[1:5])]

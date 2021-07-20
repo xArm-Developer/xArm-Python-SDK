@@ -42,46 +42,47 @@ class XArmStudioAPI(object):
             warnings.warn("don't use it for now, just for debugging")
         self.__ip = ip
         self.__session = Session()
-        self.arm = self.__RemoteXArmAPI(self._call_sdk_api)
+        self.arm = self.__RemoteXArmAPI(self.call_sdk_api)
 
     def __del__(self):
         self.__session.close()
 
     def run_blockly_app(self, name, **kwargs):
         try:
-            self._call_studio_api({}, api_name='xarm_set_blockly_init', show_fail_log=False)
+            self.call_studio_api({}, api_name='Core.command.xarm_set_blockly_init', show_fail_log=False)
         except:
             pass
         kwargs['appName'] = name
-        return self._call_studio_api(kwargs, api_name='run_blockly')
+        return self.call_studio_api(kwargs, api_name='Core.command.run_blockly')
 
     def delete_blockly_app(self, name):
-        return self._call_studio_api({
+        return self.call_studio_api({
             'parentPath': name,
             'selectNode': {
                 'type': 'file'
             }
-        }, api_name='app_delete_item')
+        }, api_name='Core.command.app_delete_item')
 
     def playback_trajectory(self, filename, times=1, wait=False, double_speed=1):
-        return self._call_studio_api({
+        return self.call_studio_api({
             'filename': filename,
             'times': times,
             'speed': double_speed,
             'wait': wait,
-        }, api_name='xarm_playback_traj')
+        }, api_name='Core.command.xarm_playback_traj')
 
     def delete_trajectory(self, filename):
-        return self._call_studio_api({
+
+        return self.call_studio_api({
             'filename': filename,
-        }, api_name='xarm_delete_traj')
+        }, api_name='Core.command.xarm_delete_traj')
 
-    def _call_studio_api(self, *args, **kwargs):
-        kwargs['path'] = 'cmd'
-        return self.__call_remote_api(None, 0, *args, **kwargs)
+    def call_sdk_api(self, *args, **kwargs):
+        kwargs['api_name'] = 'XArm.xarm.{}'.format(kwargs['api_name'])
+        return self.call_studio_api(*args, **kwargs)
 
-    def _call_sdk_api(self, *args, **kwargs):
-        kwargs['path'] = 'api'
+    def call_studio_api(self, *args, **kwargs):
+        kwargs['path'] = 'v2/api'
         return self.__call_remote_api(*args, **kwargs)
 
     def __call_remote_api(self, *args, **kwargs):
@@ -94,11 +95,10 @@ class XArmStudioAPI(object):
             }), timeout=(5, None))
             if r.status_code == 200:
                 res = r.json()
-                if 'info' in res:
+                if res['code'] != 0:
                     if show_fail_log:
-                        print(res['info'])
-                else:
-                    return res['res']
+                        print(res['data'])
+                return res
             else:
                 if show_fail_log:
                     print('request failed, http_status_code={}'.format(r.status_code))

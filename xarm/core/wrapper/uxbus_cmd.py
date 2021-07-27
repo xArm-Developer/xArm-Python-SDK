@@ -149,7 +149,18 @@ class UxbusCmd(object):
         ret = self.send_pend(funcode, num * 4, timeout if timeout is not None else self._GET_TIMEOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
-        data[1:num] = convert.bytes_to_fp32s(ret[1:num * 4 + 1], num)
+        data[1:num+1] = convert.bytes_to_fp32s(ret[1:num * 4 + 1], num)
+        return data
+
+    @lock_require
+    def get_nfp32_with_datas(self, funcode, datas, num_send, num_get, timeout=None):
+        ret = self.send_xbus(funcode, datas, num_send)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        ret = self.send_pend(funcode, num_get * 4, timeout if timeout is not None else self._GET_TIMEOUT)
+        data = [0] * (1 + num_get)
+        data[0] = ret[0]
+        data[1:num_get + 1] = convert.bytes_to_fp32s(ret[1:num_get * 4 + 1], num_get)
         return data
 
     @lock_require
@@ -366,7 +377,7 @@ class UxbusCmd(object):
         ret = self.send_pend(funcode, ret_fp_num * 4, self._GET_TIMEOUT)
         data = [0] * (1 + ret_fp_num)
         data[0] = ret[0]
-        data[1:ret_fp_num] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
+        data[1:ret_fp_num+1] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
         return data
 
     def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime):
@@ -928,10 +939,13 @@ class UxbusCmd(object):
     def vc_set_linev(self, line_v, coord):
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, bytes([coord]))
 
+    def iden_load(self, iden_type, num_get, timeout=500):
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, [iden_type], 1, num_get, timeout=timeout)
+
     @lock_require
     def set_impedance(self, coord, c_axis, M, K, B):
         txdata = bytes([coord])
-        txdata += bytes(c_axis)
+        txdata += bytes(c_axis[:6])
         txdata += convert.fp32s_to_bytes(M, 6)
         txdata += convert.fp32s_to_bytes(K, 6)
         txdata += convert.fp32s_to_bytes(B, 6)
@@ -953,7 +967,7 @@ class UxbusCmd(object):
     @lock_require
     def set_impedance_config(self, coord, c_axis):
         txdata = bytes([coord])
-        txdata += bytes(c_axis)
+        txdata += bytes(c_axis[:6])
         ret = self.send_xbus(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, txdata, 7)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -962,7 +976,7 @@ class UxbusCmd(object):
     @lock_require
     def config_force_control(self, coord, c_axis, f_ref, limits):
         txdata = bytes([coord])
-        txdata += bytes(c_axis)
+        txdata += bytes(c_axis[:6])
         txdata += convert.fp32s_to_bytes(f_ref, 6)
         txdata += convert.fp32s_to_bytes(limits, 6)
         ret = self.send_xbus(XCONF.UxbusReg.FORCE_CTRL_CONFIG, txdata, 55)
@@ -985,7 +999,7 @@ class UxbusCmd(object):
         return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, 0, 0)
 
     def ft_sensor_iden_load(self):
-        return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_IDEN_LOAD, 10, timeout=500)
+        return self.iden_load(0, 10)
 
     def ft_sensor_cali_load(self, iden_result_list):
         return self.set_nfp32(XCONF.UxbusReg.FTSENSOR_CALI_LOAD_OFFSET, iden_result_list, 10)
@@ -996,7 +1010,8 @@ class UxbusCmd(object):
 
     def ft_sensor_app_set(self, app_code):
         txdata = [app_code]
-        return self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+        ret = self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+        return ret[0] if ret[0] != 0 else XCONF.UxbusState.INVALID if ret[1] != 0 else 0
 
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)
@@ -1063,3 +1078,5 @@ class UxbusCmd(object):
         txdata += [joint_pos[i] for i in range(7)]
         return self.swop_nfp32(XCONF.UxbusReg.GET_MAX_JOINT_VELOCITY, txdata, 8, 1)
 
+    def iden_tcp_load(self):
+        return self.iden_load(1, 4, timeout=300)

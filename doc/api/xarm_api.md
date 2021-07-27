@@ -3,6 +3,447 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 ## class __XArmAPI__
 ****************************************
 
+### __Attributes__
+****************************************
+#### __angles__
+```
+Servo angles
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: [angle1(° or rad), angle2(° or rad), ..., anglen7(° or rad)]
+```
+
+#### __arm__
+
+#### __axis__
+```
+Axis number, only available in socket way and enable_report is True and report_type is 'rich'
+```
+
+#### __cgpio_states__
+```
+Controller gpio state
+
+:return: states
+    states[0]: contorller gpio module state
+        states[0] == 0: normal
+        states[0] == 1：wrong
+        states[0] == 6：communication failure
+    states[1]: controller gpio module error code
+        states[1] == 0: normal
+        states[1] != 0：error code
+    states[2]: digital input functional gpio state
+        Note: digital-i-input functional gpio state = states[2] >> i & 0x01
+    states[3]: digital input configuring gpio state
+        Note: digital-i-input configuring gpio state = states[3] >> i & 0x01
+    states[4]: digital output functional gpio state
+        Note: digital-i-output functional gpio state = states[4] >> i & 0x01
+    states[5]: digital output configuring gpio state
+        Note: digital-i-output configuring gpio state = states[5] >> i & 0x01
+    states[6]: analog-0 input value
+    states[7]: analog-1 input value
+    states[8]: analog-0 output value
+    states[9]: analog-1 output value
+    states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]
+    states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
+```
+
+#### __cmd_num__
+```
+Number of command caches in the controller
+```
+
+#### __collision_sensitivity__
+```
+The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: 0~5
+```
+
+#### __connected__
+```
+Connection status
+```
+
+#### __control_box_sn__
+```
+Control box sn
+```
+
+#### __core__
+```
+Core layer API, set only for advanced developers, please do not use
+Ex:
+    self.core.move_line(...)
+    self.core.move_lineb(...)
+    self.core.move_joint(...)
+    ...
+```
+
+#### __count__
+```
+Counter val
+```
+
+#### __currents__
+```
+Servos electric current
+
+:return: [servo-1-current, ..., servo-7-current]
+```
+
+#### __default_is_radian__
+```
+The default unit is radians or not
+```
+
+#### __device_type__
+```
+Device type, only available in socket way and  enable_report is True and report_type is 'rich'
+```
+
+#### __error_code__
+```
+Controller error code. See Chapter 7 of the xArm User Manual for details.
+```
+
+#### __gpio_reset_config__
+```
+The gpio reset enable config
+:return: [cgpio_reset_enable, tgpio_reset_enable]
+```
+
+#### __gravity_direction__
+```
+gravity direction, only available in socket way and enable_report is True and report_type is 'rich'
+:return:
+```
+
+#### __has_err_warn__
+```
+Contorller have an error or warning or not
+
+:return: True/False
+```
+
+#### __has_error__
+```
+Controller have an error or not
+```
+
+#### __has_warn__
+```
+Controller have an warnning or not
+```
+
+#### __is_simulation_robot__
+```
+Is simulation robot not not
+```
+
+#### __joint_acc_limit__
+```
+Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]
+```
+
+#### __joint_jerk__
+```
+Joint jerk
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: jerk (°/s^3 or rad/s^3)
+```
+
+#### __joint_speed_limit__
+```
+Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]
+```
+
+#### __joints_torque__
+```
+Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: [joint-1, ....]
+```
+
+#### __last_used_angles__
+```
+The last used servo angles, default value of parameter angle of interface set_servo_angle
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+    2. self.set_servo_angle(servo_id=1, angle=75) <==> self.set_servo_angle(angle=[75] + self.last_used_angles[1:])
+    3. self.set_servo_angle(servo_id=5, angle=30) <==> self.set_servo_angle(angle=self.last_used_angles[:4] + [30] + self.last_used_angles[5:])
+
+:return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]
+```
+
+#### __last_used_joint_acc__
+```
+The last used joint acceleration, default value of parameter mvacc of interface set_servo_angle
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: acceleration (°/s^2 or rad/s^2)
+```
+
+#### __last_used_joint_speed__
+```
+The last used joint speed, default value of parameter speed of interface set_servo_angle
+Note:
+    1. If self.default_is_radian is True, the returned value is in radians
+
+:return: speed (°/s or rad/s)
+```
+
+#### __last_used_position__
+```
+The last used cartesion position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position
+Note:
+    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
+    2. self.set_position(x=300) <==> self.set_position(x=300, *last_used_position[1:])
+    2. self.set_position(roll=-180) <==> self.set_position(x=self.last_used_position[:3], roll=-180, *self.last_used_position[4:])
+
+:return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
+```
+
+#### __last_used_tcp_acc__
+```
+The last used cartesion acceleration, default value of parameter mvacc of interface set_position/move_circle
+
+:return: acceleration (mm/s^2)
+```
+
+#### __last_used_tcp_speed__
+```
+The last used cartesion speed, default value of parameter speed of interface set_position/move_circle
+
+:return: speed (mm/s)
+```
+
+#### __master_id__
+```
+Master id, only available in socket way and enable_report is True and report_type is 'rich'
+```
+
+#### __mode__
+```
+xArm mode，only available in socket way and  enable_report is True
+
+:return:
+    0: position control mode
+    1: servo motion mode
+    2: joint teaching mode
+    3: cartesian teaching mode (invalid)
+```
+
+#### __motor_brake_states__
+```
+Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'
+Note:
+    For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
+
+:return: [motor-1-brake-state, ..., motor-7-brake-state, reserved]
+    motor-{i}-brake-state:
+        0: enable
+        1: disable
+```
+
+#### __motor_enable_states__
+```
+Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'
+Note:
+    For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.
+
+:return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]
+    motor-{i}-enable-state:
+        0: disable
+        1: enable
+```
+
+#### __position__
+```
+Cartesion position
+Note:
+    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
+
+return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
+```
+
+#### __realtime_joint_speeds__
+```
+The real time speed of joint motion, only available if version > 1.2.11
+
+:return: [joint-1-speed(°/s or rad/s), ...., joint-7-speed(°/s or rad/s)]
+```
+
+#### __realtime_tcp_speed__
+```
+The real time speed of tcp motion, only available if version > 1.2.11
+
+:return: real time speed (mm/s)
+```
+
+#### __robotiq_status__
+```
+The last state value obtained
+
+Note:
+    1. Successfully call the robotiq related interface with wait parameter (when the parameter wait = True is set) will update this value
+    2. Successfully calling interface robotiq_get_status will partially or completely update this value
+
+:return status dict
+    {
+        'gOBJ': 0,  # Object detection status, is a built-in feature that provides information on possible object pick-up
+        'gSTA': 0,  # Gripper status, returns the current status & motion of the Gripper fingers
+        'gGTO': 0,  # Action status, echo of the rGTO bit(go to bit)
+        'gACT': 0,  # Activation status, echo of the rACT bit(activation bit)
+        'kFLT': 0,  # Echo of the requested position for the Gripper
+        'gFLT': 0,  # Fault status
+        'gPR': 0,  # Echo of the requested position for the Gripper
+        'gPO': 0,  # Actual position of the Gripper obtained via the encoders
+        'gCU': 0,  # The current is read instantaneously from the motor drive
+    }
+    Note: -1 means never updated
+```
+
+#### __self_collision_params__
+```
+Self collision params
+
+:return: params
+    params[0]: self collision detection or not
+    params[1]: self collision tool type
+    params[2]: self collision model params
+```
+
+#### __servo_codes__
+```
+Servos status and error_code
+:return: [
+    [servo-1-status, servo-1-code],
+    ...,
+    [servo-7-status, servo-7-code], 
+    [tool-gpio-status, tool-gpio-code]
+]
+```
+
+#### __slave_id__
+```
+Slave id, only available in socket way and enable_report is True and report_type is 'rich'
+```
+
+#### __sn__
+```
+xArm sn
+```
+
+#### __state__
+```
+xArm state
+
+:return:
+    1: in motion
+    2: sleeping
+    3: suspended
+    4: stopping
+```
+
+#### __tcp_acc_limit__
+```
+Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich' 
+
+:return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]
+```
+
+#### __tcp_jerk__
+```
+Tcp jerk
+
+:return: jerk (mm/s^3)
+```
+
+#### __tcp_load__
+```
+xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: [weight, center of gravity]
+    such as: [weight(kg), [x(mm), y(mm), z(mm)]]
+```
+
+#### __tcp_offset__
+```
+Cartesion position offset, only available in socket way and enable_report is True
+Note:
+    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
+
+:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
+```
+
+#### __tcp_speed_limit__
+```
+Tcp speed limit, only available in socket way and enable_report is True and report_type is 'rich'
+
+:return: [min_tcp_speed(mm/s), max_tcp_speed(mm/s)]
+```
+
+#### __teach_sensitivity__
+```
+The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'
+
+:return: 1~5
+```
+
+#### __temperatures__
+```
+Motor temperature, only available if version > 1.2.11
+
+:return: [motor-1-temperature, ..., motor-7-temperature]
+```
+
+#### __version__
+```
+xArm version
+```
+
+#### __version_number__
+```
+Frimware version number
+
+:return: (major_version_number, minor_version_number, revision_version_number)
+```
+
+#### __voltages__
+```
+Servos voltage
+
+:return: [servo-1-voltage, ..., servo-7-voltage]
+```
+
+#### __warn_code__
+```
+Controller warn code. See Chapter 7 of the xArm User Manual for details.
+```
+
+#### __world_offset__
+```
+Base coordinate offset, only available if version > 1.2.11
+
+Note:
+    1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians
+
+:return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]
+```
+
 ****************************************
 ### __Methods__
 ****************************************
@@ -230,7 +671,7 @@ Config the Controller GPIO reset the digital output when the robot is in stop st
 ```
 set force control parameters.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param coord:  task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
@@ -281,7 +722,7 @@ Note:
 ```
 get force mode
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :return: tuple((code, status))
     code: See the API code documentation for details.
@@ -295,7 +736,7 @@ Note:
 ```
 set robot to be controlled in force mode
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
 :return: tuple((code, status))
@@ -308,7 +749,7 @@ Note:
 ```
 write load parameter value
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
 :return: code
@@ -320,7 +761,7 @@ Note:
 ```
 used for enabling and disabling the use of external F/T measurements in the controller.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param on_off: enable or disable F/T data sampling.
 :return: code
@@ -332,7 +773,7 @@ Note:
 ```
 start load identification.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :return: tuple((code, load)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -344,9 +785,19 @@ Note:
 ```
 set force/torque offset.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :return: code
+    code: See the API code documentation for details.
+```
+
+#### def __get_base_board_version__(self, board_id=10):
+
+```
+ Get base board version
+
+:param board_id: int
+:return: : (code, version)
     code: See the API code documentation for details.
 ```
 
@@ -452,7 +903,7 @@ Get the controller error and warn code
 ```
 get extenal force/torque
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :return: tuple((code, exe_ft))
     code: See the API code documentation for details.
@@ -822,6 +1273,18 @@ Send the modbus data to the tool gpio
     modbus_response: modbus response data
 ```
 
+#### def __iden_tcp_load__(self):
+
+```
+Identification the tcp load
+Note:
+    1. only available if firmware_version >= 1.7.5
+
+:return: tuple((code, load)) only when code is 0, the returned result is correct.
+    code:  See the API code documentation for details.
+    load:  [mass，x_centroid，y_centroid，z_centroid]
+```
+
 #### def __is_joint_limit__(self, joint, is_radian=None):
 
 ```
@@ -1027,6 +1490,19 @@ Register the error code or warn code changed callback, only available if enable_
 :return: True/False
 ```
 
+#### def __register_iden_progress_changed_callback__(self, callback=None):
+
+```
+Register the Identification progress value changed callback, only available if enable_report is True
+
+:param callback: 
+    callback data:
+    {
+        "progress": progress value
+    }
+:return: True/False
+```
+
 #### def __register_mode_changed_callback__(self, callback=None):
 
 ```
@@ -1155,6 +1631,15 @@ Release the counter value changed callback
 
 ```
 Release the error warn changed callback
+
+:param callback:
+:return: True/False
+```
+
+#### def __release_iden_progress_changed_callback__(self, callback=None):
+
+```
+Release the Identification progress value changed callback
 
 :param callback:
 :return: True/False
@@ -1506,6 +1991,8 @@ Set the digital input functional mode of the Controller GPIO
     5: reversed, three-state switching signal
     11: offline task
     12: teaching mode
+    13: reduced mode
+    14: enable arm
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1524,6 +2011,9 @@ Set the digital output functional mode of the specified Controller GPIO
     13: in collision
     14: in teaching
     15: in offline task
+    16: reduced mode
+    17: enable arm
+    18: emergency stop is pressed
 :return: code
     code: See the API code documentation for details.
 ```
@@ -1634,7 +2124,7 @@ Note:
 ```
 set force control pid parameters.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param kp: proportional gain. default : 0.005
 :param ki: integral gain. default : 0.00006
@@ -1711,7 +2201,7 @@ Set the gripper speed
 ```
 set all parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -1727,7 +2217,7 @@ Note:
 ```
 set impedance control parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -1740,7 +2230,7 @@ Note:
 ```
 set mbk parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.7.0
+    1. only available if firmware_version >= 1.7.5
 
 :param M: mass. (kg)
 :param K: stiffness coefficient.

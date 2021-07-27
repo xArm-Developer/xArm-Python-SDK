@@ -20,6 +20,7 @@ from .base_board import BaseBoard
 from .servo import Servo
 from .record import Record
 from .robotiq import RobotIQ
+from .ft_sensor import FtSensor
 from .parse import GcodeParser
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_version, xarm_wait_until_cmdnum_lt_max
@@ -32,7 +33,7 @@ except:
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
+class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, FtSensor):
     def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
         kwargs['init'] = True
@@ -1720,66 +1721,6 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         ), code=ret[0])
         return ret[0]
 
-    @xarm_is_connected(_type='set')
-    def set_impedance(self, coord, c_axis, M, K, B):
-        ret = self.arm_cmd.set_impedance(coord, c_axis, M, K, B)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def set_impedance_mbk(self, M, K, B):
-        ret = self.arm_cmd.set_impedance_mbk(M, K, B)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def set_impedance_config(self, coord, c_axis):
-        ret = self.arm_cmd.set_impedance_config(coord, c_axis)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def config_force_control(self, coord, c_axis, f_ref, limits):
-        ret = self.arm_cmd.config_force_control(coord, c_axis, f_ref, limits)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def set_force_control_pid(self, kp, ki, kd, xe_limit):
-        ret = self.arm_cmd.set_force_control_pid(kp, ki, kd, xe_limit)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def ft_sensor_set_zero(self):
-        ret = self.arm_cmd.ft_sensor_set_zero()
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='get')
-    def ft_sensor_iden_load(self):
-        ret = self.arm_cmd.ft_sensor_iden_load()
-        return self._check_code(ret[0]), ret[1:11]
-
-    @xarm_is_connected(_type='set')
-    def ft_sensor_cali_load(self, iden_result_list):
-        ret = self.arm_cmd.ft_sensor_cali_load(iden_result_list)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def ft_sensor_enable(self, on_off):
-        ret = self.arm_cmd.ft_sensor_enable(on_off)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='get')
-    def ft_sensor_app_set(self, app_code):
-        ret = self.arm_cmd.ft_sensor_app_set(app_code)
-        return self._check_code(ret[0]), ret[1]
-
-    @xarm_is_connected(_type='get')
-    def ft_sensor_app_get(self):
-        ret = self.arm_cmd.ft_sensor_app_get()
-        return self._check_code(ret[0]), ret[1]
-
-    @xarm_is_connected(_type='get')
-    def get_exe_ft(self):
-        ret = self.arm_cmd.get_exe_ft()
-        return self._check_code(ret[0]), ret[1:7]
-
     @xarm_is_connected(_type='get')
     def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
         assert len(four_points) >= 4, 'The parameter four_points must contain 4 TCP points'
@@ -1835,3 +1776,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         joint_pos = [joint_pos[i] if is_radian else math.radians(joint_pos[i]) for i in range(7)]
         return self.arm_cmd.get_max_joint_velocity(eveloc, joint_pos)
+
+    @xarm_is_connected(_type='get')
+    def iden_tcp_load(self):
+        ret = self.arm_cmd.iden_tcp_load()
+        return self._check_code(ret[0]), ret[1:5]

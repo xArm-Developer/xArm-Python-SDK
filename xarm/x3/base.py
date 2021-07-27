@@ -144,6 +144,7 @@ class Base(Events):
             self._cgpio_reset_enable = 0
             self._tgpio_reset_enable = 0
             self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
+            self._iden_progress = 0
 
             self._ignore_error = False
             self._ignore_state = False
@@ -241,6 +242,7 @@ class Base(Events):
         self._tgpio_reset_enable = 0
         self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 0, 0, 0, 0, 0, 0, 0]]
+        self._iden_progress = 0
 
         self._ignore_error = False
         self._ignore_state = False
@@ -910,6 +912,16 @@ class Base(Events):
                 except Exception as e:
                     logger.error('count changed callback: {}'.format(e))
 
+    def _report_iden_progress_changed_callback(self):
+        if self.REPORT_IDEN_PROGRESS_CHANGED_ID in self._report_callbacks.keys():
+            for callback in self._report_callbacks[self.REPORT_IDEN_PROGRESS_CHANGED_ID]:
+                try:
+                    callback({
+                        'progress': self._iden_progress
+                    })
+                except Exception as e:
+                    logger.error('iden progress changed callback: {}'.format(e))
+
     def _report_location_callback(self):
         if self.REPORT_LOCATION_ID in self._report_callbacks.keys():
             for item in self._report_callbacks[self.REPORT_LOCATION_ID]:
@@ -1466,6 +1478,14 @@ class Base(Events):
                     cgpio_states[-2].extend(list(map(int, rx_data[417:425])))
                     cgpio_states[-1].extend(list(map(int, rx_data[425:433])))
                 self._cgpio_states = cgpio_states
+            if length >= 481:
+                # FT_SENSOR
+                pass
+            if length >= 482:
+                iden_progress = rx_data[481]
+                if iden_progress != self._iden_progress:
+                    self._iden_progress = iden_progress
+                    self._report_iden_progress_changed_callback()
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -1495,21 +1515,29 @@ class Base(Events):
                     if len(buffer) < size:
                         continue
                     if self._report_type == 'real':
-                        data = buffer[:size]
-                        buffer = buffer[size:]
+                        start_inx = (len(buffer) // size - 1) * size
+                        end_inx = start_inx + size
+                        data = buffer[start_inx:end_inx]
+                        buffer = buffer[end_inx:]
                         __handle_report_real(data)
                     elif size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
                         if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
                             if size == 233 and len(buffer) == 245:
-                                data = buffer[:245]
-                                buffer = buffer[245:]
+                                start_inx = (len(buffer) // 245 - 1) * 245
+                                end_inx = start_inx + 245
+                                data = buffer[start_inx:end_inx]
+                                buffer = buffer[end_inx:]
                             else:
-                                data = buffer[:size]
-                                buffer = buffer[size:]
+                                start_inx = (len(buffer) // size - 1) * size
+                                end_inx = start_inx + size
+                                data = buffer[start_inx:end_inx]
+                                buffer = buffer[end_inx:]
                             __handle_report_rich(data)
                         else:
-                            data = buffer[:size]
-                            buffer = buffer[size:]
+                            start_inx = (len(buffer) // size - 1) * size
+                            end_inx = start_inx + size
+                            data = buffer[start_inx:end_inx]
+                            buffer = buffer[end_inx:]
                             __handle_report_normal(data)
                 else:
                     if self._stream and self._stream.connected:

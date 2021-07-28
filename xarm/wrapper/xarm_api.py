@@ -628,6 +628,14 @@ class XArmAPI(object):
         """
         return self._arm.self_collision_params
 
+    @property
+    def ft_ext_force(self):
+        return self._arm.ft_ext_force
+
+    @property
+    def ft_raw_force(self):
+        return self._arm.ft_raw_force
+
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
         """
         Connect to xArm

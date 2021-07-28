@@ -174,6 +174,9 @@ class Base(Events):
             self._arm_type_is_1300 = False
             self._control_box_type_is_1300 = False
 
+            self._ft_ext_force = [0, 0, 0, 0, 0, 0]
+            self._ft_raw_force = [0, 0, 0, 0, 0, 0]
+
             if not do_not_open:
                 self.connect()
 
@@ -271,6 +274,9 @@ class Base(Events):
 
         self._arm_type_is_1300 = False
         self._control_box_type_is_1300 = False
+
+        self._ft_ext_force = [0, 0, 0, 0, 0, 0]
+        self._ft_raw_force = [0, 0, 0, 0, 0, 0]
 
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
@@ -617,6 +623,14 @@ class Base(Events):
     @property
     def self_collision_params(self):
         return [self._is_collision_detection, self._collision_tool_type, self._collision_tool_params]
+
+    @property
+    def ft_ext_force(self):
+        return self._ft_ext_force
+
+    @property
+    def ft_raw_force(self):
+        return self._ft_raw_force
 
     def check_is_pause(self):
         if self._check_is_pause:
@@ -1480,7 +1494,8 @@ class Base(Events):
                 self._cgpio_states = cgpio_states
             if length >= 481:
                 # FT_SENSOR
-                pass
+                self._ft_ext_force = convert.bytes_to_fp32s(rx_data[433:457], 6)
+                self._ft_raw_force = convert.bytes_to_fp32s(rx_data[457:481], 6)
             if length >= 482:
                 iden_progress = rx_data[481]
                 if iden_progress != self._iden_progress:

@@ -189,7 +189,7 @@ class BlocklyTool(object):
             self._insert_to_file(self.index, '\n\n# Register state changed callback')
             self._insert_to_file(self.index, 'def state_changed_callback(data):')
             self._insert_to_file(self.index, '    if data and data[\'state\'] == 4:')
-            self._insert_to_file(self.index, '        if arm.version_number[0] >= 1 and arm.version_number[1] >= 1 and arm.version_number[2] > 0:')
+            self._insert_to_file(self.index, '        if arm.version_number[0] > 1 or (arm.version_number[0] == 1 and arm.version_number[1] > 1):')
             self._insert_to_file(self.index, '            params[\'quit\'] = True')
             self._insert_to_file(self.index, '            pprint(\'state=4, quit\')')
             self._insert_to_file(self.index, '            arm.release_state_changed_callback(state_changed_callback)')
@@ -1340,7 +1340,8 @@ class BlocklyTool(object):
             return arg_map_
         except:
             self._succeed = False
-        self._is_insert = False
+        finally:
+            self._is_insert = False
 
     def _handle_procedures_defreturn(self, block, prefix='', arg_map=None):
         arg_map_ = self._handle_procedures_defnoreturn(block, prefix)
@@ -1586,6 +1587,9 @@ class BlocklyTool(object):
             io = self.get_node('field', block).text
             return 'arm.get_tgpio_analog({})[{}]'.format(io, 1)
         elif block.attrib['type'] == 'gpio_get_controller_digital':
+            io = self.get_node('field', block).text
+            return 'arm.get_cgpio_digital({})[{}]'.format(io, 1)
+        elif block.attrib['type'] == 'gpio_get_controller_digital_di':
             io = self.get_node('field', block).text
             return 'arm.get_cgpio_digital({})[{}]'.format(io, 1)
         elif block.attrib['type'] == 'gpio_get_controller_analog':

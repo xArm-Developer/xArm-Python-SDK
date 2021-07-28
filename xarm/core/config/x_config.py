@@ -167,6 +167,7 @@ class XCONF(object):
         CHECK_VERIFY = 3
         RELOAD_DYNAMICS = 4
         GET_REPORT_TAU_OR_I = 5
+        GET_TCP_ROTATION_RADIUS = 6
 
         SHUTDOWN_SYSTEM = 10
         MOTION_EN = 11
@@ -302,6 +303,7 @@ class XCONF(object):
         FORCE_CTRL_CONFIG = 209
         IMPEDANCE_CTRL_MBK = 210
         IMPEDANCE_CTRL_CONFIG = 211
+        GET_MAX_JOINT_VELOCITY = 231
 
     class UxbusConf:
         SET_TIMEOUT = 2000  # ms

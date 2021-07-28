@@ -1878,6 +1878,8 @@ class XArmAPI(object):
             5: reversed, three-state switching signal
             11: offline task
             12: teaching mode
+            13: reduced mode
+            14: enable arm
         :return: code
             code: See the API code documentation for details.
         """
@@ -1896,6 +1898,9 @@ class XArmAPI(object):
             13: in collision
             14: in teaching
             15: in offline task
+            16: reduced mode
+            17: enable arm
+            18: emergency stop is pressed
         :return: code
             code: See the API code documentation for details.
         """
@@ -2859,6 +2864,16 @@ class XArmAPI(object):
         """
         return self._arm.calibrate_user_coordinate_offset(rpy_ub, pos_b_uorg, is_radian=is_radian)
 
+    def get_base_board_version(self, board_id=10):
+        """
+         Get base board version
+
+        :param board_id: int
+        :return: : (code, version)
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_base_board_version(board_id)
+
     def set_impedance(self, coord, c_axis, M, K, B):
         """
         set all parameters of impedance control.
@@ -3018,3 +3033,7 @@ class XArmAPI(object):
             exe_ft: only when code is 0, the returned result is correct.
         """
         return self._arm.get_exe_ft()
+
+
+
+

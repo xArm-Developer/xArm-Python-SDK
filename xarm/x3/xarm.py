@@ -16,6 +16,7 @@ from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
 from .gripper import Gripper
+from .base_board import BaseBoard
 from .servo import Servo
 from .record import Record
 from .robotiq import RobotIQ
@@ -31,7 +32,7 @@ except:
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, Record, RobotIQ):
+class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
     def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
         kwargs['init'] = True
@@ -1821,3 +1822,16 @@ class XArm(Gripper, Servo, Record, RobotIQ):
         ret = self.arm_cmd.cali_user_pos(rpy_ub_, pos_b_uorg)
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1:4]
+
+    @xarm_is_connected(_type='set')
+    def get_tcp_rotation_radius(self, value=6):
+        ret = self.arm_cmd.get_tcp_rotation_radius(value)
+        self.log_api_info('API -> get_tcp_rotation_radius -> code={}'.format(ret[0]), code=ret[0])
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1][0]
+
+    @xarm_is_connected(_type='set')
+    def get_max_joint_velocity(self, eveloc, joint_pos, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        joint_pos = [joint_pos[i] if is_radian else math.radians(joint_pos[i]) for i in range(7)]
+        return self.arm_cmd.get_max_joint_velocity(eveloc, joint_pos)

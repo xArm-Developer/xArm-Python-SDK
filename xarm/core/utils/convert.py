@@ -102,11 +102,16 @@ def bytes_to_u32(data):
     return data_u32
 
 
-def bytes_to_long_big(data):
-    """大端字节序"""
+def bytes_to_num32(data, fmt='>l'):
     byte = bytes([data[0]])
     byte += bytes([data[1]])
     byte += bytes([data[2]])
     byte += bytes([data[3]])
-    ret = struct.unpack(">l", byte)
+    ret = struct.unpack(fmt, byte)
     return ret[0]
+
+
+def bytes_to_long_big(data):
+    """大端字节序"""
+    return bytes_to_num32(data, '>l')
+

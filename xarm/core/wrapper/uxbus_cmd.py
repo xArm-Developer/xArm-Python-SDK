@@ -1011,7 +1011,8 @@ class UxbusCmd(object):
     def ft_sensor_app_set(self, app_code):
         txdata = [app_code]
         ret = self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
-        return ret[0] if ret[0] != 0 else XCONF.UxbusState.INVALID if ret[1] != 0 else 0
+        ret[0] = ret[0] if ret[0] != 0 else XCONF.UxbusState.INVALID if ret[1] != 0 else 0
+        return ret
 
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)

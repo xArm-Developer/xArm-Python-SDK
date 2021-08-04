@@ -77,6 +77,13 @@ class XArmStudioAPI(object):
             'filename': filename,
         }, api_name='Core.command.xarm_delete_traj')
 
+    def set_initial_point(self, point):
+        return self.call_studio_api({'point': point},
+                                    api_name='Core.command.xarm_set_initial_point')
+
+    def get_initial_point(self):
+        return self.call_studio_api(api_name='XArm.xarm_initial_point')
+
     def call_sdk_api(self, *args, **kwargs):
         kwargs['api_name'] = 'XArm.xarm.{}'.format(kwargs['api_name'])
         return self.call_studio_api(*args, **kwargs)

@@ -633,8 +633,8 @@ class UxbusCmd(object):
         return ret[:2]
 
     @lock_require
-    def tgpio_set_modbus(self, modbus_t, len_t):
-        txdata = bytes([XCONF.TGPIO_ID])
+    def tgpio_set_modbus(self, modbus_t, len_t, fid=XCONF.TGPIO_ID):
+        txdata = bytes([fid])
         txdata += bytes(modbus_t)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
         if ret != 0:
@@ -1062,4 +1062,22 @@ class UxbusCmd(object):
         txdata = [eveloc]
         txdata += [joint_pos[i] for i in range(7)]
         return self.swop_nfp32(XCONF.UxbusReg.GET_MAX_JOINT_VELOCITY, txdata, 8, 1)
+
+    def track_modbus_w16s(self, addr, value, length):
+        txdata = bytes([XCONF.TRACK_ID])
+        txdata += bytes([0x10])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.u16_to_bytes(length)
+        txdata += bytes([length * 2])
+        txdata += value
+        ret = self.tgpio_set_modbus(txdata, length * 2 + 7, fid=11)
+        return ret
+
+    def track_modbus_r16s(self, addr, length, fcode=0x03):
+        txdata = bytes([XCONF.TRACK_ID])
+        txdata += bytes([fcode])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.u16_to_bytes(length)
+        ret = self.tgpio_set_modbus(txdata, 6, fid=11)
+        return ret
 

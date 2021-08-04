@@ -1817,6 +1817,35 @@ class BlocklyTool(object):
             val = self.get_node('field', root=shadow).text
         return val
 
+    def _handle_set_line_track(self, block, prefix='', arg_map=None):
+        fields = self.get_nodes('field', root=block)
+        if fields is not None and len(fields) >= 3:
+            pos = fields[0].text
+            speed = fields[1].text
+            wait = fields[2].text == 'TRUE'
+        else:
+            values = self.get_nodes('value', root=block)
+            pos = self.get_nodes('field', root=values[0], descendant=True)[0].text
+            speed = self.get_nodes('field', root=values[1], descendant=True)[0].text
+            wait = self.get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
+        if self._show_comment:
+            self._append_to_file('{}# set line track position and '.format(prefix, 'wait' if wait else 'no wait'))
+        self._append_to_file('{}code = arm.arm.set_line_track_enable(True)'.format(prefix))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    code = arm.arm.set_line_track_pos({}, wait={}, speed={}, auto_enable=True)'.format(prefix, pos, wait, speed))
+        self._append_to_file('{}    if code != 0:'.format(prefix))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}        pprint(\'set_line_track_pos, code={{}}\'.format(code))'.format(prefix))
+
+    def _handle_set_line_track_origin(self, block, prefix='', arg_map=None):
+        if self._show_comment:
+            self._append_to_file('{}# set_line_track_origin(wait=True, auto_enable=True)'.format(prefix))
+        self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
+        self._append_to_file('{}    code = arm.arm.line_track_back_origin(wait=True, auto_enable=True)'.format(prefix))
+        self._append_to_file('{}    if code != 0:'.format(prefix))
+        self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
+        self._append_to_file('{}        pprint(\'line_track_back_origin, code={{}}\'.format(code))'.format(prefix))
+
 
 if __name__ == '__main__':
     blockly = BlocklyTool('C:\\Users\\ufactory\\.UFACTORY\projects\\test\\xarm6\\app\\myapp\local_test_1\\app.xml')

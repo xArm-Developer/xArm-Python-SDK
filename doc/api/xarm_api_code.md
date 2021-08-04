@@ -43,6 +43,7 @@
 - 12: parameter error
 - 13: the instruction does not exist
 - 14: command has no solution
+- 15: modbus cmd full
 
 ## Controller error code
 - 1: The Emergency Stop Button is pushed
@@ -76,6 +77,11 @@
 - 37: Abnormal movement in Manual Mode
 - 38: Abnormal Joint Angle
 - 39: Abnormal Communication Between Master and Slave IC of Power Board
+- 50: Force sensor read error
+- 51: Force sensor set mode error
+- 52: Force sensor set zero error
+- 110: Robot Arm Base Board Communication Error
+- 111: Control Box External 485 Device Communication Error
 
 ## Servo Error Code
 

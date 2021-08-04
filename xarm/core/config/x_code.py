@@ -724,6 +724,56 @@ ControllerErrorCodeMap = {
             'desc': '请联系技术支持。'
         }
     },
+    50: {
+        'en': {
+            'title': 'Force sensor read error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '力矩传感器读取数据错误',
+            'desc': ''
+        }
+    },
+    51: {
+        'en': {
+            'title': 'Force sensor set mode error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '力矩传感器设置模式错误',
+            'desc': ''
+        }
+    },
+    52: {
+        'en': {
+            'title': 'Force sensor set zero error',
+            'desc': ''
+        },
+        'cn': {
+            'title': '力矩传感器设置零点错误',
+            'desc': ''
+        }
+    },
+    110: {
+        'en': {
+            'title': 'Robot Arm Base Board Communication Error',
+            'desc': 'Please contact technical support.'
+        },
+        'cn': {
+            'title': '机械臂底座板通信异常',
+            'desc': '请联系技术支持。'
+        }
+    },
+    111: {
+        'en': {
+            'title': 'Control Box External 485 Device Communication Error',
+            'desc': 'Please contact technical support.'
+        },
+        'cn': {
+            'title': '控制器外接485设备通信异常',
+            'desc': '请联系技术支持。'
+        }
+    },
     'other': {
         'en': {
             'title': 'Other Errors',
@@ -774,6 +824,16 @@ ControllerWarnCodeMap = {
         },
         'cn': {
             'title': '用户指令和参数无解',
+            'desc': ''
+        }
+    },
+    15: {
+        'en': {
+            'title': 'Modbus cmd full',
+            'desc': ''
+        },
+        'cn': {
+            'title': 'Modbus指令已满',
             'desc': ''
         }
     },

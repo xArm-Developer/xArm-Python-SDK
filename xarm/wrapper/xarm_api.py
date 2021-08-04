@@ -628,6 +628,14 @@ class XArmAPI(object):
         """
         return self._arm.self_collision_params
 
+    @property
+    def ft_ext_force(self):
+        return self._arm.ft_ext_force
+
+    @property
+    def ft_raw_force(self):
+        return self._arm.ft_raw_force
+
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
         """
         Connect to xArm
@@ -2099,6 +2107,19 @@ class XArmAPI(object):
         """
         return self._arm.register_count_changed_callback(callback=callback)
 
+    def register_iden_progress_changed_callback(self, callback=None):
+        """
+        Register the Identification progress value changed callback, only available if enable_report is True
+        
+        :param callback: 
+            callback data:
+            {
+                "progress": progress value
+            }
+        :return: True/False
+        """
+        return self._arm.register_iden_progress_changed_callback(callback=callback)
+
     def release_report_callback(self, callback=None):
         """
         Release the report callback
@@ -2188,6 +2209,15 @@ class XArmAPI(object):
         :return: True/False
         """
         return self._arm.release_count_changed_callback(callback=callback)
+
+    def release_iden_progress_changed_callback(self, callback=None):
+        """
+        Release the Identification progress value changed callback
+
+        :param callback:
+        :return: True/False
+        """
+        return self._arm.release_iden_progress_changed_callback(callback=callback)
 
     def get_servo_debug_msg(self, show=False, lang='en'):
         """
@@ -2878,7 +2908,7 @@ class XArmAPI(object):
         """
         set all parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param coord: task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2894,7 +2924,7 @@ class XArmAPI(object):
         """
         set mbk parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param M: mass. (kg)
         :param K: stiffness coefficient.
@@ -2908,7 +2938,7 @@ class XArmAPI(object):
         """
         set impedance control parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param coord: task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2921,7 +2951,7 @@ class XArmAPI(object):
         """
         set force control parameters.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param coord:  task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
@@ -2937,7 +2967,7 @@ class XArmAPI(object):
         """
         set force control pid parameters.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param kp: proportional gain. default : 0.005
         :param ki: integral gain. default : 0.00006
@@ -2952,7 +2982,7 @@ class XArmAPI(object):
         """
         set force/torque offset.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :return: code
             code: See the API code documentation for details.
@@ -2963,7 +2993,7 @@ class XArmAPI(object):
         """
         start load identification.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :return: tuple((code, load)) only when code is 0, the returned result is correct.
             code:  See the API code documentation for details.
@@ -2975,7 +3005,7 @@ class XArmAPI(object):
         """
         write load parameter value
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
         :return: code
@@ -2987,7 +3017,7 @@ class XArmAPI(object):
         """
         used for enabling and disabling the use of external F/T measurements in the controller.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param on_off: enable or disable F/T data sampling.
         :return: code
@@ -2999,7 +3029,7 @@ class XArmAPI(object):
         """
         set robot to be controlled in force mode
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
         :return: tuple((code, status))
@@ -3012,7 +3042,7 @@ class XArmAPI(object):
         """
         get force mode
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :return: tuple((code, status))
             code: See the API code documentation for details.
@@ -3026,7 +3056,7 @@ class XArmAPI(object):
         """
         get extenal force/torque
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.7.5
 
         :return: tuple((code, exe_ft))
             code: See the API code documentation for details.
@@ -3034,6 +3064,14 @@ class XArmAPI(object):
         """
         return self._arm.get_exe_ft()
 
-
-
-
+    def iden_tcp_load(self):
+        """
+        Identification the tcp load
+        Note:
+            1. only available if firmware_version >= 1.7.5
+        
+        :return: tuple((code, load)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            load:  [mass，x_centroid，y_centroid，z_centroid]
+        """
+        return self._arm.iden_tcp_load()

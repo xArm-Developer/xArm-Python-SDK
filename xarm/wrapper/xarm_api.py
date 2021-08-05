@@ -3075,3 +3075,52 @@ class XArmAPI(object):
             load:  [mass，x_centroid，y_centroid，z_centroid]
         """
         return self._arm.iden_tcp_load()
+
+    def set_line_track_enable(self, enable):
+        """
+        If not already enabled. Enable the line track
+        :param enable: enable or not
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_line_track_enable(enable)
+
+    def set_line_track_back_origin(self, wait=True, auto_enable=True):
+        """
+        Set line track go back origin.
+        Note: If you want use line track must go back origin before.
+        :param wait: wait or not, default is True
+        :param auto_enable: auto enable or not, default is False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_line_track_back_origin(wait, auto_enable)
+
+    def set_line_track_pos(self, pos, wait=True, speed=None, auto_enable=False, timeout=None, **kwargs):
+        """
+        :param pos: position of the line track. Integer between 0 and 1000.
+        :param wait: wait line track finish move or not, default is True
+        :param speed: speed of the line track. Integer between 0 and 3000.
+        :param auto_enable: auto enable or not, default is False
+        :param timeout: timeout, seconds
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_line_track_pos(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
+
+    def check_line_track_on_zero(self):
+        """
+        :return: code, status
+            code: See the API code documentation for details.
+            status: 0 is not on zero
+                    1 is on zero
+        """
+        return self._arm.check_line_track_on_zero()
+
+    def clean_line_track_err(self):
+        """
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.clean_line_track_err()
+

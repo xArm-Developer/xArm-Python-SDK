@@ -1841,7 +1841,7 @@ class BlocklyTool(object):
         if self._show_comment:
             self._append_to_file('{}# set_line_track_origin(wait=True, auto_enable=True)'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code = arm.arm.line_track_back_origin(wait=True, auto_enable=True)'.format(prefix))
+        self._append_to_file('{}    code = arm.arm.set_line_track_back_origin(wait=True, auto_enable=True)'.format(prefix))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'line_track_back_origin, code={{}}\'.format(code))'.format(prefix))

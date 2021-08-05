@@ -1230,6 +1230,11 @@ class Base(Events):
             if not self._is_sync and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
+            length = len(rx_data)
+            if length >= 135:
+                # FT_SENSOR
+                self._ft_ext_force = convert.bytes_to_fp32s(rx_data[87:111], 6)
+                self._ft_raw_force = convert.bytes_to_fp32s(rx_data[111:135], 6)
 
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]), len(rx_data))

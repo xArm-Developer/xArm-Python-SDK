@@ -17,7 +17,7 @@ TRACK_BAUD = 2000000
 class Track(GPIO):
 
     def __init__(self):
-        super(GPIO, self).__init__()
+        super(Track, self).__init__()
         self._line_track_error_code = 0
 
     @property

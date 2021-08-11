@@ -46,7 +46,7 @@ class Track(GPIO):
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
-    def line_track_back_origin(self, wait=True, auto_enable=True):
+    def set_line_track_back_origin(self, wait=True, auto_enable=True):
         ret = [0]
         if wait:
             has_error = self.error_code != 0

@@ -78,6 +78,11 @@ class XArmStudioAPI(object):
         }, api_name='Core.command.xarm_delete_traj')
 
     def set_initial_point(self, point):
+        """
+        Use studio api set initial point
+        :param point: type is list, if you xarm is 6 axis the point is [0, 0, 0, 0, 0, 0]
+        :return:
+        """
         return self.call_studio_api({'point': point},
                                     api_name='Core.command.xarm_set_initial_point')
 

@@ -81,12 +81,20 @@ class XArmStudioAPI(object):
         """
         Use studio api set initial point
         :param point: type is list, if you xarm is 6 axis the point is [0, 0, 0, 0, 0, 0]
-        :return:
+        :return: dict {'data': data, 'code': int}
+            data: if data is None. there is no data return.
+            code: if code is not zero. see xarm_api_code.md
         """
         return self.call_studio_api({'point': point},
                                     api_name='Core.command.xarm_set_initial_point')
 
     def get_initial_point(self):
+        """
+        Use studio api get initial point
+        :return: dict {'data': data, 'code': int}
+            data: initial point [0, 0, 0, 0, 0, 0].
+            code: if code is not zero. see xarm_api_code.md
+        """
         return self.call_studio_api(api_name='XArm.xarm_initial_point')
 
     def call_sdk_api(self, *args, **kwargs):

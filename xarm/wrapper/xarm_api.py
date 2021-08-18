@@ -3098,7 +3098,7 @@ class XArmAPI(object):
 
     def set_line_track_pos(self, pos, wait=True, speed=None, auto_enable=False, timeout=None, **kwargs):
         """
-        :param pos: position of the line track. Integer between 0 and 1000.
+        :param pos: position of the line track. Integer between 0 and 750.
         :param wait: wait line track finish move or not, default is True
         :param speed: speed of the line track. Integer between 0 and 3000.
         :param auto_enable: auto enable or not, default is False
@@ -3123,4 +3123,13 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.clean_line_track_err()
+
+    def set_line_track_speed(self, speed):
+        """
+        :param speed: speed of the line track. Integer between 100 and 3000.
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_line_track_speed(speed)
+
 

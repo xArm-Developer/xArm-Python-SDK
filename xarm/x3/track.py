@@ -17,7 +17,7 @@ TRACK_BAUD = 2000000
 class Track(GPIO):
 
     def __init__(self):
-        super(GPIO, self).__init__()
+        super(Track, self).__init__()
         self._line_track_error_code = 0
 
     @property
@@ -83,7 +83,7 @@ class Track(GPIO):
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def set_line_track_pos(self, pos, wait=True, speed=None, auto_enable=False, timeout=None, **kwargs):
-        if wait:
+        if wait or kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()
@@ -168,28 +168,17 @@ class Track(GPIO):
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
         return ret[0] if self._line_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
 
-    def __check_track_status(self, timeout=10):
-        start_move = False
-        not_start_move_cnt = 0
+    def __check_track_status(self, timeout=100):
         failed_cnt = 0
         if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
-            timeout = 10
+            timeout = 100
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
         while self.connected and time.time() < expired:
-            _, status = self._get_track_err_code()
+            _, status = self.get_track_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
-            if _ == 0:
-                if status & 0x03 == 0 or status & 0x03 == 2:
-                    if start_move:
-                        return 0
-                    else:
-                        not_start_move_cnt += 1
-                        if not_start_move_cnt > 20:
-                            return 0
-                elif not start_move:
-                    not_start_move_cnt = 0
-                    start_move = True
+            if _ == 0 and status & 0x03 == 0:
+                return 0
             else:
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED

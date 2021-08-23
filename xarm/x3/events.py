@@ -58,7 +58,7 @@ class Events(object):
             return True
 
     def _release_report_callback(self, report_id, callback):
-        if report_id in self._report_callbacks.keys() and callback:
+        if report_id in self._report_callbacks.keys():
             if callback is None:
                 self._report_callbacks[report_id].clear()
                 return True

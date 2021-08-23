@@ -9,7 +9,9 @@
 
 
 import queue
+import os
 import socket
+import platform
 import threading
 import time
 from ..utils.log import logger
@@ -45,17 +47,35 @@ class SocketPort(Port):
             self.port_type = 'report-socket'
         try:
             socket.setdefaulttimeout(1)
-            self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
-            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 10)
-            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
-            self.com.setblocking(True)
-            self.com.settimeout(1)
-            self.com.connect((server_ip, server_port))
-            logger.info('{} connect {} success'.format(self.port_type, server_ip))
-            # logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
+            use_uds = False
+            if platform.system() == 'Linux':
+                uds_path = os.path.join('/tmp/xarmcontroller_uds_{}'.format(server_port))
+                if os.path.exists(uds_path):
+                    try:
+                        self.com = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                        self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        self.com.setblocking(True)
+                        self.com.settimeout(1)
+                        self.com.connect(uds_path)
+                        logger.info('{} connect {} success'.format(self.port_type, uds_path))
+                        use_uds = True
+                    except Exception as e:
+                        pass
+                        # logger.error('use uds error, {}'.format(e))
+            else:
+                pass
+            if not use_uds:
+                self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
+                # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 10)
+                # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
+                self.com.setblocking(True)
+                self.com.settimeout(1)
+                self.com.connect((server_ip, server_port))
+                logger.info('{} connect {} success'.format(self.port_type, server_ip))
+                # logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
 
             self._connected = True
             self.buffer_size = buffer_size

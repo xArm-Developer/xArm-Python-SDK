@@ -110,3 +110,21 @@ class BaseBoard(Base):
             code = code if ret3[0] == 0 else ret3[0]
             return code, [ret1[1], ret2[1], ret3[1]]
         return ret[0], [1, 1, 1]
+
+    @xarm_is_connected(_type='get')
+    def read_iden_from_base(self, servo_id=10):
+        cmds = [0x0D00, 0x0D0C, 0x0D18, 0x0D24, 0x0D30, 0x0D3C, 0x0D48]
+        code = 0
+        conf = []
+        for i in range(7):
+            vl = []
+            for j in range(6):
+                ret = self.arm_cmd.tgpio_addr_r32((cmds[i] + (2 * j)), servo_id, fmt='>f')
+                time.sleep(0.01)
+                # print("%x, %f, ret:%d" % (cmds[i] + (2 * j), ret[1], ret[0]))
+                vl.append(ret[1])
+                code = ret[0]
+                if code != 0:
+                    return code, None
+            conf.append(vl)
+        return code, conf

@@ -34,6 +34,7 @@ class XCONF(object):
             XARM6_X4 = 6
             XARM7_X4 = 7
             XARM6_X8 = 8
+            XARM6_X9 = 9
 
         JOINT_LIMITS = {
             Axis.XARM5: {
@@ -61,6 +62,14 @@ class XCONF(object):
                     (-2 * math.pi, 2 * math.pi),
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
+                ],
+                Type.XARM6_X9: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
                 ],
             },
             Axis.XARM7: {

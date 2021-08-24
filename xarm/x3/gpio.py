@@ -143,7 +143,6 @@ class GPIO(Base):
         if self.check_is_simulation_robot():
             return 0, [1] * (16 if self._control_box_type_is_1300 else 8) if ionum is None else 1
         ret = self.arm_cmd.cgpio_get_auxdigit()
-        print(ret)
         digitals = [ret[0]]
         for i in range(16 if self._control_box_type_is_1300 else 8):
             digitals.append(ret[1] >> i & 0x0001)

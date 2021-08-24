@@ -36,6 +36,7 @@ class Base(Events):
             self._enable_heartbeat = kwargs.get('enable_heartbeat', False)
             self._enable_report = kwargs.get('enable_report', True)
             self._report_type = kwargs.get('report_type', 'rich')
+            self._forbid_uds = kwargs.get('forbid_uds', False)
 
             self._check_tcp_limit = kwargs.get('check_tcp_limit', False)
             self._check_joint_limit = kwargs.get('check_joint_limit', True)
@@ -299,11 +300,16 @@ class Base(Events):
             if not self._version:
                 self.get_version()
             if is_first:
-                count = 2
-                while not self._version and count:
-                    self.get_version()
-                    time.sleep(0.1)
-                    count -= 1
+                fail_cnt = 0
+                while not self._version and fail_cnt < 100:
+                    code, _ = self.get_version()
+                    fail_cnt += 1 if code != 0 else 0
+                    if code != 0 or not self._version:
+                        time.sleep(0.1)
+                if not self._version and fail_cnt >= 100:
+                    logger.error('failed to get version')
+                    return -2
+
             if self._version and isinstance(self._version, str):
                 pattern = re.compile(
                     r'.*(\d+),(\d+),(\S+),(\S+),.*[vV](\d+)\.(\d+)\.(\d+)')
@@ -357,8 +363,10 @@ class Base(Events):
                 print('is_old_protocol: {}'.format(self._is_old_protocol))
                 print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
                                                         self._revision_version_number))
+            return 0
         except Exception as e:
             print('compare_time: {}, {}'.format(self._version, e))
+            return -1
 
     @property
     def version_is_ge_1_5_20(self):
@@ -711,7 +719,7 @@ class Base(Events):
                     self._port):
                 self._stream = SocketPort(self._port, XCONF.SocketConf.TCP_CONTROL_PORT,
                                           heartbeat=self._enable_heartbeat,
-                                          buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE)
+                                          buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=self._forbid_uds)
                 if not self.connected:
                     raise Exception('connect socket failed')
 
@@ -734,7 +742,9 @@ class Base(Events):
                 except:
                     self._stream_report = None
 
-                self._check_version(is_first=True)
+                if self._check_version(is_first=True) < 0:
+                    self.disconnect()
+                    raise Exception('failed to check version, close')
                 self.arm_cmd.set_debug(self._debug)
 
                 if self._stream.connected and self._enable_report:
@@ -830,17 +840,17 @@ class Base(Events):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_NORM_PORT,
                                              buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE
-                                             if not self._is_old_protocol else 87)
+                                             if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
 
     def __connect_report_rich(self):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=1024 if not self._is_old_protocol else 187)
+                                             buffer_size=1024 if not self._is_old_protocol else 187, forbid_uds=self._forbid_uds)
 
     def __connect_report_real(self):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
-                                             buffer_size=1024 if not self._is_old_protocol else 87)
+                                             buffer_size=1024 if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
 
     def _report_connect_changed_callback(self, main_connected=None, report_connected=None):
         if self.REPORT_CONNECT_CHANGED_ID in self._report_callbacks.keys():

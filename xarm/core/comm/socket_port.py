@@ -38,7 +38,7 @@ class HeartBeatThread(threading.Thread):
 
 class SocketPort(Port):
     def __init__(self, server_ip, server_port, rxque_max=XCONF.SocketConf.TCP_RX_QUE_MAX, heartbeat=False,
-                 buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE):
+                 buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=False):
         super(SocketPort, self).__init__(rxque_max)
         if server_port == XCONF.SocketConf.TCP_CONTROL_PORT:
             self.port_type = 'main-socket'
@@ -48,7 +48,7 @@ class SocketPort(Port):
         try:
             socket.setdefaulttimeout(1)
             use_uds = False
-            if platform.system() == 'Linux':
+            if not forbid_uds and platform.system() == 'Linux':
                 uds_path = os.path.join('/tmp/xarmcontroller_uds_{}'.format(server_port))
                 if os.path.exists(uds_path):
                     try:

@@ -130,7 +130,6 @@ class Track(GPIO):
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def check_line_track_on_zero(self):
         ret = self.arm_cmd.track_modbus_r16s(0x004F, 1)
-        _, err = self._get_track_err_code()
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
         _, err = self._get_track_err_code()
         code = ret[0] if self._line_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT

@@ -1830,12 +1830,13 @@ class BlocklyTool(object):
             wait = self.get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
         if self._show_comment:
             self._append_to_file('{}# set line track position and '.format(prefix, 'wait' if wait else 'no wait'))
-        self._append_to_file('{}code = arm.set_line_track_enable(True)'.format(prefix))
+        # self._append_to_file('{}code = arm.set_line_track_enable(True)'.format(prefix))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    code = arm.set_line_track_pos({}, wait={}, speed={}, auto_enable=True)'.format(prefix, pos, wait, speed))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
         self._append_to_file('{}        pprint(\'set_line_track_pos, code={{}}\'.format(code))'.format(prefix))
+        self._append_to_file('{}code = arm.set_line_track_enable(True)'.format(prefix))
 
     def _handle_set_line_track_origin(self, block, prefix='', arg_map=None):
         if self._show_comment:

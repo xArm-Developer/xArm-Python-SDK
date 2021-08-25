@@ -63,12 +63,11 @@ class Track(GPIO):
 
         st = time.time()
         while wait:
-            ret = self.arm_cmd.track_modbus_r16s(0x0A0A, 1, 0x06)
+            ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.BACK_ORIGIN, 1, 0x06)
             ret[0] = self._check_modbus_code(ret, only_check_code=True)
             time.sleep(0.2)
             code, status = self.check_line_track_on_zero()
             time.sleep(0.2)
-            _, err = self._get_track_err_code()
             et = time.time()
             if code == 0 and status == 1:
                 break
@@ -105,7 +104,6 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
         if ret[0] == 0 and wait:
             self.__check_track_status()
-        _, err = self._get_track_err_code()
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
         self.log_api_info('API -> set_track_pos(pos={}) -> code={}'.format(pos, ret[0]), code=ret[0])
         return ret[0] if self._line_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
@@ -119,7 +117,6 @@ class Track(GPIO):
             value = convert.u16_to_bytes(int(speed))
             ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.POS_SPD, value, 1)
             ret[0] = self._check_modbus_code(ret, only_check_code=True)
-            _, err = self._get_track_err_code()
             if ret[0] == 0:
                 self.last_used_track_speed = speed
         self.log_api_info('API -> set_line_track_speed(speed={}) -> code={}'.format(speed, ret[0]), code=ret[0])
@@ -129,11 +126,10 @@ class Track(GPIO):
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def check_line_track_on_zero(self):
-        ret = self.arm_cmd.track_modbus_r16s(0x004F, 1)
+        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CHECK_ON_ORIGIN, 1)
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
-        _, err = self._get_track_err_code()
         code = ret[0] if self._line_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
-        if code == 0 and ret[-1] == 1 and err == 0:
+        if code == 0 and ret[-1] == 1:
             self.log_api_info('API -> check_line_track_on_zero() -> code={}'.format(ret[0]), code=ret[0])
             return code, ret[-1]
         return code, 0
@@ -141,14 +137,12 @@ class Track(GPIO):
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
     def get_track_status(self):
-        ret = self.arm_cmd.track_modbus_r16s(0x0000, 1)
+        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_STATUS, 1)
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
-        _, err = self._get_track_err_code()
-        code = ret[0] if self._line_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
         status = 0
-        if code == 0 and len(ret) == 7:
+        if ret[0] == 0 and len(ret) == 7:
             status = convert.bytes_to_u16(ret[5:7])
-        return code, status
+        return ret[0], status
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))

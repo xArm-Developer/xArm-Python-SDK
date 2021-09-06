@@ -933,11 +933,17 @@ class UxbusCmd(object):
     def get_power_board_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 3)
 
-    def vc_set_jointv(self, jnt_v, jnt_sync):
-        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_JOINTV, jnt_v, 7, bytes([jnt_sync]))
+    def vc_set_jointv(self, jnt_v, jnt_sync, duration=-1):
+        additional_bytes = bytes([jnt_sync])
+        if duration >= 0:
+            additional_bytes += convert.fp32_to_bytes(duration)
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_JOINTV, jnt_v, 7, additional_bytes)
 
-    def vc_set_linev(self, line_v, coord):
-        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, bytes([coord]))
+    def vc_set_linev(self, line_v, coord, duration=-1):
+        additional_bytes = bytes([coord])
+        if duration >= 0:
+            additional_bytes += convert.fp32_to_bytes(duration)
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, additional_bytes)
 
     def iden_load(self, iden_type, num_get, timeout=500):
         return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, [iden_type], 1, num_get, timeout=timeout)

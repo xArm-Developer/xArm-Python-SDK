@@ -385,6 +385,12 @@ class Base(Events):
             self._major_version_number == 1 and self._minor_version_number == 2 and self._revision_version_number >= 11)
 
     @property
+    def version_is_ge_1_8_0(self):
+        if self._version is None:
+            self._check_version()
+        return self._major_version_number > 1 or (self._major_version_number == 1 and self._minor_version_number >= 8)
+
+    @property
     def realtime_tcp_speed(self):
         return self._realtime_tcp_speed
 

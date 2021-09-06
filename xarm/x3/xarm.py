@@ -1692,7 +1692,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         return ret[0], ret[1:]
 
     @xarm_is_connected(_type='set')
-    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, check_mode=True):
+    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, check_mode=True, duration=-1):
         # if check_mode and not self._check_mode_is_correct(4):
         #     return APIState.MODE_IS_NOT_CORRECT
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1701,14 +1701,15 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             if i >= 7:
                 break
             jnt_v[i] = spd if is_radian else math.radians(spd)
-        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0)
+
+        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0, duration if self.version_is_ge_1_8_0 else -1)
         self.log_api_info('API -> vc_set_joint_velocity -> code={}, speeds={}, is_sync={}'.format(
             ret[0], jnt_v, is_sync
         ), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, check_mode=True):
+    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, check_mode=True, duration=-1):
         # if check_mode and not self._check_mode_is_correct(5):
         #     return APIState.MODE_IS_NOT_CORRECT
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1717,7 +1718,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             if i >= 6:
                 break
             line_v[i] = spd if i < 3 or is_radian else math.radians(spd)
-        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0)
+        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0, duration if self.version_is_ge_1_8_0 else -1)
         self.log_api_info('API -> vc_set_cartesian_velocity -> code={}, speeds={}, is_tool_coord={}'.format(
             ret[0], line_v, is_tool_coord
         ), code=ret[0])

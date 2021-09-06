@@ -11,12 +11,42 @@
 import queue
 import os
 import socket
+import struct
 import platform
 import threading
 import time
 from ..utils.log import logger
 from .base import Port
 from ..config.x_config import XCONF
+
+try:
+    if platform.system() == 'Linux':
+        import fcntl
+    else:
+        fcntl = None
+except:
+    fcntl = None
+
+
+def is_xarm_local_ip(ip):
+    try:
+        if platform.system() == 'Linux' and fcntl:
+            def _get_ip(s, ifname):
+                try:
+                    return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]))[20:24])
+                except:
+                    pass
+                return ''
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # gentoo system netcard name
+            if ip == _get_ip(sock, b'enp1s0'):
+                return True
+            # rasp system netcard name
+            if ip == _get_ip(sock, b'eth0'):
+                return True
+    except:
+        pass
+    return False
 
 
 class HeartBeatThread(threading.Thread):
@@ -48,7 +78,7 @@ class SocketPort(Port):
         try:
             socket.setdefaulttimeout(1)
             use_uds = False
-            if not forbid_uds and platform.system() == 'Linux':
+            if not forbid_uds and platform.system() == 'Linux' and is_xarm_local_ip(server_ip):
                 uds_path = os.path.join('/tmp/xarmcontroller_uds_{}'.format(server_port))
                 if os.path.exists(uds_path):
                     try:
@@ -57,7 +87,7 @@ class SocketPort(Port):
                         self.com.setblocking(True)
                         self.com.settimeout(1)
                         self.com.connect(uds_path)
-                        logger.info('{} connect {} success'.format(self.port_type, uds_path))
+                        logger.info('{} connect {} success, uds_path={}'.format(self.port_type, server_ip, uds_path))
                         use_uds = True
                     except Exception as e:
                         pass

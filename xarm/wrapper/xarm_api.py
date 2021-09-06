@@ -2800,7 +2800,7 @@ class XArmAPI(object):
         """
         return self._arm.set_simulation_robot(on_off)
 
-    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, **kwargs):
+    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, duration=-1, **kwargs):
         """
         Joint velocity control, need to be set to joint velocity control mode(self.set_mode(4))
         Note:
@@ -2809,12 +2809,17 @@ class XArmAPI(object):
         :param speeds: [spd_J1, spd_J2, ..., spd_J7]
         :param is_radian: the spd_Jx in radians or not, default is self.default_is_radian
         :param is_sync: whether all joints accelerate and decelerate synchronously, default is True
+        :param duration: The duration of this speed command, over this time will automatically set the speed to 0
+            Note: only available if firmware_version >= 1.8.0
+            duration > 0: seconds
+            duration == 0: Always effective, will not stop automatically
+            duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.vc_set_joint_velocity(speeds, is_radian=is_radian, is_sync=is_sync, **kwargs)
+        return self._arm.vc_set_joint_velocity(speeds, is_radian=is_radian, is_sync=is_sync, duration=duration, **kwargs)
 
-    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, **kwargs):
+    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, duration=-1, **kwargs):
         """
         Cartesian velocity control, need to be set to cartesian velocity control mode(self.set_mode(5))
         Note:
@@ -2823,10 +2828,15 @@ class XArmAPI(object):
         :param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
         :param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
         :param is_tool_coord: is tool coordinate or not, default is False
+        :param duration: The duration of this speed command, over this time will automatically set the speed to 0
+            Note: only available if firmware_version >= 1.8.0
+            duration > 0: seconds
+            duration == 0: Always effective, will not stop automatically
+            duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.vc_set_cartesian_velocity(speeds, is_radian=is_radian, is_tool_coord=is_tool_coord, **kwargs)
+        return self._arm.vc_set_cartesian_velocity(speeds, is_radian=is_radian, is_tool_coord=is_tool_coord, duration=duration, **kwargs)
 
     def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
         """

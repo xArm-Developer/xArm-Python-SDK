@@ -3140,3 +3140,13 @@ class XArmAPI(object):
             position: int
         """
         return self._arm.get_line_track_pos()
+
+    def get_line_track_version(self):
+        """
+        get direct drive linear motor, only for debug
+
+        :return: (code, version)
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_line_track_version()
+

@@ -545,7 +545,7 @@ class UxbusCmd(object):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
     @lock_require
-    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_ID):
+    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_HOST_ID):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -557,7 +557,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_ID, fmt='>l'):
+    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_HOST_ID, fmt='>l'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
@@ -568,7 +568,7 @@ class UxbusCmd(object):
         return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     @lock_require
-    def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_ID):
+    def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_HOST_ID):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -580,7 +580,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_ID, fmt='>l'):
+    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_HOST_ID, fmt='>l'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
@@ -644,8 +644,8 @@ class UxbusCmd(object):
         return ret[:2]
 
     @lock_require
-    def tgpio_set_modbus(self, modbus_t, len_t, fid=XCONF.TGPIO_ID):
-        txdata = bytes([fid])
+    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID):
+        txdata = bytes([host_id])
         txdata += bytes(modbus_t)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
         if ret != 0:
@@ -1092,7 +1092,7 @@ class UxbusCmd(object):
         txdata += convert.u16_to_bytes(length)
         txdata += bytes([length * 2])
         txdata += value
-        ret = self.tgpio_set_modbus(txdata, length * 2 + 7, fid=11)
+        ret = self.tgpio_set_modbus(txdata, length * 2 + 7, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret
 
     def track_modbus_r16s(self, addr, length, fcode=0x03):
@@ -1100,7 +1100,7 @@ class UxbusCmd(object):
         txdata += bytes([fcode])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.u16_to_bytes(length)
-        ret = self.tgpio_set_modbus(txdata, 6, fid=11)
+        ret = self.tgpio_set_modbus(txdata, 6, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret
 
     def iden_tcp_load(self):

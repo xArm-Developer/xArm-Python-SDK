@@ -11,14 +11,14 @@
 import struct
 
 
-def fp32_to_bytes(data):
+def fp32_to_bytes(data, is_big_endian=False):
     """小端字节序"""
-    return bytes(struct.pack("<f", data))
+    return bytes(struct.pack('>f' if is_big_endian else '<f', data))
 
 
-def int32_to_bytes(data):
+def int32_to_bytes(data, is_big_endian=False):
     """小端字节序"""
-    return bytes(struct.pack("<i", data))
+    return bytes(struct.pack('>i' if is_big_endian else '<i', data))
 
 
 def int32s_to_bytes(data, n):

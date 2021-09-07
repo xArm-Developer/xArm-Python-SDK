@@ -175,8 +175,8 @@ class Base(Events):
             self._arm_type_is_1300 = False
             self._control_box_type_is_1300 = False
 
-            self.line_track_speed = 0
-            self.track_is_enabled = False
+            self.linear_track_speed = 0
+            self.linear_track_is_enabled = False
             self._ft_ext_force = [0, 0, 0, 0, 0, 0]
             self._ft_raw_force = [0, 0, 0, 0, 0, 0]
 
@@ -278,8 +278,8 @@ class Base(Events):
         self._arm_type_is_1300 = False
         self._control_box_type_is_1300 = False
 
-        self.line_track_speed = 0
-        self.track_is_enabled = False
+        self.linear_track_speed = 0
+        self.linear_track_is_enabled = False
 
         self._ft_ext_force = [0, 0, 0, 0, 0, 0]
         self._ft_raw_force = [0, 0, 0, 0, 0, 0]
@@ -1070,8 +1070,8 @@ class Base(Events):
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
-                self.track_is_enabled = False
-                self.line_track_speed = 0
+                self.linear_track_is_enabled = False
+                self.linear_track_speed = 0
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1293,8 +1293,8 @@ class Base(Events):
                 self.bio_gripper_speed = -1
                 self.gripper_speed = -1
                 self.gripper_version_numbers = [-1, -1, -1]
-                self.track_is_enabled = False
-                self.line_track_speed = -1
+                self.linear_track_is_enabled = False
+                self.linear_track_speed = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))
@@ -2096,13 +2096,13 @@ class Base(Events):
         return APIState.WAIT_FINISH_TIMEOUT
 
     @xarm_is_connected(_type='set')
-    def _check_modbus_code(self, ret, length=2, only_check_code=False):
+    def _check_modbus_code(self, ret, length=2, only_check_code=False, host_id=XCONF.TGPIO_HOST_ID):
         code = ret[0]
         if self._check_code(code) == 0:
             if not only_check_code:
                 if len(ret) < length:
                     return APIState.MODBUS_ERR_LENG
-                if ret[1] != XCONF.TGPIO_ID:
+                if ret[1] != host_id:
                     return APIState.TGPIO_ID_ERR
             if code != 0:
                 if self.error_code != 19 and self.error_code != 28:

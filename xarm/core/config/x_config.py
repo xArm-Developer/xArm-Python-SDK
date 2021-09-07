@@ -11,10 +11,13 @@ import math
 
 class XCONF(object):
     ARM_AXIS_NUM = 7
-    GRIPPER_ID = 8
-    TGPIO_ID = 9
-    TRACK_ID = 1
     MAX_CMD_NUM = 1024
+
+    TRACK_ID = 1
+    GRIPPER_ID = 8
+
+    TGPIO_HOST_ID = 9
+    LINEER_TRACK_HOST_ID = 11
 
     def __init__(self):
         pass

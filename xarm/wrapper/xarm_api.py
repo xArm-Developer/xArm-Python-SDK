@@ -3088,7 +3088,7 @@ class XArmAPI(object):
 
     def set_line_track_enable(self, enable):
         """
-        If not already enabled. Enable the line track
+        If not already enabled. Enable the direct drive linear motor
         :param enable: enable or not
         :return: code
             code: See the API code documentation for details.
@@ -3097,8 +3097,8 @@ class XArmAPI(object):
 
     def set_line_track_back_origin(self, wait=True, auto_enable=True):
         """
-        Set line track go back origin.
-        Note: If you want use line track must go back origin before.
+        Set direct drive linear motor go back origin.
+        Note: If you want use direct drive linear motor must go back origin before.
         :param wait: wait or not, default is True
         :param auto_enable: auto enable or not, default is False
         :return: code
@@ -3108,9 +3108,9 @@ class XArmAPI(object):
 
     def set_line_track_pos(self, pos, wait=True, speed=None, auto_enable=False, timeout=None, **kwargs):
         """
-        :param pos: position of the line track. Integer between 0 and 750.
-        :param wait: wait line track finish move or not, default is True
-        :param speed: speed of the line track. Integer between 0 and 3000.
+        :param pos: position of the direct drive linear motor. Integer between 0 and 750.
+        :param wait: wait direct drive linear motor finish move or not, default is True
+        :param speed: speed of the direct drive linear motor. Integer between 0 and 3000.
         :param auto_enable: auto enable or not, default is False
         :param timeout: timeout, seconds
         :return: code
@@ -3136,10 +3136,27 @@ class XArmAPI(object):
 
     def set_line_track_speed(self, speed):
         """
-        :param speed: speed of the line track. Integer between 100 and 3000.
+        :param speed: speed of the direct drive linear motor. Integer between 100 and 3000.
         :return: code
             code: See the API code documentation for details.
         """
         return self._arm.set_line_track_speed(speed)
 
+    def get_line_track_pos(self):
+        """
+        get direct drive linear motor position.
+        :return: tuple((code, position)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            position: int
+        """
+        return self._arm.get_line_track_pos()
+
+    def get_line_track_version(self):
+        """
+        get direct drive linear motor, only for debug
+
+        :return: (code, version)
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_line_track_version()
 

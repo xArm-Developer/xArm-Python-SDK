@@ -175,7 +175,7 @@ class Base(Events):
             self._arm_type_is_1300 = False
             self._control_box_type_is_1300 = False
 
-            self.last_used_track_speed = 0
+            self.line_track_speed = 0
             self.track_is_enabled = False
             self._ft_ext_force = [0, 0, 0, 0, 0, 0]
             self._ft_raw_force = [0, 0, 0, 0, 0, 0]
@@ -278,7 +278,7 @@ class Base(Events):
         self._arm_type_is_1300 = False
         self._control_box_type_is_1300 = False
 
-        self.last_used_track_speed = 0
+        self.line_track_speed = 0
         self.track_is_enabled = False
 
         self._ft_ext_force = [0, 0, 0, 0, 0, 0]
@@ -1071,6 +1071,7 @@ class Base(Events):
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
                 self.track_is_enabled = False
+                self.line_track_speed = 0
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1293,6 +1294,7 @@ class Base(Events):
                 self.gripper_speed = -1
                 self.gripper_version_numbers = [-1, -1, -1]
                 self.track_is_enabled = False
+                self.line_track_speed = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))

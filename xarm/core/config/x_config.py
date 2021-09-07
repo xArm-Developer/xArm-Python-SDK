@@ -378,6 +378,7 @@ class XCONF(object):
         BACK_ORIGIN = 0x0A0A
         CHECK_ON_ORIGIN = 0x004F
         GET_STATUS = 0x0000
+        STOP_TRACK = 0x0A0E
 
     class UxbusState:
         ERR_CODE = 1  # 有尚未清除的错误

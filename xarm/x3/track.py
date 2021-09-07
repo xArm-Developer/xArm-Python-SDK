@@ -49,7 +49,8 @@ class Track(GPIO):
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def set_linear_track_back_origin(self, wait=True, **kwargs):
         auto_enable = kwargs.get('auto_enable', False)
-        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.BACK_ORIGIN, 1, 0x06)
+        # ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.BACK_ORIGIN, 1, 0x06)
+        ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.BACK_ORIGIN, 0x06, 1)
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         self.log_api_info('API -> set_linear_track_back_origin() -> code={}, err={}'.format(ret[0], err), code=ret[0])
@@ -58,7 +59,7 @@ class Track(GPIO):
         if auto_enable and not self.linear_track_is_enabled:
             code = self.set_linear_track_enable(auto_enable)
             if code == 0:
-                self.gripper_is_enabled = True
+                self.linear_track_is_enabled = True
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
 
     @xarm_is_connected(_type='set')
@@ -69,7 +70,7 @@ class Track(GPIO):
         if auto_enable and not self.linear_track_is_enabled:
             code = self.set_linear_track_enable(auto_enable)
             if code == 0:
-                self.gripper_is_enabled = True
+                self.linear_track_is_enabled = True
         if speed is not None and self.linear_track_speed != speed:
             code = self.set_linear_track_speed(speed)
             if code == 0:
@@ -152,6 +153,8 @@ class Track(GPIO):
             if _ == 0 and (status & 0x03 == 0 or status & 0x03 == 2):
                 return 0
             else:
+                if self._linear_track_error_code != 0:
+                    return APIState.END_EFFECTOR_HAS_FAULT
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED
             time.sleep(0.1)
@@ -196,6 +199,8 @@ class Track(GPIO):
             if _ == 0 and status == 1:
                 return 0
             else:
+                if self._linear_track_error_code != 0:
+                    return APIState.END_EFFECTOR_HAS_FAULT
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED
             time.sleep(0.1)

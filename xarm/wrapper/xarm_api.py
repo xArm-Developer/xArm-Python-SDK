@@ -2828,9 +2828,9 @@ class XArmAPI(object):
         :param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
         :param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
         :param is_tool_coord: is tool coordinate or not, default is False
-        :param duration: The duration of this speed command, over this time will automatically set the speed to 0
+        :param duration: the maximum duration of the speed, over this time will automatically set the speed to 0
             Note: only available if firmware_version >= 1.8.0
-            duration > 0: seconds
+            duration > 0: seconds, indicates the maximum number of seconds that this speed can be maintained
             duration == 0: Always effective, will not stop automatically
             duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
         :return: code

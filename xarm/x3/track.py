@@ -167,7 +167,7 @@ class Track(GPIO):
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=9, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if ret[0] == 0 and err == 0:
-            return ret[0], int(int(convert.bytes_to_long_big(ret[5:9])) / 2000)
+            return ret[0], convert.bytes_to_long_big(ret[5:9]) / 2000
         elif err != 0:
             return APIState.END_EFFECTOR_HAS_FAULT, 0
         else:

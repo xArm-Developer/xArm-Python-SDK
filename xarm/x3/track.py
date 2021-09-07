@@ -114,11 +114,10 @@ class Track(GPIO):
     @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99)
     def get_linear_track_status(self):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_STATUS, 1)
+        _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        status = 0
-        if ret[0] == 0:
-            status = convert.bytes_to_u16(ret[5:7])
-        return ret[0], status
+        code = ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return code, convert.bytes_to_u16(ret[5:7]) if ret[0] == 0 else 0
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
@@ -136,10 +135,9 @@ class Track(GPIO):
     def clean_linear_track_error(self):
         value = convert.u16_to_bytes(int(1))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.RESET_ERR, value, 1)
-        self._linear_track_error_code = 0
         _, err = self.get_linear_track_error()
         self.log_api_info('API -> clean_linear_track_error -> code={}, code2={}, err={}'.format(ret[0], _, err), code=ret[0])
-        ret[0] = self._check_modbus_code(ret, only_check_code=True)
+        ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
 
     def __check_linear_track_status(self, timeout=100):

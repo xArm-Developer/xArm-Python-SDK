@@ -57,7 +57,7 @@ class Track(GPIO):
         if ret[0] == 0 and wait:
             ret[0] = self.__wait_linear_track_back_origin()
         if auto_enable:
-            ret[0] = self.set_linear_track_enable(auto_enable)
+            ret[0] = self.set_linear_track_enable(True)
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
 
     @xarm_is_connected(_type='set')
@@ -70,14 +70,14 @@ class Track(GPIO):
         if speed is not None and self.linear_track_speed != speed:
             self.set_linear_track_speed(speed)
 
-        value = convert.int32_to_bytes(pos * 2000, is_big_endian=True)
+        value = convert.int32_to_bytes(int(pos * 2000), is_big_endian=True)
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         self.log_api_info('API -> set_track_pos(pos={}) -> code={}, err={}'.format(pos, ret[0], err), code=ret[0])
 
         if ret[0] == 0 and wait:
-            return self.__check_linear_track_status(timeout)
+            return self.__wait_linear_track_stop(timeout)
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
 
     @xarm_is_connected(_type='set')
@@ -101,7 +101,7 @@ class Track(GPIO):
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
         code = ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
-        self.log_api_info('API -> check_linear_track_on_zero() -> code={}, err={}'.format(ret[0], err), code=ret[0])
+        # self.log_api_info('API -> check_linear_track_on_zero() -> code={}, err={}'.format(ret[0], err), code=ret[0])
         return code, ret[-1] if code == 0 else 0
 
     @xarm_is_connected(_type='get')
@@ -136,7 +136,7 @@ class Track(GPIO):
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
 
-    def __check_linear_track_status(self, timeout=100):
+    def __wait_linear_track_stop(self, timeout=100):
         failed_cnt = 0
         if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
             timeout = 100
@@ -145,7 +145,7 @@ class Track(GPIO):
         while self.connected and time.time() < expired:
             _, status = self.get_linear_track_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
-            if _ == 0 and (status & 0x03 == 0 or status & 0x03 == 2):
+            if _ == 0 and (status & 0x01 == 0):
                 return 0
             else:
                 if self._linear_track_error_code != 0:

@@ -50,12 +50,13 @@ class Track(GPIO):
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def set_linear_track_back_origin(self, wait=True, **kwargs):
         auto_enable = kwargs.get('auto_enable', True)
+        timeout = kwargs.get('timeout', 10)
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.BACK_ORIGIN, 1, 0x06)
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         self.log_api_info('API -> set_linear_track_back_origin() -> code={}, err={}'.format(ret[0], err), code=ret[0])
         if ret[0] == 0 and wait:
-            ret[0] = self.__wait_linear_track_back_origin()
+            ret[0] = self.__wait_linear_track_back_origin(timeout)
         if auto_enable:
             ret[0] = self.set_linear_track_enable(True)
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT

@@ -3087,31 +3087,54 @@ class XArmAPI(object):
         return self._arm.iden_tcp_load()
 
     def get_linear_track_error(self):
+        """
+        Get the error code of the linear track
+        
+        :return: tuple((code, error)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            error: error code
+        """
         return self._arm.get_linear_track_error()
 
     def get_linear_track_status(self):
+        """
+        Get the status of the linear track
+        
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            status: status 
+                status & 0x03 == 0: reach the target location
+                status & 0x03 == 1: in motion
+                status & 0x03 == 2: Has stopped
+        """
         return self._arm.get_linear_track_status()
 
     def get_linear_track_pos(self):
         """
-        get direct drive linear motor position.
+        Get the pos of the linear track
+        
         :return: tuple((code, position)) only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
-            position: int
+            position: position
         """
         return self._arm.get_linear_track_pos()
 
     def check_linear_track_on_zero(self):
         """
-        :return: code, status
+        Check the linear track is on zero positon or not
+        
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
-            status: 0 is not on zero
-                    1 is on zero
+            status: 
+                0: is not on zero
+                1: is on zero
         """
         return self._arm.check_linear_track_on_zero()
 
     def clean_linear_track_error(self):
         """
+        Clean the linear track error
+        
         :return: code
             code: See the API code documentation for details.
         """
@@ -3119,7 +3142,8 @@ class XArmAPI(object):
 
     def set_linear_track_enable(self, enable):
         """
-        If not already enabled. Enable the direct drive linear motor
+        Set the linear track enable/disable
+
         :param enable: enable or not
         :return: code
             code: See the API code documentation for details.
@@ -3128,7 +3152,9 @@ class XArmAPI(object):
 
     def set_linear_track_speed(self, speed):
         """
-        :param speed: speed of the direct drive linear motor. Integer between 100 and 3000.
+        Set the speed of the linear track
+        
+        :param speed: Integer between 100 and 3000.
         :return: code
             code: See the API code documentation for details.
         """
@@ -3136,8 +3162,11 @@ class XArmAPI(object):
 
     def set_linear_track_back_origin(self, wait=True, **kwargs):
         """
-        Set direct drive linear motor go back origin.
-        Note: If you want use direct drive linear motor must go back origin before.
+        Set the linear track go back to the origin position
+        Note:
+            1. only useful when powering on for the first time
+            2. this operation must be performed at the first power-on
+            
         :param wait: wait or not, default is True
         :return: code
             code: See the API code documentation for details.
@@ -3146,14 +3175,22 @@ class XArmAPI(object):
 
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         """
-        :param pos: position of the direct drive linear motor. Integer between 0 and 750.
-        :param wait: wait direct drive linear motor finish move or not, default is True
-        :param speed: speed of the direct drive linear motor. Integer between 0 and 3000.
-        :param timeout: timeout, seconds
+        Set the position of the linear track
+        
+        :param pos: position. Integer between 0 and 750.
+        :param speed: speed of the linear track. Integer between 0 and 3000. default is not set
+        :param wait: wait to motion finish or not, default is True
+        :param timeout: wait timeout, seconds, default is 100s.
         :return: code
             code: See the API code documentation for details.
         """
         return self._arm.set_linear_track_pos(pos, speed=speed, wait=wait, timeout=timeout, **kwargs)
 
     def stop_linear_track(self):
+        """
+        Set the linear track to stop
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
         return self._arm.stop_linear_track()

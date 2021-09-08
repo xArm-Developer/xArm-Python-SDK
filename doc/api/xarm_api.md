@@ -108,6 +108,10 @@ Device type, only available in socket way and  enable_report is True and report_
 Controller error code. See Chapter 7 of the xArm User Manual for details.
 ```
 
+#### __ft_ext_force__
+
+#### __ft_raw_force__
+
 #### __gpio_reset_config__
 ```
 The gpio reset enable config
@@ -584,6 +588,18 @@ Note:
     rpy_offset: calculated rpy user offset, [roll, pitch, yaw]
 ```
 
+#### def __check_linear_track_on_zero__(self):
+
+```
+Check the linear track is on zero positon or not
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    status: 
+        0: is not on zero
+        1: is on zero
+```
+
 #### def __check_verification__(self):
 
 ```
@@ -632,6 +648,15 @@ Clean the gripper error
 
 :return: code
     code: See the Gripper code documentation for details.
+```
+
+#### def __clean_linear_track_error__(self):
+
+```
+Clean the linear track error
+
+:return: code
+    code: See the API code documentation for details.
 ```
 
 #### def __clean_warn__(self):
@@ -1000,6 +1025,39 @@ Get joints torque
 :return: tuple((code, joints_torque))
     code: See the API code documentation for details.
     joints_torque: joints torque
+```
+
+#### def __get_linear_track_error__(self):
+
+```
+Get the error code of the linear track
+
+:return: tuple((code, error)) only when code is 0, the returned result is correct.
+    code:  See the API code documentation for details.
+    error: error code
+```
+
+#### def __get_linear_track_pos__(self):
+
+```
+Get the pos of the linear track
+
+:return: tuple((code, position)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    position: position
+```
+
+#### def __get_linear_track_status__(self):
+
+```
+Get the status of the linear track
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code:  See the API code documentation for details.
+    status: status 
+        status & 0x03 == 0: reach the target location
+        status & 0x03 == 1: in motion
+        status & 0x03 == 2: Has stopped
 ```
 
 #### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
@@ -2283,6 +2341,52 @@ Set joints torque,
     code: See the API code documentation for details.
 ```
 
+#### def __set_linear_track_back_origin__(self, wait=True, **kwargs):
+
+```
+Set the linear track go back to the origin position
+Note:
+    1. only useful when powering on for the first time
+    2. this operation must be performed at the first power-on
+    
+:param wait: wait or not, default is True
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_linear_track_enable__(self, enable):
+
+```
+Set the linear track enable/disable
+
+:param enable: enable or not
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_linear_track_pos__(self, pos, speed=None, wait=True, timeout=100, **kwargs):
+
+```
+Set the position of the linear track
+
+:param pos: position. Integer between 0 and 750.
+:param speed: speed of the linear track. Integer between 0 and 3000. default is not set
+:param wait: wait to motion finish or not, default is True
+:param timeout: wait timeout, seconds, default is 100s.
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_linear_track_speed__(self, speed):
+
+```
+Set the speed of the linear track
+
+:param speed: Integer between 100 and 3000.
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_mode__(self, mode=0):
 
 ```
@@ -2855,6 +2959,15 @@ Note:
     code: See the API code documentation for details.
 ```
 
+#### def __stop_linear_track__(self):
+
+```
+Set the linear track to stop
+
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __stop_record_trajectory__(self, filename=None):
 
 ```
@@ -2873,7 +2986,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __vc_set_cartesian_velocity__(self, speeds, is_radian=None, is_tool_coord=False, **kwargs):
+#### def __vc_set_cartesian_velocity__(self, speeds, is_radian=None, is_tool_coord=False, duration=-1, **kwargs):
 
 ```
 Cartesian velocity control, need to be set to cartesian velocity control mode(self.set_mode(5))
@@ -2883,11 +2996,16 @@ Note:
 :param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
 :param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
 :param is_tool_coord: is tool coordinate or not, default is False
+:param duration: the maximum duration of the speed, over this time will automatically set the speed to 0
+    Note: only available if firmware_version >= 1.8.0
+    duration > 0: seconds, indicates the maximum number of seconds that this speed can be maintained
+    duration == 0: Always effective, will not stop automatically
+    duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
 :return: code
     code: See the API code documentation for details.
 ```
 
-#### def __vc_set_joint_velocity__(self, speeds, is_radian=None, is_sync=True, **kwargs):
+#### def __vc_set_joint_velocity__(self, speeds, is_radian=None, is_sync=True, duration=-1, **kwargs):
 
 ```
 Joint velocity control, need to be set to joint velocity control mode(self.set_mode(4))
@@ -2897,6 +3015,11 @@ Note:
 :param speeds: [spd_J1, spd_J2, ..., spd_J7]
 :param is_radian: the spd_Jx in radians or not, default is self.default_is_radian
 :param is_sync: whether all joints accelerate and decelerate synchronously, default is True
+:param duration: The duration of this speed command, over this time will automatically set the speed to 0
+    Note: only available if firmware_version >= 1.8.0
+    duration > 0: seconds
+    duration == 0: Always effective, will not stop automatically
+    duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
 :return: code
     code: See the API code documentation for details.
 ```

@@ -85,7 +85,7 @@ class Track(GPIO):
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def set_linear_track_speed(self, speed):
-        value = convert.u16_to_bytes(int(speed))
+        value = convert.u16_to_bytes(int(speed*6.667))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.POS_SPD, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         _, err = self.get_linear_track_error()

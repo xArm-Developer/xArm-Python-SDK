@@ -3168,7 +3168,7 @@ class XArmAPI(object):
         Note:
             1. only available if firmware_version >= 1.8.0
         
-        :param speed: Integer between 100 and 3000.
+        :param speed: Integer between 1 and 1000mm/s.
         :return: code
             code: See the API code documentation for details.
         """
@@ -3195,8 +3195,8 @@ class XArmAPI(object):
         Note:
             1. only available if firmware_version >= 1.8.0
         
-        :param pos: position. Integer between 0 and 750.
-        :param speed: speed of the linear track. Integer between 0 and 3000. default is not set
+        :param pos: position. Integer between 0 and 700/1000/1500mm.
+        :param speed: speed of the linear track. Integer between 1 and 1000mm/s. default is not set
         :param wait: wait to motion finish or not, default is True
         :param timeout: wait timeout, seconds, default is 100s.
         :return: code

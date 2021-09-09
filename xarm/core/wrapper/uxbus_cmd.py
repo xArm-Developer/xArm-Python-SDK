@@ -38,6 +38,7 @@ class UxbusCmd(object):
         self._GET_TIMEOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
         self._SET_TIMEOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
         self._last_comm_time = time.time()
+        self._last_linear_track_comm_time = 0
 
     @property
     def last_comm_time(self):
@@ -1092,7 +1093,11 @@ class UxbusCmd(object):
         txdata += convert.u16_to_bytes(length)
         txdata += bytes([length * 2])
         txdata += value
+        diff_time = time.time() - self._last_linear_track_comm_time
+        if diff_time < 0.001:
+            time.sleep(0.001 - diff_time)
         ret = self.tgpio_set_modbus(txdata, length * 2 + 7, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        self._last_linear_track_comm_time = time.time()
         return ret
 
     def track_modbus_r16s(self, addr, length, fcode=0x03):
@@ -1100,7 +1105,11 @@ class UxbusCmd(object):
         txdata += bytes([fcode])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.u16_to_bytes(length)
+        diff_time = time.time() - self._last_linear_track_comm_time
+        if diff_time < 0.001:
+            time.sleep(0.001 - diff_time)
         ret = self.tgpio_set_modbus(txdata, 6, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        self._last_linear_track_comm_time = time.time()
         return ret
 
     def iden_tcp_load(self):

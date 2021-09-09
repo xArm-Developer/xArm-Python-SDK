@@ -592,12 +592,14 @@ Note:
 
 ```
 Check the linear track is on zero positon or not
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, status)) only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
     status: 
-        0: is not on zero
-        1: is on zero
+        0: linear track is not on zero
+        1: linear track is on zero
 ```
 
 #### def __check_verification__(self):
@@ -654,6 +656,8 @@ Clean the gripper error
 
 ```
 Clean the linear track error
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :return: code
     code: See the API code documentation for details.
@@ -694,9 +698,9 @@ Config the Controller GPIO reset the digital output when the robot is in stop st
 #### def __config_force_control__(self, coord, c_axis, f_ref, limits):
 
 ```
-set force control parameters.
+Set force control parameters.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param coord:  task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
@@ -745,13 +749,13 @@ Note:
 #### def __ft_sensor_app_get__(self):
 
 ```
-get force mode
+Get force mode
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
-:return: tuple((code, status))
+:return: tuple((code, app_code))
     code: See the API code documentation for details.
-    status: 0: non-force mode
+    app_code: 0: non-force mode
             1: impedance control mode
             2: force control mode
 ```
@@ -759,9 +763,9 @@ Note:
 #### def __ft_sensor_app_set__(self, app_code):
 
 ```
-set robot to be controlled in force mode
+Set robot to be controlled in force mode
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
 :return: tuple((code, status))
@@ -772,9 +776,9 @@ Note:
 #### def __ft_sensor_cali_load__(self, iden_result_list):
 
 ```
-write load parameter value
+Write load parameter value
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
 :return: code
@@ -784,9 +788,9 @@ Note:
 #### def __ft_sensor_enable__(self, on_off):
 
 ```
-used for enabling and disabling the use of external F/T measurements in the controller.
+Used for enabling and disabling the use of external F/T measurements in the controller.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param on_off: enable or disable F/T data sampling.
 :return: code
@@ -796,9 +800,9 @@ Note:
 #### def __ft_sensor_iden_load__(self):
 
 ```
-start load identification.
+Identification the tcp load with ftsensor.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, load)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -808,9 +812,9 @@ Note:
 #### def __ft_sensor_set_zero__(self):
 
 ```
-set force/torque offset.
+Set force/torque offset.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :return: code
     code: See the API code documentation for details.
@@ -926,9 +930,9 @@ Get the controller error and warn code
 #### def __get_exe_ft__(self):
 
 ```
-get extenal force/torque
+Get extenal force/torque
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, exe_ft))
     code: See the API code documentation for details.
@@ -1031,6 +1035,8 @@ Get joints torque
 
 ```
 Get the error code of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, error)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -1041,6 +1047,8 @@ Get the error code of the linear track
 
 ```
 Get the pos of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, position)) only when code is 0, the returned result is correct.
     code: See the API code documentation for details.
@@ -1051,6 +1059,8 @@ Get the pos of the linear track
 
 ```
 Get the status of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, status)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -1334,9 +1344,9 @@ Send the modbus data to the tool gpio
 #### def __iden_tcp_load__(self):
 
 ```
-Identification the tcp load
+Identification the tcp load with current
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :return: tuple((code, load)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -2180,13 +2190,13 @@ Note:
 #### def __set_force_control_pid__(self, kp, ki, kd, xe_limit):
 
 ```
-set force control pid parameters.
+Set force control pid parameters.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
-:param kp: proportional gain. default : 0.005
-:param ki: integral gain. default : 0.00006
-:param kd: differential gain. default : 0.0
+:param kp: proportional gain.
+:param ki: integral gain.
+:param kd: differential gain.
 :param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
 :return: code
     code: See the API code documentation for details.
@@ -2257,9 +2267,9 @@ Set the gripper speed
 #### def __set_impedance__(self, coord, c_axis, M, K, B):
 
 ```
-set all parameters of impedance control.
+Set all parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2273,9 +2283,9 @@ Note:
 #### def __set_impedance_config__(self, coord, c_axis):
 
 ```
-set impedance control parameters of impedance control.
+Set impedance control parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2286,9 +2296,9 @@ Note:
 #### def __set_impedance_mbk__(self, M, K, B):
 
 ```
-set mbk parameters of impedance control.
+Set mbk parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.7.5
+    1. only available if firmware_version >= 1.8.0
 
 :param M: mass. (kg)
 :param K: stiffness coefficient.
@@ -2346,10 +2356,12 @@ Set joints torque,
 ```
 Set the linear track go back to the origin position
 Note:
-    1. only useful when powering on for the first time
-    2. this operation must be performed at the first power-on
+    1. only available if firmware_version >= 1.8.0
+    2. only useful when powering on for the first time
+    3. this operation must be performed at the first power-on
     
-:param wait: wait or not, default is True
+:param wait: wait to motion finish or not, default is True
+:param auto_enable: enable after back to origin or not, default is True
 :return: code
     code: See the API code documentation for details.
 ```
@@ -2358,6 +2370,8 @@ Note:
 
 ```
 Set the linear track enable/disable
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :param enable: enable or not
 :return: code
@@ -2368,6 +2382,8 @@ Set the linear track enable/disable
 
 ```
 Set the position of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :param pos: position. Integer between 0 and 750.
 :param speed: speed of the linear track. Integer between 0 and 3000. default is not set
@@ -2381,6 +2397,8 @@ Set the position of the linear track
 
 ```
 Set the speed of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :param speed: Integer between 100 and 3000.
 :return: code
@@ -2963,6 +2981,8 @@ Note:
 
 ```
 Set the linear track to stop
+Note:
+    1. only available if firmware_version >= 1.8.0
 
 :return: code
     code: See the API code documentation for details.

@@ -38,7 +38,7 @@ class UxbusCmd(object):
         self._GET_TIMEOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
         self._SET_TIMEOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
         self._last_comm_time = time.time()
-        self._last_linear_track_comm_time = 0
+        self._last_modbus_comm_time = time.time()
 
     @property
     def last_comm_time(self):
@@ -645,14 +645,20 @@ class UxbusCmd(object):
         return ret[:2]
 
     @lock_require
-    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID):
+    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID, limit_sec=0.0):
         txdata = bytes([host_id])
         txdata += bytes(modbus_t)
+        if limit_sec > 0:
+            diff_time = time.time() - self._last_modbus_comm_time
+            if diff_time < limit_sec:
+                time.sleep(limit_sec - diff_time)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
         if ret != 0:
+            self._last_modbus_comm_time = time.time()
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_MODBUS, -1, self._GET_TIMEOUT)
+        self._last_modbus_comm_time = time.time()
         return ret
 
     @lock_require
@@ -1093,11 +1099,7 @@ class UxbusCmd(object):
         txdata += convert.u16_to_bytes(length)
         txdata += bytes([length * 2])
         txdata += value
-        diff_time = time.time() - self._last_linear_track_comm_time
-        if diff_time < 0.001:
-            time.sleep(0.001 - diff_time)
-        ret = self.tgpio_set_modbus(txdata, length * 2 + 7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        self._last_linear_track_comm_time = time.time()
+        ret = self.tgpio_set_modbus(txdata, length * 2 + 7, host_id=XCONF.LINEER_TRACK_HOST_ID, limit_sec=0.001)
         return ret
 
     def track_modbus_r16s(self, addr, length, fcode=0x03):
@@ -1105,11 +1107,7 @@ class UxbusCmd(object):
         txdata += bytes([fcode])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.u16_to_bytes(length)
-        diff_time = time.time() - self._last_linear_track_comm_time
-        if diff_time < 0.001:
-            time.sleep(0.001 - diff_time)
-        ret = self.tgpio_set_modbus(txdata, 6, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        self._last_linear_track_comm_time = time.time()
+        ret = self.tgpio_set_modbus(txdata, 6, host_id=XCONF.LINEER_TRACK_HOST_ID, limit_sec=0.001)
         return ret
 
     def iden_tcp_load(self):

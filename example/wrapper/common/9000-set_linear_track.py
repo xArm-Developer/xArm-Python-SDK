@@ -55,6 +55,6 @@ code = arm.set_linear_track_pos(300, wait=True)
 print('[wait]set linear track pos, code={}'.format(code))
 
 # set position 700mm
-code = arm.set_linear_track_pos(700)
+code = arm.set_linear_track_pos(700, wait=False)
 print('[no wait]set linear track track pos, code={}'.format(code))
 

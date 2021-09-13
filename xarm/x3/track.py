@@ -31,7 +31,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_enable(self, enable):
         value = convert.u16_to_bytes(int(enable))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.CON_EN, value, 1)
@@ -47,7 +47,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_back_origin(self, wait=True, **kwargs):
         auto_enable = kwargs.get('auto_enable', True)
         timeout = kwargs.get('timeout', 10)
@@ -63,7 +63,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         auto_enable = kwargs.get('auto_enable', False)
         if auto_enable and not self.linear_track_is_enabled:
@@ -83,7 +83,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_speed(self, speed):
         value = convert.u16_to_bytes(int(speed*6.667))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.POS_SPD, value, 1)
@@ -96,7 +96,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def check_linear_track_on_zero(self):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CHECK_ON_ORIGIN, 1)
         _, err = self.get_linear_track_error()
@@ -107,7 +107,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_status(self):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_STATUS, 1)
         _, err = self.get_linear_track_error()
@@ -117,9 +117,10 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_error(self):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.ERR_CODE, 1)
+        # ret = self.arm_cmd.track_modbus_r16s(0x0A00, 1)
         ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if ret[0] == 0:
             self._linear_track_error_code = convert.bytes_to_u16(ret[5:7])
@@ -127,7 +128,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def clean_linear_track_error(self):
         value = convert.u16_to_bytes(int(1))
         self._linear_track_error_code = 0
@@ -158,7 +159,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_pos(self):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CURR_POS, 2)
         _, err = self.get_linear_track_error()
@@ -172,7 +173,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def stop_linear_track(self):
         value = convert.u16_to_bytes(int(1))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.STOP_TRACK, value, 1)
@@ -204,7 +205,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, '*.*.*'))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default='*.*.*')
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default='*.*.*', host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_version(self):
         versions = ['*', '*', '*']
         ret1 = self.arm_cmd.track_modbus_r16s(0x0801, 1)
@@ -235,7 +236,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, None))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_sn(self):
         rd_sn = ''
         ret = [0, '']
@@ -251,7 +252,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_sn(self, sn):
         assert len(sn) >= 14, 'The length of SN is wrong'
         code = 0
@@ -267,7 +268,7 @@ class Track(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_enable(self):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CON_EN, 1)
         _, err = self.get_linear_track_error()

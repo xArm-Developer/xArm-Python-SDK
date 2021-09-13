@@ -10,13 +10,14 @@ import time
 import functools
 from ..core.utils.log import logger
 from .code import APIState
+from ..core.config.x_config import XCONF
 
 
-def check_modbus_baud(baud=2000000, _type='set', default=None):
+def check_modbus_baud(baud=2000000, _type='set', default=None, host_id=XCONF.TGPIO_HOST_ID):
     def _check_modbus_baud(func):
         @functools.wraps(func)
         def decorator(*args, **kwargs):
-            code = args[0].checkset_modbus_baud(baud)
+            code = args[0].checkset_modbus_baud(baud, host_id=host_id)
             if code != 0:
                 logger.error('check modbus baud is failed, code={}'.format(code))
                 return code if _type == 'set' else (code, default if default != -99 else [])

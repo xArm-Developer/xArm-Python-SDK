@@ -75,7 +75,7 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        self.log_api_info('API -> set_track_pos(pos={}) -> code={}, err={}'.format(pos, ret[0], err), code=ret[0])
+        self.log_api_info('API -> set_linear_track_pos(pos={}) -> code={}, err={}'.format(pos, ret[0], err), code=ret[0])
 
         if ret[0] == 0 and wait:
             return self.__wait_linear_track_stop(timeout)

@@ -28,7 +28,7 @@ class Logger(logging.Logger):
     stream_handler.setLevel(logging.VERBOSE)
     stream_handler.setFormatter(logging.Formatter(stream_handler_fmt, stream_handler_date_fmt))
 
-    logger = logging.Logger(__name__)
+    logger = logging.getLogger(__name__)
     logger.setLevel(logging.VERBOSE)
     logger.addHandler(stream_handler)
 

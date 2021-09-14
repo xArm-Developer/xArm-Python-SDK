@@ -1061,7 +1061,7 @@ class Base(Events):
             if not self._is_ready:
                 self._sleep_finish_time = 0
 
-            if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            if error_code in [1, 2, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
                 self.gripper_is_enabled = False
@@ -1285,7 +1285,7 @@ class Base(Events):
                 return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
-            if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            if error_code in [1, 2, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
                 self.gripper_is_enabled = False

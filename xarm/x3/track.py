@@ -66,6 +66,10 @@ class Track(GPIO):
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None)
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         auto_enable = kwargs.get('auto_enable', False)
+        code, status = self.check_linear_track_on_zero()
+        code, is_enable = self.get_linear_track_enable()
+        if code == 0 and (status == 0 or is_enable == 0):
+            return APIState.LINEAR_TRACK_NOT_INIT
         if auto_enable and not self.linear_track_is_enabled:
             self.set_linear_track_enable(auto_enable)
         if speed is not None and self.linear_track_speed != speed:
@@ -273,6 +277,25 @@ class Track(GPIO):
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
 
+        if ret[0] == 0 and self._linear_track_error_code == 0:
+            self.linear_track_is_enabled = ret[-1] != 0
+        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT, ret[-1]
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None)
+    def get_linear_track_sci(self):
+        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_TRACK_SCI, 1)
+        _, err = self.get_linear_track_error()
+        ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        if ret[0] == 0 and self._linear_track_error_code == 0:
+            self.linear_track_is_enabled = ret[-1] != 0
+        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT, ret[-1]
+
+    def get_linear_track_sco(self):
+        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_TRACK_SCO, 1)
+        _, err = self.get_linear_track_error()
+        ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if ret[0] == 0 and self._linear_track_error_code == 0:
             self.linear_track_is_enabled = ret[-1] != 0
         return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT, ret[-1]

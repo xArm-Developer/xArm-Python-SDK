@@ -2165,7 +2165,7 @@ class Base(Events):
                 if len(ret) < length:
                     return APIState.MODBUS_ERR_LENG
                 if ret[1] != host_id:
-                    return APIState.TGPIO_ID_ERR
+                    return APIState.HOST_ID_ERR
             if code != 0:
                 if host_id == XCONF.TGPIO_HOST_ID:
                     if self.error_code != 19 and self.error_code != 28:

@@ -43,7 +43,7 @@ class Track(GPIO):
             self.linear_track_is_enabled = False
         self.get_linear_track_enable()
         self.log_api_info('API -> set_linear_track_enable(enable={}) -> code={}, err={}'.format(enable, ret[0], err), code=ret[0])
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -59,7 +59,7 @@ class Track(GPIO):
             ret[0] = self.__wait_linear_track_back_origin(timeout)
         if auto_enable:
             ret[0] = self.set_linear_track_enable(True)
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -79,7 +79,7 @@ class Track(GPIO):
 
         if ret[0] == 0 and wait:
             return self.__wait_linear_track_stop(timeout)
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -92,7 +92,7 @@ class Track(GPIO):
         if ret[0] == 0 and self._linear_track_error_code == 0:
             self.linear_track_speed = speed
         self.log_api_info('API -> set_linear_track_speed(speed={}) -> code={}, err={}'.format(speed, ret[0], err), code=ret[0])
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
@@ -101,7 +101,7 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CHECK_ON_ORIGIN, 1)
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        code = ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        code = ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
         # self.log_api_info('API -> check_linear_track_on_zero() -> code={}, err={}'.format(ret[0], err), code=ret[0])
         return code, ret[-1] if code == 0 else 0
 
@@ -112,7 +112,7 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_STATUS, 1)
         _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        code = ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        code = ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
         return code, convert.bytes_to_u16(ret[5:7]) if ret[0] == 0 else 0
 
     @xarm_is_connected(_type='get')
@@ -136,7 +136,7 @@ class Track(GPIO):
         _, err = self.get_linear_track_error()
         self.log_api_info('API -> clean_linear_track_error -> code={}, code2={}, err={}'.format(ret[0], _, err), code=ret[0])
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     def __wait_linear_track_stop(self, timeout=100):
         failed_cnt = 0
@@ -151,7 +151,7 @@ class Track(GPIO):
                 return 0
             else:
                 if self._linear_track_error_code != 0:
-                    return APIState.END_EFFECTOR_HAS_FAULT
+                    return APIState.LINEAR_TRACK_HAS_FAULT
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED
             time.sleep(0.1)
@@ -167,7 +167,7 @@ class Track(GPIO):
         if ret[0] == 0 and err == 0:
             return ret[0], convert.bytes_to_long_big(ret[5:9]) / 2000
         elif err != 0:
-            return APIState.END_EFFECTOR_HAS_FAULT, 0
+            return APIState.LINEAR_TRACK_HAS_FAULT, 0
         else:
             return ret[0], 0
 
@@ -182,7 +182,7 @@ class Track(GPIO):
         self._linear_track_is_stop = True if ret[0] == 0 else False
         self.log_api_info('API -> stop_linear_track() -> code={}, err={}'.format(ret[0], err), code=ret[0])
 
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     def __wait_linear_track_back_origin(self, timeout=10):
         failed_cnt = 0
@@ -197,7 +197,7 @@ class Track(GPIO):
                 return 0
             else:
                 if self._linear_track_error_code != 0:
-                    return APIState.END_EFFECTOR_HAS_FAULT
+                    return APIState.LINEAR_TRACK_HAS_FAULT
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED
             time.sleep(0.1)
@@ -276,4 +276,4 @@ class Track(GPIO):
 
         if ret[0] == 0 and self._linear_track_error_code == 0:
             self.linear_track_is_enabled = ret[-1] != 0
-        return ret[0] if self._linear_track_error_code == 0 else APIState.END_EFFECTOR_HAS_FAULT, ret[-1]
+        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT, ret[-1]

@@ -36,7 +36,7 @@ class APIState(object):
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
 
-    TGPIO_ID_ERR = 20  # 末端IO主机ID错误
+    HOST_ID_ERR = 20  # 主机ID错误, 看使用的接口，可能是末端IO也可能是滑轨
     MODBUS_BAUD_NOT_SUPPORT = 21  # modbus不支持此波特率
     MODBUS_BAUD_NOT_CORRECT = 22  # 末端modbus波特率不正确
     MODBUS_ERR_LENG = 23  # modbus回复数据长度错误
@@ -52,5 +52,7 @@ class APIState(object):
     CHECK_FAILED = 101  # 等待操作完成过程检测状态连续失败次数过多
     END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误
     END_EFFECTOR_NOT_ENABLED = 103  # 末端配件未使能
+
+    LINEAR_TRACK_HAS_FAULT = 110  # 滑轨有错误
 
 

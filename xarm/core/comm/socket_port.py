@@ -87,7 +87,7 @@ class SocketPort(Port):
                         self.com.setblocking(True)
                         self.com.settimeout(1)
                         self.com.connect(uds_path)
-                        logger.info('{} connect {} success, uds_path={}'.format(self.port_type, server_ip, uds_path))
+                        logger.info('{} connect {} success, uds_{}'.format(self.port_type, server_ip, server_port))
                         use_uds = True
                     except Exception as e:
                         pass

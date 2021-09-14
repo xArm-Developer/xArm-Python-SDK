@@ -3183,7 +3183,8 @@ class XArmAPI(object):
             3. this operation must be performed at the first power-on
             
         :param wait: wait to motion finish or not, default is True
-        :param auto_enable: enable after back to origin or not, default is True
+        :param kwargs:
+            auto_enable: enable after back to origin or not, default is True
         :return: code
             code: See the API code documentation for details.
         """

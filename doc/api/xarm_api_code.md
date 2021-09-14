@@ -25,7 +25,7 @@
 - 10: the result is invalid
 - 11: other error
 - 12: parameter error
-- 20: tgpio id error
+- 20: host id error
 - 21: modbus baudrate not supported
 - 22: modbus baudrate not correct
 - 23: modbus reply length error
@@ -37,6 +37,7 @@
 - 101: too many consecutive failed tests
 - 102: end effector has error
 - 103: end effector is not endabled
+- 110: linear track has error
 
 ## Controller warning code
 - 11: uxbux que is full

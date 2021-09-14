@@ -156,6 +156,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 self._last_tcp_speed = last_used_tcp_speed
                 self._last_tcp_acc = last_used_tcp_acc
                 return APIState.TCP_LIMIT
+        self._has_motion_cmd = True
         if radius is not None and radius >= 0:
             ret = self.arm_cmd.move_lineb(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius)
         else:
@@ -220,6 +221,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_line_tool(mvpose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], mvpose, self._last_tcp_speed, self._last_tcp_acc
@@ -272,6 +274,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
 
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_line_aa(pose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, mvcoord, int(relative))
         self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], pose, self._last_tcp_speed, self._last_tcp_acc
@@ -302,6 +305,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
 
         tool_coord = kwargs.get('tool_coord', int(is_tool_coord))
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_servo_cart_aa(mvpose=pose, mvvelo=_speed, mvacc=_mvacc, tool_coord=tool_coord,
                                               relative=int(relative))
         self.log_api_info('API -> set_servo_cartesian_aa -> code={}, pose={}, velo={}, acc={}'.format(
@@ -429,6 +433,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 self._last_joint_acc = last_used_joint_acc
                 return APIState.JOINT_LIMIT
 
+        self._has_motion_cmd = True
         if self.version_is_ge_1_5_20 and radius is not None and radius >= 0:
             ret = self.arm_cmd.move_jointb(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
         else:
@@ -465,6 +470,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         _speed = self._last_joint_speed if speed is None else speed
         _mvacc = self._last_joint_acc if mvacc is None else mvacc
         _mvtime = self._mvtime if mvtime is None else mvtime
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_servoj(_angles, _speed, _mvacc, _mvtime)
         self.log_api_info('API -> set_servo_angle_j -> code={}, angles={}, velo={}, acc={}'.format(
             ret[0], _angles, _speed, _mvacc
@@ -487,6 +493,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         # _mvtime = self._mvtime if mvtime is None else mvtime
         _mvtime = int(is_tool_coord)
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
         self.log_api_info('API -> set_servo_cartisian -> code={}, pose={}, velo={}, acc={}'.format(
             ret[0], pose, _speed, _mvacc
@@ -536,6 +543,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_circle(pose_1, pose_2, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, percent)
         self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, self._last_tcp_speed, self._last_tcp_acc
@@ -595,6 +603,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_gohome(self._last_joint_speed, self._last_joint_acc, self._mvtime)
         self.log_api_info('API -> move_gohome -> code={}, velo={}, acc={}'.format(
             ret[0], self._last_joint_speed, self._last_joint_acc

@@ -36,7 +36,7 @@ class APIState(object):
     OTHER = XCONF.UxbusState.ERR_OTHER  # 其它错误
     PARAM_ERROR = XCONF.UxbusState.ERR_PARAM  # 参数错误
 
-    TGPIO_ID_ERR = 20  # 末端IO主机ID错误
+    HOST_ID_ERR = 20  # 主机ID错误, 看使用的接口，可能是末端IO也可能是滑轨
     MODBUS_BAUD_NOT_SUPPORT = 21  # modbus不支持此波特率
     MODBUS_BAUD_NOT_CORRECT = 22  # 末端modbus波特率不正确
     MODBUS_ERR_LENG = 23  # modbus回复数据长度错误
@@ -56,5 +56,6 @@ class APIState(object):
     LINEAR_TRACK_NOT_INIT = 104  # 直线滑轨未初始化
 
     NOT_CLOSE_MANUAL_MODE = 105  # 手动模式未关闭
+    LINEAR_TRACK_HAS_FAULT = 110  # 滑轨有错误
 
 

@@ -2361,7 +2361,8 @@ Note:
     3. this operation must be performed at the first power-on
     
 :param wait: wait to motion finish or not, default is True
-:param auto_enable: enable after back to origin or not, default is True
+:param kwargs:
+    auto_enable: enable after back to origin or not, default is True
 :return: code
     code: See the API code documentation for details.
 ```
@@ -2385,8 +2386,11 @@ Set the position of the linear track
 Note:
     1. only available if firmware_version >= 1.8.0
 
-:param pos: position. Integer between 0 and 750.
-:param speed: speed of the linear track. Integer between 0 and 3000. default is not set
+:param pos: position. Integer between 0 and 700/1000/1500mm.
+    If SN start with AL1300 the position range is 0~700mm.
+    If SN start with AL1301 the position range is 0~1000mm.
+    If SN start with AL1302 the position range is 0~1500mm.
+:param speed: speed of the linear track. Integer between 1 and 1000mm/s. default is not set
 :param wait: wait to motion finish or not, default is True
 :param timeout: wait timeout, seconds, default is 100s.
 :return: code
@@ -2400,7 +2404,7 @@ Set the speed of the linear track
 Note:
     1. only available if firmware_version >= 1.8.0
 
-:param speed: Integer between 100 and 3000.
+:param speed: Integer between 1 and 1000mm/s.
 :return: code
     code: See the API code documentation for details.
 ```

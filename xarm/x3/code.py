@@ -48,11 +48,13 @@ class APIState(object):
 
     MODE_IS_NOT_CORRECT = 51  # 模式不正确
 
+    LINEAR_TRACK_HAS_FAULT = 80  # 滑轨有错误
+    LINEAR_TRACK_SCI_IS_LOW = 81  # 滑轨的SCI被置低了
+
     WAIT_FINISH_TIMEOUT = 100  # 等待操作完成超时
     CHECK_FAILED = 101  # 等待操作完成过程检测状态连续失败次数过多
     END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误
     END_EFFECTOR_NOT_ENABLED = 103  # 末端配件未使能
 
-    LINEAR_TRACK_HAS_FAULT = 110  # 滑轨有错误
 
 

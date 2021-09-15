@@ -36,7 +36,7 @@
 - 100: wait finish timeout
 - 101: too many consecutive failed tests
 - 102: end effector has error
-- 103: end effector is not endabled
+- 103: end effector is not enabled
 - 110: linear track has error
 
 ## Controller warning code

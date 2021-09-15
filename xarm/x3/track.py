@@ -18,16 +18,95 @@ class Track(GPIO):
 
     def __init__(self):
         super(Track, self).__init__()
-        self._linear_track_error_code = 0
-        self._linear_track_is_stop = False
+        self._linear_track_status = {
+            'pos': 0,
+            'status': 0,
+            'error': 0,
+            'is_enabled': 0,
+            'on_zero': 0,
+            'sci': 1,
+            'sco': [0, 0],
+        }
+
+    @property
+    def linear_track_status(self):
+        return self._linear_track_status
 
     @property
     def linear_track_error_code(self):
-        return self._linear_track_error_code
+        return self._linear_track_status['error']
 
     @linear_track_error_code.setter
     def linear_track_error_code(self, val):
-        self._linear_track_error_code = val
+        self._linear_track_status['error'] = val
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, []))
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
+    def _get_linear_track_registers(self, addr, number_of_registers=1):
+        ret = self.arm_cmd.track_modbus_r16s(addr, number_of_registers)
+        ret[0] = self._check_modbus_code(ret, length=5 + 2 * number_of_registers, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        return ret[0], ret[1:]
+
+    def get_linear_track_status(self, addr=0x0A20, number_of_registers=8):
+        assert (addr == 0x0A20 and number_of_registers >= 2) \
+            or (0x0A22 <= addr <= 0x0A27 and number_of_registers >= 1), \
+            'parameters error, only support (addr == 0x0A20 and number_of_registers >= 2) ' \
+            'or (0x0A22 <= addr <= 0x0A27 and number_of_registers >= 1)'
+        code, data = self._get_linear_track_registers(addr, number_of_registers=number_of_registers)
+        if code == 0:
+            if addr == 0x0A20 and number_of_registers >= 2:
+                self._linear_track_status['pos'] = convert.bytes_to_long_big(data[4:8]) / 2000
+            if 0x0A22 - number_of_registers < addr <= 0x0A22:
+                start_inx = (0x0A22 - addr) * 2 + 4
+                self._linear_track_status['status'] = convert.bytes_to_u16(data[start_inx:start_inx+2])
+            if 0x0A23 - number_of_registers < addr <= 0x0A23:
+                start_inx = (0x0A23 - addr) * 2 + 4
+                self._linear_track_status['error'] = convert.bytes_to_u16(data[start_inx:start_inx+2])
+            if 0x0A24 - number_of_registers < addr <= 0x0A24:
+                start_inx = (0x0A24 - addr) * 2 + 4
+                self._linear_track_status['is_enabled'] = convert.bytes_to_u16(data[start_inx:start_inx+2]) & 0x01
+                self.linear_track_is_enabled = self._linear_track_status['is_enabled'] == 1
+            if 0x0A25 - number_of_registers < addr <= 0x0A25:
+                start_inx = (0x0A25 - addr) * 2 + 4
+                self._linear_track_status['on_zero'] = convert.bytes_to_u16(data[start_inx:start_inx+2]) & 0x01
+            if 0x0A26 - number_of_registers < addr <= 0x0A26:
+                start_inx = (0x0A26 - addr) * 2 + 4
+                self._linear_track_status['sci'] = convert.bytes_to_u16(data[start_inx:start_inx+2]) >> 1 & 0x01
+            if 0x0A27 - number_of_registers < addr <= 0x0A27:
+                start_inx = (0x0A27 - addr) * 2 + 4
+                sco = convert.bytes_to_u16(data[start_inx:start_inx+2])
+                self._linear_track_status['sco'][0] = sco & 0x01
+                self._linear_track_status['sco'][1] = sco >> 1 & 0x02
+        return code, self._linear_track_status
+
+    def get_linear_track_pos(self):
+        code, _ = self.get_linear_track_status(addr=0x0A20, number_of_registers=2)
+        return code, self._linear_track_status['pos']
+
+    # def get_linear_track_status(self):
+    #     code, _ = self._get_linear_track_status(addr=0x0A22, number_of_registers=1)
+    #     return code, self._linear_track_status['status']
+
+    def get_linear_track_error(self):
+        code, _ = self.get_linear_track_status(addr=0x0A23, number_of_registers=1)
+        return code, self._linear_track_status['error']
+
+    def get_linear_track_enable(self):
+        code, _ = self.get_linear_track_status(addr=0x0A24, number_of_registers=1)
+        return code, self._linear_track_status['is_enabled']
+
+    def check_linear_track_on_zero(self):
+        code, _ = self.get_linear_track_status(addr=0x0A25, number_of_registers=1)
+        return code, self._linear_track_status['on_zero']
+
+    def get_linear_track_sci(self):
+        code, _ = self.get_linear_track_status(addr=0x0A26, number_of_registers=1)
+        return code, self._linear_track_status['sci']
+
+    def get_linear_track_sco(self):
+        code, _ = self.get_linear_track_status(addr=0x0A27, number_of_registers=1)
+        return code, self._linear_track_status['sco']
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -35,15 +114,16 @@ class Track(GPIO):
     def set_linear_track_enable(self, enable):
         value = convert.u16_to_bytes(int(enable))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.CON_EN, value, 1)
-        _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        if ret[0] == 0 and self._linear_track_error_code == 0 and enable:
-            self.linear_track_is_enabled = True
+        # get_status: error, is_enable, on_zero
+        code2, status = self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
+        if ret[0] == 0 and self._linear_track_status['error'] == 0 and enable:
+            self.linear_track_is_enabled = self._linear_track_status['is_enabled'] == 1
         else:
             self.linear_track_is_enabled = False
-        self.get_linear_track_enable()
-        self.log_api_info('API -> set_linear_track_enable(enable={}) -> code={}, err={}'.format(enable, ret[0], err), code=ret[0])
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
+        self.log_api_info('API -> set_linear_track_enable(enable={}) -> code1={}, code2={}, err={}, enabled={}, zero={}'.format(
+            enable, ret[0], code2, status['error'], status['is_enabled'], status['on_zero']), code=ret[0])
+        return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -52,34 +132,42 @@ class Track(GPIO):
         auto_enable = kwargs.get('auto_enable', True)
         timeout = kwargs.get('timeout', 10)
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.BACK_ORIGIN, 1, 0x06)
-        _, err = self.get_linear_track_error()
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        self.log_api_info('API -> set_linear_track_back_origin() -> code={}, err={}'.format(ret[0], err), code=ret[0])
+        # get_status: error, is_enable, on_zero
+        code2, status = self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
+        self.log_api_info(
+            'API -> set_linear_track_back_origin() -> code1={}, code2={}, err={}, enabled={}, zero={}'.format(
+                ret[0], code2, status['error'], status['is_enabled'], status['on_zero']), code=ret[0])
         if ret[0] == 0 and wait:
             ret[0] = self.__wait_linear_track_back_origin(timeout)
         if auto_enable:
             ret[0] = self.set_linear_track_enable(True)
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
+        return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
-        auto_enable = kwargs.get('auto_enable', False)
-        if auto_enable and not self.linear_track_is_enabled:
+        auto_enable = kwargs.get('auto_enable', True)
+        # get_status: error, is_enable, on_zero
+        code, status = self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
+        if code == 0:
+            if status['on_zero'] != 1:
+                logger.warn('linear track is not on zero, please set linear track back to origin')
+        if auto_enable and (code != 0 or status['is_enabled'] != 1):
             self.set_linear_track_enable(auto_enable)
         if speed is not None and self.linear_track_speed != speed:
             self.set_linear_track_speed(speed)
-
         value = convert.int32_to_bytes(int(pos * 2000), is_big_endian=True)
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
-        _, err = self.get_linear_track_error()
+        self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        self.log_api_info('API -> set_linear_track_pos(pos={}) -> code={}, err={}'.format(pos, ret[0], err), code=ret[0])
-
+        self.log_api_info('API -> set_linear_track_pos(pos={}) -> code={}, err={}, enabled={}, zero={}'.format(
+            pos, ret[0], self._linear_track_status['error'],
+            self._linear_track_status['is_enabled'], self._linear_track_status['on_zero']), code=ret[0])
         if ret[0] == 0 and wait:
             return self.__wait_linear_track_stop(timeout)
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
+        return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -88,55 +176,36 @@ class Track(GPIO):
         value = convert.u16_to_bytes(int(speed*6.667))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.POS_SPD, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        _, err = self.get_linear_track_error()
-        if ret[0] == 0 and self._linear_track_error_code == 0:
-            self.linear_track_speed = speed
-        self.log_api_info('API -> set_linear_track_speed(speed={}) -> code={}, err={}'.format(speed, ret[0], err), code=ret[0])
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
-
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def check_linear_track_on_zero(self):
-        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CHECK_ON_ORIGIN, 1)
-        _, err = self.get_linear_track_error()
-        ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        code = ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
-        # self.log_api_info('API -> check_linear_track_on_zero() -> code={}, err={}'.format(ret[0], err), code=ret[0])
-        return code, ret[-1] if code == 0 else 0
-
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def get_linear_track_status(self):
-        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.GET_STATUS, 1)
-        _, err = self.get_linear_track_error()
-        ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        code = ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
-        return code, convert.bytes_to_u16(ret[5:7]) if ret[0] == 0 else 0
-
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def get_linear_track_error(self):
-        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.ERR_CODE, 1)
-        # ret = self.arm_cmd.track_modbus_r16s(0x0A00, 1)
-        ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if ret[0] == 0:
-            self._linear_track_error_code = convert.bytes_to_u16(ret[5:7])
-        return ret[0], self._linear_track_error_code
+            self.linear_track_speed = speed
+        self.log_api_info('API -> set_linear_track_speed(speed={}) -> code={}'.format(speed, ret[0]), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
+    def stop_linear_track(self):
+        value = convert.u16_to_bytes(int(1))
+        ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.STOP_TRACK, value, 1)
+        ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        # get_status: error, is_enable, on_zero
+        code2, status = self.get_linear_track_status(addr=0x0A22, number_of_registers=2)
+        self.log_api_info('API -> stop_linear_track() -> code={}, code2={}, status={}, err={}'.format(
+            ret[0], code2, status['status'], status['error']), code=ret[0])
+        return ret[0]
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def clean_linear_track_error(self):
         value = convert.u16_to_bytes(int(1))
-        self._linear_track_error_code = 0
+        self.linear_track_error_code = 0
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.RESET_ERR, value, 1)
         _, err = self.get_linear_track_error()
-        self.log_api_info('API -> clean_linear_track_error -> code={}, code2={}, err={}'.format(ret[0], _, err), code=ret[0])
+        self.log_api_info('API -> clean_linear_track_error -> code={}, code2={}, err={}'.format(ret[0], _, err),
+                          code=ret[0])
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
+        return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     def __wait_linear_track_stop(self, timeout=100):
         failed_cnt = 0
@@ -145,44 +214,19 @@ class Track(GPIO):
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
         while self.connected and time.time() < expired:
-            _, status = self.get_linear_track_status()
+            _, status = self.get_linear_track_status(addr=0x0A22, number_of_registers=5)
+            if _ == 0 and status['sci'] == 0:
+                return APIState.LINEAR_TRACK_SCI_IS_LOW
+            if _ == 0 and status['error'] != 0:
+                return APIState.LINEAR_TRACK_HAS_FAULT
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
-            if _ == 0 and (status & 0x01 == 0):
+            if _ == 0 and (status['status'] & 0x01 == 0):
                 return 0
             else:
-                if self._linear_track_error_code != 0:
-                    return APIState.LINEAR_TRACK_HAS_FAULT
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED
             time.sleep(0.1)
         return code
-
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def get_linear_track_pos(self):
-        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CURR_POS, 2)
-        _, err = self.get_linear_track_error()
-        ret[0] = self._check_modbus_code(ret, length=9, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        if ret[0] == 0 and err == 0:
-            return ret[0], convert.bytes_to_long_big(ret[5:9]) / 2000
-        elif err != 0:
-            return APIState.LINEAR_TRACK_HAS_FAULT, 0
-        else:
-            return ret[0], 0
-
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
-    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def stop_linear_track(self):
-        value = convert.u16_to_bytes(int(1))
-        ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.STOP_TRACK, value, 1)
-        _, err = self.get_linear_track_error()
-        ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
-        self._linear_track_is_stop = True if ret[0] == 0 else False
-        self.log_api_info('API -> stop_linear_track() -> code={}, err={}'.format(ret[0], err), code=ret[0])
-
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
     def __wait_linear_track_back_origin(self, timeout=10):
         failed_cnt = 0
@@ -191,13 +235,15 @@ class Track(GPIO):
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
         while self.connected and time.time() < expired:
-            _, status = self.check_linear_track_on_zero()
+            _, status = self.get_linear_track_status(addr=0x0A22, number_of_registers=5)
+            if _ == 0 and status['sci'] == 0:
+                return APIState.LINEAR_TRACK_SCI_IS_LOW
+            if _ == 0 and status['error'] != 0:
+                return APIState.LINEAR_TRACK_HAS_FAULT
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
-            if _ == 0 and status == 1:
+            if _ == 0 and status['on_zero'] == 1:
                 return 0
             else:
-                if self._linear_track_error_code != 0:
-                    return APIState.LINEAR_TRACK_HAS_FAULT
                 if failed_cnt > 10:
                     return APIState.CHECK_FAILED
             time.sleep(0.1)
@@ -265,15 +311,3 @@ class Track(GPIO):
                     break
                 time.sleep(0.05)
         return code
-
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
-    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def get_linear_track_enable(self):
-        ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.CON_EN, 1)
-        _, err = self.get_linear_track_error()
-        ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-
-        if ret[0] == 0 and self._linear_track_error_code == 0:
-            self.linear_track_is_enabled = ret[-1] != 0
-        return ret[0] if self._linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT, ret[-1]

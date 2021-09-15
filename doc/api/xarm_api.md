@@ -1055,7 +1055,7 @@ Note:
     position: position
 ```
 
-#### def __get_linear_track_status__(self):
+#### def __get_linear_track_status__(self, **kwargs):
 
 ```
 Get the status of the linear track
@@ -1064,10 +1064,16 @@ Note:
 
 :return: tuple((code, status)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
-    status: status 
-        status & 0x03 == 0: reach the target location
-        status & 0x03 == 1: in motion
-        status & 0x03 == 2: Has stopped
+    status: status, like
+        {
+            'pos': 0,
+            'status': 0,
+            'error': 0,
+            'is_enabled': 0,
+            'on_zero': 0,
+            'sci': 1,
+            'sco': [0, 0],
+        }
 ```
 
 #### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):

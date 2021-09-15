@@ -3098,7 +3098,7 @@ class XArmAPI(object):
         """
         return self._arm.get_linear_track_error()
 
-    def get_linear_track_status(self):
+    def get_linear_track_status(self, **kwargs):
         """
         Get the status of the linear track
         Note:
@@ -3106,12 +3106,18 @@ class XArmAPI(object):
         
         :return: tuple((code, status)) only when code is 0, the returned result is correct.
             code:  See the API code documentation for details.
-            status: status 
-                status & 0x03 == 0: reach the target location
-                status & 0x03 == 1: in motion
-                status & 0x03 == 2: Has stopped
+            status: status, like
+                {
+                    'pos': 0,
+                    'status': 0,
+                    'error': 0,
+                    'is_enabled': 0,
+                    'on_zero': 0,
+                    'sci': 1,
+                    'sco': [0, 0],
+                }
         """
-        return self._arm.get_linear_track_status()
+        return self._arm.get_linear_track_status(**kwargs)
 
     def get_linear_track_pos(self):
         """

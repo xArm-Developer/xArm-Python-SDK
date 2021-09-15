@@ -1074,7 +1074,7 @@ class Base(Events):
             if 0 < error_code <= 17:
                 reset_tgpio_params = True
                 reset_linear_track_params = True
-            elif error_code in [18, 19]:
+            elif error_code in [19, 28]:
                 reset_tgpio_params = True
             elif error_code == 111:
                 reset_linear_track_params = True
@@ -1321,7 +1321,7 @@ class Base(Events):
             if 0 < error_code <= 17:
                 reset_tgpio_params = True
                 reset_linear_track_params = True
-            elif error_code in [18, 19]:
+            elif error_code in [19, 28]:
                 reset_tgpio_params = True
             elif error_code == 111:
                 reset_linear_track_params = True

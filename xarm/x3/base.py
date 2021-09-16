@@ -176,7 +176,7 @@ class Base(Events):
             self._control_box_type_is_1300 = False
 
             self.linear_track_baud = -1
-            self.linear_track_speed = 0
+            self.linear_track_speed = 1
             self.linear_track_is_enabled = False
             self._ft_ext_force = [0, 0, 0, 0, 0, 0]
             self._ft_raw_force = [0, 0, 0, 0, 0, 0]
@@ -283,7 +283,7 @@ class Base(Events):
         self._control_box_type_is_1300 = False
 
         self.linear_track_baud = -1
-        self.linear_track_speed = 0
+        self.linear_track_speed = 1
         self.linear_track_is_enabled = False
 
         self._ft_ext_force = [0, 0, 0, 0, 0, 0]
@@ -1090,7 +1090,7 @@ class Base(Events):
             if reset_linear_track_params:
                 self.linear_track_baud = -1
                 self.linear_track_is_enabled = False
-                self.linear_track_speed = 0
+                self.linear_track_speed = 1
 
             # if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
             #     self.modbus_baud = -1

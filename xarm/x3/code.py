@@ -56,3 +56,5 @@ class APIState(object):
     END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误
     END_EFFECTOR_NOT_ENABLED = 103  # 末端配件未使能
 
+    LINEAR_TRACK_NOT_INIT = 104  # 直线滑轨未初始化
+    NOT_CLOSE_MANUAL_MODE = 105  # 手动模式未关闭

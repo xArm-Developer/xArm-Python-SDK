@@ -77,7 +77,7 @@ class Track(GPIO):
                 start_inx = (0x0A27 - addr) * 2 + 4
                 sco = convert.bytes_to_u16(data[start_inx:start_inx+2])
                 self._linear_track_status['sco'][0] = sco & 0x01
-                self._linear_track_status['sco'][1] = sco >> 1 & 0x02
+                self._linear_track_status['sco'][1] = sco >> 1 & 0x01
         return code, self._linear_track_status
 
     def get_linear_track_pos(self):
@@ -154,6 +154,7 @@ class Track(GPIO):
         if code == 0:
             if status['on_zero'] != 1:
                 logger.warn('linear track is not on zero, please set linear track back to origin')
+                return APIState.LINEAR_TRACK_NOT_INIT
         if auto_enable and (code != 0 or status['is_enabled'] != 1):
             self.set_linear_track_enable(auto_enable)
         if speed is not None and self.linear_track_speed != speed:

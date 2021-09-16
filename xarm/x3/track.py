@@ -183,13 +183,13 @@ class Track(GPIO):
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
-    def stop_linear_track(self):
+    def set_linear_track_stop(self):
         value = convert.u16_to_bytes(int(1))
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.STOP_TRACK, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         # get_status: error, is_enable, on_zero
         code2, status = self.get_linear_track_registers(addr=0x0A22, number_of_registers=2)
-        self.log_api_info('API -> stop_linear_track() -> code={}, code2={}, status={}, err={}'.format(
+        self.log_api_info('API -> set_linear_track_stop() -> code={}, code2={}, status={}, err={}'.format(
             ret[0], code2, status['status'], status['error']), code=ret[0])
         return ret[0]
 

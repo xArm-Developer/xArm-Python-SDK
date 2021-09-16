@@ -3266,7 +3266,7 @@ class XArmAPI(object):
         """
         return self._arm.set_linear_track_pos(pos, speed=speed, wait=wait, timeout=timeout, **kwargs)
 
-    def stop_linear_track(self):
+    def set_linear_track_stop(self):
         """
         Set the linear track to stop
         Note:
@@ -3275,4 +3275,4 @@ class XArmAPI(object):
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.stop_linear_track()
+        return self._arm.set_linear_track_stop()

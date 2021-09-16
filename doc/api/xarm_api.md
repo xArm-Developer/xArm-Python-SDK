@@ -3039,7 +3039,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __stop_linear_track__(self):
+#### def __set_linear_track_stop__(self):
 
 ```
 Set the linear track to stop

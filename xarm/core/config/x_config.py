@@ -379,11 +379,7 @@ class XCONF(object):
         ANALOG_IO2 = 0x0A17
 
         BACK_ORIGIN = 0x0A0A
-        CHECK_ON_ORIGIN = 0x004F
-        GET_STATUS = 0x0000
         STOP_TRACK = 0x0A0E
-        GET_TRACK_SCI = 0x0A10
-        GET_TRACK_SCO = 0x0A11
 
     class UxbusState:
         ERR_CODE = 1  # 有尚未清除的错误

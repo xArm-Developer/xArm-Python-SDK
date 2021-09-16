@@ -56,7 +56,7 @@ class Track(GPIO):
         code, data = self._get_linear_track_registers(addr, number_of_registers=number_of_registers)
         if code == 0:
             if addr == 0x0A20 and number_of_registers >= 2:
-                self._linear_track_status['pos'] = int(convert.bytes_to_long_big(data[4:8]) / 2000)
+                self._linear_track_status['pos'] = round(convert.bytes_to_long_big(data[4:8]) / 2000)
             if 0x0A22 - number_of_registers < addr <= 0x0A22:
                 start_inx = (0x0A22 - addr) * 2 + 4
                 self._linear_track_status['status'] = convert.bytes_to_u16(data[start_inx:start_inx+2])

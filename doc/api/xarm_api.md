@@ -588,20 +588,6 @@ Note:
     rpy_offset: calculated rpy user offset, [roll, pitch, yaw]
 ```
 
-#### def __check_linear_track_on_zero__(self):
-
-```
-Check the linear track is on zero positon or not
-Note:
-    1. only available if firmware_version >= 1.8.0
-
-:return: tuple((code, status)) only when code is 0, the returned result is correct.
-    code: See the API code documentation for details.
-    status: 
-        0: linear track is not on zero
-        1: linear track is on zero
-```
-
 #### def __check_verification__(self):
 
 ```
@@ -1041,6 +1027,34 @@ Note:
 :return: tuple((code, error)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
     error: error code
+```
+
+#### def __get_linear_track_is_enabled__(self):
+
+```
+Get the linear track is enabled or not
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    status: 
+        0: linear track is not enabled
+        1: linear track is enabled
+```
+
+#### def __get_linear_track_on_zero__(self):
+
+```
+Get the linear track is on zero positon or not
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    status: 
+        0: linear track is not on zero
+        1: linear track is on zero
 ```
 
 #### def __get_linear_track_pos__(self):

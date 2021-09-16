@@ -3086,18 +3086,6 @@ class XArmAPI(object):
         """
         return self._arm.iden_tcp_load()
 
-    def get_linear_track_error(self):
-        """
-        Get the error code of the linear track
-        Note:
-            1. only available if firmware_version >= 1.8.0
-        
-        :return: tuple((code, error)) only when code is 0, the returned result is correct.
-            code:  See the API code documentation for details.
-            error: error code
-        """
-        return self._arm.get_linear_track_error()
-
     def get_linear_track_registers(self, **kwargs):
         """
         Get the status of the linear track
@@ -3119,6 +3107,18 @@ class XArmAPI(object):
         """
         return self._arm.get_linear_track_registers(**kwargs)
 
+    def get_linear_track_pos(self):
+        """
+        Get the pos of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, position)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            position: position
+        """
+        return self._arm.get_linear_track_pos()
+
     def get_linear_track_status(self):
         """
         Get the status of the linear track
@@ -3134,21 +3134,35 @@ class XArmAPI(object):
         """
         return self._arm.get_linear_track_status()
 
-    def get_linear_track_pos(self):
+    def get_linear_track_error(self):
         """
-        Get the pos of the linear track
+        Get the error code of the linear track
         Note:
             1. only available if firmware_version >= 1.8.0
-        
-        :return: tuple((code, position)) only when code is 0, the returned result is correct.
-            code: See the API code documentation for details.
-            position: position
-        """
-        return self._arm.get_linear_track_pos()
 
-    def check_linear_track_on_zero(self):
+        :return: tuple((code, error)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            error: error code
         """
-        Check the linear track is on zero positon or not
+        return self._arm.get_linear_track_error()
+
+    def get_linear_track_is_enabled(self):
+        """
+        Get the linear track is enabled or not
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            status: 
+                0: linear track is not enabled
+                1: linear track is enabled
+        """
+        return self._arm.get_linear_track_is_enabled()
+
+    def get_linear_track_on_zero(self):
+        """
+        Get the linear track is on zero positon or not
         Note:
             1. only available if firmware_version >= 1.8.0
         
@@ -3158,7 +3172,7 @@ class XArmAPI(object):
                 0: linear track is not on zero
                 1: linear track is on zero
         """
-        return self._arm.check_linear_track_on_zero()
+        return self._arm.get_linear_track_on_zero()
 
     def clean_linear_track_error(self):
         """

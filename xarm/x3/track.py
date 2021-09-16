@@ -76,7 +76,6 @@ class Track(GPIO):
             if 0x0A27 - number_of_registers < addr <= 0x0A27:
                 start_inx = (0x0A27 - addr) * 2 + 4
                 sco = convert.bytes_to_u16(data[start_inx:start_inx+2])
-                print(addr, number_of_registers, start_inx, sco, data)
                 self._linear_track_status['sco'][0] = sco & 0x01
                 self._linear_track_status['sco'][1] = sco >> 1 & 0x01
         return code, self._linear_track_status
@@ -93,11 +92,11 @@ class Track(GPIO):
         code, _ = self.get_linear_track_registers(addr=0x0A23, number_of_registers=1)
         return code, self._linear_track_status['error']
 
-    def get_linear_track_enable(self):
+    def get_linear_track_is_enabled(self):
         code, _ = self.get_linear_track_registers(addr=0x0A24, number_of_registers=1)
         return code, self._linear_track_status['is_enabled']
 
-    def check_linear_track_on_zero(self):
+    def get_linear_track_on_zero(self):
         code, _ = self.get_linear_track_registers(addr=0x0A25, number_of_registers=1)
         return code, self._linear_track_status['on_zero']
 

@@ -588,20 +588,6 @@ Note:
     rpy_offset: calculated rpy user offset, [roll, pitch, yaw]
 ```
 
-#### def __check_linear_track_on_zero__(self):
-
-```
-Check the linear track is on zero positon or not
-Note:
-    1. only available if firmware_version >= 1.8.0
-
-:return: tuple((code, status)) only when code is 0, the returned result is correct.
-    code: See the API code documentation for details.
-    status: 
-        0: linear track is not on zero
-        1: linear track is on zero
-```
-
 #### def __check_verification__(self):
 
 ```
@@ -1043,6 +1029,34 @@ Note:
     error: error code
 ```
 
+#### def __get_linear_track_is_enabled__(self):
+
+```
+Get the linear track is enabled or not
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    status: 
+        0: linear track is not enabled
+        1: linear track is enabled
+```
+
+#### def __get_linear_track_on_zero__(self):
+
+```
+Get the linear track is on zero positon or not
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    status: 
+        0: linear track is not on zero
+        1: linear track is on zero
+```
+
 #### def __get_linear_track_pos__(self):
 
 ```
@@ -1055,7 +1069,7 @@ Note:
     position: position
 ```
 
-#### def __get_linear_track_status__(self, **kwargs):
+#### def __get_linear_track_registers__(self, **kwargs):
 
 ```
 Get the status of the linear track
@@ -1074,6 +1088,44 @@ Note:
             'sci': 1,
             'sco': [0, 0],
         }
+```
+
+#### def __get_linear_track_sci__(self):
+
+```
+Get the sci1 value of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, sci1)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+```
+
+#### def __get_linear_track_sco__(self):
+
+```
+Get the sco value of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, sco)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    sco: [sco0, sco1]
+```
+
+#### def __get_linear_track_status__(self):
+
+```
+Get the status of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code:  See the API code documentation for details.
+    status: status
+        status & 0x00: motion finish
+        status & 0x01: in motion
+        status & 0x02: has stop
 ```
 
 #### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
@@ -2987,7 +3039,7 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __stop_linear_track__(self):
+#### def __set_linear_track_stop__(self):
 
 ```
 Set the linear track to stop

@@ -40,8 +40,8 @@ code = arm.set_linear_track_back_origin(wait=True)
 print('set linear track back origin, code={}'.format(code))
 
 # status = 1 is go back on zero successful,
-code, status = arm.check_linear_track_on_zero()
-print('check linear track on zero point, code={}, status={}'.format(code, status))
+code, status = arm.get_linear_track_on_zero()
+print('get linear track on zero point, code={}, status={}'.format(code, status))
 
 code = arm.set_linear_track_enable(True)
 print('set linear track enable, code={}'.format(code))

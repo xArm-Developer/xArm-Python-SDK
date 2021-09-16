@@ -3086,19 +3086,7 @@ class XArmAPI(object):
         """
         return self._arm.iden_tcp_load()
 
-    def get_linear_track_error(self):
-        """
-        Get the error code of the linear track
-        Note:
-            1. only available if firmware_version >= 1.8.0
-        
-        :return: tuple((code, error)) only when code is 0, the returned result is correct.
-            code:  See the API code documentation for details.
-            error: error code
-        """
-        return self._arm.get_linear_track_error()
-
-    def get_linear_track_status(self, **kwargs):
+    def get_linear_track_registers(self, **kwargs):
         """
         Get the status of the linear track
         Note:
@@ -3117,23 +3105,64 @@ class XArmAPI(object):
                     'sco': [0, 0],
                 }
         """
-        return self._arm.get_linear_track_status(**kwargs)
+        return self._arm.get_linear_track_registers(**kwargs)
 
     def get_linear_track_pos(self):
         """
         Get the pos of the linear track
         Note:
             1. only available if firmware_version >= 1.8.0
-        
+
         :return: tuple((code, position)) only when code is 0, the returned result is correct.
             code: See the API code documentation for details.
             position: position
         """
         return self._arm.get_linear_track_pos()
 
-    def check_linear_track_on_zero(self):
+    def get_linear_track_status(self):
         """
-        Check the linear track is on zero positon or not
+        Get the status of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            status: status
+                status & 0x00: motion finish
+                status & 0x01: in motion
+                status & 0x02: has stop
+        """
+        return self._arm.get_linear_track_status()
+
+    def get_linear_track_error(self):
+        """
+        Get the error code of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, error)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            error: error code
+        """
+        return self._arm.get_linear_track_error()
+
+    def get_linear_track_is_enabled(self):
+        """
+        Get the linear track is enabled or not
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            status: 
+                0: linear track is not enabled
+                1: linear track is enabled
+        """
+        return self._arm.get_linear_track_is_enabled()
+
+    def get_linear_track_on_zero(self):
+        """
+        Get the linear track is on zero positon or not
         Note:
             1. only available if firmware_version >= 1.8.0
         
@@ -3143,7 +3172,30 @@ class XArmAPI(object):
                 0: linear track is not on zero
                 1: linear track is on zero
         """
-        return self._arm.check_linear_track_on_zero()
+        return self._arm.get_linear_track_on_zero()
+
+    def get_linear_track_sci(self):
+        """
+        Get the sci1 value of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, sci1)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_linear_track_sci()
+
+    def get_linear_track_sco(self):
+        """
+        Get the sco value of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, sco)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            sco: [sco0, sco1]
+        """
+        return self._arm.get_linear_track_sco()
 
     def clean_linear_track_error(self):
         """
@@ -3214,7 +3266,7 @@ class XArmAPI(object):
         """
         return self._arm.set_linear_track_pos(pos, speed=speed, wait=wait, timeout=timeout, **kwargs)
 
-    def stop_linear_track(self):
+    def set_linear_track_stop(self):
         """
         Set the linear track to stop
         Note:
@@ -3223,4 +3275,4 @@ class XArmAPI(object):
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.stop_linear_track()
+        return self._arm.set_linear_track_stop()

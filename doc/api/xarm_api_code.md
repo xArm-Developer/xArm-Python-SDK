@@ -33,11 +33,12 @@
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout
 - 41: wait to set suction cup timeout
+- 80: linear track has error
+- 81: linear track sci is low
 - 100: wait finish timeout
 - 101: too many consecutive failed tests
 - 102: end effector has error
 - 103: end effector is not enabled
-- 110: linear track has error
 
 ## Controller warning code
 - 11: uxbux que is full

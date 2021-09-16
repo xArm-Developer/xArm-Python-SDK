@@ -50,11 +50,10 @@ class APIState(object):
 
     LINEAR_TRACK_HAS_FAULT = 80  # 滑轨有错误
     LINEAR_TRACK_SCI_IS_LOW = 81  # 滑轨的SCI被置低了
+    LINEAR_TRACK_NOT_INIT = 82  # 直线滑轨未初始化
 
     WAIT_FINISH_TIMEOUT = 100  # 等待操作完成超时
     CHECK_FAILED = 101  # 等待操作完成过程检测状态连续失败次数过多
     END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误
     END_EFFECTOR_NOT_ENABLED = 103  # 末端配件未使能
 
-    LINEAR_TRACK_NOT_INIT = 104  # 直线滑轨未初始化
-    NOT_CLOSE_MANUAL_MODE = 105  # 手动模式未关闭

@@ -3174,6 +3174,29 @@ class XArmAPI(object):
         """
         return self._arm.get_linear_track_on_zero()
 
+    def get_linear_track_sci(self):
+        """
+        Get the sci1 value of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, sci1)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_linear_track_sci()
+
+    def get_linear_track_sco(self):
+        """
+        Get the sco value of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, sco)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            sco: [sco0, sco1]
+        """
+        return self._arm.get_linear_track_sco()
+
     def clean_linear_track_error(self):
         """
         Clean the linear track error

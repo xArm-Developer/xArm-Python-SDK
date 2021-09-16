@@ -1090,6 +1090,29 @@ Note:
         }
 ```
 
+#### def __get_linear_track_sci__(self):
+
+```
+Get the sci1 value of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, sci1)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+```
+
+#### def __get_linear_track_sco__(self):
+
+```
+Get the sco value of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, sco)) only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    sco: [sco0, sco1]
+```
+
 #### def __get_linear_track_status__(self):
 
 ```

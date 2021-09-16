@@ -3098,7 +3098,7 @@ class XArmAPI(object):
         """
         return self._arm.get_linear_track_error()
 
-    def get_linear_track_status(self, **kwargs):
+    def get_linear_track_registers(self, **kwargs):
         """
         Get the status of the linear track
         Note:
@@ -3117,7 +3117,22 @@ class XArmAPI(object):
                     'sco': [0, 0],
                 }
         """
-        return self._arm.get_linear_track_status(**kwargs)
+        return self._arm.get_linear_track_registers(**kwargs)
+
+    def get_linear_track_status(self):
+        """
+        Get the status of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            status: status
+                status & 0x00: motion finish
+                status & 0x01: in motion
+                status & 0x02: has stop
+        """
+        return self._arm.get_linear_track_status()
 
     def get_linear_track_pos(self):
         """

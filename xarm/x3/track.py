@@ -48,7 +48,7 @@ class Track(GPIO):
         ret[0] = self._check_modbus_code(ret, length=5 + 2 * number_of_registers, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret[0], ret[1:]
 
-    def get_linear_track_status(self, addr=0x0A20, number_of_registers=8):
+    def get_linear_track_registers(self, addr=0x0A20, number_of_registers=8):
         assert (addr == 0x0A20 and number_of_registers >= 2) \
             or (0x0A22 <= addr <= 0x0A27 and number_of_registers >= 1), \
             'parameters error, only support (addr == 0x0A20 and number_of_registers >= 2) ' \
@@ -56,7 +56,7 @@ class Track(GPIO):
         code, data = self._get_linear_track_registers(addr, number_of_registers=number_of_registers)
         if code == 0:
             if addr == 0x0A20 and number_of_registers >= 2:
-                self._linear_track_status['pos'] = convert.bytes_to_long_big(data[4:8]) / 2000
+                self._linear_track_status['pos'] = int(convert.bytes_to_long_big(data[4:8]) / 2000)
             if 0x0A22 - number_of_registers < addr <= 0x0A22:
                 start_inx = (0x0A22 - addr) * 2 + 4
                 self._linear_track_status['status'] = convert.bytes_to_u16(data[start_inx:start_inx+2])
@@ -76,36 +76,37 @@ class Track(GPIO):
             if 0x0A27 - number_of_registers < addr <= 0x0A27:
                 start_inx = (0x0A27 - addr) * 2 + 4
                 sco = convert.bytes_to_u16(data[start_inx:start_inx+2])
+                print(addr, number_of_registers, start_inx, sco, data)
                 self._linear_track_status['sco'][0] = sco & 0x01
-                self._linear_track_status['sco'][1] = sco >> 1 & 0x02
+                self._linear_track_status['sco'][1] = sco >> 1 & 0x01
         return code, self._linear_track_status
 
     def get_linear_track_pos(self):
-        code, _ = self.get_linear_track_status(addr=0x0A20, number_of_registers=2)
+        code, _ = self.get_linear_track_registers(addr=0x0A20, number_of_registers=2)
         return code, self._linear_track_status['pos']
 
-    # def get_linear_track_status(self):
-    #     code, _ = self._get_linear_track_status(addr=0x0A22, number_of_registers=1)
-    #     return code, self._linear_track_status['status']
+    def get_linear_track_status(self):
+        code, _ = self.get_linear_track_registers(addr=0x0A22, number_of_registers=1)
+        return code, self._linear_track_status['status']
 
     def get_linear_track_error(self):
-        code, _ = self.get_linear_track_status(addr=0x0A23, number_of_registers=1)
+        code, _ = self.get_linear_track_registers(addr=0x0A23, number_of_registers=1)
         return code, self._linear_track_status['error']
 
     def get_linear_track_enable(self):
-        code, _ = self.get_linear_track_status(addr=0x0A24, number_of_registers=1)
+        code, _ = self.get_linear_track_registers(addr=0x0A24, number_of_registers=1)
         return code, self._linear_track_status['is_enabled']
 
     def check_linear_track_on_zero(self):
-        code, _ = self.get_linear_track_status(addr=0x0A25, number_of_registers=1)
+        code, _ = self.get_linear_track_registers(addr=0x0A25, number_of_registers=1)
         return code, self._linear_track_status['on_zero']
 
     def get_linear_track_sci(self):
-        code, _ = self.get_linear_track_status(addr=0x0A26, number_of_registers=1)
+        code, _ = self.get_linear_track_registers(addr=0x0A26, number_of_registers=1)
         return code, self._linear_track_status['sci']
 
     def get_linear_track_sco(self):
-        code, _ = self.get_linear_track_status(addr=0x0A27, number_of_registers=1)
+        code, _ = self.get_linear_track_registers(addr=0x0A27, number_of_registers=1)
         return code, self._linear_track_status['sco']
 
     @xarm_is_connected(_type='set')
@@ -116,7 +117,7 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.CON_EN, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         # get_status: error, is_enable, on_zero
-        code2, status = self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
+        code2, status = self.get_linear_track_registers(addr=0x0A23, number_of_registers=3)
         if ret[0] == 0 and self._linear_track_status['error'] == 0 and enable:
             self.linear_track_is_enabled = self._linear_track_status['is_enabled'] == 1
         else:
@@ -134,7 +135,7 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_r16s(XCONF.ServoConf.BACK_ORIGIN, 1, 0x06)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         # get_status: error, is_enable, on_zero
-        code2, status = self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
+        code2, status = self.get_linear_track_registers(addr=0x0A23, number_of_registers=3)
         self.log_api_info(
             'API -> set_linear_track_back_origin() -> code1={}, code2={}, err={}, enabled={}, zero={}'.format(
                 ret[0], code2, status['error'], status['is_enabled'], status['on_zero']), code=ret[0])
@@ -150,17 +151,16 @@ class Track(GPIO):
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         auto_enable = kwargs.get('auto_enable', True)
         # get_status: error, is_enable, on_zero
-        code, status = self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
-        if code == 0:
-            if status['on_zero'] != 1:
-                logger.warn('linear track is not on zero, please set linear track back to origin')
+        code, status = self.get_linear_track_registers(addr=0x0A23, number_of_registers=3)
+        if code == 0 and status['on_zero'] != 1:
+            logger.warn('linear track is not on zero, please set linear track back to origin')
         if auto_enable and (code != 0 or status['is_enabled'] != 1):
             self.set_linear_track_enable(auto_enable)
         if speed is not None and self.linear_track_speed != speed:
             self.set_linear_track_speed(speed)
         value = convert.int32_to_bytes(int(pos * 2000), is_big_endian=True)
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
-        self.get_linear_track_status(addr=0x0A23, number_of_registers=3)
+        self.get_linear_track_registers(addr=0x0A23, number_of_registers=3)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         self.log_api_info('API -> set_linear_track_pos(pos={}) -> code={}, err={}, enabled={}, zero={}'.format(
             pos, ret[0], self._linear_track_status['error'],
@@ -189,7 +189,7 @@ class Track(GPIO):
         ret = self.arm_cmd.track_modbus_w16s(XCONF.ServoConf.STOP_TRACK, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         # get_status: error, is_enable, on_zero
-        code2, status = self.get_linear_track_status(addr=0x0A22, number_of_registers=2)
+        code2, status = self.get_linear_track_registers(addr=0x0A22, number_of_registers=2)
         self.log_api_info('API -> stop_linear_track() -> code={}, code2={}, status={}, err={}'.format(
             ret[0], code2, status['status'], status['error']), code=ret[0])
         return ret[0]
@@ -214,7 +214,7 @@ class Track(GPIO):
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
         while self.connected and time.time() < expired:
-            _, status = self.get_linear_track_status(addr=0x0A22, number_of_registers=5)
+            _, status = self.get_linear_track_registers(addr=0x0A22, number_of_registers=5)
             if _ == 0 and status['sci'] == 0:
                 return APIState.LINEAR_TRACK_SCI_IS_LOW
             if _ == 0 and status['error'] != 0:
@@ -235,7 +235,7 @@ class Track(GPIO):
         expired = time.time() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
         while self.connected and time.time() < expired:
-            _, status = self.get_linear_track_status(addr=0x0A22, number_of_registers=5)
+            _, status = self.get_linear_track_registers(addr=0x0A22, number_of_registers=5)
             if _ == 0 and status['sci'] == 0:
                 return APIState.LINEAR_TRACK_SCI_IS_LOW
             if _ == 0 and status['error'] != 0:

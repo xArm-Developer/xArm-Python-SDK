@@ -1055,7 +1055,7 @@ Note:
     position: position
 ```
 
-#### def __get_linear_track_status__(self, **kwargs):
+#### def __get_linear_track_registers__(self, **kwargs):
 
 ```
 Get the status of the linear track
@@ -1074,6 +1074,21 @@ Note:
             'sci': 1,
             'sco': [0, 0],
         }
+```
+
+#### def __get_linear_track_status__(self):
+
+```
+Get the status of the linear track
+Note:
+    1. only available if firmware_version >= 1.8.0
+
+:return: tuple((code, status)) only when code is 0, the returned result is correct.
+    code:  See the API code documentation for details.
+    status: status
+        status & 0x00: motion finish
+        status & 0x01: in motion
+        status & 0x02: has stop
 ```
 
 #### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):

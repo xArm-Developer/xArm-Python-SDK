@@ -30,6 +30,13 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.8.0
+
+  - Support for blocky code conversion and operation of xArmStudio-1.8.0
+  - The Velocity interface supports the duration parameter (requires firmware 1.8.0 or higher)
+  - Added identification interface (current identification and torque identification) (requires firmware 1.8.0 or higher)
+  - Support linear track interface (requires firmware 1.8.0 or higher)
+
 - > ### 1.6.9
 
   - Support for blocky code conversion and operation of xArmStudio1.6.9
@@ -39,17 +46,6 @@ Install is not necessary, you can run examples without installation.Only Python3
 - > ### 1.6.5
 
   - Support for blocky code conversion and operation of xArmStudio1.6.5
-
-- > ### 1.6.0
-
-  - Support the xArm BIO gripper, Robotiq 2F-85 gripper and Robotiq 2F-140 gripper
-  - Support position detection trigger the controller analog IO
-  - Support self-collision model parameter setting
-  - Support Modbus communication of end tools
-  - Supports TCP timeout for setting instructions
-  - Support joint motion with circular interpolation
-  - Support for blocky code conversion and operation of xArmStudio1.6.0
-  - Optimize logic, enhance API security, Fix several bugs
 
 - >### [More](ReleaseNotes.md)
 
@@ -132,7 +128,11 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### [7002-servo_cartesian](example/wrapper/common/7002-servo_cartesian.py)
 
-- [__7003-servo_cartesian_aa__](example/wrapper/common/7003-servo_cartesian_aa.py)
+- ##### [__7003-servo_cartesian_aa__](example/wrapper/common/7003-servo_cartesian_aa.py)
+
+- ##### [8000-load_identify_current](example/wrapper/common/8000-load_identify_current.py)
+
+- ##### [9000-set_linear_track](example/wrapper/common/9000-set_linear_track.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 
@@ -274,6 +274,25 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.get_cgpio_state()
   arm.set_cgpio_digital_with_xyz(...)
   arm.set_cgpio_analog_with_xyz(...)
+  ```
+
+- #### Linear Track
+  
+  ```python
+  arm.get_linear_track_pos()
+  arm.get_linear_track_status()
+  arm.get_linear_track_error()
+  arm.get_linear_track_is_enabled()
+  arm.get_linear_track_on_zero()
+  arm.get_linear_track_sci()
+  arm.get_linear_track_sco()
+
+  arm.clean_linear_track_error(...)
+  arm.set_linear_track_enable(...)
+  arm.set_linear_track_speed(...)
+  arm.set_linear_track_back_origin(...)
+  arm.set_linear_track_pos(...)
+  arm.set_linear_track_stop(...)
   ```
 
 - #### Other

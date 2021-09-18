@@ -959,7 +959,7 @@ class BlocklyTool(object):
             speed = self.get_nodes('field', root=values[1], descendant=True)[0].text
             wait = self.get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
         if self._show_comment:
-            self._append_to_file('{}# set gripper position and '.format(prefix, 'wait' if wait else 'no wait'))
+            self._append_to_file('{}# set gripper position and {}'.format(prefix, 'wait' if wait else 'no wait'))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
         self._append_to_file('{}    code = arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True)'.format(prefix, pos, wait, speed))
         self._append_to_file('{}    if code != 0:'.format(prefix))

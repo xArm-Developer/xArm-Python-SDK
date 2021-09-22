@@ -86,6 +86,7 @@ class Base(Events):
             self._robot_sn = None
             self._control_box_sn = None
             self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
+            self._pose_aa = [201.5, 0, 140.5, 3.1415926, 0, 0]
             self._angles = [0] * 7
             self._position_offset = [0] * 6
             self._world_offset = [0] * 6
@@ -199,6 +200,7 @@ class Base(Events):
         self._robot_sn = None
         self._control_box_sn = None
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
+        self._pose_aa = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
         self._world_offset = [0] * 6
@@ -451,6 +453,13 @@ class Base(Events):
             self.get_position()
         return [math.degrees(self._position[i]) if 2 < i < 6 and not self._default_is_radian
                 else self._position[i] for i in range(len(self._position))]
+
+    @property
+    def position_aa(self):
+        if not self._enable_report:
+            self.get_position_aa()
+        return [math.degrees(self._pose_aa[i]) if 2 < i < 6 and not self._default_is_radian
+                else self._pose_aa[i] for i in range(len(self._pose_aa))]
 
     @property
     def tcp_jerk(self):
@@ -1593,6 +1602,11 @@ class Base(Events):
                 if iden_progress != self._iden_progress:
                     self._iden_progress = iden_progress
                     self._report_iden_progress_changed_callback()
+            if length >= 494:
+                pose_aa = convert.bytes_to_fp32s(rx_data[482:494], 3)
+                for i in range(len(pose_aa)):
+                    pose_aa[i] = float('{:.6f}'.format(pose_aa[i]))
+                self._pose_aa = self._position[:3] + pose_aa
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected

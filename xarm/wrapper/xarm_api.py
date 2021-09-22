@@ -209,6 +209,17 @@ class XArmAPI(object):
         return self._arm.position
 
     @property
+    def position_aa(self):
+        """
+        The pose represented by the axis angle pose
+        Note:
+            1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
+
+        :return: [x(mm), y(mm), z(mm), rx(° or rad), ry(° or rad), rz(° or rad)]
+        """
+        return self._arm.position_aa
+
+    @property
     def last_used_position(self):
         """
         The last used cartesion position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position

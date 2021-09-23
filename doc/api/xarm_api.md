@@ -732,18 +732,18 @@ Connect to xArm
 ```
 Delete blockly app
 
-:param name: blockly app  name
+:param name: blockly app name
 
 :return: code
     code: See the API code documentation for details.
 ```
 
-#### def __delete_trajectory__(self, filename):
+#### def __delete_trajectory__(self, name):
 
 ```
 Delete trajectory
 
-:param filename: trajectory name
+:param name: trajectory name
 
 :return: code
     code: See the API code documentation for details.

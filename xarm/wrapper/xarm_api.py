@@ -3293,23 +3293,23 @@ class XArmAPI(object):
         """
         Delete blockly app
         
-        :param name: blockly app  name
+        :param name: blockly app name
         
         :return: code
             code: See the API code documentation for details.
         """
         return self._studio.delete_blockly_app(name)
 
-    def delete_trajectory(self, filename):
+    def delete_trajectory(self, name):
         """
         Delete trajectory
         
-        :param filename: trajectory name
+        :param name: trajectory name
         
         :return: code
             code: See the API code documentation for details.
         """
-        return self._studio.delete_trajectory(filename)
+        return self._studio.delete_trajectory(name)
 
     def get_initial_point(self):
         """

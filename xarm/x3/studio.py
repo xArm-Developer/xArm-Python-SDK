@@ -71,12 +71,15 @@ class Studio(object):
         return APIState.API_EXCEPTION
 
     def playback_trajectory(self, filename, times=1, wait=False, double_speed=1):
-        return self.call_studio_api({
+        ret = self.call_studio_api({
             'filename': filename,
             'times': times,
             'speed': double_speed,
             'wait': wait,
         }, api_name='Core.command.xarm_playback_traj')
+        if ret:
+            return ret['code']
+        return APIState.API_EXCEPTION
 
     def delete_trajectory(self, filename):
         ret = self.call_studio_api({

@@ -997,6 +997,179 @@ BioGripperErrorCodeMap = {
     },
 }
 
+LinearTrackErrorCodeMap = {
+    10: {
+        'en': {
+            'title': 'Linear Motor Current Detection Error',
+            'desc': 'Please restart the Controller. If multiple reboots are not working, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨电流检测异常',
+            'desc': '请重启控制器。如多次重启无效，请联系技术支持。',
+        }
+      },
+    11: {
+        'en': {
+            'title': 'Linear Motor Current Overlimit',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨电流过大',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    12: {
+        'en': {
+            'title': 'Linear Motor Speed Overlimit',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨速度过大',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    13: {
+        'en': {
+            'title': 'Linear Motor Large Motor Position Deviation',
+            'desc': 'Please check if the movement of the Linear Motor is blocked, if not, please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨电机位置偏差过大',
+            'desc': '请检查直线滑轨运动是否受阻，如直线滑轨运动未受阻，请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    14: {
+        'en': {
+            'title': 'Linear Motor Position Command Overlimit',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨位置指令过大',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    20: {
+        'en': {
+            'title': 'Linear Motor Driver IC Hardware Error',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨驱动IC硬件异常',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    21: {
+        'en': {
+            'title': 'Linear Motor Driver IC Initialization Error',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨驱动IC初始化异常',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    25: {
+        'en': {
+            'title': 'Linear Motor Command Over Software Limit',
+            'desc': 'Please check if the Linear Motor command is set beyond the software limit. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨指令超软件限位',
+            'desc': '请检测直线滑轨指令是否设置超出软件限制。如频繁出现，请联系技术支持。',
+        }
+    },
+    26: {
+        'en': {
+            'title': 'Linear Motor Feedback Position Software Limit',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨反馈位置超限软件限位',
+            'desc': '请联系技术支持。',
+        }
+    },
+    33: {
+        'en': {
+            'title': 'Linear Motor Drive Overloaded',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨驱动器过载',
+            'desc': '请联系技术支持。',
+        }
+    },
+    34: {
+        'en': {
+            'title': 'Linear Motor Motor Overload',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨电机过载',
+            'desc': '请联系技术支持。',
+        }
+    },
+    35: {
+        'en': {
+            'title': 'Linear Motor type error',
+            'desc': 'Please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨电机类型错误',
+            'desc': '请联系技术支持。',
+        }
+    },
+    36: {
+        'en': {
+            'title': 'Linear Motor Driver Type Error',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨驱动器类型错误',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    39: {
+        'en': {
+            'title': 'Linear Motor over voltage',
+            'desc': 'please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨过压',
+            'desc': '请联系技术支持。',
+        }
+    },
+    40: {
+        'en': {
+            'title': 'Linear Moter undervoltage',
+            'desc': 'please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨欠压',
+            'desc': '请联系技术支持。',
+        }
+    },
+    49: {
+        'en': {
+            'title': 'Linear Motor EEPROM Read and Write Error',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨EEPROM读写错误',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Linear Motor Error',
+            'desc': 'Please clear the Linear Motor error. If it reports the same error repeatedly, please contact technical support.',
+        },
+        'cn': {
+            'title': '直线滑轨异常',
+            'desc': '请清除直线滑轨报错。如反复报错，请联系技术支持。',
+        }
+    },
+}
+
 
 class BaseCode(object):
     def __init__(self, code, status=0):
@@ -1067,4 +1240,10 @@ class RobotIqError(BaseCode):
     def __init__(self, code, status=0):
         self._code_map = RobotiqErrorCodeMap
         super(RobotIqError, self).__init__(code, status=status)
+
+
+class LinearTrackError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = LinearTrackErrorCodeMap
+        super(LinearTrackError, self).__init__(code, status=status)
 

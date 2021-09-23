@@ -36,6 +36,7 @@ Install is not necessary, you can run examples without installation.Only Python3
   - The Velocity interface supports the duration parameter (requires firmware 1.8.0 or higher)
   - Added identification interface (current identification and torque identification) (requires firmware 1.8.0 or higher)
   - Support linear track interface (requires firmware 1.8.0 or higher)
+  - Support calling some studio APIs
 
 - > ### 1.6.9
 

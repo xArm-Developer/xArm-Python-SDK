@@ -8,6 +8,7 @@
   - The Velocity interface supports the duration parameter (requires firmware 1.8.0 or higher)
   - Added identification interface (current identification and torque identification)
   - Support linear track interface
+  - Support calling some studio APIs
 
 - > ### 1.6.9
 

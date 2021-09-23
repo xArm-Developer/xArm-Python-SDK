@@ -129,3 +129,26 @@
 - 34: Gripper Motor Overload
 - 36: Gripper Driver Type Error
 
+## Bio Gripper Error Code
+
+- 11: BIO Gripper Current Overlimit
+- 12: The object slipped from the BIO Gripper
+
+## Linear Track Error Code
+
+- 10: Linear Motor Current Detection Error
+- 11: Linear Motor Current Overlimit
+- 12: Linear Motor Speed Overlimit
+- 13: Linear Motor Large Motor Position Deviation
+- 14: Linear Motor Position Command Overlimit
+- 20: Linear Motor Driver IC Hardware Error
+- 21: Linear Motor Driver IC Initialization Error
+- 25: Linear Motor Command Over Software Limit
+- 26: Linear Motor Feedback Position Software Limit
+- 33: Linear Motor Drive Overloaded
+- 34: Linear Motor Motor Overload
+- 35: Linear Motor type error
+- 36: Linear Motor Driver Type Error
+- 39: Linear Motor over voltage
+- 40: Linear Moter undervoltage
+- 49: Linear Motor EEPROM Read and Write Error

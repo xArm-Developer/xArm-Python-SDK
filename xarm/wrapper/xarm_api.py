@@ -6,7 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-from ..x3 import XArm
+from ..x3 import XArm, Studio
 
 
 class XArmAPI(object):
@@ -84,6 +84,7 @@ class XArmAPI(object):
                          do_not_open=do_not_open,
                          instance=self,
                          **kwargs)
+        self._studio = Studio(port, True)
         self.__attr_alias_map = {
             'get_ik': self.get_inverse_kinematics,
             'get_fk': self.get_forward_kinematics,
@@ -207,6 +208,17 @@ class XArmAPI(object):
         return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
         """
         return self._arm.position
+
+    @property
+    def position_aa(self):
+        """
+        The pose represented by the axis angle pose
+        Note:
+            1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
+
+        :return: [x(mm), y(mm), z(mm), rx(° or rad), ry(° or rad), rz(° or rad)]
+        """
+        return self._arm.position_aa
 
     @property
     def last_used_position(self):
@@ -627,6 +639,14 @@ class XArmAPI(object):
             params[2]: self collision model params
         """
         return self._arm.self_collision_params
+
+    @property
+    def ft_ext_force(self):
+        return self._arm.ft_ext_force
+
+    @property
+    def ft_raw_force(self):
+        return self._arm.ft_raw_force
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, **kwargs):
         """
@@ -2099,6 +2119,19 @@ class XArmAPI(object):
         """
         return self._arm.register_count_changed_callback(callback=callback)
 
+    def register_iden_progress_changed_callback(self, callback=None):
+        """
+        Register the Identification progress value changed callback, only available if enable_report is True
+        
+        :param callback: 
+            callback data:
+            {
+                "progress": progress value
+            }
+        :return: True/False
+        """
+        return self._arm.register_iden_progress_changed_callback(callback=callback)
+
     def release_report_callback(self, callback=None):
         """
         Release the report callback
@@ -2188,6 +2221,15 @@ class XArmAPI(object):
         :return: True/False
         """
         return self._arm.release_count_changed_callback(callback=callback)
+
+    def release_iden_progress_changed_callback(self, callback=None):
+        """
+        Release the Identification progress value changed callback
+
+        :param callback:
+        :return: True/False
+        """
+        return self._arm.release_iden_progress_changed_callback(callback=callback)
 
     def get_servo_debug_msg(self, show=False, lang='en'):
         """
@@ -2770,7 +2812,7 @@ class XArmAPI(object):
         """
         return self._arm.set_simulation_robot(on_off)
 
-    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, **kwargs):
+    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, duration=-1, **kwargs):
         """
         Joint velocity control, need to be set to joint velocity control mode(self.set_mode(4))
         Note:
@@ -2779,12 +2821,17 @@ class XArmAPI(object):
         :param speeds: [spd_J1, spd_J2, ..., spd_J7]
         :param is_radian: the spd_Jx in radians or not, default is self.default_is_radian
         :param is_sync: whether all joints accelerate and decelerate synchronously, default is True
+        :param duration: The duration of this speed command, over this time will automatically set the speed to 0
+            Note: only available if firmware_version >= 1.8.0
+            duration > 0: seconds
+            duration == 0: Always effective, will not stop automatically
+            duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.vc_set_joint_velocity(speeds, is_radian=is_radian, is_sync=is_sync, **kwargs)
+        return self._arm.vc_set_joint_velocity(speeds, is_radian=is_radian, is_sync=is_sync, duration=duration, **kwargs)
 
-    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, **kwargs):
+    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, duration=-1, **kwargs):
         """
         Cartesian velocity control, need to be set to cartesian velocity control mode(self.set_mode(5))
         Note:
@@ -2793,10 +2840,15 @@ class XArmAPI(object):
         :param speeds: [spd_x, spd_y, spd_z, spd_rx, spd_ry, spd_rz]
         :param is_radian: the spd_rx/spd_ry/spd_rz in radians or not, default is self.default_is_radian
         :param is_tool_coord: is tool coordinate or not, default is False
+        :param duration: the maximum duration of the speed, over this time will automatically set the speed to 0
+            Note: only available if firmware_version >= 1.8.0
+            duration > 0: seconds, indicates the maximum number of seconds that this speed can be maintained
+            duration == 0: Always effective, will not stop automatically
+            duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.vc_set_cartesian_velocity(speeds, is_radian=is_radian, is_tool_coord=is_tool_coord, **kwargs)
+        return self._arm.vc_set_cartesian_velocity(speeds, is_radian=is_radian, is_tool_coord=is_tool_coord, duration=duration, **kwargs)
 
     def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
         """
@@ -2876,9 +2928,9 @@ class XArmAPI(object):
 
     def set_impedance(self, coord, c_axis, M, K, B):
         """
-        set all parameters of impedance control.
+        Set all parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param coord: task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2892,9 +2944,9 @@ class XArmAPI(object):
 
     def set_impedance_mbk(self, M, K, B):
         """
-        set mbk parameters of impedance control.
+        Set mbk parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param M: mass. (kg)
         :param K: stiffness coefficient.
@@ -2906,9 +2958,9 @@ class XArmAPI(object):
 
     def set_impedance_config(self, coord, c_axis):
         """
-        set impedance control parameters of impedance control.
+        Set impedance control parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param coord: task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2919,9 +2971,9 @@ class XArmAPI(object):
 
     def config_force_control(self, coord, c_axis, f_ref, limits):
         """
-        set force control parameters.
+        Set force control parameters.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param coord:  task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
@@ -2935,13 +2987,13 @@ class XArmAPI(object):
 
     def set_force_control_pid(self, kp, ki, kd, xe_limit):
         """
-        set force control pid parameters.
+        Set force control pid parameters.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
-        :param kp: proportional gain. default : 0.005
-        :param ki: integral gain. default : 0.00006
-        :param kd: differential gain. default : 0.0
+        :param kp: proportional gain.
+        :param ki: integral gain.
+        :param kd: differential gain.
         :param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
         :return: code
             code: See the API code documentation for details.
@@ -2950,9 +3002,9 @@ class XArmAPI(object):
 
     def ft_sensor_set_zero(self):
         """
-        set force/torque offset.
+        Set force/torque offset.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :return: code
             code: See the API code documentation for details.
@@ -2961,9 +3013,9 @@ class XArmAPI(object):
 
     def ft_sensor_iden_load(self):
         """
-        start load identification.
+        Identification the tcp load with ftsensor.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :return: tuple((code, load)) only when code is 0, the returned result is correct.
             code:  See the API code documentation for details.
@@ -2973,9 +3025,9 @@ class XArmAPI(object):
 
     def ft_sensor_cali_load(self, iden_result_list):
         """
-        write load parameter value
+        Write load parameter value
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
         :return: code
@@ -2985,9 +3037,9 @@ class XArmAPI(object):
 
     def ft_sensor_enable(self, on_off):
         """
-        used for enabling and disabling the use of external F/T measurements in the controller.
+        Used for enabling and disabling the use of external F/T measurements in the controller.
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param on_off: enable or disable F/T data sampling.
         :return: code
@@ -2997,9 +3049,9 @@ class XArmAPI(object):
 
     def ft_sensor_app_set(self, app_code):
         """
-        set robot to be controlled in force mode
+        Set robot to be controlled in force mode
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
         :return: tuple((code, status))
@@ -3010,13 +3062,13 @@ class XArmAPI(object):
 
     def ft_sensor_app_get(self):
         """
-        get force mode
+        Get force mode
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
-        :return: tuple((code, status))
+        :return: tuple((code, app_code))
             code: See the API code documentation for details.
-            status: 0: non-force mode
+            app_code: 0: non-force mode
                     1: impedance control mode
                     2: force control mode
         """
@@ -3024,9 +3076,9 @@ class XArmAPI(object):
 
     def get_exe_ft(self):
         """
-        get extenal force/torque
+        Get extenal force/torque
         Note:
-            1. only available if firmware_version >= 1.7.0
+            1. only available if firmware_version >= 1.8.0
 
         :return: tuple((code, exe_ft))
             code: See the API code documentation for details.
@@ -3034,6 +3086,248 @@ class XArmAPI(object):
         """
         return self._arm.get_exe_ft()
 
+    def iden_tcp_load(self):
+        """
+        Identification the tcp load with current
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :return: tuple((code, load)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            load:  [mass，x_centroid，y_centroid，z_centroid]
+        """
+        return self._arm.iden_tcp_load()
 
+    def get_linear_track_registers(self, **kwargs):
+        """
+        Get the status of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            status: status, like
+                {
+                    'pos': 0,
+                    'status': 0,
+                    'error': 0,
+                    'is_enabled': 0,
+                    'on_zero': 0,
+                    'sci': 1,
+                    'sco': [0, 0],
+                }
+        """
+        return self._arm.get_linear_track_registers(**kwargs)
 
+    def get_linear_track_pos(self):
+        """
+        Get the pos of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
 
+        :return: tuple((code, position)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            position: position
+        """
+        return self._arm.get_linear_track_pos()
+
+    def get_linear_track_status(self):
+        """
+        Get the status of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            status: status
+                status & 0x00: motion finish
+                status & 0x01: in motion
+                status & 0x02: has stop
+        """
+        return self._arm.get_linear_track_status()
+
+    def get_linear_track_error(self):
+        """
+        Get the error code of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, error)) only when code is 0, the returned result is correct.
+            code:  See the API code documentation for details.
+            error: error code
+        """
+        return self._arm.get_linear_track_error()
+
+    def get_linear_track_is_enabled(self):
+        """
+        Get the linear track is enabled or not
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            status: 
+                0: linear track is not enabled
+                1: linear track is enabled
+        """
+        return self._arm.get_linear_track_is_enabled()
+
+    def get_linear_track_on_zero(self):
+        """
+        Get the linear track is on zero positon or not
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :return: tuple((code, status)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            status: 
+                0: linear track is not on zero
+                1: linear track is on zero
+        """
+        return self._arm.get_linear_track_on_zero()
+
+    def get_linear_track_sci(self):
+        """
+        Get the sci1 value of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, sci1)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+        """
+        return self._arm.get_linear_track_sci()
+
+    def get_linear_track_sco(self):
+        """
+        Get the sco value of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :return: tuple((code, sco)) only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            sco: [sco0, sco1]
+        """
+        return self._arm.get_linear_track_sco()
+
+    def clean_linear_track_error(self):
+        """
+        Clean the linear track error
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.clean_linear_track_error()
+
+    def set_linear_track_enable(self, enable):
+        """
+        Set the linear track enable/disable
+        Note:
+            1. only available if firmware_version >= 1.8.0
+
+        :param enable: enable or not
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_linear_track_enable(enable)
+
+    def set_linear_track_speed(self, speed):
+        """
+        Set the speed of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :param speed: Integer between 1 and 1000mm/s.
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_linear_track_speed(speed)
+
+    def set_linear_track_back_origin(self, wait=True, **kwargs):
+        """
+        Set the linear track go back to the origin position
+        Note:
+            1. only available if firmware_version >= 1.8.0
+            2. only useful when powering on for the first time
+            3. this operation must be performed at the first power-on
+            
+        :param wait: wait to motion finish or not, default is True
+        :param kwargs:
+            auto_enable: enable after back to origin or not, default is True
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_linear_track_back_origin(wait=wait, **kwargs)
+
+    def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
+        """
+        Set the position of the linear track
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :param pos: position. Integer between 0 and 700/1000/1500mm.
+            If SN start with AL1300 the position range is 0~700mm.
+            If SN start with AL1301 the position range is 0~1000mm.
+            If SN start with AL1302 the position range is 0~1500mm.
+        :param speed: speed of the linear track. Integer between 1 and 1000mm/s. default is not set
+        :param wait: wait to motion finish or not, default is True
+        :param timeout: wait timeout, seconds, default is 100s.
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_linear_track_pos(pos, speed=speed, wait=wait, timeout=timeout, **kwargs)
+
+    def set_linear_track_stop(self):
+        """
+        Set the linear track to stop
+        Note:
+            1. only available if firmware_version >= 1.8.0
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_linear_track_stop()
+
+    def delete_blockly_app(self, name):
+        """
+        Delete blockly app
+        
+        :param name: blockly app name
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._studio.delete_blockly_app(name)
+
+    def delete_trajectory(self, name):
+        """
+        Delete trajectory
+        
+        :param name: trajectory name
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._studio.delete_trajectory(name)
+
+    def get_initial_point(self):
+        """
+        Get the initial point from studio
+        
+        :return: tuple((code, point)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            point: initial point, [J1, J2, ..., J7]
+        """
+        return self._studio.get_initial_point()
+
+    def set_initial_point(self, point):
+        """
+        Set the initial point
+        
+        :param point: initial point, [J1, J2, ..., J7]
+        
+        :return: code
+            code: See the API code documentation for details. 
+        """
+        return self._studio.set_initial_point(point)

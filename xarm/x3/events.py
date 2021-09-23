@@ -16,6 +16,7 @@ REPORT_ERROR_WARN_CHANGED_ID = 'REPORT_ERROR_WARN_CHANGED'
 REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 REPORT_TEMPERATURE_CHANGED_ID = 'REPORT_TEMPERATURE_CHANGED'
 REPORT_COUNT_CHANGED_ID = 'REPORT_COUNT_CHANGED'
+REPORT_IDEN_PROGRESS_CHANGED_ID = 'REPORT_IDEN_PROGRESS_CHANGED_ID'
 
 
 class Events(object):
@@ -29,6 +30,7 @@ class Events(object):
     REPORT_CMDNUM_CHANGED_ID = REPORT_CMDNUM_CHANGED_ID
     REPORT_TEMPERATURE_CHANGED_ID = REPORT_TEMPERATURE_CHANGED_ID
     REPORT_COUNT_CHANGED_ID = REPORT_COUNT_CHANGED_ID
+    REPORT_IDEN_PROGRESS_CHANGED_ID = REPORT_IDEN_PROGRESS_CHANGED_ID
 
     def __init__(self):
         self._report_callbacks = {
@@ -40,7 +42,8 @@ class Events(object):
             REPORT_MODE_CHANGED_ID: [],
             REPORT_MTABLE_MTBRAKE_CHANGED_ID: [],
             REPORT_CMDNUM_CHANGED_ID: [],
-            REPORT_COUNT_CHANGED_ID: []
+            REPORT_COUNT_CHANGED_ID: [],
+            REPORT_IDEN_PROGRESS_CHANGED_ID: []
         }
 
     def _register_report_callback(self, report_id, callback):
@@ -55,7 +58,7 @@ class Events(object):
             return True
 
     def _release_report_callback(self, report_id, callback):
-        if report_id in self._report_callbacks.keys() and callback:
+        if report_id in self._report_callbacks.keys():
             if callback is None:
                 self._report_callbacks[report_id].clear()
                 return True
@@ -117,6 +120,9 @@ class Events(object):
     def register_count_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_COUNT_CHANGED_ID, callback)
 
+    def register_iden_progress_changed_callback(self, callback=None):
+        return self._register_report_callback(REPORT_IDEN_PROGRESS_CHANGED_ID, callback)
+
     def release_report_callback(self, callback=None):
         return self._release_report_callback(REPORT_ID, callback)
 
@@ -146,3 +152,6 @@ class Events(object):
 
     def release_count_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_COUNT_CHANGED_ID, callback)
+
+    def release_iden_progress_changed_callback(self, callback=None):
+        return self._release_report_callback(REPORT_IDEN_PROGRESS_CHANGED_ID, callback)

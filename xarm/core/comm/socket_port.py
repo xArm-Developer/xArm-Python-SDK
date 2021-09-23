@@ -9,12 +9,44 @@
 
 
 import queue
+import os
 import socket
+import struct
+import platform
 import threading
 import time
 from ..utils.log import logger
 from .base import Port
 from ..config.x_config import XCONF
+
+try:
+    if platform.system() == 'Linux':
+        import fcntl
+    else:
+        fcntl = None
+except:
+    fcntl = None
+
+
+def is_xarm_local_ip(ip):
+    try:
+        if platform.system() == 'Linux' and fcntl:
+            def _get_ip(s, ifname):
+                try:
+                    return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]))[20:24])
+                except:
+                    pass
+                return ''
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # gentoo system netcard name
+            if ip == _get_ip(sock, b'enp1s0'):
+                return True
+            # rasp system netcard name
+            if ip == _get_ip(sock, b'eth0'):
+                return True
+    except:
+        pass
+    return False
 
 
 class HeartBeatThread(threading.Thread):
@@ -36,7 +68,7 @@ class HeartBeatThread(threading.Thread):
 
 class SocketPort(Port):
     def __init__(self, server_ip, server_port, rxque_max=XCONF.SocketConf.TCP_RX_QUE_MAX, heartbeat=False,
-                 buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE):
+                 buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=False):
         super(SocketPort, self).__init__(rxque_max)
         if server_port == XCONF.SocketConf.TCP_CONTROL_PORT:
             self.port_type = 'main-socket'
@@ -45,17 +77,35 @@ class SocketPort(Port):
             self.port_type = 'report-socket'
         try:
             socket.setdefaulttimeout(1)
-            self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
-            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 10)
-            # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
-            self.com.setblocking(True)
-            self.com.settimeout(1)
-            self.com.connect((server_ip, server_port))
-            logger.info('{} connect {} success'.format(self.port_type, server_ip))
-            # logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
+            use_uds = False
+            if not forbid_uds and platform.system() == 'Linux' and is_xarm_local_ip(server_ip):
+                uds_path = os.path.join('/tmp/xarmcontroller_uds_{}'.format(server_port))
+                if os.path.exists(uds_path):
+                    try:
+                        self.com = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                        self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        self.com.setblocking(True)
+                        self.com.settimeout(1)
+                        self.com.connect(uds_path)
+                        logger.info('{} connect {} success, uds_{}'.format(self.port_type, server_ip, server_port))
+                        use_uds = True
+                    except Exception as e:
+                        pass
+                        # logger.error('use uds error, {}'.format(e))
+            else:
+                pass
+            if not use_uds:
+                self.com = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.com.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 30)
+                # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 10)
+                # self.com.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 3)
+                self.com.setblocking(True)
+                self.com.settimeout(1)
+                self.com.connect((server_ip, server_port))
+                logger.info('{} connect {} success'.format(self.port_type, server_ip))
+                # logger.info('{} connect {}:{} success'.format(self.port_type, server_ip, server_port))
 
             self._connected = True
             self.buffer_size = buffer_size

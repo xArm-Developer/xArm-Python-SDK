@@ -16,10 +16,12 @@ from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
 from .gripper import Gripper
+from .track import Track
 from .base_board import BaseBoard
 from .servo import Servo
 from .record import Record
 from .robotiq import RobotIQ
+from .ft_sensor import FtSensor
 from .parse import GcodeParser
 from .code import APIState
 from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_version, xarm_wait_until_cmdnum_lt_max
@@ -32,7 +34,8 @@ except:
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
+class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
+
     def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
         kwargs['init'] = True
@@ -153,6 +156,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
                 self._last_tcp_speed = last_used_tcp_speed
                 self._last_tcp_acc = last_used_tcp_acc
                 return APIState.TCP_LIMIT
+        self._has_motion_cmd = True
         if radius is not None and radius >= 0:
             ret = self.arm_cmd.move_lineb(self._last_position, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, radius)
         else:
@@ -217,6 +221,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_line_tool(mvpose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime)
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], mvpose, self._last_tcp_speed, self._last_tcp_acc
@@ -269,6 +274,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
 
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_line_aa(pose, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, mvcoord, int(relative))
         self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], pose, self._last_tcp_speed, self._last_tcp_acc
@@ -299,6 +305,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
 
         tool_coord = kwargs.get('tool_coord', int(is_tool_coord))
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_servo_cart_aa(mvpose=pose, mvvelo=_speed, mvacc=_mvacc, tool_coord=tool_coord,
                                               relative=int(relative))
         self.log_api_info('API -> set_servo_cartesian_aa -> code={}, pose={}, velo={}, acc={}'.format(
@@ -426,6 +433,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
                 self._last_joint_acc = last_used_joint_acc
                 return APIState.JOINT_LIMIT
 
+        self._has_motion_cmd = True
         if self.version_is_ge_1_5_20 and radius is not None and radius >= 0:
             ret = self.arm_cmd.move_jointb(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
         else:
@@ -462,6 +470,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         _speed = self._last_joint_speed if speed is None else speed
         _mvacc = self._last_joint_acc if mvacc is None else mvacc
         _mvtime = self._mvtime if mvtime is None else mvtime
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_servoj(_angles, _speed, _mvacc, _mvtime)
         self.log_api_info('API -> set_servo_angle_j -> code={}, angles={}, velo={}, acc={}'.format(
             ret[0], _angles, _speed, _mvacc
@@ -484,6 +493,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         # _mvtime = self._mvtime if mvtime is None else mvtime
         _mvtime = int(is_tool_coord)
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_servo_cartesian(pose, _speed, _mvacc, _mvtime)
         self.log_api_info('API -> set_servo_cartisian -> code={}, pose={}, velo={}, acc={}'.format(
             ret[0], pose, _speed, _mvacc
@@ -533,6 +543,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_circle(pose_1, pose_2, self._last_tcp_speed, self._last_tcp_acc, self._mvtime, percent)
         self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, self._last_tcp_speed, self._last_tcp_acc
@@ -592,6 +603,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
                     mvtime = self._mvtime
             self._mvtime = mvtime
 
+        self._has_motion_cmd = True
         ret = self.arm_cmd.move_gohome(self._last_joint_speed, self._last_joint_acc, self._mvtime)
         self.log_api_info('API -> move_gohome -> code={}, velo={}, acc={}'.format(
             ret[0], self._last_joint_speed, self._last_joint_acc
@@ -1682,6 +1694,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
             if config['COLL_PARAMS'][1] != old_config['COLL_PARAMS'][1] or config['COLL_PARAMS'][2] != old_config['COLL_PARAMS'][2]:
                 self.set_collision_tool_model(config['COLL_PARAMS'][1], *config['COLL_PARAMS'][2])
 
+        self.save_conf()
+
     @xarm_is_connected(_type='get')
     def get_power_board_version(self):
         ret = self.arm_cmd.get_power_board_version()
@@ -1689,7 +1703,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         return ret[0], ret[1:]
 
     @xarm_is_connected(_type='set')
-    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, check_mode=True):
+    def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, check_mode=True, duration=-1):
         # if check_mode and not self._check_mode_is_correct(4):
         #     return APIState.MODE_IS_NOT_CORRECT
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1698,14 +1712,15 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
             if i >= 7:
                 break
             jnt_v[i] = spd if is_radian else math.radians(spd)
-        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0)
+
+        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0, duration if self.version_is_ge_1_8_0 else -1)
         self.log_api_info('API -> vc_set_joint_velocity -> code={}, speeds={}, is_sync={}'.format(
             ret[0], jnt_v, is_sync
         ), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, check_mode=True):
+    def vc_set_cartesian_velocity(self, speeds, is_radian=None, is_tool_coord=False, check_mode=True, duration=-1):
         # if check_mode and not self._check_mode_is_correct(5):
         #     return APIState.MODE_IS_NOT_CORRECT
         is_radian = self._default_is_radian if is_radian is None else is_radian
@@ -1714,71 +1729,11 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
             if i >= 6:
                 break
             line_v[i] = spd if i < 3 or is_radian else math.radians(spd)
-        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0)
+        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0, duration if self.version_is_ge_1_8_0 else -1)
         self.log_api_info('API -> vc_set_cartesian_velocity -> code={}, speeds={}, is_tool_coord={}'.format(
             ret[0], line_v, is_tool_coord
         ), code=ret[0])
         return ret[0]
-
-    @xarm_is_connected(_type='set')
-    def set_impedance(self, coord, c_axis, M, K, B):
-        ret = self.arm_cmd.set_impedance(coord, c_axis, M, K, B)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def set_impedance_mbk(self, M, K, B):
-        ret = self.arm_cmd.set_impedance_mbk(M, K, B)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def set_impedance_config(self, coord, c_axis):
-        ret = self.arm_cmd.set_impedance_config(coord, c_axis)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def config_force_control(self, coord, c_axis, f_ref, limits):
-        ret = self.arm_cmd.config_force_control(coord, c_axis, f_ref, limits)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def set_force_control_pid(self, kp, ki, kd, xe_limit):
-        ret = self.arm_cmd.set_force_control_pid(kp, ki, kd, xe_limit)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def ft_sensor_set_zero(self):
-        ret = self.arm_cmd.ft_sensor_set_zero()
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='get')
-    def ft_sensor_iden_load(self):
-        ret = self.arm_cmd.ft_sensor_iden_load()
-        return self._check_code(ret[0]), ret[1:11]
-
-    @xarm_is_connected(_type='set')
-    def ft_sensor_cali_load(self, iden_result_list):
-        ret = self.arm_cmd.ft_sensor_cali_load(iden_result_list)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='set')
-    def ft_sensor_enable(self, on_off):
-        ret = self.arm_cmd.ft_sensor_enable(on_off)
-        return self._check_code(ret[0])
-
-    @xarm_is_connected(_type='get')
-    def ft_sensor_app_set(self, app_code):
-        ret = self.arm_cmd.ft_sensor_app_set(app_code)
-        return self._check_code(ret[0]), ret[1]
-
-    @xarm_is_connected(_type='get')
-    def ft_sensor_app_get(self):
-        ret = self.arm_cmd.ft_sensor_app_get()
-        return self._check_code(ret[0]), ret[1]
-
-    @xarm_is_connected(_type='get')
-    def get_exe_ft(self):
-        ret = self.arm_cmd.get_exe_ft()
-        return self._check_code(ret[0]), ret[1:7]
 
     @xarm_is_connected(_type='get')
     def calibrate_tcp_coordinate_offset(self, four_points, is_radian=None):
@@ -1835,3 +1790,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         joint_pos = [joint_pos[i] if is_radian else math.radians(joint_pos[i]) for i in range(7)]
         return self.arm_cmd.get_max_joint_velocity(eveloc, joint_pos)
+
+    @xarm_is_connected(_type='get')
+    def iden_tcp_load(self):
+        ret = self.arm_cmd.iden_tcp_load()
+        return self._check_code(ret[0]), ret[1:5]

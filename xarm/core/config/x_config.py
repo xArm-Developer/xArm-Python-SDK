@@ -11,9 +11,13 @@ import math
 
 class XCONF(object):
     ARM_AXIS_NUM = 7
-    GRIPPER_ID = 8
-    TGPIO_ID = 9
     MAX_CMD_NUM = 1024
+
+    TRACK_ID = 1
+    GRIPPER_ID = 8
+
+    TGPIO_HOST_ID = 9
+    LINEER_TRACK_HOST_ID = 11
 
     def __init__(self):
         pass
@@ -33,6 +37,7 @@ class XCONF(object):
             XARM6_X4 = 6
             XARM7_X4 = 7
             XARM6_X8 = 8
+            XARM6_X9 = 9
 
         JOINT_LIMITS = {
             Axis.XARM5: {
@@ -60,6 +65,14 @@ class XCONF(object):
                     (-2 * math.pi, 2 * math.pi),
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
+                ],
+                Type.XARM6_X9: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2 * math.pi, 2 * math.pi),
                 ],
             },
             Axis.XARM7: {
@@ -295,7 +308,7 @@ class XCONF(object):
         FTSENSOR_ENABLE = 201
         FTSENSOR_SET_APP = 202
         FTSENSOR_GET_APP = 203
-        FTSENSOR_IDEN_LOAD = 204
+        IDEN_LOAD = 204
         FTSENSOR_CALI_LOAD_OFFSET = 205
         FTSENSOR_SET_ZERO = 206
         IMPEDANCE_CONFIG = 207
@@ -365,6 +378,9 @@ class XCONF(object):
         ANALOG_IO1 = 0x0A16
         ANALOG_IO2 = 0x0A17
 
+        BACK_ORIGIN = 0x0A0A
+        STOP_TRACK = 0x0A0E
+
     class UxbusState:
         ERR_CODE = 1  # 有尚未清除的错误
         WAR_CODE = 2  # 有尚未清除的警告
@@ -375,7 +391,7 @@ class XCONF(object):
         ERR_FUN = 7  # TCP回复指令和发送指令不匹配
         ERR_NOTTCP = 8  # 发送错误
         STATE_NOT_READY = 9  # 未准备好运动
-        INVALID = 10  # 结果无效
+        INVALID = 10  # 结果无效或执行失败
         ERR_OTHER = 11  # 其它错误
         ERR_PARAM = 12  # 参数错误
 

@@ -36,6 +36,7 @@ class Base(Events):
             self._enable_heartbeat = kwargs.get('enable_heartbeat', False)
             self._enable_report = kwargs.get('enable_report', True)
             self._report_type = kwargs.get('report_type', 'rich')
+            self._forbid_uds = kwargs.get('forbid_uds', False)
 
             self._check_tcp_limit = kwargs.get('check_tcp_limit', False)
             self._check_joint_limit = kwargs.get('check_joint_limit', True)
@@ -85,6 +86,7 @@ class Base(Events):
             self._robot_sn = None
             self._control_box_sn = None
             self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
+            self._pose_aa = [201.5, 0, 140.5, 3.1415926, 0, 0]
             self._angles = [0] * 7
             self._position_offset = [0] * 6
             self._world_offset = [0] * 6
@@ -144,6 +146,7 @@ class Base(Events):
             self._cgpio_reset_enable = 0
             self._tgpio_reset_enable = 0
             self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]
+            self._iden_progress = 0
 
             self._ignore_error = False
             self._ignore_state = False
@@ -173,6 +176,15 @@ class Base(Events):
             self._arm_type_is_1300 = False
             self._control_box_type_is_1300 = False
 
+            self.linear_track_baud = -1
+            self.linear_track_speed = 1
+            self.linear_track_is_enabled = False
+            self._ft_ext_force = [0, 0, 0, 0, 0, 0]
+            self._ft_raw_force = [0, 0, 0, 0, 0, 0]
+
+            self._has_motion_cmd = False
+            self._need_sync = False
+
             if not do_not_open:
                 self.connect()
 
@@ -188,6 +200,7 @@ class Base(Events):
         self._robot_sn = None
         self._control_box_sn = None
         self._position = [201.5, 0, 140.5, 3.1415926, 0, 0]
+        self._pose_aa = [201.5, 0, 140.5, 3.1415926, 0, 0]
         self._angles = [0] * 7
         self._position_offset = [0] * 6
         self._world_offset = [0] * 6
@@ -241,6 +254,7 @@ class Base(Events):
         self._tgpio_reset_enable = 0
         self._cgpio_states = [0, 0, 256, 65533, 0, 65280, 0, 0, 0.0, 0.0, [0, 0, 0, 0, 0, 0, 0, 0],
                               [0, 0, 0, 0, 0, 0, 0, 0]]
+        self._iden_progress = 0
 
         self._ignore_error = False
         self._ignore_state = False
@@ -270,6 +284,16 @@ class Base(Events):
         self._arm_type_is_1300 = False
         self._control_box_type_is_1300 = False
 
+        self.linear_track_baud = -1
+        self.linear_track_speed = 1
+        self.linear_track_is_enabled = False
+
+        self._ft_ext_force = [0, 0, 0, 0, 0, 0]
+        self._ft_raw_force = [0, 0, 0, 0, 0, 0]
+
+        self._has_motion_cmd = False
+        self._need_sync = False
+
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
         if code == 0:
@@ -286,11 +310,16 @@ class Base(Events):
             if not self._version:
                 self.get_version()
             if is_first:
-                count = 2
-                while not self._version and count:
-                    self.get_version()
-                    time.sleep(0.1)
-                    count -= 1
+                fail_cnt = 0
+                while not self._version and fail_cnt < 100:
+                    code, _ = self.get_version()
+                    fail_cnt += 1 if code != 0 else 0
+                    if code != 0 or not self._version:
+                        time.sleep(0.1)
+                if not self._version and fail_cnt >= 100:
+                    logger.error('failed to get version')
+                    return -2
+
             if self._version and isinstance(self._version, str):
                 pattern = re.compile(
                     r'.*(\d+),(\d+),(\S+),(\S+),.*[vV](\d+)\.(\d+)\.(\d+)')
@@ -344,8 +373,10 @@ class Base(Events):
                 print('is_old_protocol: {}'.format(self._is_old_protocol))
                 print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
                                                         self._revision_version_number))
+            return 0
         except Exception as e:
             print('compare_time: {}, {}'.format(self._version, e))
+            return -1
 
     @property
     def version_is_ge_1_5_20(self):
@@ -362,6 +393,12 @@ class Base(Events):
         return self._major_version_number > 1 or (
             self._major_version_number == 1 and self._minor_version_number > 2) or (
             self._major_version_number == 1 and self._minor_version_number == 2 and self._revision_version_number >= 11)
+
+    @property
+    def version_is_ge_1_8_0(self):
+        if self._version is None:
+            self._check_version()
+        return self._major_version_number > 1 or (self._major_version_number == 1 and self._minor_version_number >= 8)
 
     @property
     def realtime_tcp_speed(self):
@@ -416,6 +453,13 @@ class Base(Events):
             self.get_position()
         return [math.degrees(self._position[i]) if 2 < i < 6 and not self._default_is_radian
                 else self._position[i] for i in range(len(self._position))]
+
+    @property
+    def position_aa(self):
+        if not self._enable_report:
+            self.get_position_aa()
+        return [math.degrees(self._pose_aa[i]) if 2 < i < 6 and not self._default_is_radian
+                else self._pose_aa[i] for i in range(len(self._pose_aa))]
 
     @property
     def tcp_jerk(self):
@@ -616,6 +660,14 @@ class Base(Events):
     def self_collision_params(self):
         return [self._is_collision_detection, self._collision_tool_type, self._collision_tool_params]
 
+    @property
+    def ft_ext_force(self):
+        return self._ft_ext_force
+
+    @property
+    def ft_raw_force(self):
+        return self._ft_raw_force
+
     def check_is_pause(self):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
@@ -690,7 +742,7 @@ class Base(Events):
                     self._port):
                 self._stream = SocketPort(self._port, XCONF.SocketConf.TCP_CONTROL_PORT,
                                           heartbeat=self._enable_heartbeat,
-                                          buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE)
+                                          buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=self._forbid_uds)
                 if not self.connected:
                     raise Exception('connect socket failed')
 
@@ -713,7 +765,9 @@ class Base(Events):
                 except:
                     self._stream_report = None
 
-                self._check_version(is_first=True)
+                if self._check_version(is_first=True) < 0:
+                    self.disconnect()
+                    raise Exception('failed to check version, close')
                 self.arm_cmd.set_debug(self._debug)
 
                 if self._stream.connected and self._enable_report:
@@ -809,17 +863,17 @@ class Base(Events):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_NORM_PORT,
                                              buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE
-                                             if not self._is_old_protocol else 87)
+                                             if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
 
     def __connect_report_rich(self):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=1024 if not self._is_old_protocol else 187)
+                                             buffer_size=1024 if not self._is_old_protocol else 187, forbid_uds=self._forbid_uds)
 
     def __connect_report_real(self):
         if self._stream_type == 'socket':
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
-                                             buffer_size=1024 if not self._is_old_protocol else 87)
+                                             buffer_size=1024 if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
 
     def _report_connect_changed_callback(self, main_connected=None, report_connected=None):
         if self.REPORT_CONNECT_CHANGED_ID in self._report_callbacks.keys():
@@ -909,6 +963,16 @@ class Base(Events):
                     })
                 except Exception as e:
                     logger.error('count changed callback: {}'.format(e))
+
+    def _report_iden_progress_changed_callback(self):
+        if self.REPORT_IDEN_PROGRESS_CHANGED_ID in self._report_callbacks.keys():
+            for callback in self._report_callbacks[self.REPORT_IDEN_PROGRESS_CHANGED_ID]:
+                try:
+                    callback({
+                        'progress': self._iden_progress
+                    })
+                except Exception as e:
+                    logger.error('iden progress changed callback: {}'.format(e))
 
     def _report_location_callback(self):
         if self.REPORT_LOCATION_ID in self._report_callbacks.keys():
@@ -1014,7 +1078,16 @@ class Base(Events):
             if not self._is_ready:
                 self._sleep_finish_time = 0
 
-            if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            reset_tgpio_params = False
+            reset_linear_track_params = False
+            if 0 < error_code <= 17:
+                reset_tgpio_params = True
+                reset_linear_track_params = True
+            elif error_code in [19, 28]:
+                reset_tgpio_params = True
+            elif error_code == 111:
+                reset_linear_track_params = True
+            if reset_tgpio_params:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
                 self.gripper_is_enabled = False
@@ -1023,6 +1096,22 @@ class Base(Events):
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
+            if reset_linear_track_params:
+                self.linear_track_baud = -1
+                self.linear_track_is_enabled = False
+                self.linear_track_speed = 1
+
+            # if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            #     self.modbus_baud = -1
+            #     self.robotiq_is_activated = False
+            #     self.gripper_is_enabled = False
+            #     self.bio_gripper_is_enabled = False
+            #     self.bio_gripper_speed = 0
+            #     self.gripper_is_enabled = False
+            #     self.gripper_speed = 0
+            #     self.gripper_version_numbers = [-1, -1, -1]
+            #     self.linear_track_is_enabled = False
+            #     self.linear_track_speed = 0
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1198,6 +1287,11 @@ class Base(Events):
             if not self._is_sync and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
+            length = len(rx_data)
+            if length >= 135:
+                # FT_SENSOR
+                self._ft_ext_force = convert.bytes_to_fp32s(rx_data[87:111], 6)
+                self._ft_raw_force = convert.bytes_to_fp32s(rx_data[111:135], 6)
 
         def __handle_report_normal(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]), len(rx_data))
@@ -1231,14 +1325,39 @@ class Base(Events):
                 return
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
-            if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            reset_tgpio_params = False
+            reset_linear_track_params = False
+            if 0 < error_code <= 17:
+                reset_tgpio_params = True
+                reset_linear_track_params = True
+            elif error_code in [19, 28]:
+                reset_tgpio_params = True
+            elif error_code == 111:
+                reset_linear_track_params = True
+            if reset_tgpio_params:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
                 self.gripper_is_enabled = False
                 self.bio_gripper_is_enabled = False
-                self.bio_gripper_speed = -1
-                self.gripper_speed = -1
+                self.bio_gripper_speed = 0
+                self.gripper_is_enabled = False
+                self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
+            if reset_linear_track_params:
+                self.linear_track_baud = -1
+                self.linear_track_is_enabled = False
+                self.linear_track_speed = 0
+
+            # if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
+            #     self.modbus_baud = -1
+            #     self.robotiq_is_activated = False
+            #     self.gripper_is_enabled = False
+            #     self.bio_gripper_is_enabled = False
+            #     self.bio_gripper_speed = -1
+            #     self.gripper_speed = -1
+            #     self.gripper_version_numbers = [-1, -1, -1]
+            #     self.linear_track_is_enabled = False
+            #     self.linear_track_speed = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))
@@ -1269,6 +1388,11 @@ class Base(Events):
                 self._report_cmdnum_changed_callback()
 
             if state != self._state:
+                if not self._has_motion_cmd and self._state in [0, 1] and state not in [0, 1]:
+                    self._need_sync = True
+                if self._state in [0, 1] and state not in [0, 1]:
+                    self._has_motion_cmd = False
+                # print('old_state: {}, new_state: {}, has_motion_cmd={}, need_sync: {}'.format(self._state, state, self._has_motion_cmd, self._need_sync))
                 self._state = state
                 self._report_state_changed_callback()
             if mode != self._mode:
@@ -1357,6 +1481,9 @@ class Base(Events):
             if not self._is_sync and self._error_code != 0 and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
+            # elif self._need_sync:
+            #     self._need_sync = False
+            #     self._sync()
 
         def __handle_report_rich(rx_data):
             report_time = time.time()
@@ -1466,6 +1593,20 @@ class Base(Events):
                     cgpio_states[-2].extend(list(map(int, rx_data[417:425])))
                     cgpio_states[-1].extend(list(map(int, rx_data[425:433])))
                 self._cgpio_states = cgpio_states
+            if length >= 481:
+                # FT_SENSOR
+                self._ft_ext_force = convert.bytes_to_fp32s(rx_data[433:457], 6)
+                self._ft_raw_force = convert.bytes_to_fp32s(rx_data[457:481], 6)
+            if length >= 482:
+                iden_progress = rx_data[481]
+                if iden_progress != self._iden_progress:
+                    self._iden_progress = iden_progress
+                    self._report_iden_progress_changed_callback()
+            if length >= 494:
+                pose_aa = convert.bytes_to_fp32s(rx_data[482:494], 3)
+                for i in range(len(pose_aa)):
+                    pose_aa[i] = float('{:.6f}'.format(pose_aa[i]))
+                self._pose_aa = self._position[:3] + pose_aa
 
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
@@ -1495,21 +1636,29 @@ class Base(Events):
                     if len(buffer) < size:
                         continue
                     if self._report_type == 'real':
-                        data = buffer[:size]
-                        buffer = buffer[size:]
+                        start_inx = (len(buffer) // size - 1) * size
+                        end_inx = start_inx + size
+                        data = buffer[start_inx:end_inx]
+                        buffer = buffer[end_inx:]
                         __handle_report_real(data)
                     elif size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
                         if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
                             if size == 233 and len(buffer) == 245:
-                                data = buffer[:245]
-                                buffer = buffer[245:]
+                                start_inx = (len(buffer) // 245 - 1) * 245
+                                end_inx = start_inx + 245
+                                data = buffer[start_inx:end_inx]
+                                buffer = buffer[end_inx:]
                             else:
-                                data = buffer[:size]
-                                buffer = buffer[size:]
+                                start_inx = (len(buffer) // size - 1) * size
+                                end_inx = start_inx + size
+                                data = buffer[start_inx:end_inx]
+                                buffer = buffer[end_inx:]
                             __handle_report_rich(data)
                         else:
-                            data = buffer[:size]
-                            buffer = buffer[size:]
+                            start_inx = (len(buffer) // size - 1) * size
+                            end_inx = start_inx + size
+                            data = buffer[start_inx:end_inx]
+                            buffer = buffer[end_inx:]
                             __handle_report_normal(data)
                 else:
                     if self._stream and self._stream.connected:
@@ -2023,28 +2172,34 @@ class Base(Events):
         return APIState.WAIT_FINISH_TIMEOUT
 
     @xarm_is_connected(_type='set')
-    def _check_modbus_code(self, ret, length=2, only_check_code=False):
+    def _check_modbus_code(self, ret, length=2, only_check_code=False, host_id=XCONF.TGPIO_HOST_ID):
         code = ret[0]
         if self._check_code(code) == 0:
             if not only_check_code:
                 if len(ret) < length:
                     return APIState.MODBUS_ERR_LENG
-                if ret[1] != XCONF.TGPIO_ID:
-                    return APIState.TGPIO_ID_ERR
+                if ret[1] != host_id:
+                    return APIState.HOST_ID_ERR
             if code != 0:
-                if self.error_code != 19 and self.error_code != 28:
-                    self.get_err_warn_code()
-                if self.error_code != 19 and self.error_code != 28:
-                    code = 0
+                if host_id == XCONF.TGPIO_HOST_ID:
+                    if self.error_code != 19 and self.error_code != 28:
+                        self.get_err_warn_code()
+                    if self.error_code != 19 and self.error_code != 28:
+                        code = 0
+                else:
+                    if self.error_code != 100 + host_id:
+                        self.get_err_warn_code()
+                    if self.error_code != 100 + host_id:
+                        code = 0
         return code
 
     @xarm_is_connected(_type='set')
-    def checkset_modbus_baud(self, baudrate, check=True):
-        if check and self.modbus_baud == baudrate:
+    def checkset_modbus_baud(self, baudrate, check=True, host_id=XCONF.TGPIO_HOST_ID):
+        if check and ((host_id == XCONF.TGPIO_HOST_ID and self.modbus_baud == baudrate) or (host_id == XCONF.LINEER_TRACK_HOST_ID and self.linear_track_baud == baudrate)):
             return 0
         if baudrate not in self.arm_cmd.BAUDRATES:
             return APIState.MODBUS_BAUD_NOT_SUPPORT
-        ret, cur_baud_inx = self._get_modbus_baudrate_inx()
+        ret, cur_baud_inx = self._get_modbus_baudrate_inx(host_id=host_id)
         if ret == 0:
             baud_inx = self.arm_cmd.BAUDRATES.index(baudrate)
             if cur_baud_inx != baud_inx:
@@ -2053,16 +2208,25 @@ class Base(Events):
                     self._ignore_state = True if self.state not in [4, 5] else False
                     state = self.state
                     # self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
-                    self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx)
+                    self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx, bid=host_id)
                     time.sleep(0.3)
-                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1)
-                    if self.error_code != 19 and self.error_code != 28:
-                        self.get_err_warn_code()
-                    if self.error_code == 19 or self.error_code == 28:
-                        self.clean_error()
-                        if self._ignore_state:
-                            self.set_state(state if state >= 3 else 0)
-                        time.sleep(1)
+                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1, bid=host_id)
+                    if host_id == XCONF.TGPIO_HOST_ID:
+                        if self.error_code != 19 and self.error_code != 28:
+                            self.get_err_warn_code()
+                        if self.error_code == 19 or self.error_code == 28:
+                            self.clean_error()
+                            if self._ignore_state:
+                                self.set_state(state if state >= 3 else 0)
+                            time.sleep(1)
+                    else:
+                        if self.error_code != 100 + host_id:
+                            self.get_err_warn_code()
+                        if self.error_code == 100 + host_id:
+                            self.clean_error()
+                            if self._ignore_state:
+                                self.set_state(state if state >= 3 else 0)
+                            time.sleep(1)
                 except Exception as e:
                     self._ignore_error = False
                     self._ignore_state = False
@@ -2070,22 +2234,38 @@ class Base(Events):
                     return APIState.API_EXCEPTION
                 self._ignore_error = False
                 self._ignore_state = False
-                ret, cur_baud_inx = self._get_modbus_baudrate_inx()
+                ret, cur_baud_inx = self._get_modbus_baudrate_inx(host_id=host_id)
                 self.log_api_info('API -> checkset_modbus_baud -> code={}, baud_inx={}'.format(ret, cur_baud_inx), code=ret)
             # if ret == 0 and cur_baud_inx < len(self.arm_cmd.BAUDRATES):
             #     self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
-        return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
+        if host_id == XCONF.TGPIO_HOST_ID:
+            return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
+        elif host_id == XCONF.LINEER_TRACK_HOST_ID:
+            return 0 if self.linear_track_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
+        else:
+            if ret == 0 and 0 <= cur_baud_inx < len(self.arm_cmd.BAUDRATES):
+                return 0 if self.arm_cmd.BAUDRATES[cur_baud_inx] == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
+            return APIState.MODBUS_BAUD_NOT_CORRECT
 
     @xarm_is_connected(_type='get')
-    def _get_modbus_baudrate_inx(self):
-        ret = self.arm_cmd.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF)
+    def _get_modbus_baudrate_inx(self, host_id=XCONF.TGPIO_HOST_ID):
+        ret = self.arm_cmd.tgpio_addr_r16(XCONF.ServoConf.MODBUS_BAUDRATE & 0x0FFF, bid=host_id)
         if ret[0] in [XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE]:
-            if self.error_code != 19 and self.error_code != 28:
-                self.get_err_warn_code()
-            if self.error_code != 19 and self.error_code != 28:
-                ret[0] = 0
+            if host_id == XCONF.TGPIO_HOST_ID:
+                if self.error_code != 19 and self.error_code != 28:
+                    self.get_err_warn_code()
+                if self.error_code != 19 and self.error_code != 28:
+                    ret[0] = 0
+            else:
+                if self.error_code != 100 + host_id:
+                    self.get_err_warn_code()
+                if self.error_code != 100 + host_id:
+                    ret[0] = 0
         if ret[0] == 0 and 0 <= ret[1] < len(self.arm_cmd.BAUDRATES):
-            self.modbus_baud = self.arm_cmd.BAUDRATES[ret[1]]
+            if host_id == XCONF.TGPIO_HOST_ID:
+                self.modbus_baud = self.arm_cmd.BAUDRATES[ret[1]]
+            elif host_id == XCONF.LINEER_TRACK_HOST_ID:
+                self.linear_track_baud = self.arm_cmd.BAUDRATES[ret[1]]
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')

@@ -38,6 +38,7 @@ class UxbusCmd(object):
         self._GET_TIMEOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
         self._SET_TIMEOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
         self._last_comm_time = time.time()
+        self._last_modbus_comm_time = time.time()
 
     @property
     def last_comm_time(self):
@@ -149,7 +150,18 @@ class UxbusCmd(object):
         ret = self.send_pend(funcode, num * 4, timeout if timeout is not None else self._GET_TIMEOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
-        data[1:num] = convert.bytes_to_fp32s(ret[1:num * 4 + 1], num)
+        data[1:num+1] = convert.bytes_to_fp32s(ret[1:num * 4 + 1], num)
+        return data
+
+    @lock_require
+    def get_nfp32_with_datas(self, funcode, datas, num_send, num_get, timeout=None):
+        ret = self.send_xbus(funcode, datas, num_send)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        ret = self.send_pend(funcode, num_get * 4, timeout if timeout is not None else self._GET_TIMEOUT)
+        data = [0] * (1 + num_get)
+        data[0] = ret[0]
+        data[1:num_get + 1] = convert.bytes_to_fp32s(ret[1:num_get * 4 + 1], num_get)
         return data
 
     @lock_require
@@ -366,7 +378,7 @@ class UxbusCmd(object):
         ret = self.send_pend(funcode, ret_fp_num * 4, self._GET_TIMEOUT)
         data = [0] * (1 + ret_fp_num)
         data[0] = ret[0]
-        data[1:ret_fp_num] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
+        data[1:ret_fp_num+1] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
         return data
 
     def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime):
@@ -534,7 +546,7 @@ class UxbusCmd(object):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
     @lock_require
-    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_ID):
+    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_HOST_ID):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -546,7 +558,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_ID, fmt='>l'):
+    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_HOST_ID, fmt='>l'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
@@ -557,7 +569,7 @@ class UxbusCmd(object):
         return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     @lock_require
-    def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_ID):
+    def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_HOST_ID):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -569,7 +581,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_ID, fmt='>l'):
+    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_HOST_ID, fmt='>l'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
@@ -633,14 +645,20 @@ class UxbusCmd(object):
         return ret[:2]
 
     @lock_require
-    def tgpio_set_modbus(self, modbus_t, len_t):
-        txdata = bytes([XCONF.TGPIO_ID])
+    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID, limit_sec=0.0):
+        txdata = bytes([host_id])
         txdata += bytes(modbus_t)
+        if limit_sec > 0:
+            diff_time = time.time() - self._last_modbus_comm_time
+            if diff_time < limit_sec:
+                time.sleep(limit_sec - diff_time)
         ret = self.send_xbus(XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
         if ret != 0:
+            self._last_modbus_comm_time = time.time()
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.send_pend(XCONF.UxbusReg.TGPIO_MODBUS, -1, self._GET_TIMEOUT)
+        self._last_modbus_comm_time = time.time()
         return ret
 
     @lock_require
@@ -922,16 +940,25 @@ class UxbusCmd(object):
     def get_power_board_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 3)
 
-    def vc_set_jointv(self, jnt_v, jnt_sync):
-        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_JOINTV, jnt_v, 7, bytes([jnt_sync]))
+    def vc_set_jointv(self, jnt_v, jnt_sync, duration=-1):
+        additional_bytes = bytes([jnt_sync])
+        if duration >= 0:
+            additional_bytes += convert.fp32_to_bytes(duration)
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_JOINTV, jnt_v, 7, additional_bytes)
 
-    def vc_set_linev(self, line_v, coord):
-        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, bytes([coord]))
+    def vc_set_linev(self, line_v, coord, duration=-1):
+        additional_bytes = bytes([coord])
+        if duration >= 0:
+            additional_bytes += convert.fp32_to_bytes(duration)
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, additional_bytes)
+
+    def iden_load(self, iden_type, num_get, timeout=500):
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, [iden_type], 1, num_get, timeout=timeout)
 
     @lock_require
     def set_impedance(self, coord, c_axis, M, K, B):
         txdata = bytes([coord])
-        txdata += bytes(c_axis)
+        txdata += bytes(c_axis[:6])
         txdata += convert.fp32s_to_bytes(M, 6)
         txdata += convert.fp32s_to_bytes(K, 6)
         txdata += convert.fp32s_to_bytes(B, 6)
@@ -953,7 +980,7 @@ class UxbusCmd(object):
     @lock_require
     def set_impedance_config(self, coord, c_axis):
         txdata = bytes([coord])
-        txdata += bytes(c_axis)
+        txdata += bytes(c_axis[:6])
         ret = self.send_xbus(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, txdata, 7)
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -962,7 +989,7 @@ class UxbusCmd(object):
     @lock_require
     def config_force_control(self, coord, c_axis, f_ref, limits):
         txdata = bytes([coord])
-        txdata += bytes(c_axis)
+        txdata += bytes(c_axis[:6])
         txdata += convert.fp32s_to_bytes(f_ref, 6)
         txdata += convert.fp32s_to_bytes(limits, 6)
         ret = self.send_xbus(XCONF.UxbusReg.FORCE_CTRL_CONFIG, txdata, 55)
@@ -985,7 +1012,7 @@ class UxbusCmd(object):
         return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, 0, 0)
 
     def ft_sensor_iden_load(self):
-        return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_IDEN_LOAD, 10, timeout=500)
+        return self.iden_load(0, 10)
 
     def ft_sensor_cali_load(self, iden_result_list):
         return self.set_nfp32(XCONF.UxbusReg.FTSENSOR_CALI_LOAD_OFFSET, iden_result_list, 10)
@@ -996,7 +1023,9 @@ class UxbusCmd(object):
 
     def ft_sensor_app_set(self, app_code):
         txdata = [app_code]
-        return self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+        ret = self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+        ret[0] = ret[0] if ret[0] != 0 else XCONF.UxbusState.INVALID if ret[1] != 0 else 0
+        return ret
 
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)
@@ -1062,4 +1091,25 @@ class UxbusCmd(object):
         txdata = [eveloc]
         txdata += [joint_pos[i] for i in range(7)]
         return self.swop_nfp32(XCONF.UxbusReg.GET_MAX_JOINT_VELOCITY, txdata, 8, 1)
+
+    def track_modbus_w16s(self, addr, value, length):
+        txdata = bytes([XCONF.TRACK_ID])
+        txdata += bytes([0x10])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.u16_to_bytes(length)
+        txdata += bytes([length * 2])
+        txdata += value
+        ret = self.tgpio_set_modbus(txdata, length * 2 + 7, host_id=XCONF.LINEER_TRACK_HOST_ID, limit_sec=0.001)
+        return ret
+
+    def track_modbus_r16s(self, addr, length, fcode=0x03):
+        txdata = bytes([XCONF.TRACK_ID])
+        txdata += bytes([fcode])
+        txdata += convert.u16_to_bytes(addr)
+        txdata += convert.u16_to_bytes(length)
+        ret = self.tgpio_set_modbus(txdata, 6, host_id=XCONF.LINEER_TRACK_HOST_ID, limit_sec=0.001)
+        return ret
+
+    def iden_tcp_load(self):
+        return self.iden_load(1, 4, timeout=300)
 

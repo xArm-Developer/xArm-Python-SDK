@@ -283,6 +283,15 @@ Note:
 return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]
 ```
 
+#### __position_aa__
+```
+The pose represented by the axis angle pose
+Note:
+    1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians
+
+:return: [x(mm), y(mm), z(mm), rx(° or rad), ry(° or rad), rz(° or rad)]
+```
+
 #### __realtime_joint_speeds__
 ```
 The real time speed of joint motion, only available if version > 1.2.11
@@ -718,6 +727,28 @@ Connect to xArm
 :param axis: number of axes, required only when using a serial port connection, default is 7
 ```
 
+#### def __delete_blockly_app__(self, name):
+
+```
+Delete blockly app
+
+:param name: blockly app  name
+
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __delete_trajectory__(self, filename):
+
+```
+Delete trajectory
+
+:param filename: trajectory name
+
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __disconnect__(self):
 
 ```
@@ -983,6 +1014,16 @@ Get harmonic types, only for debug
 
 :return: (code, types)
     code: See the API code documentation for details.
+```
+
+#### def __get_initial_point__(self):
+
+```
+Get the initial point from studio
+
+:return: tuple((code, point)), only when code is 0, the returned result is correct.
+    code: See the API code documentation for details.
+    point: initial point, [J1, J2, ..., J7]
 ```
 
 #### def __get_inverse_kinematics__(self, pose, input_is_radian=None, return_is_radian=None):
@@ -2365,6 +2406,17 @@ Note:
     code: See the API code documentation for details.
 ```
 
+#### def __set_initial_point__(self, point):
+
+```
+Set the initial point
+
+:param point: initial point, [J1, J2, ..., J7]
+
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_joint_jerk__(self, jerk, is_radian=None):
 
 ```
@@ -2463,6 +2515,17 @@ Note:
     1. only available if firmware_version >= 1.8.0
 
 :param speed: Integer between 1 and 1000mm/s.
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_linear_track_stop__(self):
+
+```
+Set the linear track to stop
+Note:
+    1. only available if firmware_version >= 1.8.0
+
 :return: code
     code: See the API code documentation for details.
 ```
@@ -3034,17 +3097,6 @@ Start trajectory recording, only in teach mode, so you need to set joint teachin
 Note:
     1. This interface relies on Firmware 1.2.0 or above
     2. set joint teaching mode: set_mode(2);set_state(0)
-
-:return: code
-    code: See the API code documentation for details.
-```
-
-#### def __set_linear_track_stop__(self):
-
-```
-Set the linear track to stop
-Note:
-    1. only available if firmware_version >= 1.8.0
 
 :return: code
     code: See the API code documentation for details.

@@ -6,7 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-from ..x3 import XArm
+from ..x3 import XArm, Studio
 
 
 class XArmAPI(object):
@@ -84,6 +84,7 @@ class XArmAPI(object):
                          do_not_open=do_not_open,
                          instance=self,
                          **kwargs)
+        self._studio = Studio(port, True)
         self.__attr_alias_map = {
             'get_ik': self.get_inverse_kinematics,
             'get_fk': self.get_forward_kinematics,
@@ -3287,3 +3288,46 @@ class XArmAPI(object):
             code: See the API code documentation for details.
         """
         return self._arm.set_linear_track_stop()
+
+    def delete_blockly_app(self, name):
+        """
+        Delete blockly app
+        
+        :param name: blockly app  name
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._studio.delete_blockly_app(name)
+
+    def delete_trajectory(self, filename):
+        """
+        Delete trajectory
+        
+        :param filename: trajectory name
+        
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._studio.delete_trajectory(filename)
+
+    def get_initial_point(self):
+        """
+        Get the initial point from studio
+        
+        :return: tuple((code, point)), only when code is 0, the returned result is correct.
+            code: See the API code documentation for details.
+            point: initial point, [J1, J2, ..., J7]
+        """
+        return self._studio.get_initial_point()
+
+    def set_initial_point(self, point):
+        """
+        Set the initial point
+        
+        :param point: initial point, [J1, J2, ..., J7]
+        
+        :return: code
+            code: See the API code documentation for details. 
+        """
+        return self._studio.set_initial_point(point)

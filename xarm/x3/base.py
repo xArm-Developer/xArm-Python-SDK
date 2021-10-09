@@ -135,6 +135,8 @@ class Base(Events):
 
             self._is_set_move = False
             self._cond_pause = threading.Condition()
+            self._pause_lock = threading.Lock()
+            self._pause_cnts = 0
 
             self._realtime_tcp_speed = 0
             self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
@@ -242,6 +244,8 @@ class Base(Events):
 
         self._is_set_move = False
         self._cond_pause = threading.Condition()
+        self._pause_lock = threading.Lock()
+        self._pause_cnts = 0
 
         self._realtime_tcp_speed = 0
         self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
@@ -672,7 +676,11 @@ class Base(Events):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
                 with self._cond_pause:
+                    with self._pause_lock:
+                        self._pause_cnts += 1
                     self._cond_pause.wait()
+                    with self._pause_lock:
+                        self._pause_cnts -= 1
 
     @property
     def state_is_ready(self):
@@ -697,21 +705,6 @@ class Base(Events):
                 except:
                     pass
             time.sleep(0.5)
-
-        # while self.connected and self._timed_comm_t_alive:
-        #     if not self.arm_cmd or (time.time() - self.arm_cmd.last_comm_time < self._timed_comm_interval):
-        #         time.sleep(0.1)
-        #         continue
-        #     try:
-        #         self.get_cmdnum()
-        #     except:
-        #         pass
-        #     count = self._timed_comm_interval * 10
-        #     while count > 0:
-        #         count -= 1
-        #         time.sleep(0.1)
-        #         if not self._timed_comm_t_alive or not self.connected:
-        #             break
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
         if self.connected:
@@ -1118,7 +1111,7 @@ class Base(Events):
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
             _state = self._state
             self._state = state
-            if _state == 3 and self.state != 3:
+            if self.state != 3 and (_state == 3 or self._pause_cnts > 0):
                 with self._cond_pause:
                     self._cond_pause.notifyAll()
             self._cmd_num = cmd_num
@@ -1413,7 +1406,7 @@ class Base(Events):
             self.arm_cmd.has_err_warn = error_code != 0 or warn_code != 0
             _state = self._state
             self._state = state
-            if _state == 3 and self.state != 3:
+            if self.state != 3 and (_state == 3 or self._pause_cnts > 0):
                 with self._cond_pause:
                     self._cond_pause.notifyAll()
             self._mode = mode
@@ -1675,7 +1668,7 @@ class Base(Events):
                 time.sleep(0.01)
                 self.get_position()
 
-                if state == 3 and self.state != 3:
+                if self.state != 3 and (state == 3 or self._pause_cnts > 0):
                     with self._cond_pause:
                         self._cond_pause.notifyAll()
                 if cmd_num != self._cmd_num:
@@ -1981,7 +1974,7 @@ class Base(Events):
         self.get_state()
         if _state != self._state:
             self._report_state_changed_callback()
-        if _state == 3 and self._state != 3:
+        if self.state != 3 and (_state == 3 or self._pause_cnts > 0):
             with self._cond_pause:
                 self._cond_pause.notifyAll()
         if self._state in [4, 5]:

@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
+import math
 import functools
 from ..core.utils.log import logger
 from .code import APIState
@@ -124,3 +125,9 @@ def compare_version(v1, v2):
         elif v1[i] < v2[i]:
             return False
     return False
+
+
+def filter_invaild_number(num, ndigits=3, default=0.0):
+    if math.isnan(num) or math.isinf(num):
+        return round(default, 0) if ndigits < 0 else round(default, ndigits)
+    return round(num, 0) if ndigits < 0 else round(num, ndigits)

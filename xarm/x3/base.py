@@ -17,7 +17,7 @@ from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, pretty_print
 from ..core.utils import convert
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
-from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode
+from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode, filter_invaild_number
 from .code import APIState
 
 controller_error_keys = ControllerErrorCodeMap.keys()
@@ -1131,28 +1131,17 @@ class Base(Events):
             self._last_update_err_time = update_time
 
             for i in range(len(pose)):
-                if i < 3:
-                    pose[i] = float('{:.3f}'.format(pose[i]))
-                    # pose[i] = float('{:.3f}'.format(pose[i][0]))
-                else:
-                    pose[i] = float('{:.6f}'.format(pose[i]))
-                    # pose[i] = float('{:.6f}'.format(pose[i][0]))
+                pose[i] = filter_invaild_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
             for i in range(len(angles)):
-                angles[i] = float('{:.6f}'.format(angles[i]))
-                # angles[i] = float('{:.6f}'.format(angles[i][0]))
+                angles[i] = filter_invaild_number(angles[i], 6, default=self._angles[i])
             for i in range(len(pose_offset)):
-                if i < 3:
-                    pose_offset[i] = float('{:.3f}'.format(pose_offset[i]))
-                    # pose_offset[i] = float('{:.3f}'.format(pose_offset[i][0]))
-                else:
-                    pose_offset[i] = float('{:.6f}'.format(pose_offset[i]))
-                    # pose_offset[i] = float('{:.6f}'.format(pose_offset[i][0]))
+                pose_offset[i] = filter_invaild_number(pose_offset[i], 3 if i < 3 else 6, default=self._position_offset[i])
 
-            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._position = pose
-            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._angles = angles
-            if math.inf not in pose_offset and -math.inf not in pose_offset and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._position_offset = pose_offset
 
             self._report_location_callback()
@@ -1266,18 +1255,13 @@ class Base(Events):
                 self._mode = mode
                 self._report_mode_changed_callback()
             for i in range(len(pose)):
-                if i < 3:
-                    pose[i] = float('{:.3f}'.format(pose[i]))
-                    # pose[i] = float('{:.3f}'.format(pose[i][0]))
-                else:
-                    pose[i] = float('{:.6f}'.format(pose[i]))
-                    # pose[i] = float('{:.6f}'.format(pose[i][0]))
+                pose[i] = filter_invaild_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
             for i in range(len(angles)):
-                angles[i] = float('{:.6f}'.format(angles[i]))
-                # angles[i] = float('{:.6f}'.format(angles[i][0]))
-            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
+                angles[i] = filter_invaild_number(angles[i], 6, default=self._angles[i])
+
+            if not (0 < self._error_code <= 17):
                 self._position = pose
-            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._angles = angles
             self._joints_torque = torque
 
@@ -1451,28 +1435,17 @@ class Base(Events):
             self._teach_sensitivity = teach_sens
 
             for i in range(len(pose)):
-                if i < 3:
-                    pose[i] = float('{:.3f}'.format(pose[i]))
-                    # pose[i] = float('{:.3f}'.format(pose[i][0]))
-                else:
-                    pose[i] = float('{:.6f}'.format(pose[i]))
-                    # pose[i] = float('{:.6f}'.format(pose[i][0]))
+                pose[i] = filter_invaild_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
             for i in range(len(angles)):
-                angles[i] = float('{:.6f}'.format(angles[i]))
-                # angles[i] = float('{:.6f}'.format(angles[i][0]))
+                angles[i] = filter_invaild_number(angles[i], 6, default=self._angles[i])
             for i in range(len(pose_offset)):
-                if i < 3:
-                    pose_offset[i] = float('{:.3f}'.format(pose_offset[i]))
-                    # pose_offset[i] = float('{:.3f}'.format(pose_offset[i][0]))
-                else:
-                    pose_offset[i] = float('{:.6f}'.format(pose_offset[i]))
-                    # pose_offset[i] = float('{:.6f}'.format(pose_offset[i][0]))
+                pose_offset[i] = filter_invaild_number(pose_offset[i], 3 if i < 3 else 6, default=self._position_offset[i])
 
-            if math.inf not in pose and -math.inf not in pose and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._position = pose
-            if math.inf not in angles and -math.inf not in angles and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._angles = angles
-            if math.inf not in pose_offset and -math.inf not in pose_offset and not (10 <= self._error_code <= 17):
+            if not (0 < self._error_code <= 17):
                 self._position_offset = pose_offset
 
             self._report_location_callback()
@@ -1605,7 +1578,7 @@ class Base(Events):
             if length >= 494:
                 pose_aa = convert.bytes_to_fp32s(rx_data[482:494], 3)
                 for i in range(len(pose_aa)):
-                    pose_aa[i] = float('{:.6f}'.format(pose_aa[i]))
+                    pose_aa[i] = filter_invaild_number(pose_aa[i], 6, default=self._pose_aa[i])
                 self._pose_aa = self._position[:3] + pose_aa
 
         main_socket_connected = self._stream and self._stream.connected
@@ -1936,8 +1909,7 @@ class Base(Events):
         ret = self.arm_cmd.get_tcp_pose()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 6:
-            # self._position = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 7)]
-            self._position = [float('{:.6f}'.format(ret[i])) for i in range(1, 7)]
+            self._position = [filter_invaild_number(ret[i], 6, default=self._position[i-1]) for i in range(1, 7)]
         return ret[0], [float(
             '{:.6f}'.format(math.degrees(self._position[i]) if 2 < i < 6 and not is_radian else self._position[i])) for
                         i in range(len(self._position))]
@@ -1948,8 +1920,7 @@ class Base(Events):
         ret = self.arm_cmd.get_joint_pos()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 7:
-            # self._angles = [float('{:.6f}'.format(ret[i][0])) for i in range(1, 8)]
-            self._angles = [float('{:.6f}'.format(ret[i])) for i in range(1, 8)]
+            self._angles = [filter_invaild_number(ret[i], 6, default=self._angles[i-1]) for i in range(1, 8)]
         if servo_id is None or servo_id == 8 or len(self._angles) < servo_id:
             return ret[0], list(
                 map(lambda x: float('{:.6f}'.format(x if is_radian else math.degrees(x))), self._angles))
@@ -1963,10 +1934,10 @@ class Base(Events):
         ret = self.arm_cmd.get_position_aa()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 6:
-            pose = [float('{:.6f}'.format(ret[i] if i <= 3 or is_radian else math.degrees(ret[i]))) for i in
-                    range(1, 7)]
-            return ret[0], pose
-        return ret[0], ret[1:7]
+            self._pose_aa = [filter_invaild_number(ret[i], 6, default=self._pose_aa[i - 1]) for i in range(1, 7)]
+        return ret[0], [float(
+            '{:.6f}'.format(math.degrees(self._pose_aa[i]) if 2 < i < 6 and not is_radian else self._pose_aa[i]))
+            for i in range(len(self._pose_aa))]
 
     @xarm_is_connected(_type='get')
     def get_pose_offset(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
@@ -2141,6 +2112,9 @@ class Base(Events):
             if self.error_code != 0:
                 self.log_api_info('wait_move, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
                 return APIState.HAS_ERROR
+            # no wait in velocity mode
+            if self.mode in [4, 5]:
+                return 0
             if self.is_stop:
                 _, state = self.get_state()
                 if _ != 0 or state not in [4, 5]:

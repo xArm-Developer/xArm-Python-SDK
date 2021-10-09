@@ -134,7 +134,7 @@ class Base(Events):
             self._currents = [0, 0, 0, 0, 0, 0, 0]
 
             self._is_set_move = False
-            self._cond_pause = threading.Condition()
+            self._pause_cond = threading.Condition()
             self._pause_lock = threading.Lock()
             self._pause_cnts = 0
 
@@ -243,7 +243,7 @@ class Base(Events):
         self._currents = [0, 0, 0, 0, 0, 0, 0]
 
         self._is_set_move = False
-        self._cond_pause = threading.Condition()
+        self._pause_cond = threading.Condition()
         self._pause_lock = threading.Lock()
         self._pause_cnts = 0
 
@@ -675,10 +675,10 @@ class Base(Events):
     def check_is_pause(self):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
-                with self._cond_pause:
+                with self._pause_cond:
                     with self._pause_lock:
                         self._pause_cnts += 1
-                    self._cond_pause.wait()
+                    self._pause_cond.wait()
                     with self._pause_lock:
                         self._pause_cnts -= 1
 
@@ -828,8 +828,8 @@ class Base(Events):
             except:
                 pass
         self._report_connect_changed_callback(False, False)
-        with self._cond_pause:
-            self._cond_pause.notifyAll()
+        with self._pause_cond:
+            self._pause_cond.notifyAll()
 
     def set_timeout(self, timeout):
         self._cmd_timeout = timeout
@@ -1112,8 +1112,8 @@ class Base(Events):
             _state = self._state
             self._state = state
             if self.state != 3 and (_state == 3 or self._pause_cnts > 0):
-                with self._cond_pause:
-                    self._cond_pause.notifyAll()
+                with self._pause_cond:
+                    self._pause_cond.notifyAll()
             self._cmd_num = cmd_num
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
@@ -1407,8 +1407,8 @@ class Base(Events):
             _state = self._state
             self._state = state
             if self.state != 3 and (_state == 3 or self._pause_cnts > 0):
-                with self._cond_pause:
-                    self._cond_pause.notifyAll()
+                with self._pause_cond:
+                    self._pause_cond.notifyAll()
             self._mode = mode
             self._cmd_num = cmd_num
 
@@ -1669,8 +1669,8 @@ class Base(Events):
                 self.get_position()
 
                 if self.state != 3 and (state == 3 or self._pause_cnts > 0):
-                    with self._cond_pause:
-                        self._cond_pause.notifyAll()
+                    with self._pause_cond:
+                        self._pause_cond.notifyAll()
                 if cmd_num != self._cmd_num:
                     self._report_cmdnum_changed_callback()
                 if state != self._state:
@@ -1975,8 +1975,8 @@ class Base(Events):
         if _state != self._state:
             self._report_state_changed_callback()
         if self.state != 3 and (_state == 3 or self._pause_cnts > 0):
-            with self._cond_pause:
-                self._cond_pause.notifyAll()
+            with self._pause_cond:
+                self._pause_cond.notifyAll()
         if self._state in [4, 5]:
             self._sleep_finish_time = 0
             if self._is_ready:

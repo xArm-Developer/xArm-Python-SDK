@@ -132,7 +132,7 @@ class Record(Base):
                 return ret
         if self.state in [4]:
             return APIState.NOT_READY
-        if self.version_is_ge_1_2_11:
+        if self.version_is_ge(1, 2, 11):
             ret = self.arm_cmd.playback_traj(times, double_speed)
         else:
             ret = self.arm_cmd.playback_traj_old(times)

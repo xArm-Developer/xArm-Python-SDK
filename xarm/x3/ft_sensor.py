@@ -8,6 +8,7 @@
 
 from .utils import xarm_is_connected
 from ..core.utils.log import logger
+from ..core.utils import convert
 from .base import Base
 from .code import APIState
 
@@ -97,6 +98,12 @@ class FtSensor(Base):
         return self._check_code(ret[0]), ret[1]
 
     @xarm_is_connected(_type='get')
-    def get_exe_ft(self):
-        ret = self.arm_cmd.get_exe_ft()
+    def get_ft_sensor_data(self):
+        ret = self.arm_cmd.ft_sensor_get_data(self.version_is_ge(1, 8, 3))
         return self._check_code(ret[0]), ret[1:7]
+
+    @xarm_is_connected(_type='get')
+    def get_ft_senfor_config(self):
+        ret = self.arm_cmd.ft_senfor_get_config()
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1:]

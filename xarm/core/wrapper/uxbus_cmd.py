@@ -1030,8 +1030,45 @@ class UxbusCmd(object):
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)
 
-    def get_exe_ft(self):
-        return self.get_nfp32(XCONF.UxbusReg.GET_EXE_FT, 6)
+    def ft_sensor_get_data(self, is_new=True):
+        return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_GET_DATA if is_new else XCONF.UxbusReg.FTSENSOR_GET_DATA_OLD, 6)
+
+    def ft_senfor_get_config(self):
+        ret = self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_CONFIG, 280)
+        if ret[0] in [0, 1, 2]:
+            ft_app_status = ret[1]
+            ft_started = ret[2]
+            ft_type = ret[3]
+            ft_id = ret[4]
+            ft_freq = convert.bytes_to_u16(ret[5:7])
+            ft_mass = convert.bytes_to_fp32(ret[7:11])
+            ft_dir_bias = convert.bytes_to_fp32(ret[11:15])
+            ft_centroid = convert.bytes_to_fp32s(ret[15:27], 3)
+            ft_zero = convert.bytes_to_fp32s(ret[27:51], 6)
+
+            imp_coord = ret[51]
+            imp_c_axis = ret[52:58]
+            M = convert.bytes_to_fp32s(ret[58:82], 6)
+            K = convert.bytes_to_fp32s(ret[82:106], 6)
+            B = convert.bytes_to_fp32s(ret[106:130], 6)
+
+            fc_coord = ret[130]
+            fc_c_axis = ret[131:137]
+            force_ref = convert.bytes_to_fp32s(ret[137:161], 6)
+            limits = convert.bytes_to_fp32s(ret[161:185], 6)
+            kp = convert.bytes_to_fp32s(ret[185:209], 6)
+            ki = convert.bytes_to_fp32s(ret[209:233], 6)
+            kd = convert.bytes_to_fp32s(ret[233:257], 6)
+            xe_limit = convert.bytes_to_fp32s(ret[257:281], 6)
+            return [
+                ret[0],
+                ft_app_status, ft_started, ft_type, ft_id, ft_freq,
+                ft_mass, ft_dir_bias, ft_centroid, ft_zero,
+                imp_coord, imp_c_axis, M, K, B,
+                fc_coord, fc_c_axis, force_ref, limits,
+                kp, ki, kd, xe_limit
+            ]
+        return ret
 
     def cali_tcp_pose(self, four_pnts):
         txdata = []
@@ -1040,7 +1077,6 @@ class UxbusCmd(object):
         return self.swop_nfp32(XCONF.UxbusReg.CALI_TCP_POSE, txdata, 24, 3)
 
     # default: mode: x+ then y+; trust_ind: trust x+ dir
-    # @lock_require
     def cali_user_orient(self, three_pnts, mode=0, trust_ind=0):
         txdata = []
         for k in range(3):
@@ -1052,22 +1088,6 @@ class UxbusCmd(object):
         data[0] = ret[0]
         data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
         return data
-        # fpdata = []
-        # for k in range(3):
-        #     fpdata += [three_pnts[k][i] for i in range(6)]
-        # # return self.swop_nfp32(XCONF.UxbusReg.CALI_USER_ORIENT, fpdata, 18, 3)
-        # hexdata = convert.fp32s_to_bytes(fpdata, 18)
-        # hexdata += bytes([mode, trust_ind]) 
-        # funcode = XCONF.UxbusReg.CALI_WRLD_ORIENT
-        # ret = self.send_xbus(funcode, hexdata, 18 * 4 + 2)
-        # rxn = 3; # to receive 3 fps as result 
-        # if ret != 0:
-        #     return [XCONF.UxbusState.ERR_NOTTCP] * (rxn + 1)
-        # ret = self.send_pend(funcode, rxn * 4, self._GET_TIMEOUT)
-        # data = [0] * (1 + rxn)
-        # data[0] = ret[0]
-        # data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
-        # return data
 
     def cali_tcp_orient(self, rpy_be, rpy_bt):
         txdata = [rpy_be[i] for i in range(3)]

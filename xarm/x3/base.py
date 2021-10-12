@@ -383,28 +383,6 @@ class Base(Events):
             return -1
 
     @property
-    def version_is_ge_1_5_20(self):
-        if self._version is None:
-            self._check_version()
-        return self._major_version_number > 1 or (
-            self._major_version_number == 1 and self._minor_version_number > 5) or (
-                   self._major_version_number == 1 and self._minor_version_number == 5 and self._revision_version_number >= 20)
-
-    @property
-    def version_is_ge_1_2_11(self):
-        if self._version is None:
-            self._check_version()
-        return self._major_version_number > 1 or (
-            self._major_version_number == 1 and self._minor_version_number > 2) or (
-            self._major_version_number == 1 and self._minor_version_number == 2 and self._revision_version_number >= 11)
-
-    @property
-    def version_is_ge_1_8_0(self):
-        if self._version is None:
-            self._check_version()
-        return self._major_version_number > 1 or (self._major_version_number == 1 and self._minor_version_number >= 8)
-
-    @property
     def realtime_tcp_speed(self):
         return self._realtime_tcp_speed
 
@@ -672,6 +650,14 @@ class Base(Events):
     def ft_raw_force(self):
         return self._ft_raw_force
 
+    def version_is_ge(self, major, minor=0, revision=0):
+        if self._version is None:
+            self._check_version()
+        return self._major_version_number > major or (
+            self._major_version_number == major and self._minor_version_number > minor) or (
+            self._major_version_number == major and self._minor_version_number == minor and
+            self._revision_version_number >= revision)
+
     def check_is_pause(self):
         if self._check_is_pause:
             if self.state == 3 and self._enable_report:
@@ -684,7 +670,7 @@ class Base(Events):
 
     @property
     def state_is_ready(self):
-        if self._check_is_ready and not self.version_is_ge_1_5_20:
+        if self._check_is_ready and not self.version_is_ge(1, 5, 20):
             return self.ready
         else:
             return True

@@ -434,7 +434,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 return APIState.JOINT_LIMIT
 
         self._has_motion_cmd = True
-        if self.version_is_ge_1_5_20 and radius is not None and radius >= 0:
+        if self.version_is_ge(1, 5, 20) and radius is not None and radius >= 0:
             ret = self.arm_cmd.move_jointb(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
         else:
             ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
@@ -762,12 +762,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     @xarm_is_connected(_type='get')
     def get_reduced_states(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge_1_2_11 else 21)
+        ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge(1, 2, 11) else 21)
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             if not is_radian:
                 ret[4] = round(math.degrees(ret[4]), 1)
-                if self.version_is_ge_1_2_11:
+                if self.version_is_ge(1, 2, 11):
                     # ret[5] = list(map(math.degrees, ret[5]))
                     ret[5] = list(map(lambda x: round(math.degrees(x), 2), ret[5]))
         return ret[0], ret[1:]
@@ -1713,7 +1713,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 break
             jnt_v[i] = spd if is_radian else math.radians(spd)
 
-        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0, duration if self.version_is_ge_1_8_0 else -1)
+        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0, duration if self.version_is_ge(1, 8, 0) else -1)
         self.log_api_info('API -> vc_set_joint_velocity -> code={}, speeds={}, is_sync={}'.format(
             ret[0], jnt_v, is_sync
         ), code=ret[0])
@@ -1729,7 +1729,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             if i >= 6:
                 break
             line_v[i] = spd if i < 3 or is_radian else math.radians(spd)
-        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0, duration if self.version_is_ge_1_8_0 else -1)
+        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0, duration if self.version_is_ge(1, 8, 0) else -1)
         self.log_api_info('API -> vc_set_cartesian_velocity -> code={}, speeds={}, is_tool_coord={}'.format(
             ret[0], line_v, is_tool_coord
         ), code=ret[0])

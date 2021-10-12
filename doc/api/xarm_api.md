@@ -248,6 +248,8 @@ xArm mode，only available in socket way and  enable_report is True
     1: servo motion mode
     2: joint teaching mode
     3: cartesian teaching mode (invalid)
+    4: joint velocity control mode
+    5: cartesian velocity control mode
 ```
 
 #### __motor_brake_states__
@@ -823,7 +825,7 @@ Note:
 
 :return: tuple((code, load)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
-    load:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Mx_offset，My_offset，Mz_ffset]
+    load:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]
 ```
 
 #### def __ft_sensor_set_zero__(self):
@@ -944,18 +946,6 @@ Get the controller error and warn code
     warn_code: See Chapter 7 of the xArm User Manual for details.
 ```
 
-#### def __get_exe_ft__(self):
-
-```
-Get extenal force/torque
-Note:
-    1. only available if firmware_version >= 1.8.0
-
-:return: tuple((code, exe_ft))
-    code: See the API code documentation for details.
-    exe_ft: only when code is 0, the returned result is correct.
-```
-
 #### def __get_forward_kinematics__(self, angles, input_is_radian=None, return_is_radian=None):
 
 ```
@@ -968,6 +958,59 @@ Get forward kinematics
     code: See the API code documentation for details.
     pose: [x(mm), y(mm), z(mm), roll(rad or °), pitch(rad or °), yaw(rad or °)] or []
         Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
+```
+
+#### def __get_ft_senfor_config__(self):
+
+```
+Get the config of the extenal force/torque
+Note:
+    1. only available if firmware_version >= 1.8.3
+    
+:return: tuple((code, config))
+    code: See the API code documentation for details.
+    config: [...], the config of the extenal force/torque, only when code is 0, the returned result is correct.
+        ft_app_status: force mode
+            0: non-force mode
+            1: impendance control
+            2: force control
+        ft_is_started: ft sensor is enable or not
+        ft_type: ft sensor type
+        ft_id: ft sensor id
+        ft_freq: ft sensor frequency
+        ft_mass: load mass
+        ft_dir_bias:
+        ft_centroid: [x_centroid，y_centroid，z_centroid]
+        ft_zero: [Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]
+        imp_coord: task frame of impendance control mode.
+            0: base frame.
+            1: tool frame.
+        imp_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+        M: mass. (kg)
+        K: stiffness coefficient.
+        B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+        f_coord: task frame of force control mode. 
+            0: base frame.
+            1: tool frame.
+        f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+        f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
+        f_limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
+        kp: proportional gain
+        ki: integral gain.
+        kd: differential gain.
+        xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
+```
+
+#### def __get_ft_sensor_data__(self):
+
+```
+Get the data of the extenal force/torque
+Note:
+    1. only available if firmware_version >= 1.8.3
+
+:return: tuple((code, exe_ft))
+    code: See the API code documentation for details.
+    ft_data: only when code is 0, the returned result is correct.
 ```
 
 #### def __get_gripper_err_code__(self, **kwargs):

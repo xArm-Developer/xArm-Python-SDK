@@ -83,6 +83,7 @@
 - 50: Force sensor read error
 - 51: Force sensor set mode error
 - 52: Force sensor set zero error
+- 53: Forque sensor is overloaded or the reading exceeds the limit
 - 110: Robot Arm Base Board Communication Error
 - 111: Control Box External 485 Device Communication Error
 

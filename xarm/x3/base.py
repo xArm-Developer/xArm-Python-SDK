@@ -17,7 +17,7 @@ from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, pretty_print
 from ..core.utils import convert
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
-from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode, filter_invaild_number
+from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode, filter_invaild_number, xarm_is_pause, xarm_wait_until_cmdnum_lt_max
 from .code import APIState
 
 controller_error_keys = ControllerErrorCodeMap.keys()
@@ -1126,7 +1126,7 @@ class Base(Events):
             self._report_location_callback()
 
             self._report_callback()
-            if not self._is_sync and self._error_code != 0 and self._state not in [4, 5]:
+            if not self._is_sync and self._error_code == 0 and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
 
@@ -1430,12 +1430,12 @@ class Base(Events):
             self._report_location_callback()
 
             self._report_callback()
-            if not self._is_sync and self._error_code != 0 and self._state not in [4, 5]:
+            if not self._is_sync and self._error_code == 0 and self._state not in [4, 5]:
                 self._sync()
                 self._is_sync = True
-            # elif self._need_sync:
-            #     self._need_sync = False
-            #     self._sync()
+            elif self._need_sync:
+                self._need_sync = False
+                # self._sync()
 
         def __handle_report_rich(rx_data):
             report_time = time.time()
@@ -2255,4 +2255,15 @@ class Base(Events):
         ret[0] = self._check_code(ret[0])
         self.log_api_info('API -> set_simulation_robot({}) -> code={}'.format(on_off, ret[0]), code=ret[0])
         return ret[0]
-
+    
+    @xarm_is_connected(_type='set')
+    @xarm_is_pause(_type='set')
+    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
+    def set_tcp_load(self, weight, center_of_gravity):
+        if compare_version(self.version_number, (0, 2, 0)):
+            _center_of_gravity = center_of_gravity
+        else:
+            _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
+        ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
+        self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
+        return ret[0]

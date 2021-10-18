@@ -69,6 +69,21 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 self.log_api_info('API -> set_servo_angle -> out_of_joint_range -> code={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle), code=APIState.OUT_OF_RANGE)
                 return True
         return False
+    
+    def _wait_first_sync(self, relative=False):
+        if not relative:
+            return 0
+        while not self._is_sync or self._need_sync:
+            if not self.connected:
+                return APIState.NOT_CONNECTED
+            elif self.has_error:
+                return APIState.HAS_ERROR
+            elif not self.state_is_ready:
+                return APIState.NOT_READY
+            elif self.is_stop:
+                return APIState.EMERGENCY_STOP
+            time.sleep(0.05) 
+        return 0
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
@@ -76,6 +91,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
+        code = self._wait_first_sync(relative)
+        if code != 0:
+            return code
         is_radian = self._default_is_radian if is_radian is None else is_radian
         tcp_pos = [x, y, z, roll, pitch, yaw]
         last_used_position = self._last_position.copy()
@@ -322,6 +340,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
             or (1 <= servo_id <= 7 and angle is not None and not isinstance(angle, Iterable)), \
             'param servo_id or angle error'
+        code = self._wait_first_sync(relative)
+        if code != 0:
+            return code
         last_used_angle = self._last_angles.copy()
         last_used_joint_speed = self._last_joint_speed
         last_used_joint_acc = self._last_joint_acc
@@ -978,17 +999,17 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.log_api_info('API -> set_joint_maxacc -> code={}, maxacc={}'.format(ret[0], acc), code=ret[0])
         return ret[0]
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_pause(_type='set')
-    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
-    def set_tcp_load(self, weight, center_of_gravity):
-        if compare_version(self.version_number, (0, 2, 0)):
-            _center_of_gravity = center_of_gravity
-        else:
-            _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
-        ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
-        self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
-        return ret[0]
+    # @xarm_is_connected(_type='set')
+    # @xarm_is_pause(_type='set')
+    # @xarm_wait_until_cmdnum_lt_max(only_wait=False)
+    # def set_tcp_load(self, weight, center_of_gravity):
+    #     if compare_version(self.version_number, (0, 2, 0)):
+    #         _center_of_gravity = center_of_gravity
+    #     else:
+    #         _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
+    #     ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
+    #     self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
+    #     return ret[0]
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')

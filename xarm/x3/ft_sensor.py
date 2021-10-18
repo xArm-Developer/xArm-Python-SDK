@@ -22,6 +22,24 @@ class FtSensor(Base):
         if len(c_axis) < 6 or len(M) < 6 or len(K) < 6 or len(B) < 6:
             logger.error('set_impedance: parameters error')
             return APIState.API_EXCEPTION
+        for i in range(6):
+            if i < 3:
+                if M[i] < 0.02 or M[i] > 1.0:
+                    logger.error('set_impedance, M[{}] over range, range=[0.02, 1.0]'.format(i))
+                    return APIState.API_EXCEPTION
+                if K[i] < 0 or K[i] > 2000:
+                    logger.error('set_impedance, K[{}] over range, range=[0, 2000]'.format(i))
+                    return APIState.API_EXCEPTION
+            else:
+                if M[i] < 0.0001 or M[i] > 0.01:
+                    logger.error('set_impedance, M[{}] over range, range=[0.0001, 0.01]'.format(i))
+                    return APIState.API_EXCEPTION
+                if K[i] < 0 or K[i] > 20:
+                    logger.error('set_impedance, K[{}] over range, range=[0, 20]'.format(i))
+                    return APIState.API_EXCEPTION
+            if B[i] < 0:
+                logger.error('set_impedance, the value of B[{}] must be greater than or equal to 0'.format(i))
+                return APIState.API_EXCEPTION
         ret = self.arm_cmd.set_impedance(coord, c_axis, M, K, B)
         self.log_api_info('API -> set_impedance -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0])
@@ -31,6 +49,24 @@ class FtSensor(Base):
         if len(M) < 6 or len(K) < 6 or len(B) < 6:
             logger.error('set_impedance_mbk: parameters error')
             return APIState.API_EXCEPTION
+        for i in range(6):
+            if i < 3:
+                if M[i] < 0.02 or M[i] > 1.0:
+                    logger.error('set_impedance_mbk, M[{}] over range, range=[0.02, 1.0]'.format(i))
+                    return APIState.API_EXCEPTION
+                if K[i] < 0 or K[i] > 2000:
+                    logger.error('set_impedance_mbk, K[{}] over range, range=[0, 2000]'.format(i))
+                    return APIState.API_EXCEPTION
+            else:
+                if M[i] < 0.0001 or M[i] > 0.01:
+                    logger.error('set_impedance_mbk, M[{}] over range, range=[0.0001, 0.01]'.format(i))
+                    return APIState.API_EXCEPTION
+                if K[i] < 0 or K[i] > 20:
+                    logger.error('set_impedance_mbk, K[{}] over range, range=[0, 20]'.format(i))
+                    return APIState.API_EXCEPTION
+            if B[i] < 0:
+                logger.error('set_impedance_mbk, the value of B[{}] must be greater than or equal to 0'.format(i))
+                return APIState.API_EXCEPTION
         ret = self.arm_cmd.set_impedance_mbk(M, K, B)
         self.log_api_info('API -> set_impedance_mbk -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0])
@@ -49,6 +85,11 @@ class FtSensor(Base):
         if len(c_axis) < 6 or len(f_ref) < 6 or len(limits) < 6:
             logger.error('config_force_control: parameters error')
             return APIState.API_EXCEPTION
+        max_f_ref = [150, 150, 200, 4, 4, 4]
+        for i in range(6):
+            if f_ref[i] < -max_f_ref[i] or f_ref[i] > max_f_ref[i]:
+                logger.error('config_force_control, f_ref[{}] over range, range=[{}, {}]'.format(i, -max_f_ref[i], max_f_ref[i]))
+                return APIState.API_EXCEPTION
         ret = self.arm_cmd.config_force_control(coord, c_axis, f_ref, limits)
         self.log_api_info('API -> config_force_control -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0])
@@ -58,6 +99,19 @@ class FtSensor(Base):
         if len(kp) < 6 or len(ki) < 6 or len(kd) < 6 or len(xe_limit) < 6:
             logger.error('set_force_control_pid: parameters error')
             return APIState.API_EXCEPTION
+        for i in range(6):
+            if kp[i] < 0 or kp[i] > 0.05:
+                logger.error('set_force_control_pid, kp[{}] over range, range=[0, 0.05]'.format(i))
+                return APIState.API_EXCEPTION
+            if ki[i] < 0 or ki[i] > 0.0005:
+                logger.error('set_force_control_pid, ki[{}] over range, range=[0, 0.0005]'.format(i))
+                return APIState.API_EXCEPTION
+            if kd[i] < 0 or kd[i] > 0.05:
+                logger.error('set_force_control_pid, kd[{}] over range, range=[0, 0.05]'.format(i))
+                return APIState.API_EXCEPTION
+            if xe_limit[i] < 0 or xe_limit[i] > 200:
+                logger.error('set_force_control_pid, xe_limit[{}] over range, range=[0, 200]'.format(i))
+                return APIState.API_EXCEPTION
         ret = self.arm_cmd.set_force_control_pid(kp, ki, kd, xe_limit)
         self.log_api_info('API -> set_force_control_pid -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0])
@@ -75,10 +129,23 @@ class FtSensor(Base):
         return self._check_code(ret[0]), ret[1:11]
 
     @xarm_is_connected(_type='set')
-    def ft_sensor_cali_load(self, iden_result_list):
+    def ft_sensor_cali_load(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
         ret = self.arm_cmd.ft_sensor_cali_load(iden_result_list)
         self.log_api_info('API -> ft_sensor_cali_load -> code={}, iden_result_list={}'.format(ret[0], iden_result_list), code=ret[0])
-        return self._check_code(ret[0])
+        ret[0] = self._check_code(ret[0])
+        if ret[0] == 0 and association_setting_tcp_load:
+            m = kwargs.get('m', 0.325)
+            x = kwargs.get('x', -17)
+            y = kwargs.get('y', 9)
+            z = kwargs.get('z', 11.8)
+            weight = iden_result_list[0] + m
+            center_of_gravity = [
+                (m * x + iden_result_list[0] * iden_result_list[1]) / weight,
+                (m * y + iden_result_list[0] * iden_result_list[2]) / weight,
+                (m * z + iden_result_list[0] * (32 + iden_result_list[3])) / weight
+            ]
+            return self.set_tcp_load(weight, center_of_gravity)
+        return ret[0]
 
     @xarm_is_connected(_type='set')
     def ft_sensor_enable(self, on_off):
@@ -90,7 +157,8 @@ class FtSensor(Base):
     def ft_sensor_app_set(self, app_code):
         ret = self.arm_cmd.ft_sensor_app_set(app_code)
         self.log_api_info('API -> ft_sensor_app_set -> code={}, app_code={}'.format(ret[0], app_code), code=ret[0])
-        return self._check_code(ret[0]), ret[1]
+        # return self._check_code(ret[0]), ret[1]
+        return self._check_code(ret[0])
 
     @xarm_is_connected(_type='get')
     def ft_sensor_app_get(self):

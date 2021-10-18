@@ -754,6 +754,16 @@ ControllerErrorCodeMap = {
             'desc': ''
         }
     },
+    53: {
+        'en': {
+            'title': 'Forque sensor is overloaded or the reading exceeds the limit',
+            'desc': ''
+        },
+        'cn': {
+            'title': '力矩传感器过载或读数超限',
+            'desc': ''
+        }
+    },
     110: {
         'en': {
             'title': 'Robot Arm Base Board Communication Error',

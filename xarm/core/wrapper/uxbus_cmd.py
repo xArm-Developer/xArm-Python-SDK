@@ -966,7 +966,7 @@ class UxbusCmd(object):
         if ret != 0:
             return [XCONF.UxbusState.ERR_NOTTCP]
         return self.send_pend(XCONF.UxbusReg.IMPEDANCE_CONFIG, 0, self._SET_TIMEOUT)
-    
+
     @lock_require
     def set_impedance_mbk(self, M, K, B):
         txdata = convert.fp32s_to_bytes(M, 6)
@@ -1010,6 +1010,7 @@ class UxbusCmd(object):
 
     def ft_sensor_set_zero(self):
         return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, 0, 0)
+        # return self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, [], 0, 1)
 
     def ft_sensor_iden_load(self):
         return self.iden_load(0, 10)
@@ -1023,9 +1024,8 @@ class UxbusCmd(object):
 
     def ft_sensor_app_set(self, app_code):
         txdata = [app_code]
-        ret = self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
-        ret[0] = ret[0] if ret[0] != 0 else XCONF.UxbusState.INVALID if ret[1] != 0 else 0
-        return ret
+        # return self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
+        return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1)
 
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)

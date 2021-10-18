@@ -129,9 +129,23 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### [7002-servo_cartesian](example/wrapper/common/7002-servo_cartesian.py)
 
-- ##### [__7003-servo_cartesian_aa__](example/wrapper/common/7003-servo_cartesian_aa.py)
+- ##### [7003-servo_cartesian_aa](example/wrapper/common/7003-servo_cartesian_aa.py)
 
 - ##### [8000-load_identify_current](example/wrapper/common/8000-load_identify_current.py)
+
+- ##### [8001-force_tech](example/wrapper/common/8001-force_tech.py)
+
+- ##### [8002-impedance](example/wrapper/common/8002-impedance.py)
+
+- ##### [8003-force_control](example/wrapper/common/8003-force_control.py)
+
+- ##### [8004-load_identify](example/wrapper/common/8004-load_identify.py)
+
+- ##### [8005-read_force_data](example/wrapper/common/8005-read_force_data.py)
+
+- ##### [8006-save_force_zero](example/wrapper/common/8006-save_force_zero.py)
+
+- ##### [8010-get_ft_sensor_config](example/wrapper/common/8010-get_ft_sensor_config.py)
 
 - ##### [9000-set_linear_track](example/wrapper/common/9000-set_linear_track.py)
 

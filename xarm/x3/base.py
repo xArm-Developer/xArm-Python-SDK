@@ -207,10 +207,9 @@ class Base(Events):
             self._has_motion_cmd = False
             self._need_sync = False
 
+            print('SDK_VERSION: {}'.format(__version__))
             if not do_not_open:
                 self.connect()
-
-            print('SDK_VERSION: {}'.format(__version__))
 
     def _init(self):
         self._last_position = [201.5, 0, 140.5, 3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
@@ -988,7 +987,7 @@ class Base(Events):
         }, name='temperature_changed')
 
     def _report_count_changed_callback(self):
-        self.__report_callback(self.REPORT_STATE_CHANGED_ID, {'count': self._count}, name='count_changed')
+        self.__report_callback(self.REPORT_COUNT_CHANGED_ID, {'count': self._count}, name='count_changed')
 
     def _report_iden_progress_changed_callback(self):
         self.__report_callback(self.REPORT_IDEN_PROGRESS_CHANGED_ID, {'progress': self._iden_progress}, name='iden_progress_changed')
@@ -1040,7 +1039,6 @@ class Base(Events):
                 if self._report_que.qsize() > 0:
                     try:
                         self._report_que.get(timeout=1)
-                        print('======')
                     except:
                         time.sleep(0.001)
                         continue

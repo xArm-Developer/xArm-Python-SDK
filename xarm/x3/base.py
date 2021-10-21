@@ -9,7 +9,16 @@
 import re
 import time
 import math
+import queue
 import threading
+try:
+    from multiprocessing.pool import ThreadPool
+except:
+    ThreadPool = None
+try:
+    import asyncio
+except:
+    asyncio = None
 from .events import Events
 from ..core.config.x_config import XCONF
 from ..core.comm import SerialPort, SocketPort
@@ -19,6 +28,8 @@ from ..core.utils import convert
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
 from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode, filter_invaild_number, xarm_is_pause, xarm_wait_until_cmdnum_lt_max
 from .code import APIState
+from ..tools.threads import ThreadManage
+from ..version import __version__
 
 controller_error_keys = ControllerErrorCodeMap.keys()
 controller_warn_keys = ControllerWarnCodeMap.keys()
@@ -54,6 +65,13 @@ class Base(Events):
             self._timed_comm_t = None
             self._timed_comm_t_alive = False
 
+            self._max_callback_thread_count = kwargs.get('max_callback_thread_count', 0)
+            self._asyncio_loop = None
+            self._asyncio_loop_alive = False
+            self._asyncio_loop_thread = None
+            self._pool = None
+            self._thread_manage = ThreadManage()
+
             self._rewrite_modbus_baudrate_method = kwargs.get('rewrite_modbus_baudrate_method', True)
 
             self._min_tcp_speed, self._max_tcp_speed = 0.1, 1000  # mm/s
@@ -72,6 +90,8 @@ class Base(Events):
             self.arm_cmd = None
             self._stream_report = None
             self._report_thread = None
+            self._report_que = queue.Queue()
+            self._callback_thread = None
             self._only_report_err_warn_changed = True
 
             self._last_position = [201.5, 0, 140.5, 3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
@@ -189,6 +209,8 @@ class Base(Events):
 
             if not do_not_open:
                 self.connect()
+
+            print('SDK_VERSION: {}'.format(__version__))
 
     def _init(self):
         self._last_position = [201.5, 0, 140.5, 3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
@@ -340,7 +362,7 @@ class Base(Events):
                     self._revision_version_number = int(revision_version_number)
                     
                     self._robot_sn = xarm_sn
-                    self._control_box_sn = ac_version
+                    self._control_box_sn = ac_version.strip()
 
                     self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300 if xarm_sn[2:6].isdigit() else False
                     self._control_box_type_is_1300 = int(ac_version[2:6]) >= 1300 if ac_version[2:6].isdigit() else False
@@ -374,9 +396,10 @@ class Base(Events):
                         count -= 1
                 if self.warn_code != 0:
                     self.clean_warn()
-                print('is_old_protocol: {}'.format(self._is_old_protocol))
-                print('version_number: {}.{}.{}'.format(self._major_version_number, self._minor_version_number,
-                                                        self._revision_version_number))
+                print('FIRMWARE_VERSION: v{}, PROTOCOL: {}, DETAIL: {}'.format(
+                    '{}.{}.{}'.format(self._major_version_number, self._minor_version_number, self._revision_version_number),
+                    'V0' if self._is_old_protocol else 'V1', self._version
+                ))
             return 0
         except Exception as e:
             print('compare_time: {}, {}'.format(self._version, e))
@@ -692,6 +715,15 @@ class Base(Events):
                     pass
             time.sleep(0.5)
 
+    def _clean_thread(self):
+        self._thread_manage.join(1)
+        if self._pool:
+            try:
+                self._pool.close()
+                self._pool.join()
+            except:
+                pass
+
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
         if self.connected:
             return
@@ -749,12 +781,22 @@ class Base(Events):
                     raise Exception('failed to check version, close')
                 self.arm_cmd.set_debug(self._debug)
 
+                if self._max_callback_thread_count == 1 and asyncio is not None:
+                    self._asyncio_loop = asyncio.new_event_loop()
+                    self._asyncio_loop_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
+                    self._thread_manage.append(self._asyncio_loop_thread)
+                    self._asyncio_loop_thread.start()
+                elif self._max_callback_thread_count > 1 and ThreadPool is not None:
+                    self._pool = ThreadPool(self._max_callback_thread_count)
+
                 if self._stream.connected and self._enable_report:
-                    if self._is_old_protocol:
-                        self._report_thread = threading.Thread(target=self._report_thread_handle_old, daemon=True)
-                    else:
-                        self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
+                    self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
                     self._report_thread.start()
+                    self._callback_thread = threading.Thread(target=self._callback_thread_handle, daemon=True)
+                    self._callback_thread.start()
+                    self._thread_manage.append(self._report_thread)
+                    self._thread_manage.append(self._callback_thread)
+
                 self._report_connect_changed_callback()
             else:
                 self._stream = SerialPort(self._port)
@@ -764,10 +806,20 @@ class Base(Events):
 
                 self.arm_cmd = UxbusCmdSer(self._stream)
                 self._stream_type = 'serial'
+
+                if self._max_callback_thread_count == 1 and asyncio is not None:
+                    self._asyncio_loop = asyncio.new_event_loop()
+                    self._asyncio_loop_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
+                    self._thread_manage.append(self._asyncio_loop_thread)
+                    self._asyncio_loop_thread.start()
+                elif self._max_callback_thread_count > 1 and ThreadPool is not None:
+                    self._pool = ThreadPool(self._max_callback_thread_count)
+
                 if self._enable_report:
                     self._report_thread = threading.Thread(target=self._auto_get_report_thread, daemon=True)
                     self._report_thread.start()
                     self._report_connect_changed_callback(True, True)
+                    self._thread_manage.append(self._report_thread)
                 else:
                     self._report_connect_changed_callback(True, False)
                 self._check_version(is_first=True)
@@ -776,6 +828,41 @@ class Base(Events):
             if self._rewrite_modbus_baudrate_method:
                 setattr(self.arm_cmd, 'set_modbus_baudrate_old', self.arm_cmd.set_modbus_baudrate)
                 setattr(self.arm_cmd, 'set_modbus_baudrate', self._core_set_modbus_baudrate)
+
+    if asyncio:
+        def _run_asyncio_loop(self):
+            @asyncio.coroutine
+            def _asyncio_loop():
+                logger.debug('asyncio thread start ...')
+                while self.connected:
+                    yield from asyncio.sleep(0.001)
+                logger.debug('asyncio thread exit ...')
+
+            try:
+                asyncio.set_event_loop(self._asyncio_loop)
+                self._asyncio_loop_alive = True
+                self._asyncio_loop.run_until_complete(_asyncio_loop())
+            except Exception as e:
+                pass
+
+            self._asyncio_loop_alive = False
+
+        @staticmethod
+        @asyncio.coroutine
+        def _async_run_callback(callback, msg):
+            yield from callback(msg)
+
+    def _run_callback(self, callback, msg, name='', enable_callback_thread=True):
+        try:
+            if self._asyncio_loop_alive and enable_callback_thread:
+                coroutine = self._async_run_callback(callback, msg)
+                asyncio.run_coroutine_threadsafe(coroutine, self._asyncio_loop)
+            elif self._pool is not None and enable_callback_thread:
+                self._pool.apply_async(callback, args=(msg,))
+            else:
+                callback(msg)
+        except Exception as e:
+            logger.error('run {} callback exception: {}'.format(name, e))
 
     def _core_set_modbus_baudrate(self, baudrate, use_old=False):
         """
@@ -816,6 +903,7 @@ class Base(Events):
         self._report_connect_changed_callback(False, False)
         with self._pause_cond:
             self._pause_cond.notifyAll()
+        self._clean_thread()
 
     def set_timeout(self, timeout):
         self._cmd_timeout = timeout
@@ -854,104 +942,56 @@ class Base(Events):
             self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
                                              buffer_size=1024 if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
 
+    def __report_callback(self, report_id, item, name=''):
+        if report_id in self._report_callbacks.keys():
+            for callback in self._report_callbacks[report_id]:
+                self._run_callback(callback, item, name=name)
+
     def _report_connect_changed_callback(self, main_connected=None, report_connected=None):
         if self.REPORT_CONNECT_CHANGED_ID in self._report_callbacks.keys():
             for callback in self._report_callbacks[self.REPORT_CONNECT_CHANGED_ID]:
-                try:
-                    callback({
-                        'connected': self._stream and self._stream.connected if main_connected is None else main_connected,
-                        'reported': self._stream_report and self._stream_report.connected if report_connected is None else report_connected,
-                    })
-                except Exception as e:
-                    logger.error('connect changed callback: {}'.format(e))
+                self._run_callback(callback, {
+                    'connected': self._stream and self._stream.connected if main_connected is None else main_connected,
+                    'reported': self._stream_report and self._stream_report.connected if report_connected is None else report_connected,
+                }, name='connect_changed')
 
     def _report_state_changed_callback(self):
         if self._ignore_state:
             return
-        if self.REPORT_STATE_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_STATE_CHANGED_ID]:
-                try:
-                    callback({
-                        'state': self._state
-                    })
-                except Exception as e:
-                    logger.error('state changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_STATE_CHANGED_ID, {'state': self._state}, name='state_changed')
 
     def _report_mode_changed_callback(self):
-        if self.REPORT_MODE_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_MODE_CHANGED_ID]:
-                try:
-                    callback({
-                        'mode': self._mode
-                    })
-                except Exception as e:
-                    logger.error('mode changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_MODE_CHANGED_ID, {'mode': self._mode}, name='mode_changed')
 
     def _report_mtable_mtbrake_changed_callback(self):
-        if self.REPORT_MTABLE_MTBRAKE_CHANGED_ID in self._report_callbacks.keys():
-            mtable = [bool(i) for i in self._arm_motor_enable_states]
-            mtbrake = [bool(i) for i in self._arm_motor_brake_states]
-            for callback in self._report_callbacks[self.REPORT_MTABLE_MTBRAKE_CHANGED_ID]:
-                try:
-                    callback({
-                        'mtable': mtable.copy(),
-                        'mtbrake': mtbrake.copy()
-                    })
-                except Exception as e:
-                    logger.error('mtable/mtbrake changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_MTABLE_MTBRAKE_CHANGED_ID, {
+            'mtable': [bool(i) for i in self._arm_motor_enable_states],
+            'mtbrake': [bool(i) for i in self._arm_motor_brake_states]
+        }, name='(mtable/mtbrake)_changed')
 
     def _report_error_warn_changed_callback(self):
         if self._ignore_error:
             return
-        if self.REPORT_ERROR_WARN_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_ERROR_WARN_CHANGED_ID]:
-                try:
-                    callback({
-                        'warn_code': self._warn_code,
-                        'error_code': self._error_code,
-                    })
-                except Exception as e:
-                    logger.error('error warn changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_ERROR_WARN_CHANGED_ID, {
+            'warn_code': self._warn_code,
+            'error_code': self._error_code,
+        }, name='(error/warn)_changed')
 
     def _report_cmdnum_changed_callback(self):
-        if self.REPORT_CMDNUM_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_CMDNUM_CHANGED_ID]:
-                try:
-                    callback({
-                        'cmdnum': self._cmd_num,
-                    })
-                except Exception as e:
-                    logger.error('cmdnum changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_CMDNUM_CHANGED_ID, {
+            'cmdnum': self._cmd_num
+        }, name='cmdnum_changed')
 
     def _report_temperature_changed_callback(self):
-        if self.REPORT_TEMPERATURE_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_TEMPERATURE_CHANGED_ID]:
-                try:
-                    callback({
-                        'temperatures': self.temperatures,
-                    })
-                except Exception as e:
-                    logger.error('temperature changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_TEMPERATURE_CHANGED_ID, {
+            'temperatures': self.temperatures
+        }, name='temperature_changed')
 
     def _report_count_changed_callback(self):
-        if self.REPORT_COUNT_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_COUNT_CHANGED_ID]:
-                try:
-                    callback({
-                        'count': self._count
-                    })
-                except Exception as e:
-                    logger.error('count changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_STATE_CHANGED_ID, {'count': self._count}, name='count_changed')
 
     def _report_iden_progress_changed_callback(self):
-        if self.REPORT_IDEN_PROGRESS_CHANGED_ID in self._report_callbacks.keys():
-            for callback in self._report_callbacks[self.REPORT_IDEN_PROGRESS_CHANGED_ID]:
-                try:
-                    callback({
-                        'progress': self._iden_progress
-                    })
-                except Exception as e:
-                    logger.error('iden progress changed callback: {}'.format(e))
+        self.__report_callback(self.REPORT_IDEN_PROGRESS_CHANGED_ID, {'progress': self._iden_progress}, name='iden_progress_changed')
 
     def _report_location_callback(self):
         if self.REPORT_LOCATION_ID in self._report_callbacks.keys():
@@ -962,10 +1002,7 @@ class Base(Events):
                     ret['cartesian'] = self.position.copy()
                 if item['joints']:
                     ret['joints'] = self.angles.copy()
-                try:
-                    callback(ret)
-                except Exception as e:
-                    logger.error('location callback: {}'.format(e))
+                self._run_callback(callback, ret, name='location')
 
     def _report_callback(self):
         if self.REPORT_ID in self._report_callbacks.keys():
@@ -990,13 +1027,108 @@ class Base(Events):
                     ret['mtbrake'] = mtbrake.copy()
                 if item['cmdnum']:
                     ret['cmdnum'] = self._cmd_num
-                try:
-                    callback(ret)
-                except Exception as e:
-                    logger.error('report callback: {}'.format(e))
+                self._run_callback(callback, ret, name='report')
 
-    def _report_thread_handle_old(self):
-        def __handle_report_normal(rx_data):
+    def _report_thread_handle(self):
+        main_socket_connected = self._stream and self._stream.connected
+        report_socket_connected = self._stream_report and self._stream_report.connected
+        buffer = b''
+        size = 0
+
+        def put_to_report_que(item):
+            while self.connected:
+                if self._report_que.qsize() > 0:
+                    try:
+                        self._report_que.get(timeout=1)
+                        print('======')
+                    except:
+                        time.sleep(0.001)
+                        continue
+                self._report_que.put(item)
+                break
+
+        while self.connected:
+            try:
+                if not self._stream_report or not self._stream_report.connected:
+                    self.get_err_warn_code()
+                    if report_socket_connected:
+                        report_socket_connected = False
+                        self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
+                    self._connect_report()
+                    buffer = b''
+                    size = 0
+                    continue
+                if not report_socket_connected:
+                    report_socket_connected = True
+                    self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
+                recv_data = self._stream_report.read(1)
+                if recv_data != -1:
+                    buffer += recv_data
+                    if len(buffer) < 4:
+                        continue
+                    if size == 0:
+                        size = convert.bytes_to_u32(buffer[0:4])
+                    if len(buffer) < size:
+                        continue
+
+                    if size == 87:
+                        start_inx = (len(buffer) // size - 1) * size
+                        end_inx = start_inx + size
+                        data = buffer[start_inx:end_inx]
+                        buffer = buffer[end_inx:]
+                        put_to_report_que({'type': 'normal', 'data': data})
+                    elif 180 <= size <= 256:
+                        start_inx = (len(buffer) // size - 1) * size
+                        end_inx = start_inx + size
+                        data = buffer[start_inx:end_inx]
+                        buffer = buffer[end_inx:]
+                        put_to_report_que({'type': 'rich', 'data': data})
+                    elif self._is_old_protocol and size > 256:
+                        self._is_old_protocol = False
+                        self._stream_report.close()
+                        continue
+
+                    if size == 233 and len(buffer) >= 245:
+                        start_inx = (len(buffer) // 245 - 1) * 245
+                        end_inx = start_inx + 245
+                    else:
+                        start_inx = (len(buffer) // size - 1) * size
+                        end_inx = start_inx + size
+                    data = buffer[start_inx:end_inx]
+                    buffer = buffer[end_inx:]
+                    if self._is_old_protocol:
+                        if size > 256:
+                            self._is_old_protocol = False
+                        elif size == 87:
+                            put_to_report_que({'type': 'normal', 'data': data})
+                        elif 187 <= size <= 256:
+                            put_to_report_que({'type': 'rich', 'data': data})
+                    if not self._is_old_protocol:
+                        put_to_report_que({'type': self._report_type, 'data': data})
+                else:
+                    if self.connected:
+                        code, err_warn = self.get_err_warn_code()
+                        if code == -1 or code == 3:
+                            break
+                    if not self.connected:
+                        break
+                    elif not self._stream_report or not self._stream_report.connected:
+                        self._connect_report()
+            except Exception as e:
+                logger.error(e)
+                if self.connected:
+                    code, err_warn = self.get_err_warn_code()
+                    if code == -1 or code == 3:
+                        break
+                if not self.connected:
+                    break
+                if not self._stream_report or not self._stream_report.connected:
+                    self._connect_report()
+            time.sleep(0.001)
+        self.disconnect()
+
+    def _callback_thread_handle(self):
+        def __handle_report_normal_old(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mtbrake, mtable, error_code, warn_code = rx_data[4:9]
             angles = convert.bytes_to_fp32s(rx_data[9:7 * 4 + 9], 7)
@@ -1130,7 +1262,7 @@ class Base(Events):
                 self._sync()
                 self._is_sync = True
 
-        def __handle_report_rich(rx_data):
+        def __handle_report_rich_old(rx_data):
             report_time = time.time()
             interval = report_time - self._last_report_time
             self._max_report_interval = max(self._max_report_interval, interval)
@@ -1186,33 +1318,6 @@ class Base(Events):
             sv3_msg = convert.bytes_to_u16s(rx_data[171:187], 8)
             self._first_report_over = True
 
-        main_socket_connected = self._stream and self._stream.connected
-        report_socket_connected = self._stream_report and self._stream_report.connected
-        while self._stream and self._stream.connected:
-            try:
-                if not self._stream_report or not self._stream_report.connected:
-                    self.get_err_warn_code()
-                    if report_socket_connected:
-                        report_socket_connected = False
-                        self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                    self._connect_report()
-                    continue
-                if not report_socket_connected:
-                    report_socket_connected = True
-                    self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                rx_data = self._stream_report.read()
-                if rx_data != -1 and len(rx_data) >= 87:
-                    if len(rx_data) == 87:
-                        __handle_report_normal(rx_data)
-                    elif len(rx_data) >= 187:
-                        __handle_report_rich(rx_data)
-            except Exception as e:
-                logger.error(e)
-            time.sleep(0.001)
-        self.disconnect()
-        self._report_connect_changed_callback(False, False)
-
-    def _report_thread_handle(self):
         def __handle_report_real(rx_data):
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
             cmd_num = convert.bytes_to_u16(rx_data[5:7])
@@ -1560,80 +1665,28 @@ class Base(Events):
                     pose_aa[i] = filter_invaild_number(pose_aa[i], 6, default=self._pose_aa[i])
                 self._pose_aa = self._position[:3] + pose_aa
 
-        main_socket_connected = self._stream and self._stream.connected
-        report_socket_connected = self._stream_report and self._stream_report.connected
-        buffer = b''
-        size = 0
-        while self._stream and self._stream.connected:
+        while self.connected:
             try:
-                if not self._stream_report or not self._stream_report.connected:
-                    self.get_err_warn_code()
-                    if report_socket_connected:
-                        report_socket_connected = False
-                        self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                    self._connect_report()
-                    buffer = b''
-                    size = 0
-                    continue
-                if not report_socket_connected:
-                    report_socket_connected = True
-                    self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
-                recv_data = self._stream_report.read(1)
-                if recv_data != -1:
-                    buffer += recv_data
-                    if len(buffer) < 4:
-                        continue
-                    if size == 0:
-                        size = convert.bytes_to_u32(buffer[0:4])
-                    if len(buffer) < size:
-                        continue
-                    if self._report_type == 'real':
-                        start_inx = (len(buffer) // size - 1) * size
-                        end_inx = start_inx + size
-                        data = buffer[start_inx:end_inx]
-                        buffer = buffer[end_inx:]
-                        __handle_report_real(data)
-                    elif size >= XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE:
-                        if size >= XCONF.SocketConf.TCP_REPORT_RICH_BUF_SIZE:
-                            if size == 233 and len(buffer) == 245:
-                                start_inx = (len(buffer) // 245 - 1) * 245
-                                end_inx = start_inx + 245
-                                data = buffer[start_inx:end_inx]
-                                buffer = buffer[end_inx:]
-                            else:
-                                start_inx = (len(buffer) // size - 1) * size
-                                end_inx = start_inx + size
-                                data = buffer[start_inx:end_inx]
-                                buffer = buffer[end_inx:]
-                            __handle_report_rich(data)
-                        else:
-                            start_inx = (len(buffer) // size - 1) * size
-                            end_inx = start_inx + size
-                            data = buffer[start_inx:end_inx]
-                            buffer = buffer[end_inx:]
-                            __handle_report_normal(data)
-                else:
-                    if self._stream and self._stream.connected:
-                        code, err_warn = self.get_err_warn_code()
-                        if code == -1 or code == 3:
-                            break
-                    if not self._stream or not self._stream.connected:
-                        break
-                    elif not self._stream_report or not self._stream_report.connected:
-                        self._connect_report()
+                item = self._report_que.get(timeout=1)
             except Exception as e:
-                logger.error(e)
-                if self._stream and self._stream.connected:
-                    code, err_warn = self.get_err_warn_code()
-                    if code == -1 or code == 3:
-                        break
-                if not self._stream or not self._stream.connected:
-                    break
-                if not self._stream_report or not self._stream_report.connected:
-                    self._connect_report()
-            time.sleep(0.001)
-        self.disconnect()
-        self._report_connect_changed_callback(False, False)
+                time.sleep(0.0001)
+                continue
+            else:
+                try:
+                    if item['type'] == 'real':
+                        __handle_report_real(item['data'])
+                    elif item['type'] == 'rich':
+                        if self._is_old_protocol:
+                            __handle_report_rich_old(item['data'])
+                        else:
+                            __handle_report_rich(item['data'])
+                    else:
+                        if self._is_old_protocol:
+                            __handle_report_normal_old(item['data'])
+                        else:
+                            __handle_report_normal(item['data'])
+                except Exception as e:
+                    logger.error(e)
 
     def _auto_get_report_thread(self):
         logger.debug('get report thread start')
@@ -1684,7 +1737,7 @@ class Base(Events):
                 time.sleep(0.1)
             except:
                 pass
-        self._report_connect_changed_callback(False, False)
+        self.disconnect()
         logger.debug('get report thread stopped')
 
     def _sync_tcp(self, index=None):
@@ -1871,7 +1924,7 @@ class Base(Events):
             split_inx = robot_sn.find('\0')
             self._robot_sn = robot_sn[:split_inx]
             control_box_sn = robot_sn[split_inx+1:]
-            self._control_box_sn = control_box_sn[:control_box_sn.find('\0')]
+            self._control_box_sn = control_box_sn[:control_box_sn.find('\0')].strip()
             self._arm_type_is_1300 = int(self._robot_sn[2:6]) >= 1300 if self._robot_sn[2:6].isdigit() else False
             self._control_box_type_is_1300 = int(self._control_box_sn[2:6]) >= 1300 if self._control_box_sn[2:6].isdigit() else False
         return ret[0], self._robot_sn

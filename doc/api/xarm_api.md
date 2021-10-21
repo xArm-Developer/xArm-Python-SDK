@@ -692,17 +692,16 @@ Config the Controller GPIO reset the digital output when the robot is in stop st
     code: See the API code documentation for details.
 ```
 
-#### def __config_force_control__(self, coord, c_axis, f_ref, limits):
+#### def __config_force_control__(self, coord, c_axis, f_ref, limits, **kwargs):
 
 ```
 Set force control parameters.
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :param coord:  task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
-:param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in
-               order to achieve the specified force/torque.
+:param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
 :param limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
 :return: code
     code: See the API code documentation for details.
@@ -770,13 +769,14 @@ Note:
 ```
 Get force mode
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :return: tuple((code, app_code))
     code: See the API code documentation for details.
-    app_code: 0: non-force mode
-            1: impedance control mode
-            2: force control mode
+    app_code: 
+        0: non-force mode
+        1: impedance control mode
+        2: force control mode
 ```
 
 #### def __ft_sensor_app_set__(self, app_code):
@@ -784,9 +784,12 @@ Note:
 ```
 Set robot to be controlled in force mode
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
-:param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
+:param app_code: force mode.
+    0: non-force mode
+    1: impendance control
+    2: force control
 :return: code
     code: See the API code documentation for details.
 ```
@@ -810,7 +813,7 @@ Note:
 ```
 Used for enabling and disabling the use of external F/T measurements in the controller.
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :param on_off: enable or disable F/T data sampling.
 :return: code
@@ -820,9 +823,9 @@ Note:
 #### def __ft_sensor_iden_load__(self):
 
 ```
-Identification the tcp load with ftsensor.
+Identification the tcp load with the extenal force/torque sersor
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :return: tuple((code, load)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -832,9 +835,9 @@ Note:
 #### def __ft_sensor_set_zero__(self):
 
 ```
-Set force/torque offset.
+Set the current state to the zero point of the extenal force/torque sersor
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :return: code
     code: See the API code documentation for details.
@@ -964,7 +967,7 @@ Get forward kinematics
 #### def __get_ft_senfor_config__(self):
 
 ```
-Get the config of the extenal force/torque
+Get the config of the extenal force/torque sersor
 Note:
     1. only available if firmware_version >= 1.8.3
     
@@ -995,7 +998,7 @@ Note:
             1: tool frame.
         [15] f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
         [16] f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
-        [17] f_limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
+        [17] f_limits: reversed.
         [18] kp: proportional gain
         [19] ki: integral gain.
         [20] kd: differential gain.
@@ -1005,13 +1008,14 @@ Note:
 #### def __get_ft_sensor_data__(self):
 
 ```
-Get the data of the extenal force/torque
+Get the data of the extenal force/torque sersor
 Note:
     1. only available if firmware_version >= 1.8.3
 
 :return: tuple((code, exe_ft))
     code: See the API code documentation for details.
     ft_data: only when code is 0, the returned result is correct.
+        Note: The external force detection value of the extenal force/torque sensor after filtering, load and offset compensation
 ```
 
 #### def __get_gripper_err_code__(self, **kwargs):
@@ -2330,12 +2334,12 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __set_force_control_pid__(self, kp, ki, kd, xe_limit):
+#### def __set_force_control_pid__(self, kp, ki, kd, xe_limit, **kwargs):
 
 ```
 Set force control pid parameters.
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :param kp: proportional gain.
 :param ki: integral gain.
@@ -2407,18 +2411,19 @@ Set the gripper speed
     code: See the Gripper code documentation for details.
 ```
 
-#### def __set_impedance__(self, coord, c_axis, M, K, B):
+#### def __set_impedance__(self, coord, c_axis, M, K, B, **kwargs):
 
 ```
 Set all parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
 :param M: mass. (kg)
 :param K: stiffness coefficient.
-:param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+:param B: damping coefficient. invalid.
+    Note: the value is set to 2*sqrt(M*K) in controller.
 :return: code
     code: See the API code documentation for details.
 ```
@@ -2428,7 +2433,7 @@ Note:
 ```
 Set impedance control parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2436,16 +2441,17 @@ Note:
     code: See the API code documentation for details.
 ```
 
-#### def __set_impedance_mbk__(self, M, K, B):
+#### def __set_impedance_mbk__(self, M, K, B, **kwargs):
 
 ```
 Set mbk parameters of impedance control.
 Note:
-    1. only available if firmware_version >= 1.8.0
+    1. only available if firmware_version >= 1.8.3
 
 :param M: mass. (kg)
 :param K: stiffness coefficient.
-:param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+:param B: damping coefficient. invalid.
+    Note: the value is set to 2*sqrt(M*K) in controller.
 :return: code
     code: See the API code documentation for details.
 ```

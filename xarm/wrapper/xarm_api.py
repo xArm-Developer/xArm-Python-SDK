@@ -2928,41 +2928,43 @@ class XArmAPI(object):
         """
         return self._arm.get_base_board_version(board_id)
 
-    def set_impedance(self, coord, c_axis, M, K, B):
+    def set_impedance(self, coord, c_axis, M, K, B, **kwargs):
         """
         Set all parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :param coord: task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
         :param M: mass. (kg)
         :param K: stiffness coefficient.
-        :param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+        :param B: damping coefficient. invalid.
+            Note: the value is set to 2*sqrt(M*K) in controller.
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_impedance(coord, c_axis, M, K, B)
+        return self._arm.set_impedance(coord, c_axis, M, K, B, **kwargs)
 
-    def set_impedance_mbk(self, M, K, B):
+    def set_impedance_mbk(self, M, K, B, **kwargs):
         """
         Set mbk parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :param M: mass. (kg)
         :param K: stiffness coefficient.
-        :param B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
+        :param B: damping coefficient. invalid.
+            Note: the value is set to 2*sqrt(M*K) in controller.
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_impedance_mbk(M, K, B)
+        return self._arm.set_impedance_mbk(M, K, B, **kwargs)
 
     def set_impedance_config(self, coord, c_axis):
         """
         Set impedance control parameters of impedance control.
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :param coord: task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2971,27 +2973,26 @@ class XArmAPI(object):
         """
         return self._arm.set_impedance_config(coord, c_axis)
 
-    def config_force_control(self, coord, c_axis, f_ref, limits):
+    def config_force_control(self, coord, c_axis, f_ref, limits, **kwargs):
         """
         Set force control parameters.
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :param coord:  task frame. 0: base frame. 1: tool frame.
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
-        :param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in
-                       order to achieve the specified force/torque.
+        :param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
         :param limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.config_force_control(coord, c_axis, f_ref, limits)
+        return self._arm.config_force_control(coord, c_axis, f_ref, limits, **kwargs)
 
-    def set_force_control_pid(self, kp, ki, kd, xe_limit):
+    def set_force_control_pid(self, kp, ki, kd, xe_limit, **kwargs):
         """
         Set force control pid parameters.
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :param kp: proportional gain.
         :param ki: integral gain.
@@ -3000,13 +3001,13 @@ class XArmAPI(object):
         :return: code
             code: See the API code documentation for details.
         """
-        return self._arm.set_force_control_pid(kp, ki, kd, xe_limit)
+        return self._arm.set_force_control_pid(kp, ki, kd, xe_limit, **kwargs)
 
     def ft_sensor_set_zero(self):
         """
-        Set force/torque offset.
+        Set the current state to the zero point of the extenal force/torque sersor
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :return: code
             code: See the API code documentation for details.
@@ -3015,9 +3016,9 @@ class XArmAPI(object):
 
     def ft_sensor_iden_load(self):
         """
-        Identification the tcp load with ftsensor.
+        Identification the tcp load with the extenal force/torque sersor
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :return: tuple((code, load)) only when code is 0, the returned result is correct.
             code:  See the API code documentation for details.
@@ -3043,7 +3044,7 @@ class XArmAPI(object):
         """
         Used for enabling and disabling the use of external F/T measurements in the controller.
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :param on_off: enable or disable F/T data sampling.
         :return: code
@@ -3055,9 +3056,12 @@ class XArmAPI(object):
         """
         Set robot to be controlled in force mode
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
-        :param app_code: force mode. 0: non-force mode  1: impendance control  2:force control
+        :param app_code: force mode.
+            0: non-force mode
+            1: impendance control
+            2: force control
         :return: code
             code: See the API code documentation for details.
         """
@@ -3067,31 +3071,33 @@ class XArmAPI(object):
         """
         Get force mode
         Note:
-            1. only available if firmware_version >= 1.8.0
+            1. only available if firmware_version >= 1.8.3
 
         :return: tuple((code, app_code))
             code: See the API code documentation for details.
-            app_code: 0: non-force mode
-                    1: impedance control mode
-                    2: force control mode
+            app_code: 
+                0: non-force mode
+                1: impedance control mode
+                2: force control mode
         """
         return self._arm.ft_sensor_app_get()
 
     def get_ft_sensor_data(self):
         """
-        Get the data of the extenal force/torque
+        Get the data of the extenal force/torque sersor
         Note:
             1. only available if firmware_version >= 1.8.3
 
         :return: tuple((code, exe_ft))
             code: See the API code documentation for details.
             ft_data: only when code is 0, the returned result is correct.
+                Note: The external force detection value of the extenal force/torque sensor after filtering, load and offset compensation
         """
         return self._arm.get_ft_sensor_data()
 
     def get_ft_senfor_config(self):
         """
-        Get the config of the extenal force/torque
+        Get the config of the extenal force/torque sersor
         Note:
             1. only available if firmware_version >= 1.8.3
             
@@ -3122,7 +3128,7 @@ class XArmAPI(object):
                     1: tool frame.
                 [15] f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
                 [16] f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
-                [17] f_limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
+                [17] f_limits: reversed.
                 [18] kp: proportional gain
                 [19] ki: integral gain.
                 [20] kd: differential gain.

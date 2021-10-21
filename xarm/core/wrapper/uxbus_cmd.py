@@ -1024,7 +1024,6 @@ class UxbusCmd(object):
 
     def ft_sensor_app_set(self, app_code):
         txdata = [app_code]
-        # return self.getset_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1, 1)
         return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_APP, txdata, 1)
 
     def ft_sensor_app_get(self):

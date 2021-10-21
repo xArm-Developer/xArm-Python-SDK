@@ -30,6 +30,12 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.8.4
+  - Support six-dimensional torque sensor (not a third party)
+  - Add threads to handle callbacks
+  - Fixed frequent switching of the pause state causing the program to hang
+  - Fix the program hangs when setting the mechanical claw position in speed mode
+
 - > ### 1.8.0
 
   - Support for blocky code conversion and operation of xArmStudio-1.8.0
@@ -43,10 +49,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   - Support for blocky code conversion and operation of xArmStudio1.6.9
   - Support velocity control
   - Support calibrate tcp offset and user offset
-
-- > ### 1.6.5
-
-  - Support for blocky code conversion and operation of xArmStudio1.6.5
 
 - >### [More](ReleaseNotes.md)
 
@@ -308,6 +310,23 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_linear_track_back_origin(...)
   arm.set_linear_track_pos(...)
   arm.set_linear_track_stop(...)
+  ```
+
+- #### FT Sensor
+  ```python
+  arm.set_impedance(...)
+  arm.set_impedance_mbk(...)
+  arm.set_impedance_config(...)
+  arm.config_force_control(...)
+  arm.set_force_control_pid(...)
+  arm.ft_sensor_set_zero(...)
+  arm.ft_sensor_iden_load(...)
+  arm.ft_sensor_cali_load(...)
+  arm.ft_sensor_enable(...)
+  arm.ft_sensor_app_set(...)
+  arm.ft_sensor_app_get(...)
+  arm.get_ft_sensor_data(...)
+  arm.get_ft_senfor_config(...)
   ```
 
 - #### Other

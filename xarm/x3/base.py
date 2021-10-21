@@ -34,6 +34,8 @@ from ..version import __version__
 controller_error_keys = ControllerErrorCodeMap.keys()
 controller_warn_keys = ControllerWarnCodeMap.keys()
 
+print('SDK_VERSION: {}'.format(__version__))
+
 
 class Base(Events):
     def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
@@ -207,7 +209,6 @@ class Base(Events):
             self._has_motion_cmd = False
             self._need_sync = False
 
-            print('SDK_VERSION: {}'.format(__version__))
             if not do_not_open:
                 self.connect()
 

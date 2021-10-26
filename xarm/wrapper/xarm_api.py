@@ -3136,6 +3136,16 @@ class XArmAPI(object):
         """
         return self._arm.get_ft_senfor_config()
 
+    def get_ft_sensor_error(self):
+        """
+        Get the error code of the extenal force/torque sersor
+        
+        :return: tuple((code, error))
+            code: See the API code documentation for details.
+            error: See the API code documentation for details.
+        """
+        return self._arm.get_ft_sensor_error()
+
     def iden_tcp_load(self):
         """
         Identification the tcp load with current

@@ -1069,6 +1069,22 @@ class UxbusCmd(object):
             ]
         return ret
 
+    @lock_require
+    def ft_sensor_get_error(self):
+        txdata = bytes([8])
+        txdata += convert.u16_to_bytes(0x0010)
+        ret = self.send_xbus(XCONF.UxbusReg.SERVO_R16B, txdata, 3)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.SERVO_R16B, 4, XCONF.UxbusConf.GET_TIMEOUT)
+        if ret[0] in [0, 1, 2]:
+            if convert.bytes_to_long_big(ret[1:5]) == 27:
+                return [ret[0], 0]
+            else:
+                return [ret[0], ret[3]]
+        return [ret[0], 0]
+
     def cali_tcp_pose(self, four_pnts):
         txdata = []
         for k in range(4):

@@ -1018,6 +1018,16 @@ Note:
         Note: The external force detection value of the extenal force/torque sensor after filtering, load and offset compensation
 ```
 
+#### def __get_ft_sensor_error__(self):
+
+```
+Get the error code of the extenal force/torque sersor
+
+:return: tuple((code, error))
+    code: See the API code documentation for details.
+    error: See the API code documentation for details.
+```
+
 #### def __get_gripper_err_code__(self, **kwargs):
 
 ```

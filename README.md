@@ -33,8 +33,10 @@ Install is not necessary, you can run examples without installation.Only Python3
 - > ### 1.8.4
   - Support six-dimensional torque sensor (not a third party)
   - Add threads to handle callbacks
+  - Modify the reporting processing logic and optimize the processing of sticky packets
   - Fixed frequent switching of the pause state causing the program to hang
   - Fix the program hangs when setting the mechanical claw position in speed mode
+  - Fix relative movement in unsynchronized position
 
 - > ### 1.8.0
 
@@ -327,6 +329,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.ft_sensor_app_get(...)
   arm.get_ft_sensor_data(...)
   arm.get_ft_senfor_config(...)
+  arm.get_ft_sensor_error(...)
   ```
 
 - #### Other

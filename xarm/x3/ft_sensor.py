@@ -182,3 +182,9 @@ class FtSensor(Base):
         ret = self.arm_cmd.ft_senfor_get_config()
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1:]
+
+    @xarm_is_connected(_type='get')
+    def get_ft_sensor_error(self):
+        ret = self.arm_cmd.ft_sensor_get_error()
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1]

@@ -1180,6 +1180,109 @@ LinearTrackErrorCodeMap = {
     },
 }
 
+FtSensorErrorCodeMap = {
+    64: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Communication Failure',
+            'desc': '',
+        },
+        'cn': {
+            'title': '力矩出现通讯中断',
+            'desc': '',
+        }
+    },
+    65: {
+        'en': {
+            'title': 'The Data Collected by the Six-axis Force Torque Sensor is Abnormal',
+            'desc': '',
+        },
+        'cn': {
+            'title': '力矩采集数据不变化',
+            'desc': '',
+        }
+    },
+    66: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor X-direction Torque Exceeds Limit',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器的Fx超限',
+            'desc': '',
+        }
+    },
+    67: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Y-direction Torque Exceeds Limit',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器的Fy超限',
+            'desc': '',
+        }
+    },
+    68: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Z-direction Torque Exceeds Limitrection',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器的Fz超限',
+            'desc': '',
+        }
+    },
+    69: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Tx Torque Exceeds Limit',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器的Tx超限',
+            'desc': '',
+        }
+    },
+    70: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Ty direction Torque Exceeds Limit',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器的Ty超限',
+            'desc': '',
+        }
+    },
+    71: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Tz direction Torque Exceeds Limit',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器的Tz超限',
+            'desc': '',
+        }
+    },
+    73: {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Failed to Initialize',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器初始化不成功',
+            'desc': '',
+        }
+    },
+    'other': {
+        'en': {
+            'title': 'Six-axis Force Torque Sensor Error',
+            'desc': '',
+        },
+        'cn': {
+            'title': '六维力矩传感器异常',
+            'desc': '',
+        }
+    },
+}
+
 
 class BaseCode(object):
     def __init__(self, code, status=0):
@@ -1257,3 +1360,8 @@ class LinearTrackError(BaseCode):
         self._code_map = LinearTrackErrorCodeMap
         super(LinearTrackError, self).__init__(code, status=status)
 
+
+class FtSensorError(BaseCode):
+    def __init__(self, code, status=0):
+        self._code_map = FtSensorErrorCodeMap
+        super(FtSensorError, self).__init__(code, status=status)

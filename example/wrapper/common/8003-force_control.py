@@ -44,28 +44,35 @@ arm.set_mode(0)
 arm.set_state(0)
 time.sleep(0.1)
 
-# set parmeters
-Kp = 0.005
-Ki = 0.00006
-Kd = 0.000
-xe_max = 100.0
-arm.set_force_control_pid([Kp]*6, [Ki]*6, [Kd]*6, [xe_max]*6)
+# set pid parmeters for force control
+Kp = 0.005  # range: 0 ~ 0.05
+Ki = 0.00006 # range: 0 ~ 0.0005
+Kd = 0.000  # range: 0 ~ 0.05
+v_max = 100.0 # max adjust velocity(mm/s), range: 0 ~ 200
+arm.set_force_control_pid([Kp]*6, [Ki]*6, [Kd]*6, [v_max]*6)
 
-ref_frame = 0        # 1 : base , 0 : tool
-force_axis = [0, 0, 1, 0, 0, 0]
-force_ref = [0, 0, 2.0 , 0, 0, 0]
-arm.config_force_control(ref_frame,  force_axis, force_ref, [0]*6)
+ref_frame = 1        # 0 : base , 1 : tool
+force_axis = [0, 0, 1, 0, 0, 0] # only control force along z axis
+# MAKE SURE reference frame and force taget sign are correct !!
+force_ref = [0, 0, 5.0, 0, 0, 0] # the force(N) that xArm will apply to the environment
+arm.config_force_control(ref_frame,  force_axis, force_ref, [0]*6) # limits are reserved, just give zeros
 
+# enable ft sensor communication
 arm.ft_sensor_enable(1)
-arm.ft_sensor_set_zero()
-time.sleep(0.2)
+
+# will overwrite previous sensor zero and payload configuration
+arm.ft_sensor_set_zero() # remove this if zero_offset and payload already identified & compensated!
+time.sleep(0.2) # wait for writting zero operation to take effect, do not remove
 
 # move robot in force control
 arm.ft_sensor_app_set(2)
+# will start after set_state(0)
 arm.set_state(0)
 
+# keep for 5 secs
 time.sleep(5)
 
+# remember to reset ft_sensor_app when finished
 arm.ft_sensor_app_set(0)
 arm.ft_sensor_enable(0)
 arm.disconnect()

@@ -207,7 +207,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def _set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
-        if wait or kwargs.get('wait_motion', True):
+        if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()
@@ -439,7 +439,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def _set_modbus_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
-        if wait or kwargs.get('wait_motion', True):
+        if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()
@@ -579,7 +579,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_position(self, pos, speed=0, wait=True, timeout=5, **kwargs):
-        if wait or kwargs.get('wait_motion', True):
+        if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()

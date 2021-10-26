@@ -99,7 +99,7 @@ class RobotIQ(Base):
 
     @xarm_is_connected(_type='get')
     def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
-        if wait or kwargs.get('wait_motion', True):
+        if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()

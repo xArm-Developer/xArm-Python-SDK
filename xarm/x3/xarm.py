@@ -69,6 +69,21 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 self.log_api_info('API -> set_servo_angle -> out_of_joint_range -> code={}, i={} value={}'.format(APIState.OUT_OF_RANGE, i, angle), code=APIState.OUT_OF_RANGE)
                 return True
         return False
+    
+    def _wait_first_sync(self, relative=False):
+        if not relative:
+            return 0
+        while not self._is_sync or self._need_sync:
+            if not self.connected:
+                return APIState.NOT_CONNECTED
+            elif self.has_error:
+                return APIState.HAS_ERROR
+            elif not self.state_is_ready:
+                return APIState.NOT_READY
+            elif self.is_stop:
+                return APIState.EMERGENCY_STOP
+            time.sleep(0.05) 
+        return 0
 
     @xarm_is_ready(_type='set')
     @xarm_is_pause(_type='set')
@@ -76,6 +91,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
+        code = self._wait_first_sync(relative)
+        if code != 0:
+            return code
         is_radian = self._default_is_radian if is_radian is None else is_radian
         tcp_pos = [x, y, z, roll, pitch, yaw]
         last_used_position = self._last_position.copy()
@@ -322,6 +340,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         assert ((servo_id is None or servo_id == 8) and isinstance(angle, Iterable)) \
             or (1 <= servo_id <= 7 and angle is not None and not isinstance(angle, Iterable)), \
             'param servo_id or angle error'
+        code = self._wait_first_sync(relative)
+        if code != 0:
+            return code
         last_used_angle = self._last_angles.copy()
         last_used_joint_speed = self._last_joint_speed
         last_used_joint_acc = self._last_joint_acc
@@ -434,7 +455,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 return APIState.JOINT_LIMIT
 
         self._has_motion_cmd = True
-        if self.version_is_ge_1_5_20 and radius is not None and radius >= 0:
+        if self.version_is_ge(1, 5, 20) and radius is not None and radius >= 0:
             ret = self.arm_cmd.move_jointb(self._last_angles, self._last_joint_speed, self._last_joint_acc, radius)
         else:
             ret = self.arm_cmd.move_joint(self._last_angles, self._last_joint_speed, self._last_joint_acc, self._mvtime)
@@ -762,12 +783,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     @xarm_is_connected(_type='get')
     def get_reduced_states(self, is_radian=None):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge_1_2_11 else 21)
+        ret = self.arm_cmd.get_reduced_states(79 if self.version_is_ge(1, 2, 11) else 21)
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0:
             if not is_radian:
                 ret[4] = round(math.degrees(ret[4]), 1)
-                if self.version_is_ge_1_2_11:
+                if self.version_is_ge(1, 2, 11):
                     # ret[5] = list(map(math.degrees, ret[5]))
                     ret[5] = list(map(lambda x: round(math.degrees(x), 2), ret[5]))
         return ret[0], ret[1:]
@@ -978,17 +999,17 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.log_api_info('API -> set_joint_maxacc -> code={}, maxacc={}'.format(ret[0], acc), code=ret[0])
         return ret[0]
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_pause(_type='set')
-    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
-    def set_tcp_load(self, weight, center_of_gravity):
-        if compare_version(self.version_number, (0, 2, 0)):
-            _center_of_gravity = center_of_gravity
-        else:
-            _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
-        ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
-        self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
-        return ret[0]
+    # @xarm_is_connected(_type='set')
+    # @xarm_is_pause(_type='set')
+    # @xarm_wait_until_cmdnum_lt_max(only_wait=False)
+    # def set_tcp_load(self, weight, center_of_gravity):
+    #     if compare_version(self.version_number, (0, 2, 0)):
+    #         _center_of_gravity = center_of_gravity
+    #     else:
+    #         _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
+    #     ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
+    #     self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
+    #     return ret[0]
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')
@@ -1713,7 +1734,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 break
             jnt_v[i] = spd if is_radian else math.radians(spd)
 
-        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0, duration if self.version_is_ge_1_8_0 else -1)
+        ret = self.arm_cmd.vc_set_jointv(jnt_v, 1 if is_sync else 0, duration if self.version_is_ge(1, 8, 0) else -1)
         self.log_api_info('API -> vc_set_joint_velocity -> code={}, speeds={}, is_sync={}'.format(
             ret[0], jnt_v, is_sync
         ), code=ret[0])
@@ -1729,7 +1750,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             if i >= 6:
                 break
             line_v[i] = spd if i < 3 or is_radian else math.radians(spd)
-        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0, duration if self.version_is_ge_1_8_0 else -1)
+        ret = self.arm_cmd.vc_set_linev(line_v, 1 if is_tool_coord else 0, duration if self.version_is_ge(1, 8, 0) else -1)
         self.log_api_info('API -> vc_set_cartesian_velocity -> code={}, speeds={}, is_tool_coord={}'.format(
             ret[0], line_v, is_tool_coord
         ), code=ret[0])

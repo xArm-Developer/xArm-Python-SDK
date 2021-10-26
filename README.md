@@ -30,6 +30,14 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.8.4
+  - Support six-dimensional torque sensor (not a third party)
+  - Add threads to handle callbacks
+  - Modify the reporting processing logic and optimize the processing of sticky packets
+  - Fixed frequent switching of the pause state causing the program to hang
+  - Fix the program hangs when setting the mechanical claw position in speed mode
+  - Fix relative movement in unsynchronized position
+
 - > ### 1.8.0
 
   - Support for blocky code conversion and operation of xArmStudio-1.8.0
@@ -43,10 +51,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   - Support for blocky code conversion and operation of xArmStudio1.6.9
   - Support velocity control
   - Support calibrate tcp offset and user offset
-
-- > ### 1.6.5
-
-  - Support for blocky code conversion and operation of xArmStudio1.6.5
 
 - >### [More](ReleaseNotes.md)
 
@@ -129,9 +133,23 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - ##### [7002-servo_cartesian](example/wrapper/common/7002-servo_cartesian.py)
 
-- ##### [__7003-servo_cartesian_aa__](example/wrapper/common/7003-servo_cartesian_aa.py)
+- ##### [7003-servo_cartesian_aa](example/wrapper/common/7003-servo_cartesian_aa.py)
 
 - ##### [8000-load_identify_current](example/wrapper/common/8000-load_identify_current.py)
+
+- ##### [8001-force_tech](example/wrapper/common/8001-force_tech.py)
+
+- ##### [8002-impedance](example/wrapper/common/8002-impedance.py)
+
+- ##### [8003-force_control](example/wrapper/common/8003-force_control.py)
+
+- ##### [8004-load_identify](example/wrapper/common/8004-load_identify.py)
+
+- ##### [8005-read_force_data](example/wrapper/common/8005-read_force_data.py)
+
+- ##### [8006-save_force_zero](example/wrapper/common/8006-save_force_zero.py)
+
+- ##### [8010-get_ft_sensor_config](example/wrapper/common/8010-get_ft_sensor_config.py)
 
 - ##### [9000-set_linear_track](example/wrapper/common/9000-set_linear_track.py)
 
@@ -294,6 +312,24 @@ __Note: Before running the example, please modify the ip value in the [robot.con
   arm.set_linear_track_back_origin(...)
   arm.set_linear_track_pos(...)
   arm.set_linear_track_stop(...)
+  ```
+
+- #### FT Sensor
+  ```python
+  arm.set_impedance(...)
+  arm.set_impedance_mbk(...)
+  arm.set_impedance_config(...)
+  arm.config_force_control(...)
+  arm.set_force_control_pid(...)
+  arm.ft_sensor_set_zero(...)
+  arm.ft_sensor_iden_load(...)
+  arm.ft_sensor_cali_load(...)
+  arm.ft_sensor_enable(...)
+  arm.ft_sensor_app_set(...)
+  arm.ft_sensor_app_get(...)
+  arm.get_ft_sensor_data(...)
+  arm.get_ft_senfor_config(...)
+  arm.get_ft_sensor_error(...)
   ```
 
 - #### Other

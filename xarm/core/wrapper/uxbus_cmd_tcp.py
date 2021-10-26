@@ -81,7 +81,7 @@ class UxbusCmdTcp(UxbusCmd):
         return 0
 
     def send_pend(self, funcode, num, timeout):
-        ret = [0] * 254 if num == -1 else [0] * (num + 1)
+        ret = [0] * 320 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
         expired = time.time() + timeout
         while time.time() < expired:
@@ -93,7 +93,7 @@ class UxbusCmdTcp(UxbusCmd):
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
                 ret[0] = self.check_xbus_prot(rx_data, funcode)
                 if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]:
-                    num = (rx_data[5] - 2) if num == -1 else num
+                    num = (convert.bytes_to_u16(rx_data[4:6]) - 2) if num == -1 else num
                     ret = ret[:num + 1] if len(ret) <= num + 1 else [ret[0]] * (num + 1)
                     length = len(rx_data) - 8
                     for i in range(num):

@@ -6,13 +6,13 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc>
 
-
-import threading
+import time
 import queue
 import socket
 import select
-import time
+import threading
 from ..utils.log import logger
+from ..utils import convert
 
 
 class RxParse(object):
@@ -47,8 +47,11 @@ class Port(threading.Thread):
         return self._connected
 
     def run(self):
-        self.recv_proc()
-        # self.recv_loop()
+        if self.port_type == 'report-socket':
+            self.recv_report_proc()
+        else:
+            self.recv_proc()
+            # self.recv_loop()
 
     def close(self):
         self.alive = False
@@ -61,9 +64,6 @@ class Port(threading.Thread):
             self.com.close()
         except:
             pass
-        # start_time = time.time()
-        # while self.connected and time.time() - start_time < 5:
-        #     time.sleep(0.01)
 
     def flush(self, fromid=-1, toid=-1):
         if not self.connected:
@@ -104,22 +104,135 @@ class Port(threading.Thread):
         # else:
         #     return -1
 
-    def recv_loop(self):
+    # def recv_loop(self):
+    #     self.alive = True
+    #     logger.debug('[{}] recv thread start'.format(self.port_type))
+    #     try:
+    #         while self.connected and self.alive:
+    #             if 'socket' in self.port_type:
+    #                 ready_input, ready_output, ready_exception = select.select([self.com], [], [])
+    #                 for indata in ready_input:
+    #                     if indata == self.com:
+    #                         rx_data = self.com_read(self.buffer_size)
+    #                         break
+    #                 else:
+    #                     continue
+    #             else:
+    #                 rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
+    #             self.rx_parse.put(rx_data)
+    #     except Exception as e:
+    #         if self.alive:
+    #             logger.error('[{}] recv error: {}'.format(self.port_type, e))
+    #     finally:
+    #         self.close()
+    #     logger.debug('[{}] recv thread had stopped'.format(self.port_type))
+    #     self._connected = False
+
+    def recv_report_proc(self):
         self.alive = True
         logger.debug('[{}] recv thread start'.format(self.port_type))
+        failed_read_count = 0
+        timeout_count = 0
+        size = 0
+        data_num = 0
+        buffer = b''
+        size_is_not_confirm = False
+
+        data_prev_us = 0
+        data_curr_us = 0
+        data_max_interval_us = 0
+        data_over_us = 205 * 1000  # over 205ms, cnts++
+        data_over_cnts = 0
+
+        recv_prev_us = 0
+        recv_curr_us = 0
+        recv_max_interval_us = 0
+        recv_over_us = 300 * 1000  # over 300ms, cnts++
+        recv_over_cnts = 0
+
         try:
             while self.connected and self.alive:
-                if 'socket' in self.port_type:
-                    ready_input, ready_output, ready_exception = select.select([self.com], [], [])
-                    for indata in ready_input:
-                        if indata == self.com:
-                            rx_data = self.com_read(self.buffer_size)
-                            break
-                    else:
-                        continue
+                try:
+                    data = self.com_read(4 - data_num if size == 0 else (size - data_num))
+                except socket.timeout:
+                    timeout_count += 1
+                    if timeout_count > 3:
+                        self._connected = False
+                        break
+                    continue
                 else:
-                    rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
-                self.rx_parse.put(rx_data)
+                    if len(data) == 0:
+                        failed_read_count += 1
+                        if failed_read_count > 5:
+                            self._connected = False
+                            break
+                        time.sleep(0.1)
+                        continue
+                    data_num += len(data)
+                    buffer += data
+                    if size == 0:
+                        if data_num != 4:
+                            continue
+                        size = convert.bytes_to_u32(buffer[0:4])
+                        if size == 233:
+                            size_is_not_confirm = True
+                            size = 245
+                        logger.info('report_data_size: {}, size_is_not_confirm={}'.format(size, size_is_not_confirm))
+                    else:
+                        if data_num < size:
+                            continue
+                        if size_is_not_confirm:
+                            size_is_not_confirm = True
+                            if convert.bytes_to_u32(buffer[233:237]) == 233:
+                                size = 233
+                                buffer = buffer[233:]
+                                continue
+
+                        if convert.bytes_to_u32(buffer[0:4]) != size:
+                            logger.error('report data error, close, length={}, size={}'.format(convert.bytes_to_u32(buffer[0:4]), size))
+                            break
+
+                        # # buffer[494:502]
+                        # data_curr_us = convert.bytes_to_u64(buffer[-8:])
+                        # recv_curr_us = time.time() * 1000000
+                        #
+                        # if data_prev_us != 0 and recv_prev_us != 0:
+                        #     data_interval_us = data_curr_us - data_prev_us
+                        #     data_over_cnts += 1 if data_interval_us > data_over_us else 0
+                        #
+                        #     recv_interval_us = recv_curr_us - recv_prev_us
+                        #     recv_over_cnts += 1 if recv_interval_us > recv_over_us else 0
+                        #
+                        #     print_flag = False
+                        #
+                        #     if data_interval_us > data_max_interval_us:
+                        #         data_max_interval_us = data_interval_us
+                        #         print_flag = True
+                        #     elif data_interval_us > data_over_us:
+                        #         print_flag = True
+                        #
+                        #     if recv_interval_us > recv_max_interval_us:
+                        #         recv_max_interval_us = recv_interval_us
+                        #         print_flag = True
+                        #     elif recv_interval_us > recv_over_us:
+                        #         print_flag = True
+                        #
+                        #     if print_flag:
+                        #         print('[RECV] Di={}, Dmax={}, Dcnts={}, Ri={}, Rmax={}, Rcnts={}'.format(
+                        #             data_interval_us / 1000, data_max_interval_us / 1000, data_over_cnts,
+                        #             recv_interval_us / 1000, recv_max_interval_us / 1000, recv_over_cnts
+                        #         ))
+                        # data_prev_us = data_curr_us
+                        # recv_prev_us = recv_curr_us
+
+                        if self.rx_que.qsize() > 1:
+                            self.rx_que.get()
+                        self.rx_parse.put(buffer)
+                        buffer = b''
+                        data_num = 0
+
+                    timeout_count = 0
+                    failed_read_count = 0
         except Exception as e:
             if self.alive:
                 logger.error('[{}] recv error: {}'.format(self.port_type, e))

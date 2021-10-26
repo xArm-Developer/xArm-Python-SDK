@@ -2,6 +2,14 @@
 
 ## Update Summary
 
+- > ### 1.8.4
+  - Support six-dimensional torque sensor (not a third party)
+  - Add threads to handle callbacks
+  - Modify the reporting processing logic and optimize the processing of sticky packets
+  - Fixed frequent switching of the pause state causing the program to hang
+  - Fix the program hangs when setting the mechanical claw position in speed mode
+  - Fix relative movement in unsynchronized position
+
 - > ### 1.8.0
 
   - Support for blocky code conversion and operation of xArmStudio-1.8.0

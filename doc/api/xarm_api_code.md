@@ -83,6 +83,7 @@
 - 50: Force sensor read error
 - 51: Force sensor set mode error
 - 52: Force sensor set zero error
+- 53: Forque sensor is overloaded or the reading exceeds the limit
 - 110: Robot Arm Base Board Communication Error
 - 111: Control Box External 485 Device Communication Error
 
@@ -134,7 +135,7 @@
 - 11: BIO Gripper Current Overlimit
 - 12: The object slipped from the BIO Gripper
 
-## Linear Track Error Code
+## Linear Motor Error Code
 
 - 10: Linear Motor Current Detection Error
 - 11: Linear Motor Current Overlimit
@@ -152,3 +153,15 @@
 - 39: Linear Motor over voltage
 - 40: Linear Moter undervoltage
 - 49: Linear Motor EEPROM Read and Write Error
+  
+## Six-axis Force Torque Sensor Error Code
+
+- 64: Six-axis Force Torque Sensor Communication Failure
+- 65: The Data Collected by the Six-axis Force Torque Sensor is Abnormal
+- 66: Six-axis Force Torque Sensor X-direction Torque Exceeds Limit
+- 67: Six-axis Force Torque Sensor Y-direction Torque Exceeds Limit
+- 68: Six-axis Force Torque Sensor Z-direction Torque Exceeds Limitrection
+- 69: Six-axis Force Torque Sensor Tx Torque Exceeds Limit
+- 70: Six-axis Force Torque Sensor Ty direction Torque Exceeds Limit
+- 71: Six-axis Force Torque Sensor Tz direction Torque Exceeds Limit
+- 73: Six-axis Force Torque Sensor Failed to Initialize

@@ -304,7 +304,8 @@ class XCONF(object):
         SET_IO_STOP_RESET = 146
         POSITION_CGPIO_SET_ANALOG = 147
 
-        GET_EXE_FT = 150
+        FTSENSOR_GET_DATA_OLD = 150  # only available in firmware version < 1.8.3
+        FTSENSOR_GET_DATA = 200
         FTSENSOR_ENABLE = 201
         FTSENSOR_SET_APP = 202
         FTSENSOR_GET_APP = 203
@@ -316,6 +317,8 @@ class XCONF(object):
         FORCE_CTRL_CONFIG = 209
         IMPEDANCE_CTRL_MBK = 210
         IMPEDANCE_CTRL_CONFIG = 211
+        FTSENSOR_GET_CONFIG = 212
+
         GET_MAX_JOINT_VELOCITY = 231
 
     class UxbusConf:

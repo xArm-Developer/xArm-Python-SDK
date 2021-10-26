@@ -3139,6 +3139,8 @@ class XArmAPI(object):
     def get_ft_sensor_error(self):
         """
         Get the error code of the extenal force/torque sersor
+        Note:
+            1. only available if firmware_version >= 1.8.3
         
         :return: tuple((code, error))
             code: See the API code documentation for details.

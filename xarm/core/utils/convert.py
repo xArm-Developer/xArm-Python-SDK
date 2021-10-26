@@ -36,7 +36,7 @@ def bytes_to_fp32(data):
     byte += bytes([data[1]])
     byte += bytes([data[2]])
     byte += bytes([data[3]])
-    ret = struct.unpack("<f", byte)
+    ret = struct.unpack('<f', byte)
     return ret[0]
 
 
@@ -92,7 +92,7 @@ def bytes_to_16s(data, n):
     """大端字节序"""
     ret = [0] * n
     for i in range(n):
-        ret[i] = struct.unpack(">h", bytes(data[i * 2: i * 2 + 2]))[0]
+        ret[i] = struct.unpack('>h', bytes(data[i * 2: i * 2 + 2]))[0]
     return ret
 
 
@@ -100,6 +100,11 @@ def bytes_to_u32(data):
     """大端字节序"""
     data_u32 = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]
     return data_u32
+
+
+def bytes_to_u64(data):
+    data_u64 = data[0] << 56 | data[1] << 48 | data[2] << 40 | data[3] << 32 | data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7]
+    return data_u64
 
 
 def bytes_to_num32(data, fmt='>l'):

@@ -9,7 +9,6 @@
 import re
 import time
 import math
-import queue
 import threading
 try:
     from multiprocessing.pool import ThreadPool
@@ -92,8 +91,6 @@ class Base(Events):
             self.arm_cmd = None
             self._stream_report = None
             self._report_thread = None
-            self._report_que = queue.Queue()
-            self._callback_thread = None
             self._only_report_err_warn_changed = True
 
             self._last_position = [201.5, 0, 140.5, 3.1415926, 0, 0]  # [x(mm), y(mm), z(mm), roll(rad), pitch(rad), yaw(rad)]
@@ -781,21 +778,18 @@ class Base(Events):
                     raise Exception('failed to check version, close')
                 self.arm_cmd.set_debug(self._debug)
 
-                if self._max_callback_thread_count == 1 and asyncio is not None:
+                if self._max_callback_thread_count < 0 and asyncio is not None:
                     self._asyncio_loop = asyncio.new_event_loop()
                     self._asyncio_loop_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
                     self._thread_manage.append(self._asyncio_loop_thread)
                     self._asyncio_loop_thread.start()
-                elif self._max_callback_thread_count > 1 and ThreadPool is not None:
+                elif self._max_callback_thread_count > 0 and ThreadPool is not None:
                     self._pool = ThreadPool(self._max_callback_thread_count)
 
                 if self._stream.connected and self._enable_report:
                     self._report_thread = threading.Thread(target=self._report_thread_handle, daemon=True)
                     self._report_thread.start()
-                    self._callback_thread = threading.Thread(target=self._callback_thread_handle, daemon=True)
-                    self._callback_thread.start()
                     self._thread_manage.append(self._report_thread)
-                    self._thread_manage.append(self._callback_thread)
 
                 self._report_connect_changed_callback()
             else:
@@ -807,12 +801,12 @@ class Base(Events):
                 self.arm_cmd = UxbusCmdSer(self._stream)
                 self._stream_type = 'serial'
 
-                if self._max_callback_thread_count == 1 and asyncio is not None:
+                if self._max_callback_thread_count < 0 and asyncio is not None:
                     self._asyncio_loop = asyncio.new_event_loop()
                     self._asyncio_loop_thread = threading.Thread(target=self._run_asyncio_loop, daemon=True)
                     self._thread_manage.append(self._asyncio_loop_thread)
                     self._asyncio_loop_thread.start()
-                elif self._max_callback_thread_count > 1 and ThreadPool is not None:
+                elif self._max_callback_thread_count > 0 and ThreadPool is not None:
                     self._pool = ThreadPool(self._max_callback_thread_count)
 
                 if self._enable_report:
@@ -920,27 +914,20 @@ class Base(Events):
                     pass
                 time.sleep(2)
             if self._report_type == 'real':
-                self.__connect_report_real()
+                self._stream_report = SocketPort(
+                    self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
+                    buffer_size=1024 if not self._is_old_protocol else 87,
+                    forbid_uds=self._forbid_uds)
             elif self._report_type == 'normal':
-                self.__connect_report_normal()
+                self._stream_report = SocketPort(
+                    self._port, XCONF.SocketConf.TCP_REPORT_NORM_PORT,
+                    buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE if not self._is_old_protocol else 87,
+                    forbid_uds=self._forbid_uds)
             else:
-                self.__connect_report_rich()
-
-    def __connect_report_normal(self):
-        if self._stream_type == 'socket':
-            self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_NORM_PORT,
-                                             buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE
-                                             if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
-
-    def __connect_report_rich(self):
-        if self._stream_type == 'socket':
-            self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_RICH_PORT,
-                                             buffer_size=1024 if not self._is_old_protocol else 187, forbid_uds=self._forbid_uds)
-
-    def __connect_report_real(self):
-        if self._stream_type == 'socket':
-            self._stream_report = SocketPort(self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
-                                             buffer_size=1024 if not self._is_old_protocol else 87, forbid_uds=self._forbid_uds)
+                self._stream_report = SocketPort(
+                    self._port, XCONF.SocketConf.TCP_REPORT_RICH_PORT,
+                    buffer_size=1024 if not self._is_old_protocol else 187,
+                    forbid_uds=self._forbid_uds)
 
     def __report_callback(self, report_id, item, name=''):
         if report_id in self._report_callbacks.keys():
@@ -1032,19 +1019,6 @@ class Base(Events):
     def _report_thread_handle(self):
         main_socket_connected = self._stream and self._stream.connected
         report_socket_connected = self._stream_report and self._stream_report.connected
-        buffer = b''
-        size = 0
-
-        def put_to_report_que(item):
-            while self.connected:
-                if self._report_que.qsize() > 0:
-                    try:
-                        self._report_que.get(timeout=1)
-                    except:
-                        time.sleep(0.001)
-                        continue
-                self._report_que.put(item)
-                break
 
         while self.connected:
             try:
@@ -1054,56 +1028,16 @@ class Base(Events):
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                     self._connect_report()
-                    buffer = b''
-                    size = 0
                     continue
                 if not report_socket_connected:
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                 recv_data = self._stream_report.read(1)
                 if recv_data != -1:
-                    buffer += recv_data
-                    if len(buffer) < 4:
-                        continue
-                    if size == 0:
-                        size = convert.bytes_to_u32(buffer[0:4])
-                    if len(buffer) < size:
-                        continue
-
-                    if size == 87:
-                        start_inx = (len(buffer) // size - 1) * size
-                        end_inx = start_inx + size
-                        data = buffer[start_inx:end_inx]
-                        buffer = buffer[end_inx:]
-                        put_to_report_que({'type': 'normal', 'data': data})
-                    elif 180 <= size <= 256:
-                        start_inx = (len(buffer) // size - 1) * size
-                        end_inx = start_inx + size
-                        data = buffer[start_inx:end_inx]
-                        buffer = buffer[end_inx:]
-                        put_to_report_que({'type': 'rich', 'data': data})
-                    elif self._is_old_protocol and size > 256:
+                    size = convert.bytes_to_u32(recv_data)
+                    if self._is_old_protocol and size > 256:
                         self._is_old_protocol = False
-                        self._stream_report.close()
-                        continue
-
-                    if size == 233 and len(buffer) >= 245:
-                        start_inx = (len(buffer) // 245 - 1) * 245
-                        end_inx = start_inx + 245
-                    else:
-                        start_inx = (len(buffer) // size - 1) * size
-                        end_inx = start_inx + size
-                    data = buffer[start_inx:end_inx]
-                    buffer = buffer[end_inx:]
-                    if self._is_old_protocol:
-                        if size > 256:
-                            self._is_old_protocol = False
-                        elif size == 87:
-                            put_to_report_que({'type': 'normal', 'data': data})
-                        elif 187 <= size <= 256:
-                            put_to_report_que({'type': 'rich', 'data': data})
-                    if not self._is_old_protocol:
-                        put_to_report_que({'type': self._report_type, 'data': data})
+                    self._handle_report_data(recv_data)
                 else:
                     if self.connected:
                         code, err_warn = self.get_err_warn_code()
@@ -1126,7 +1060,7 @@ class Base(Events):
             time.sleep(0.001)
         self.disconnect()
 
-    def _callback_thread_handle(self):
+    def _handle_report_data(self, data):
         def __handle_report_normal_old(rx_data):
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mtbrake, mtable, error_code, warn_code = rx_data[4:9]
@@ -1664,28 +1598,21 @@ class Base(Events):
                     pose_aa[i] = filter_invaild_number(pose_aa[i], 6, default=self._pose_aa[i])
                 self._pose_aa = self._position[:3] + pose_aa
 
-        while self.connected:
-            try:
-                item = self._report_que.get(timeout=1)
-            except Exception as e:
-                time.sleep(0.0001)
-                continue
+        try:
+            if self._report_type == 'real':
+                __handle_report_real(data)
+            elif self._report_type == 'rich':
+                if self._is_old_protocol:
+                    __handle_report_rich_old(data)
+                else:
+                    __handle_report_rich(data)
             else:
-                try:
-                    if item['type'] == 'real':
-                        __handle_report_real(item['data'])
-                    elif item['type'] == 'rich':
-                        if self._is_old_protocol:
-                            __handle_report_rich_old(item['data'])
-                        else:
-                            __handle_report_rich(item['data'])
-                    else:
-                        if self._is_old_protocol:
-                            __handle_report_normal_old(item['data'])
-                        else:
-                            __handle_report_normal(item['data'])
-                except Exception as e:
-                    logger.error(e)
+                if self._is_old_protocol:
+                    __handle_report_normal_old(data)
+                else:
+                    __handle_report_normal(data)
+        except Exception as e:
+            logger.error(e)
 
     def _auto_get_report_thread(self):
         logger.debug('get report thread start')

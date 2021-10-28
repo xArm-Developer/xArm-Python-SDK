@@ -3103,7 +3103,7 @@ class XArmAPI(object):
         :return: tuple((code, exe_ft))
             code: See the API code documentation for details.
             ft_data: only when code is 0, the returned result is correct.
-                Note: The external force detection value of the extenal force/torque sensor after filtering, load and offset compensation
+                Note: The external force detection value of the Six-axis Force Torque Sensor after filtering, load and offset compensation
         """
         return self._arm.get_ft_sensor_data()
 
@@ -3116,7 +3116,7 @@ class XArmAPI(object):
             
         :return: tuple((code, config))
             code: See the API code documentation for details.
-            config: [...], the config of the extenal force/torque, only when code is 0, the returned result is correct.
+            config: [...], the config of the Six-axis Force Torque Sensor, only when code is 0, the returned result is correct.
                 [0] ft_app_status: force mode
                     0: non-force mode
                     1: impendance control

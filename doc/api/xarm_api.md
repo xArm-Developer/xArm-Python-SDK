@@ -695,9 +695,10 @@ Config the Controller GPIO reset the digital output when the robot is in stop st
 #### def __config_force_control__(self, coord, c_axis, f_ref, limits, **kwargs):
 
 ```
-Set force control parameters.
+Set force control parameters through the Six-axis Force Torque Sensor.
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param coord:  task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
@@ -770,6 +771,7 @@ Note:
 Get force mode
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :return: tuple((code, app_code))
     code: See the API code documentation for details.
@@ -782,9 +784,10 @@ Note:
 #### def __ft_sensor_app_set__(self, app_code):
 
 ```
-Set robot to be controlled in force mode
+Set robot to be controlled in force mode. (Through the Six-axis Force Torque Sensor)
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param app_code: force mode.
     0: non-force mode
@@ -797,9 +800,10 @@ Note:
 #### def __ft_sensor_cali_load__(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
 
 ```
-Write load parameter value
+Write the load offset parameters identified by the Six-axis Force Torque Sensor
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]
 :param association_setting_tcp_load: whether to convert the parameter to the corresponding tcp load and set, default is False
@@ -811,9 +815,10 @@ Note:
 #### def __ft_sensor_enable__(self, on_off):
 
 ```
-Used for enabling and disabling the use of external F/T measurements in the controller.
+Used for enabling and disabling the use of the Six-axis Force Torque Sensor measurements in the controller.
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param on_off: enable or disable F/T data sampling.
 :return: code
@@ -823,9 +828,10 @@ Note:
 #### def __ft_sensor_iden_load__(self):
 
 ```
-Identification the tcp load with the extenal force/torque sersor
+Identification the tcp load with the the Six-axis Force Torque Sensor
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :return: tuple((code, load)) only when code is 0, the returned result is correct.
     code:  See the API code documentation for details.
@@ -835,9 +841,10 @@ Note:
 #### def __ft_sensor_set_zero__(self):
 
 ```
-Set the current state to the zero point of the extenal force/torque sersor
+Set the current state to the zero point of the Six-axis Force Torque Sensor
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :return: code
     code: See the API code documentation for details.
@@ -967,9 +974,10 @@ Get forward kinematics
 #### def __get_ft_senfor_config__(self):
 
 ```
-Get the config of the extenal force/torque sersor
+Get the config of the Six-axis Force Torque Sensor
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
     
 :return: tuple((code, config))
     code: See the API code documentation for details.
@@ -1008,9 +1016,10 @@ Note:
 #### def __get_ft_sensor_data__(self):
 
 ```
-Get the data of the extenal force/torque sersor
+Get the data of the Six-axis Force Torque Sensor
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :return: tuple((code, exe_ft))
     code: See the API code documentation for details.
@@ -1021,9 +1030,10 @@ Note:
 #### def __get_ft_sensor_error__(self):
 
 ```
-Get the error code of the extenal force/torque sersor
+Get the error code of the Six-axis Force Torque Sensor
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :return: tuple((code, error))
     code: See the API code documentation for details.
@@ -2349,9 +2359,10 @@ Note:
 #### def __set_force_control_pid__(self, kp, ki, kd, xe_limit, **kwargs):
 
 ```
-Set force control pid parameters.
+Set force control pid parameters through the Six-axis Force Torque Sensor.
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param kp: proportional gain.
 :param ki: integral gain.
@@ -2426,9 +2437,10 @@ Set the gripper speed
 #### def __set_impedance__(self, coord, c_axis, M, K, B, **kwargs):
 
 ```
-Set all parameters of impedance control.
+Set all parameters of impedance control through the Six-axis Force Torque Sensor.
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2443,9 +2455,10 @@ Note:
 #### def __set_impedance_config__(self, coord, c_axis):
 
 ```
-Set impedance control parameters of impedance control.
+Set impedance control parameters of impedance control through the Six-axis Force Torque Sensor.
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param coord: task frame. 0: base frame. 1: tool frame.
 :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
@@ -2456,9 +2469,10 @@ Note:
 #### def __set_impedance_mbk__(self, M, K, B, **kwargs):
 
 ```
-Set mbk parameters of impedance control.
+Set mbk parameters of impedance control through the Six-axis Force Torque Sensor.
 Note:
     1. only available if firmware_version >= 1.8.3
+    2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
 :param M: mass. (kg)
 :param K: stiffness coefficient.

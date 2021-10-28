@@ -31,7 +31,7 @@ Install is not necessary, you can run examples without installation.Only Python3
 ## Update Summary
 
 - > ### 1.8.4
-  - Support six-dimensional torque sensor (not a third party)
+  - Support the Six-axis Force Torque Sensor (not a third party)
   - Add threads to handle callbacks
   - Modify the reporting processing logic and optimize the processing of sticky packets
   - Fixed frequent switching of the pause state causing the program to hang

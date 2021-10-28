@@ -80,10 +80,10 @@
 - 37: Abnormal movement in Manual Mode
 - 38: Abnormal Joint Angle
 - 39: Abnormal Communication Between Master and Slave IC of Power Board
-- 50: Force sensor read error
-- 51: Force sensor set mode error
-- 52: Force sensor set zero error
-- 53: Forque sensor is overloaded or the reading exceeds the limit
+- 50: Six-axis Force Torque Sensor read error
+- 51: Six-axis Force Torque Sensor set mode error
+- 52: Six-axis Force Torque Sensor set zero error
+- 53: Six-axis Force Torque Sensor is overloaded or the reading exceeds the limit
 - 110: Robot Arm Base Board Communication Error
 - 111: Control Box External 485 Device Communication Error
 

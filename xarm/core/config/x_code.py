@@ -726,41 +726,41 @@ ControllerErrorCodeMap = {
     },
     50: {
         'en': {
-            'title': 'Force sensor read error',
+            'title': 'Six-axis Force Torque Sensor read error',
             'desc': ''
         },
         'cn': {
-            'title': '力矩传感器读取数据错误',
+            'title': '六维力矩传感器读取数据错误',
             'desc': ''
         }
     },
     51: {
         'en': {
-            'title': 'Force sensor set mode error',
+            'title': 'Six-axis Force Torque Sensor set mode error',
             'desc': ''
         },
         'cn': {
-            'title': '力矩传感器设置模式错误',
+            'title': '六维力矩传感器设置模式错误',
             'desc': ''
         }
     },
     52: {
         'en': {
-            'title': 'Force sensor set zero error',
+            'title': 'Six-axis Force Torque Sensor set zero error',
             'desc': ''
         },
         'cn': {
-            'title': '力矩传感器设置零点错误',
+            'title': '六维力矩传感器设置零点错误',
             'desc': ''
         }
     },
     53: {
         'en': {
-            'title': 'Forque sensor is overloaded or the reading exceeds the limit',
+            'title': 'Six-axis Force Torque Sensor is overloaded or the reading exceeds the limit',
             'desc': ''
         },
         'cn': {
-            'title': '力矩传感器过载或读数超限',
+            'title': '六维力矩传感器过载或读数超限',
             'desc': ''
         }
     },

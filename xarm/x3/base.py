@@ -66,6 +66,12 @@ class Base(Events):
             self._timed_comm_t = None
             self._timed_comm_t_alive = False
 
+            self._baud_checkset = kwargs.get('baud_checkset', True)
+            self._default_bio_baud = kwargs.get('default_bio_baud', 2000000)
+            self._default_gripper_baud = kwargs.get('default_gripper_baud', 2000000)
+            self._default_robotiq_baud = kwargs.get('default_robotiq_baud', 115200)
+            self._default_linear_track_baud = kwargs.get('default_linear_track_baud', 2000000)
+
             self._max_callback_thread_count = kwargs.get('max_callback_thread_count', 0)
             self._asyncio_loop = None
             self._asyncio_loop_alive = False
@@ -904,6 +910,34 @@ class Base(Events):
         if self.arm_cmd is not None:
             self._cmd_timeout = self.arm_cmd.set_timeout(self._cmd_timeout)
         return self._cmd_timeout
+    
+    def set_baud_checkset_enable(self, enable):
+        self._baud_checkset = enable
+        return 0
+
+    def set_checkset_default_baud(self, type_, baud):
+        if type_ == 1:
+            self._default_gripper_baud = baud
+        elif type_ == 2:
+            self._default_bio_baud = baud
+        elif type_ == 3:
+            self._default_robotiq_baud = baud
+        elif type_ == 4:
+            self._default_linear_track_baud = baud
+        else:
+            return APIState.API_EXCEPTION
+        return 0
+
+    def get_checkset_default_baud(self, type_):
+        if type_ == 1:
+            return 0, self._default_gripper_baud
+        elif type_ == 2:
+            return 0, self._default_bio_baud
+        elif type_ == 3:
+            return 0, self._default_robotiq_baud
+        elif type_ == 4:
+            return 0, self._default_linear_track_baud
+        return APIState.API_EXCEPTION, 0
 
     def _connect_report(self):
         if self._enable_report:
@@ -2127,6 +2161,8 @@ class Base(Events):
 
     @xarm_is_connected(_type='set')
     def checkset_modbus_baud(self, baudrate, check=True, host_id=XCONF.TGPIO_HOST_ID):
+        if check and (not self._baud_checkset or baudrate <= 0):
+            return 0
         if check and ((host_id == XCONF.TGPIO_HOST_ID and self.modbus_baud == baudrate) or (host_id == XCONF.LINEER_TRACK_HOST_ID and self.linear_track_baud == baudrate)):
             return 0
         if baudrate not in self.arm_cmd.BAUDRATES:

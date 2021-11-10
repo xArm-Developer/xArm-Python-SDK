@@ -936,6 +936,21 @@ Get the state of the Controller GPIO
         states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
 ```
 
+#### def __get_checkset_default_baud__(self, type_):
+
+```
+Get the checkset baud value
+
+:param type_: checkset type
+    1: xarm gripper
+    2: bio gripper
+    3: robotiq gripper
+    4: linear track
+:return: tuple((code, baud))
+    code: See the API code documentation for details.
+    baud: the checkset baud value
+```
+
 #### def __get_cmdnum__(self):
 
 ```
@@ -2154,6 +2169,18 @@ Note:
     code: See the API code documentation for details.
 ```
 
+#### def __set_baud_checkset_enable__(self, enable):
+
+```
+Enable auto checkset the baudrate of the end IO board or not
+Note:
+    only available in the API of gripper/bio/robotiq/linear_track.
+    
+:param enable: True/False
+:return: code
+    code: See the API code documentation for details.
+```
+
 #### def __set_bio_gripper_enable__(self, enable=True, wait=True, timeout=3):
 
 ```
@@ -2264,6 +2291,21 @@ Set the digital value of the specified Controller GPIO when the robot has reache
 :param value: value
 :param xyz: position xyz, as [x, y, z]
 :param fault_tolerance_radius: fault tolerance radius
+:return: code
+    code: See the API code documentation for details.
+```
+
+#### def __set_checkset_default_baud__(self, type_, baud):
+
+```
+Set the checkset baud value
+
+:param type_: checkset type
+    1: xarm gripper
+    2: bio gripper
+    3: robotiq gripper
+    4: linear track
+:param baud: checkset baud value, less than or equal to 0 means disable checkset
 :return: code
     code: See the API code documentation for details.
 ```

@@ -5,7 +5,7 @@
 # All rights reserved.
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
-
+import time
 from .utils import xarm_is_connected
 from ..core.utils.log import logger
 from ..core.utils import convert
@@ -188,3 +188,60 @@ class FtSensor(Base):
         ret = self.arm_cmd.ft_sensor_get_error()
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1]
+
+    def set_ft_sensor_sn(self, sn):
+        assert len(sn) >= 14, 'The length of SN is wrong'
+        ret = [0]
+        if len(sn) == 14:
+            for i in range(0, 14):
+                value = ord(sn[i])
+                if i < 8:
+                    ret = self.arm_cmd.servo_addr_w16(8, 0x1300+i, value)
+                    ret[0] = self._check_code(ret[0])
+                else:
+                    ret = self.arm_cmd.servo_addr_w16(8, 0x1400+(i-8), value)
+                    ret[0] = self._check_code(ret[0])
+                if ret[0] != 0:
+                    break
+                time.sleep(0.05)
+        self.log_api_info('API -> set_ft_sensor_sn -> code={}, sn={}'.format(ret[0], sn), code=ret[0])
+        return ret[0]
+
+    def get_ft_sensor_sn(self):
+        rd_sn = ''
+        ret = [0, '']
+        for i in range(0, 14):
+            if i < 8:
+                ret = self.arm_cmd.servo_addr_r16(8, 0x0300+i)
+                ret[0] = self._check_code(ret[0])
+            else:
+                ret = self.arm_cmd.servo_addr_r16(8, 0x0400+(i-8))
+                ret[0] = self._check_code(ret[0])
+            if i < 2 and ret[-1] not in [65, 73]:
+                return 1, "********"
+
+            if chr(ret[-1]).isalnum():
+                rd_sn = ''.join([rd_sn, chr(ret[-1])])
+            else:
+                rd_sn = ''.join([rd_sn, '*'])
+            time.sleep(0.05)
+        self.log_api_info('API -> get_ft_sensor_sn -> code={}, sn={}'.format(ret[0], rd_sn), code=ret[0])
+        return ret[0], rd_sn
+
+    def get_ft_sensor_version(self):
+        versions = ['*', '*', '*']
+        ret1 = self.arm_cmd.servo_addr_r16(8, 0x0801)
+        ret1[0] = self._check_code(ret1[0])
+        ret2 = self.arm_cmd.servo_addr_r16(8, 0x0802)
+        ret2[0] = self._check_code(ret2[0])
+        ret3 = self.arm_cmd.servo_addr_r16(8, 0x0803)
+        ret3[0] = self._check_code(ret3[0])
+
+        if ret1[0] == 0 and ret1[1] < 10:
+            versions[0] = ret1[1]
+        if ret2[0] == 0 and ret1[1] < 100:
+            versions[1] = ret2[1]
+        if ret3[0] == 0 and ret1[1] < 1000:
+            versions[2] = ret3[1]
+
+        return ret1[0] or ret2[0] or ret3[0], '.'.join(map(str, versions))

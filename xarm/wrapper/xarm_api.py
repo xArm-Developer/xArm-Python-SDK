@@ -2496,6 +2496,48 @@ class XArmAPI(object):
         :param timeout: seconds
         """
         return self._arm.set_timeout(timeout)
+    
+    def set_baud_checkset_enable(self, enable):
+        """
+        Enable auto checkset the baudrate of the end IO board or not
+        Note:
+            only available in the API of gripper/bio/robotiq/linear_track.
+            
+        :param enable: True/False
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_baud_checkset_enable(enable)
+
+    def set_checkset_default_baud(self, type_, baud):
+        """
+        Set the checkset baud value
+        
+        :param type_: checkset type
+            1: xarm gripper
+            2: bio gripper
+            3: robotiq gripper
+            4: linear track
+        :param baud: checkset baud value, less than or equal to 0 means disable checkset
+        :return: code
+            code: See the API code documentation for details.
+        """
+        return self._arm.set_checkset_default_baud(type_, baud)
+
+    def get_checkset_default_baud(self, type_):
+        """
+        Get the checkset baud value
+
+        :param type_: checkset type
+            1: xarm gripper
+            2: bio gripper
+            3: robotiq gripper
+            4: linear track
+        :return: tuple((code, baud))
+            code: See the API code documentation for details.
+            baud: the checkset baud value
+        """
+        return self._arm.get_checkset_default_baud(type_)
 
     def robotiq_reset(self):
         """

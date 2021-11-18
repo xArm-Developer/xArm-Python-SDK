@@ -40,8 +40,6 @@ class Track(GPIO):
     def linear_track_error_code(self, val):
         self._linear_track_status['error'] = val
 
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, []))
     @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def _get_linear_track_registers(self, addr, number_of_registers=1):
         ret = self.arm_cmd.track_modbus_r16s(addr, number_of_registers)
@@ -108,8 +106,6 @@ class Track(GPIO):
         code, _ = self.get_linear_track_registers(addr=0x0A27, number_of_registers=1)
         return code, self._linear_track_status['sco']
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_enable(self, enable):
         value = convert.u16_to_bytes(int(enable))
@@ -125,8 +121,6 @@ class Track(GPIO):
             enable, ret[0], code2, status['error'], status['is_enabled'], status['on_zero']), code=ret[0])
         return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_back_origin(self, wait=True, **kwargs):
         auto_enable = kwargs.get('auto_enable', True)
@@ -144,8 +138,6 @@ class Track(GPIO):
             ret[0] = self.set_linear_track_enable(True)
         return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         auto_enable = kwargs.get('auto_enable', True)
@@ -169,8 +161,6 @@ class Track(GPIO):
             return self.__wait_linear_track_stop(timeout)
         return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_speed(self, speed):
         value = convert.u16_to_bytes(int(speed*6.667))
@@ -181,8 +171,6 @@ class Track(GPIO):
         self.log_api_info('API -> set_linear_track_speed(speed={}) -> code={}'.format(speed, ret[0]), code=ret[0])
         return ret[0]
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_stop(self):
         value = convert.u16_to_bytes(int(1))
@@ -194,8 +182,6 @@ class Track(GPIO):
             ret[0], code2, status['status'], status['error']), code=ret[0])
         return ret[0]
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def clean_linear_track_error(self):
         value = convert.u16_to_bytes(int(1))
@@ -249,8 +235,6 @@ class Track(GPIO):
             time.sleep(0.1)
         return code
 
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, '*.*.*'))
     @check_modbus_baud(baud=TRACK_BAUD, _type='get', default='*.*.*', host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_version(self):
         versions = ['*', '*', '*']
@@ -280,8 +264,6 @@ class Track(GPIO):
 
         return code, '.'.join(map(str, versions))
 
-    @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, None))
     @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def get_linear_track_sn(self):
         rd_sn = ''
@@ -289,15 +271,13 @@ class Track(GPIO):
         for i in range(0, 14):
             ret = self.arm_cmd.track_modbus_r16s(0x0B10 + i, 1)
             ret[0] = self._check_modbus_code(ret, length=7, host_id=XCONF.LINEER_TRACK_HOST_ID)
-            if ret[0] == 0:
+            if chr(ret[-1]).isalnum():
                 rd_sn = ''.join([rd_sn, chr(ret[-1])])
             else:
                 rd_sn = ''.join([rd_sn, '*'])
             time.sleep(0.05)
         return ret[0], rd_sn
 
-    @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=0)
     @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
     def set_linear_track_sn(self, sn):
         assert len(sn) >= 14, 'The length of SN is wrong'
@@ -311,3 +291,97 @@ class Track(GPIO):
                     break
                 time.sleep(0.05)
         return code
+
+    @check_modbus_baud(baud=TRACK_BAUD, _type='get', default=-99, host_id=XCONF.LINEER_TRACK_HOST_ID)
+    def _set_linear_track_registers(self, addr, value, number_of_registers=1):
+        ret = self.arm_cmd.track_modbus_w16s(addr, value, number_of_registers)
+        ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        return ret[0], ret[1:]
+
+    @check_modbus_baud(baud=TRACK_BAUD, _type='set', default=None, host_id=XCONF.LINEER_TRACK_HOST_ID)
+    def set_linear_track_default_parmas(self):
+        code_li = []
+        motro_type = convert.u16_to_bytes(610)      # 电机类型
+        ret = self._set_linear_track_registers(0x1804, motro_type, 1)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        power_level = convert.u16_to_bytes(1)       # 功率等级
+        ret = self._set_linear_track_registers(0x1901, power_level, 1)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        speed = convert.u16_to_bytes(5000)          # 滑轨运行速度
+        ret = self._set_linear_track_registers(0x0303, speed, 1)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        toq_ref_flt = convert.u16_to_bytes(0)
+        ret = self._set_linear_track_registers(0x0501, toq_ref_flt, 1)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        position_gain = convert.u16_to_bytes(250)   # 位置环增益
+        ret = self._set_linear_track_registers(0x1200, position_gain, 1)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        filter_times = convert.u16_to_bytes(5)      # 位置环前滤波时间
+        speedz_kp = convert.u16_to_bytes(200)       # 速度环增益
+        speed_ki = convert.u16_to_bytes(150)        # 速度环积分
+        value = filter_times + speedz_kp + speed_ki
+        ret = self._set_linear_track_registers(0x1202, value, 3)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        acc_time = convert.u16_to_bytes(300)        # 位置加速时间
+        dec_time = convert.u16_to_bytes(300)        # 位置加速时间
+        smooth_time = convert.u16_to_bytes(10)      # 位置平滑时间
+        value = acc_time + dec_time + smooth_time
+        ret = self._set_linear_track_registers(0x1300, value, 3)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        spd_ref_flt = convert.u16_to_bytes(160)
+        spd_fb_flt = convert.u16_to_bytes(160)
+        spd_limit = convert.u16_to_bytes(10000)     # 运行速度限制
+        home_speed = convert.u16_to_bytes(1533)     # 回零速度
+        value = spd_ref_flt + spd_fb_flt + spd_limit + home_speed
+        ret = self._set_linear_track_registers(0x1401, value, 4)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        current_kp = convert.u16_to_bytes(6000)     # 电流增益
+        current_ki = convert.u16_to_bytes(1000)     # 电流积分
+        value = current_kp + current_ki
+        ret = self._set_linear_track_registers(0x190C, value, 2)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        on_zero = convert.u16_to_bytes(0)           # 是否回零默认值  0 --- 否     1 --- 是
+        tar_end = convert.u16_to_bytes(1000)        # 定位完成范围
+        value = on_zero + tar_end
+        ret = self._set_linear_track_registers(0x1A0A, value, 2)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        angle_range = convert.u16_to_bytes(1800)    # 上电校零两角度比较允许范围
+        is_stop = convert.u16_to_bytes(0)           # 急停默认值  0 --- 没有急停   1 --- 急停
+        value = angle_range + is_stop
+        ret = self._set_linear_track_registers(0x1A0D, value, 2)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        is_on_zero = convert.u16_to_bytes(0)        # 回零完成状态默认值  0 --- 没有回零完成   1 --- 回零完成
+        ret = self._set_linear_track_registers(0x1A25, is_on_zero, 1)
+        code_li.append(ret[0])
+        time.sleep(0.05)
+
+        for code in code_li:
+            if code != 0:
+                return code
+
+        return 0
+
+
+

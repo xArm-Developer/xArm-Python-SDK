@@ -60,7 +60,6 @@ class BaseBoard(Base):
         if len(sn) == 14:
             for i in range(0, 14, 2):
                 ret = self.arm_cmd.tgpio_addr_w16(addr=0x1900 + (int(i / 2)), value=ord(sn[i]) | ord(sn[i + 1]) << 8, bid=servo_id)
-                self.log_api_info('API -> write_sn -> ret={}'.format(ret), code=ret[0])
                 code = self._check_code(ret[0])
                 time.sleep(0.1)
                 if code != 0:
@@ -75,7 +74,6 @@ class BaseBoard(Base):
         ret = [0, '']
         for i in range(0, 14, 2):
             ret = self.arm_cmd.tgpio_addr_r16(addr=0x0900 + (int(i / 2)), bid=servo_id)
-            self.log_api_info('API -> get_sn -> ret={}'.format(ret), code=ret[0])
             time.sleep(0.1)
             rd_sn = ''.join([rd_sn, chr(ret[1] & 0x00FF)])
             rd_sn = ''.join([rd_sn, chr((ret[1] >> 8) & 0x00FF)])

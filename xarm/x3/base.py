@@ -85,7 +85,8 @@ class Base(Events):
             self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
             self._tcp_jerk = 1000  # mm/s^3
 
-            self._min_joint_speed, self._max_joint_speed = 0.01, 4.0  # rad/s
+            # self._min_joint_speed, self._max_joint_speed = 0.01, 4.0  # rad/s
+            self._min_joint_speed, self._max_joint_speed = 0.0001, 4.0  # rad/s
             self._min_joint_acc, self._max_joint_acc = 0.01, 20.0  # rad/s^2
             self._joint_jerk = 20.0  # rad/s^3
 

@@ -60,10 +60,12 @@ class BaseBoard(Base):
         if len(sn) == 14:
             for i in range(0, 14, 2):
                 ret = self.arm_cmd.tgpio_addr_w16(addr=0x1900 + (int(i / 2)), value=ord(sn[i]) | ord(sn[i + 1]) << 8, bid=servo_id)
+                code = self._check_code(ret[0])
                 time.sleep(0.1)
-                if ret[0] != 0:
-                    return 1
-                code = ret[0]
+                if code != 0:
+                    self.log_api_info('API -> write_sn -> code={}, sn={}'.format(code, sn), code=code)
+                    return code
+        self.log_api_info('API -> write_sn -> code={}, sn={}'.format(code, sn), code=code)
         return code
 
     @xarm_is_connected(_type='get')
@@ -75,8 +77,11 @@ class BaseBoard(Base):
             time.sleep(0.1)
             rd_sn = ''.join([rd_sn, chr(ret[1] & 0x00FF)])
             rd_sn = ''.join([rd_sn, chr((ret[1] >> 8) & 0x00FF)])
+            ret[0] = self._check_code(ret[0])
             if ret[0] != 0:
+                self.log_api_info('API -> get_sn -> code={}, sn={}'.format(ret[0], rd_sn), code=ret[0])
                 return ret[0], ''
+        self.log_api_info('API -> get_sn -> code={}, sn={}'.format(ret[0], rd_sn), code=ret[0])
         return ret[0], rd_sn
 
     @xarm_is_connected(_type='set')

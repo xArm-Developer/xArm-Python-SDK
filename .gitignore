@@ -7,5 +7,6 @@ dist/
 *.egg-info/
 example/test/
 example/wrapper/bak/
+example/wrapper/robot.conf
 bak-xarm/
 .vscode/

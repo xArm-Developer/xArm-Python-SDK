@@ -39,6 +39,9 @@ class UxbusCmdSer(UxbusCmd):
     def has_err_warn(self, value):
         self._has_err_warn = value
 
+    def set_prot_flag(self, prot_flag):
+        return 0
+
     def check_xbus_prot(self, data, funcode=0):
         self._state_is_ready = not (data[3] & 0x10)
         if data[3] & 0x08:

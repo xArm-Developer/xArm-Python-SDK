@@ -10,7 +10,7 @@
 
 import time
 from ..utils import convert
-from .uxbus_cmd import UxbusCmd
+from .uxbus_cmd import UxbusCmd, lock_require
 from ..config.x_config import XCONF
 
 
@@ -35,6 +35,7 @@ class UxbusCmdTcp(UxbusCmd):
         self.arm_port = arm_port
         self.bus_flag = TX2_BUS_FLAG_MIN
         self.prot_flag = TX2_PROT_CON
+        self.TX2_PROT_CON = TX2_PROT_CON
         self._has_err_warn = False
         self._last_comm_time = time.time()
 
@@ -45,6 +46,14 @@ class UxbusCmdTcp(UxbusCmd):
     @has_err_warn.setter
     def has_err_warn(self, value):
         self._has_err_warn = value
+
+    @lock_require
+    def set_prot_flag(self, prot_flag):
+        if self.prot_flag != prot_flag or self.TX2_PROT_CON != prot_flag:
+            self.prot_flag = prot_flag
+            self.TX2_PROT_CON = prot_flag
+            print('change prot_flag to {}'.format(self.prot_flag))
+        return 0
 
     def check_xbus_prot(self, data, funcode):
         num = convert.bytes_to_u16(data[0:2])
@@ -60,7 +69,7 @@ class UxbusCmdTcp(UxbusCmd):
             bus_flag -= 1
         if num != bus_flag:
             return XCONF.UxbusState.ERR_NUM
-        if prot != TX2_PROT_CON:
+        if prot != self.TX2_PROT_CON:
             return XCONF.UxbusState.ERR_PROT
         if fun != funcode:
             return XCONF.UxbusState.ERR_FUN

@@ -8,6 +8,7 @@ from ..core.utils.log import logger
 from ..core.utils import convert
 from .code import APIState
 from .gpio import GPIO
+from .utils import xarm_is_connected, xarm_is_pause, xarm_is_not_simulation_mode
 
 
 class Track(GPIO):
@@ -44,6 +45,8 @@ class Track(GPIO):
         ret[0] = self._check_modbus_code(ret, length=5 + 2 * number_of_registers, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret[0], ret[1:]
 
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def get_linear_track_registers(self, addr=0x0A20, number_of_registers=8):
         assert (addr == 0x0A20 and number_of_registers >= 2) \
             or (0x0A22 <= addr <= 0x0A27 and number_of_registers >= 1), \
@@ -104,6 +107,8 @@ class Track(GPIO):
         code, _ = self.get_linear_track_registers(addr=0x0A27, number_of_registers=1)
         return code, self._linear_track_status['sco']
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_enable(self, enable):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -121,6 +126,8 @@ class Track(GPIO):
             enable, ret[0], code2, status['error'], status['is_enabled'], status['on_zero']), code=ret[0])
         return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_back_origin(self, wait=True, **kwargs):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -140,6 +147,8 @@ class Track(GPIO):
             ret[0] = self.set_linear_track_enable(True)
         return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -165,6 +174,8 @@ class Track(GPIO):
             return self.__wait_linear_track_stop(timeout)
         return ret[0] if self.linear_track_error_code == 0 else APIState.LINEAR_TRACK_HAS_FAULT
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_speed(self, speed):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -177,6 +188,8 @@ class Track(GPIO):
         self.log_api_info('API -> set_linear_track_speed(speed={}) -> code={}'.format(speed, ret[0]), code=ret[0])
         return ret[0]
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_stop(self):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -190,6 +203,8 @@ class Track(GPIO):
             ret[0], code2, status['status'], status['error']), code=ret[0])
         return ret[0]
 
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def clean_linear_track_error(self):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -245,6 +260,8 @@ class Track(GPIO):
             time.sleep(0.1)
         return code
 
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def get_linear_track_version(self):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -276,6 +293,8 @@ class Track(GPIO):
 
         return code, '.'.join(map(str, versions))
 
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def get_linear_track_sn(self):
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
         if code != 0:
@@ -292,6 +311,8 @@ class Track(GPIO):
             time.sleep(0.05)
         return ret[0], rd_sn
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_sn(self, sn):
         assert len(sn) >= 14, 'The length of SN is wrong'
         code = self.checkset_modbus_baud(self._default_linear_track_baud, host_id=XCONF.LINEER_TRACK_HOST_ID)
@@ -313,6 +334,8 @@ class Track(GPIO):
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.LINEER_TRACK_HOST_ID)
         return ret[0], ret[1:]
 
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_track_default_parmas(self):
         code_li = []
         motro_type = convert.u16_to_bytes(610)      # 电机类型

@@ -534,14 +534,24 @@ ControllerErrorCodeMap = {
             'desc': ''
         }
     },
-    19: {
+    18: {
         'en': {
-            'title': 'Gripper Communication Error',
-            'desc': 'Please check whether gripper is installed and the baud rate setting is correct'
+            'title': 'Force Torque Sensor Communication Error',
+            'desc': 'Please check whether the force torque sensor is installed.'
         },
         'cn': {
-            'title': '机械爪通信失败',
-            'desc': '请检查机械爪是否安装，波特率设置是否正确'
+            'title': '力矩传感器通信失败',
+            'desc': '请检查力矩传感器是否安装'
+        }
+    },
+    19: {
+        'en': {
+            'title': 'End Module Communication Error',
+            'desc': 'Please check whether gripper is installed and the baud rate setting is correct.'
+        },
+        'cn': {
+            'title': '末端通信失败',
+            'desc': '请检查机械爪是否安装，波特率设置是否正确。'
         }
     },
     21: {

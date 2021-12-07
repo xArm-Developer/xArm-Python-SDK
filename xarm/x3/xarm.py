@@ -10,8 +10,7 @@ import os
 import math
 import time
 import warnings
-import threading
-from collections import Iterable
+from collections.abc import Iterable
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
@@ -24,7 +23,7 @@ from .robotiq import RobotIQ
 from .ft_sensor import FtSensor
 from .parse import GcodeParser
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, compare_version, xarm_wait_until_cmdnum_lt_max
+from .utils import xarm_is_connected, xarm_is_ready, xarm_is_pause, xarm_wait_until_cmdnum_lt_max
 try:
     from ..tools.blockly_tool import BlocklyTool
 except:
@@ -998,18 +997,6 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         ret = self.arm_cmd.set_joint_maxacc(_acc)
         self.log_api_info('API -> set_joint_maxacc -> code={}, maxacc={}'.format(ret[0], acc), code=ret[0])
         return ret[0]
-
-    # @xarm_is_connected(_type='set')
-    # @xarm_is_pause(_type='set')
-    # @xarm_wait_until_cmdnum_lt_max(only_wait=False)
-    # def set_tcp_load(self, weight, center_of_gravity):
-    #     if compare_version(self.version_number, (0, 2, 0)):
-    #         _center_of_gravity = center_of_gravity
-    #     else:
-    #         _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
-    #     ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
-    #     self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
-    #     return ret[0]
 
     @xarm_is_connected(_type='set')
     @xarm_is_pause(_type='set')

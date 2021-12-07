@@ -60,7 +60,8 @@
 - 15: Servo motor 5 error
 - 16: Servo motor 6 error
 - 17: Servo motor 7 error
-- 19: Gripper Communication Error
+- 18: Force Torque Sensor Communication Error
+- 19: End Module Communication Error
 - 21: Kinematic Error
 - 22: Self-Collision Error
 - 23: Joints Angle Exceed Limit

@@ -35,7 +35,7 @@ def xarm_is_connected(_type='set'):
             if args[0].connected:
                 return func(*args, **kwargs)
             else:
-                logger.error('xArm is not connect')
+                logger.error('xArm is not connected')
                 return APIState.NOT_CONNECTED if _type == 'set' else (APIState.NOT_CONNECTED, 'xArm is not connect')
         return decorator
     return _xarm_is_connected
@@ -59,7 +59,7 @@ def xarm_is_ready(_type='set'):
                                 'Then enable the motor, set the mode and set the state')
                     return APIState.NOT_READY if _type == 'set' else (APIState.NOT_READY, 'xArm is not ready')
             else:
-                logger.error('xArm is not connect')
+                logger.error('xArm is not connected')
                 return APIState.NOT_CONNECTED if _type == 'set' else (APIState.NOT_CONNECTED, 'xArm is not connect')
         return decorator
     return _xarm_is_ready

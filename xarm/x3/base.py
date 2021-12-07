@@ -66,6 +66,12 @@ class Base(Events):
             self._timed_comm_t = None
             self._timed_comm_t_alive = False
 
+            self._baud_checkset = kwargs.get('baud_checkset', True)
+            self._default_bio_baud = kwargs.get('default_bio_baud', 2000000)
+            self._default_gripper_baud = kwargs.get('default_gripper_baud', 2000000)
+            self._default_robotiq_baud = kwargs.get('default_robotiq_baud', 115200)
+            self._default_linear_track_baud = kwargs.get('default_linear_track_baud', 2000000)
+
             self._max_callback_thread_count = kwargs.get('max_callback_thread_count', 0)
             self._asyncio_loop = None
             self._asyncio_loop_alive = False
@@ -79,7 +85,8 @@ class Base(Events):
             self._min_tcp_acc, self._max_tcp_acc = 1.0, 50000  # mm/s^2
             self._tcp_jerk = 1000  # mm/s^3
 
-            self._min_joint_speed, self._max_joint_speed = 0.01, 4.0  # rad/s
+            # self._min_joint_speed, self._max_joint_speed = 0.01, 4.0  # rad/s
+            self._min_joint_speed, self._max_joint_speed = 0.0001, 4.0  # rad/s
             self._min_joint_acc, self._max_joint_acc = 0.01, 20.0  # rad/s^2
             self._joint_jerk = 20.0  # rad/s^3
 
@@ -419,6 +426,10 @@ class Base(Events):
         return self._stream and self._stream.connected
 
     @property
+    def reported(self):
+        return self._stream_report and self._stream_report.connected
+
+    @property
     def ready(self):
         return self._is_ready
 
@@ -698,8 +709,10 @@ class Base(Events):
     def _timed_comm_thread(self):
         self._timed_comm_t_alive = True
         cnt = 0
+        last_send_time = 0
         while self.connected and self._timed_comm_t_alive:
-            if self.arm_cmd and time.time() - self.arm_cmd.last_comm_time > self._timed_comm_interval:
+            curr_time = time.time()
+            if self.arm_cmd and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > self._timed_comm_interval:
                 try:
                     if cnt == 0:
                         code, _ = self.get_cmdnum()
@@ -708,6 +721,8 @@ class Base(Events):
                     else:
                         code, _ = self.get_err_warn_code()
                     cnt = (cnt + 1) % 3
+                    if code >= 0:
+                        last_send_time = curr_time
                 except:
                     pass
             time.sleep(0.5)
@@ -757,6 +772,7 @@ class Base(Events):
                 self._report_error_warn_changed_callback()
 
                 self.arm_cmd = UxbusCmdTcp(self._stream)
+                self.arm_cmd.set_prot_flag(2)
                 self._stream_type = 'socket'
 
                 try:
@@ -904,6 +920,34 @@ class Base(Events):
         if self.arm_cmd is not None:
             self._cmd_timeout = self.arm_cmd.set_timeout(self._cmd_timeout)
         return self._cmd_timeout
+    
+    def set_baud_checkset_enable(self, enable):
+        self._baud_checkset = enable
+        return 0
+
+    def set_checkset_default_baud(self, type_, baud):
+        if type_ == 1:
+            self._default_gripper_baud = baud
+        elif type_ == 2:
+            self._default_bio_baud = baud
+        elif type_ == 3:
+            self._default_robotiq_baud = baud
+        elif type_ == 4:
+            self._default_linear_track_baud = baud
+        else:
+            return APIState.API_EXCEPTION
+        return 0
+
+    def get_checkset_default_baud(self, type_):
+        if type_ == 1:
+            return 0, self._default_gripper_baud
+        elif type_ == 2:
+            return 0, self._default_bio_baud
+        elif type_ == 3:
+            return 0, self._default_robotiq_baud
+        elif type_ == 4:
+            return 0, self._default_linear_track_baud
+        return APIState.API_EXCEPTION, 0
 
     def _connect_report(self):
         if self._enable_report:
@@ -1017,18 +1061,43 @@ class Base(Events):
                 self._run_callback(callback, ret, name='report')
 
     def _report_thread_handle(self):
-        main_socket_connected = self._stream and self._stream.connected
-        report_socket_connected = self._stream_report and self._stream_report.connected
+        main_socket_connected = self.connected
+        report_socket_connected = self.reported
+        prot_flag = 2
+        last_send_time = 0
+        max_reconnect_cnts = 10
+        connect_failed_cnt = 0
 
         while self.connected:
             try:
-                if not self._stream_report or not self._stream_report.connected:
-                    self.get_err_warn_code()
+                curr_time = time.time()
+                if prot_flag != 3 and self.version_is_ge(1, 8, 6) and self.arm_cmd.set_prot_flag(3) == 0:
+                    prot_flag = 3
+                if prot_flag == 3 and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > 30:
+                    code, _ = self.get_state()
+                    # print('send heartbeat, code={}'.format(code))
+                    if code >= 0:
+                        last_send_time = curr_time
+                    if curr_time - self.arm_cmd.last_comm_time > 90:
+                        logger.error('client timeout over 90s, disconnect')
+                        break
+                if not self.reported:
+                    # self.get_err_warn_code()
                     if report_socket_connected:
                         report_socket_connected = False
                         self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
                     self._connect_report()
-                    continue
+                    if not self.reported:
+                        connect_failed_cnt += 1
+                        if self.connected and (connect_failed_cnt <= max_reconnect_cnts or prot_flag == 3):
+                            time.sleep(2)
+                        elif not self.connected or prot_flag == 2:
+                            logger.error('report thread is break, connected={}, failed_cnts={}'.format(self.connected, connect_failed_cnt))
+                            break
+                        continue
+                    else:
+                        connect_failed_cnt = 0
+                connect_failed_cnt = 0
                 if not report_socket_connected:
                     report_socket_connected = True
                     self._report_connect_changed_callback(main_socket_connected, report_socket_connected)
@@ -1038,15 +1107,13 @@ class Base(Events):
                     if self._is_old_protocol and size > 256:
                         self._is_old_protocol = False
                     self._handle_report_data(recv_data)
-                else:
-                    if self.connected:
-                        code, err_warn = self.get_err_warn_code()
-                        if code == -1 or code == 3:
-                            break
-                    if not self.connected:
-                        break
-                    elif not self._stream_report or not self._stream_report.connected:
-                        self._connect_report()
+                # else:
+                #     if self.connected:
+                #         code, err_warn = self.get_err_warn_code()
+                #         if code == -1 or code == 3:
+                #             break
+                #     if not self.connected:
+                #         break
             except Exception as e:
                 logger.error(e)
                 if self.connected:
@@ -2127,6 +2194,8 @@ class Base(Events):
 
     @xarm_is_connected(_type='set')
     def checkset_modbus_baud(self, baudrate, check=True, host_id=XCONF.TGPIO_HOST_ID):
+        if check and (not self._baud_checkset or baudrate <= 0):
+            return 0
         if check and ((host_id == XCONF.TGPIO_HOST_ID and self.modbus_baud == baudrate) or (host_id == XCONF.LINEER_TRACK_HOST_ID and self.linear_track_baud == baudrate)):
             return 0
         if baudrate not in self.arm_cmd.BAUDRATES:

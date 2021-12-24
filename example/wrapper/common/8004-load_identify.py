@@ -61,7 +61,7 @@ arm.ft_sensor_enable(0)
 arm.disconnect()
 
 # arm.ft_sensor_enable(1)
-# # load indenrify ?
+# # Load identification ?
 # response = input("\nDo you need Load Calibration?  y(es) / n(o):\n")
 # if response == 'y':
 #     print("Identification process start, please wait for finish..")
@@ -80,7 +80,7 @@ arm.disconnect()
 #     result = [0.7131531834602356, -0.0005494913784787059, -0.0026768327224999666, 0.06637067347764969, -17.749963760375977, 2.7701117992401123, -30.62084197998047, 0.13900014758110046, -0.37988412380218506, -0.14760535955429077]
 #     arm.ft_sensor_cali_load(result)
 #
-# # wait vaild
+# # waiting to take effect
 # time.sleep(1)
 # arm.ft_sensor_app_set(0)
 # arm.ft_sensor_enable(0)

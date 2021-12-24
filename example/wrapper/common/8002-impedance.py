@@ -44,7 +44,7 @@ arm.set_mode(0)
 arm.set_state(0)
 time.sleep(0.1)
 
-# set tool impedance parmeters:
+# set tool impedance parameters:
 K_pos = 300         #  x/y/z linear stiffness coefficient, range: 0 ~ 2000 (N/m)
 K_ori = 4           #  Rx/Ry/Rz rotational stiffness coefficient, range: 0 ~ 20 (Nm/rad)
 
@@ -62,9 +62,9 @@ arm.set_impedance_config(ref_frame, c_axis)
 arm.ft_sensor_enable(1)
 # will overwrite previous sensor zero and payload configuration
 arm.ft_sensor_set_zero() # remove this if zero_offset and payload already identified & compensated!
-time.sleep(0.2) # wait for writting zero operation to take effect, do not remove
+time.sleep(0.2) # wait for writing zero operation to take effect, do not remove
 
-# move robot in impendance control application
+# move robot in impedance control application
 arm.ft_sensor_app_set(1)
 # will start after set_state(0)
 arm.set_state(0)

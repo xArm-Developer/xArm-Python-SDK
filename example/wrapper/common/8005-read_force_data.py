@@ -44,7 +44,7 @@ time.sleep(0.5)
 arm.ft_sensor_set_zero()
 
 while arm.connected and arm.error_code == 0:
-    # ft_raw_force and ft_ext_force will update by report socket
+    # ft_raw_force and ft_ext_force will update by reporting socket
     print('raw_force: {}'.format(arm.ft_raw_force))
     print('exe_force: {}'.format(arm.ft_ext_force))
 

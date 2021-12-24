@@ -45,7 +45,7 @@ arm.set_state(0)
 time.sleep(0.1)
 
 # Hand guided Cartesian jogging can be achieved by setting zero stiffness to target axis
-# set teach parmeters
+# set teach parameters
 K_pos = 0               #  x/y/z linear stiffness coefficient, range: 0 ~ 2000 (N/m)
 K_ori = 0               #  Rx/Ry/Rz rotational stiffness coefficient, range: 0 ~ 20 (Nm/rad)
 
@@ -63,9 +63,9 @@ arm.set_impedance_config(ref_frame, c_axis)
 arm.ft_sensor_enable(1)
 # will overwrite previous sensor zero and payload configuration
 arm.ft_sensor_set_zero() # remove this if zero_offset and payload already identified & compensated!
-time.sleep(0.2) # wait for writting zero operation to take effect, do not remove
+time.sleep(0.2) # wait for writing zero operation to take effect, do not remove
 
-arm.ft_sensor_app_set(1)    #1: impendance control mode
+arm.ft_sensor_app_set(1)    #1: impedance control mode
 arm.set_state(0) # will start after set_state(0)
 
 # You can drag and teach robot along compliant axis now

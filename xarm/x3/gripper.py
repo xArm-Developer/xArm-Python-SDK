@@ -8,12 +8,12 @@
 
 import time
 import struct
-from .utils import xarm_is_connected, xarm_is_pause, xarm_is_not_simulation_mode
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from ..core.utils import convert
 from .code import APIState
 from .gpio import GPIO
+from .decorator import xarm_is_connected, xarm_wait_until_not_pause, xarm_is_not_simulation_mode
 
 
 class Gripper(GPIO):
@@ -129,8 +129,8 @@ class Gripper(GPIO):
         else:
             return self._get_gripper_position()
 
+    @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    @xarm_is_pause(_type='set')
     def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, is_modbus=True, **kwargs):
         if is_modbus:
             return self._set_modbus_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)

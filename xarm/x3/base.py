@@ -25,7 +25,8 @@ from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, pretty_print
 from ..core.utils import convert
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
-from .utils import xarm_is_connected, compare_time, compare_version, xarm_is_not_simulation_mode, filter_invaild_number, xarm_is_pause, xarm_wait_until_cmdnum_lt_max
+from .utils import compare_time, compare_version, filter_invaild_number
+from .decorator import xarm_is_connected, xarm_is_ready, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max, xarm_wait_until_not_pause
 from .code import APIState
 from ..tools.threads import ThreadManage
 from ..version import __version__
@@ -655,7 +656,7 @@ class Base(Events):
 
     @property
     def is_stop(self):
-        return self.state in [4, 5]
+        return self.state >= 4
 
     @property
     def voltages(self):
@@ -689,21 +690,29 @@ class Base(Events):
             self._major_version_number == major and self._minor_version_number == minor and
             self._revision_version_number >= revision)
 
-    def check_is_pause(self):
-        if self._check_is_pause:
-            if self.state == 3 and self._enable_report:
-                with self._pause_cond:
-                    with self._pause_lock:
-                        self._pause_cnts += 1
-                    self._pause_cond.wait()
-                    with self._pause_lock:
-                        self._pause_cnts -= 1
+    def wait_until_not_pause(self):
+        if self._check_is_pause and self.connected and self.state == 3 and self._enable_report:
+            with self._pause_cond:
+                with self._pause_lock:
+                    self._pause_cnts += 1
+                self._pause_cond.wait()
+                with self._pause_lock:
+                    self._pause_cnts -= 1
+    
+    def wait_until_cmdnum_lt_max(self):
+        if not self._check_cmdnum_limit:
+            return
+        while self.connected and self.cmd_num >= self._max_cmd_num:
+            if time.time() - self._last_report_time > 0.4:
+                self.get_cmdnum()
+            time.sleep(0.05)
 
     @property
-    def state_is_ready(self):
+    def check_xarm_is_ready(self):
         if self._check_is_ready and not self.version_is_ge(1, 5, 20):
             return self.ready
         else:
+            # no check if version >= 1.5.20
             return True
 
     def _timed_comm_thread(self):
@@ -1116,19 +1125,26 @@ class Base(Events):
                 #         break
             except Exception as e:
                 logger.error(e)
-                if self.connected:
-                    code, err_warn = self.get_err_warn_code()
-                    if code == -1 or code == 3:
-                        break
+                # if self.connected:
+                #     code, _ = self.get_err_warn_code()
+                #     if code == -1 or code == 3:
+                #         break
                 if not self.connected:
                     break
                 if not self._stream_report or not self._stream_report.connected:
                     self._connect_report()
             time.sleep(0.001)
+        if self._pause_cnts > 0:
+            with self._pause_cond:
+                self._pause_cond.notifyAll()
         self.disconnect()
 
     def _handle_report_data(self, data):
         def __handle_report_normal_old(rx_data):
+            report_time = time.time()
+            interval = report_time - self._last_report_time
+            self._max_report_interval = max(self._max_report_interval, interval)
+            self._last_report_time = report_time
             # print('length:', convert.bytes_to_u32(rx_data[0:4]))
             state, mtbrake, mtable, error_code, warn_code = rx_data[4:9]
             angles = convert.bytes_to_fp32s(rx_data[9:7 * 4 + 9], 7)
@@ -1263,11 +1279,7 @@ class Base(Events):
                 self._is_sync = True
 
         def __handle_report_rich_old(rx_data):
-            report_time = time.time()
-            interval = report_time - self._last_report_time
-            self._max_report_interval = max(self._max_report_interval, interval)
-            self._last_report_time = report_time
-            __handle_report_normal(rx_data)
+            __handle_report_normal_old(rx_data)
             (self._arm_type,
              arm_axis,
              self._arm_master_id,
@@ -1362,6 +1374,10 @@ class Base(Events):
                 self._ft_raw_force = convert.bytes_to_fp32s(rx_data[111:135], 6)
 
         def __handle_report_normal(rx_data):
+            report_time = time.time()
+            interval = report_time - self._last_report_time
+            self._max_report_interval = max(self._max_report_interval, interval)
+            self._last_report_time = report_time
             # print('length:', convert.bytes_to_u32(rx_data[0:4]), len(rx_data))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
             # if state != self._state or mode != self._mode:
@@ -1540,13 +1556,9 @@ class Base(Events):
                 self._is_sync = True
             elif self._need_sync:
                 self._need_sync = False
-                # self._sync()
+                self._sync()
 
         def __handle_report_rich(rx_data):
-            report_time = time.time()
-            interval = report_time - self._last_report_time
-            self._max_report_interval = max(self._max_report_interval, interval)
-            self._last_report_time = report_time
             # print('interval={}, max_interval={}'.format(interval, self._max_report_interval))
             __handle_report_normal(rx_data)
             (self._arm_type,
@@ -1858,11 +1870,14 @@ class Base(Events):
                 'LIMIT_ANGLE_ACC': list(map(round, [math.degrees(self._min_joint_acc), math.degrees(self._max_joint_acc)])),
             }
 
-    def _check_code(self, code, is_move_cmd=False):
+    def _check_code(self, code, is_move_cmd=False, mode=-1):
         if is_move_cmd:
             if code in [0, XCONF.UxbusState.WAR_CODE]:
                 if self.arm_cmd.state_is_ready:
+                    if mode >= 0 and mode != self.mode:
+                        logger.warn('The mode may be incorrect, just as a reminder, mode: {} ({})'.format(mode, self.mode))
                     return 0
+                    # return 0 if mode < 0 or mode == self.mode else APIState.MODE_IS_NOT_CORRECT
                 else:
                     return XCONF.UxbusState.STATE_NOT_READY
             else:
@@ -1880,24 +1895,6 @@ class Base(Events):
             if self.mode != mode:
                 return False
         return True
-
-    def wait_until_cmdnum_lt_max(self):
-        if not self._check_cmdnum_limit or self._stream_type != 'socket' or not self._enable_report:
-            return
-        # if time.time() - self._last_report_time > 0.4:
-        #     self.get_cmdnum()
-        if self._max_cmd_num / 2 < self.cmd_num < self._max_cmd_num:
-            self.get_cmdnum()
-        while self.cmd_num >= self._max_cmd_num:
-            if not self.connected:
-                return APIState.NOT_CONNECTED
-            elif self.has_error:
-                return APIState.HAS_ERROR
-            elif not self.state_is_ready:
-                return APIState.NOT_READY
-            elif self.is_stop:
-                return APIState.EMERGENCY_STOP
-            time.sleep(0.05)
 
     @xarm_is_connected(_type='get')
     def get_version(self):
@@ -2131,7 +2128,7 @@ class Base(Events):
             if not self.connected:
                 self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
                 return APIState.NOT_CONNECTED
-            if time.time() - self._last_report_time > 0.4:
+            if not self._enable_report or (time.time() - self._last_report_time > 0.4):
                 self.get_state()
                 self.get_err_warn_code()
             if self.error_code != 0:
@@ -2304,9 +2301,9 @@ class Base(Events):
         self.log_api_info('API -> set_simulation_robot({}) -> code={}'.format(on_off, ret[0]), code=ret[0])
         return ret[0]
     
-    @xarm_is_connected(_type='set')
-    @xarm_is_pause(_type='set')
-    @xarm_wait_until_cmdnum_lt_max(only_wait=False)
+    @xarm_wait_until_not_pause
+    @xarm_wait_until_cmdnum_lt_max
+    @xarm_is_ready(_type='set')
     def set_tcp_load(self, weight, center_of_gravity):
         if compare_version(self.version_number, (0, 2, 0)):
             _center_of_gravity = center_of_gravity

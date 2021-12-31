@@ -9,11 +9,11 @@
 import json
 import time
 from urllib import request
-from .utils import xarm_is_connected
 from .code import APIState
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
+from .decorator import xarm_is_connected
 
 
 class Record(Base):

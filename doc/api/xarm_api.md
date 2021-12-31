@@ -539,9 +539,10 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;check_joint_limit: check the joint param value out of limit or not, default is True  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`  
 > &ensp;&ensp;&ensp;&ensp;check_cmdnum_limit: check the cmdnum out of limit or not, default is True  
-> &ensp;&ensp;&ensp;&ensp;max_cmdnum: max cmdnum, default is 256  
+> &ensp;&ensp;&ensp;&ensp;max_cmdnum: max cmdnum, default is 512  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: only available in the param `check_cmdnum_limit` is True  
-> &ensp;&ensp;&ensp;&ensp;check_is_ready: check if the arm is in motion, default is True
+> &ensp;&ensp;&ensp;&ensp;check_is_ready: check if the arm is ready to move or not, default is True  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: only available if firmware_version < 1.5.20
 
 
 #### def __calibrate_tcp_coordinate_offset__(self, four_points, is_radian=None):
@@ -881,7 +882,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 
 > Get the digital value of the specified Controller GPIO  
 >   
-> :param ionum: 0~7 or None(both 0~7), default is None  
+> :param ionum: 0~15 or None(both 0~15), default is None  
 > :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -900,19 +901,19 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] == 0: normal  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] != 0：error code  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[2]: digital input functional gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input functional gpio state = states[2] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input functional gpio state = states[2] >> i & 0x0001  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[3]: digital input configuring gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input configuring gpio state = states[3] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input configuring gpio state = states[3] >> i & 0x0001  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[4]: digital output functional gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output functional gpio state = states[4] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output functional gpio state = states[4] >> i & 0x0001  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[5]: digital output configuring gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output configuring gpio state = states[5] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output configuring gpio state = states[5] >> i & 0x0001  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[6]: analog-0 input value  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[7]: analog-1 input value  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[8]: analog-0 output value  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[9]: analog-1 output value  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-15-input-functional-mode]  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-15-output-functional-mode]
 
 
 #### def __get_checkset_default_baud__(self, type_):
@@ -2118,7 +2119,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 
 > Set the digital value of the specified Controller GPIO  
 >   
-> :param ionum: 0~7  
+> :param ionum: 0~15  
 > :param value: value  
 > :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)  
 > :return: code  
@@ -2128,14 +2129,11 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 #### def __set_cgpio_digital_input_function__(self, ionum, fun):
 
 > Set the digital input functional mode of the Controller GPIO  
-> :param ionum: 0~7  
+> :param ionum: 0~15  
 > :param fun: functional mode  
 > &ensp;&ensp;&ensp;&ensp;0: general input  
 > &ensp;&ensp;&ensp;&ensp;1: external emergency stop  
-> &ensp;&ensp;&ensp;&ensp;2: reversed, protection reset  
-> &ensp;&ensp;&ensp;&ensp;3: reversed, reduced mode  
-> &ensp;&ensp;&ensp;&ensp;4: reversed, operating mode  
-> &ensp;&ensp;&ensp;&ensp;5: reversed, three-state switching signal  
+> &ensp;&ensp;&ensp;&ensp;2: protection reset  
 > &ensp;&ensp;&ensp;&ensp;11: offline task  
 > &ensp;&ensp;&ensp;&ensp;12: teaching mode  
 > &ensp;&ensp;&ensp;&ensp;13: reduced mode  
@@ -2147,7 +2145,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 #### def __set_cgpio_digital_output_function__(self, ionum, fun):
 
 > Set the digital output functional mode of the specified Controller GPIO  
-> :param ionum: 0~7  
+> :param ionum: 0~15  
 > :param fun: functionnal mode  
 > &ensp;&ensp;&ensp;&ensp;0: general output  
 > &ensp;&ensp;&ensp;&ensp;1: emergency stop  
@@ -2157,8 +2155,8 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;13: in collision  
 > &ensp;&ensp;&ensp;&ensp;14: in teaching  
 > &ensp;&ensp;&ensp;&ensp;15: in offline task  
-> &ensp;&ensp;&ensp;&ensp;16: reduced mode  
-> &ensp;&ensp;&ensp;&ensp;17: enable arm  
+> &ensp;&ensp;&ensp;&ensp;16: in reduced mode  
+> &ensp;&ensp;&ensp;&ensp;17: is enabled  
 > &ensp;&ensp;&ensp;&ensp;18: emergency stop is pressed  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2168,7 +2166,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 
 > Set the digital value of the specified Controller GPIO when the robot has reached the specified xyz position             
 >   
-> :param ionum: 0 ~ 7  
+> :param ionum: 0 ~ 15  
 > :param value: value  
 > :param xyz: position xyz, as [x, y, z]  
 > :param fault_tolerance_radius: fault tolerance radius  

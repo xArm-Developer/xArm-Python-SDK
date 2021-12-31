@@ -75,9 +75,10 @@ class XArmAPI(object):
             check_joint_limit: check the joint param value out of limit or not, default is True
                 Note: only check the param angle of the interface `set_servo_angle` and the param angles of the interface `set_servo_angle_j`
             check_cmdnum_limit: check the cmdnum out of limit or not, default is True
-            max_cmdnum: max cmdnum, default is 256
+            max_cmdnum: max cmdnum, default is 512
                 Note: only available in the param `check_cmdnum_limit` is True
-            check_is_ready: check if the arm is in motion, default is True
+            check_is_ready: check if the arm is ready to move or not, default is True
+                Note: only available if firmware_version < 1.5.20
         """
         self._arm = XArm(port=port,
                          is_radian=is_radian,
@@ -1858,7 +1859,7 @@ class XArmAPI(object):
         """
         Get the digital value of the specified Controller GPIO
 
-        :param ionum: 0~7 or None(both 0~7), default is None
+        :param ionum: 0~15 or None(both 0~15), default is None
         :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -1877,7 +1878,7 @@ class XArmAPI(object):
         """
         Set the digital value of the specified Controller GPIO
 
-        :param ionum: 0~7
+        :param ionum: 0~15
         :param value: value
         :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
         :return: code
@@ -1899,14 +1900,11 @@ class XArmAPI(object):
     def set_cgpio_digital_input_function(self, ionum, fun):
         """
         Set the digital input functional mode of the Controller GPIO
-        :param ionum: 0~7
+        :param ionum: 0~15
         :param fun: functional mode
             0: general input
             1: external emergency stop
-            2: reversed, protection reset
-            3: reversed, reduced mode
-            4: reversed, operating mode
-            5: reversed, three-state switching signal
+            2: protection reset
             11: offline task
             12: teaching mode
             13: reduced mode
@@ -1919,7 +1917,7 @@ class XArmAPI(object):
     def set_cgpio_digital_output_function(self, ionum, fun):
         """
         Set the digital output functional mode of the specified Controller GPIO
-        :param ionum: 0~7
+        :param ionum: 0~15
         :param fun: functionnal mode
             0: general output
             1: emergency stop
@@ -1929,8 +1927,8 @@ class XArmAPI(object):
             13: in collision
             14: in teaching
             15: in offline task
-            16: reduced mode
-            17: enable arm
+            16: in reduced mode
+            17: is enabled
             18: emergency stop is pressed
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -1951,19 +1949,19 @@ class XArmAPI(object):
                     states[1] == 0: normal
                     states[1] != 0：error code
                 states[2]: digital input functional gpio state
-                    Note: digital-i-input functional gpio state = states[2] >> i & 0x01
+                    Note: digital-i-input functional gpio state = states[2] >> i & 0x0001
                 states[3]: digital input configuring gpio state
-                    Note: digital-i-input configuring gpio state = states[3] >> i & 0x01
+                    Note: digital-i-input configuring gpio state = states[3] >> i & 0x0001
                 states[4]: digital output functional gpio state
-                    Note: digital-i-output functional gpio state = states[4] >> i & 0x01
+                    Note: digital-i-output functional gpio state = states[4] >> i & 0x0001
                 states[5]: digital output configuring gpio state
-                    Note: digital-i-output configuring gpio state = states[5] >> i & 0x01
+                    Note: digital-i-output configuring gpio state = states[5] >> i & 0x0001
                 states[6]: analog-0 input value
                 states[7]: analog-1 input value
                 states[8]: analog-0 output value
                 states[9]: analog-1 output value
-                states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]
-                states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]
+                states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-15-input-functional-mode]
+                states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-15-output-functional-mode]
         """
         return self._arm.get_cgpio_state()
 
@@ -2349,7 +2347,7 @@ class XArmAPI(object):
         """
         Set the digital value of the specified Controller GPIO when the robot has reached the specified xyz position           
         
-        :param ionum: 0 ~ 7
+        :param ionum: 0 ~ 15
         :param value: value
         :param xyz: position xyz, as [x, y, z]
         :param fault_tolerance_radius: fault tolerance radius

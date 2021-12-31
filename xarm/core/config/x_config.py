@@ -260,6 +260,7 @@ class XCONF(object):
 
         VC_SET_JOINTV = 81
         VC_SET_CARTV = 82
+        MOVE_RELATIVE = 83
 
         GET_TCP_POSE_AA = 91
         MOVE_LINE_AA = 92

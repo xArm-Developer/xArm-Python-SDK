@@ -6,11 +6,11 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
-from .utils import xarm_is_connected
 from ..core.config.x_config import XCONF
 from ..core.config.x_code import ServoError
 from ..core.utils.log import logger, pretty_print
 from .base import Base
+from .decorator import xarm_is_connected
 
 
 class Servo(Base):

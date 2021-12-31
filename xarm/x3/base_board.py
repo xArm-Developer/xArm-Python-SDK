@@ -2,11 +2,11 @@
 # __author: rock
 # @time: 2021-04-02
 
-from ..core.utils.log import logger
-from .base import Base
-from .utils import xarm_is_connected
 import math
 import time
+from ..core.utils.log import logger
+from .base import Base
+from .decorator import xarm_is_connected
 
 
 class BaseBoard(Base):

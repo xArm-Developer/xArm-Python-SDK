@@ -6,11 +6,11 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 import time
-from .utils import xarm_is_connected
 from ..core.utils.log import logger
 from ..core.utils import convert
 from .base import Base
 from .code import APIState
+from .decorator import xarm_is_connected
 
 
 class FtSensor(Base):

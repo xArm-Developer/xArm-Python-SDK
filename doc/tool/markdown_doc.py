@@ -22,7 +22,12 @@ class MarkdownDoc(pydoc.TextDoc):
     def process_docstring(self, obj):
         """Get the docstring and turn it into a list."""
         docstring = pydoc.getdoc(obj)
-        return '```\n{}\n```\n\n'.format(docstring) if docstring else ''
+        doc = '\n'
+        for line in docstring.split('\n'):
+            doc += '> {}{}  \n'.format('&ensp;' * (len(line) - len(line.lstrip(' '))), line.lstrip())
+        # doc += '\n\n\n'
+        return doc
+        # return '```\n{}\n```\n\n'.format(docstring) if docstring else ''
 
     def process_class_name(self, name, bases, module):
         """Format the class's name and bases."""
@@ -132,7 +137,12 @@ class MarkdownDoc(pydoc.TextDoc):
 
     def indent(self, text, prefix=''):
         """Indent text by prepending a given prefix to each line."""
-        return "```\n{}\n```".format(text) if text else text
+        doc = ''
+        for line in text.split('\n'):
+            doc += '> {}{}  \n'.format('&ensp;' * (len(line) - len(line.lstrip(' '))), line.lstrip())
+        doc += '\n'
+        return doc
+        # return "```\n{}\n```".format(text) if text else text
 
     def section(self, title, contents):
         """Format a section with a given heading."""
@@ -167,7 +177,7 @@ class MarkdownDoc(pydoc.TextDoc):
                 argspec = argspec[1:-1] # remove parentheses
         else:
             argspec = '(...)'
-        decl = "#### " + "def " + title + argspec + ':' + '\n' + note
+        decl = "\n#### " + "def " + title + argspec + ':' + '\n' + note
 
         if skipdocs:
             return decl + '\n'
@@ -187,7 +197,11 @@ class MarkdownDoc(pydoc.TextDoc):
         # doc = pydoc.getdoc(value) or ""
         docstring = pydoc.getdoc(value) or ''
         if docstring:
-            doc = '```\n{}\n```'.format(docstring) if docstring else ''
+            doc = '\n'
+            for line in docstring.split('\n'):
+                doc += '> {}{}  \n'.format('&ensp;' * (len(line) - len(line.lstrip(' '))), line.lstrip())
+            # doc += '\n'
+            # doc = '```\n{}\n```'.format(docstring) if docstring else ''
         else:
             doc = ''
         if doc: results += doc + "\n"

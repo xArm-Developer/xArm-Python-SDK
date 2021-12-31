@@ -19,34 +19,56 @@ from ..utils.log import logger
 from .base import Port
 from ..config.x_config import XCONF
 
-try:
-    if platform.system() == 'Linux':
-        import fcntl
-    else:
-        fcntl = None
-except:
-    fcntl = None
+# try:
+#     if platform.system() == 'Linux':
+#         import fcntl
+#     else:
+#         fcntl = None
+# except:
+#     fcntl = None
+#
+#
+# def is_xarm_local_ip(ip):
+#     try:
+#         if platform.system() == 'Linux' and fcntl:
+#             def _get_ip(s, ifname):
+#                 try:
+#                     return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]))[20:24])
+#                 except:
+#                     pass
+#                 return ''
+#             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#             # gentoo system netcard name
+#             if ip == _get_ip(sock, b'enp1s0'):
+#                 return True
+#             # rasp system netcard name
+#             if ip == _get_ip(sock, b'eth0'):
+#                 return True
+#     except:
+#         pass
+#     return False
 
 
-def is_xarm_local_ip(ip):
+def get_all_ips():
+    addrs = ['localhost', '127.0.0.1']
+    addrs = set(addrs)
     try:
-        if platform.system() == 'Linux' and fcntl:
-            def _get_ip(s, ifname):
-                try:
-                    return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s', ifname[:15]))[20:24])
-                except:
-                    pass
-                return ''
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            # gentoo system netcard name
-            if ip == _get_ip(sock, b'enp1s0'):
-                return True
-            # rasp system netcard name
-            if ip == _get_ip(sock, b'eth0'):
-                return True
+        for ip in socket.gethostbyname_ex(socket.gethostname())[2]:
+            try:
+                if not ip.startswith('127.'):
+                    addrs.add(ip)
+            except:
+                pass
     except:
         pass
-    return False
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(3)
+        sock.connect(('8.8.8.8', 53))
+        addrs.add(sock.getsockname()[0])
+    except:
+        pass
+    return addrs
 
 
 class HeartBeatThread(threading.Thread):
@@ -78,7 +100,8 @@ class SocketPort(Port):
         try:
             socket.setdefaulttimeout(1)
             use_uds = False
-            if not forbid_uds and platform.system() == 'Linux' and is_xarm_local_ip(server_ip):
+            # if not forbid_uds and platform.system() == 'Linux' and is_xarm_local_ip(server_ip):
+            if not forbid_uds and platform.system() == 'Linux' and server_ip in get_all_ips():
                 uds_path = os.path.join('/tmp/xarmcontroller_uds_{}'.format(server_port))
                 if os.path.exists(uds_path):
                     try:

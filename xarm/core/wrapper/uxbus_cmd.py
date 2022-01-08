@@ -358,6 +358,14 @@ class UxbusCmd(object):
         byte_data = bytes([relative])
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_SERVO_CART_AA, float_data, 9, byte_data)
 
+    def move_relative(self, pose, mvvelo, mvacc, mvtime, radius, is_joint_motion=False, is_angle_axis=False):
+        float_data = [0] * 7
+        for i in range(min(7, len(pose))):
+            float_data[i] = pose[i]
+        float_data += [mvvelo, mvacc, mvtime, radius]
+        byte_data = bytes([int(is_joint_motion), int(is_angle_axis)])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_RELATIVE, float_data, 11, byte_data)
+
     def get_position_aa(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_TCP_POSE_AA, 6)
 

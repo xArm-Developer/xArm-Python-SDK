@@ -9,8 +9,8 @@
 import time
 from ..core.utils.log import logger
 from .code import APIState
-from .utils import xarm_is_connected, xarm_is_not_simulation_mode
 from .base import Base
+from .decorator import xarm_is_connected, xarm_is_not_simulation_mode
 
 
 class RobotIQ(Base):

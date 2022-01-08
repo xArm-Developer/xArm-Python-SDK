@@ -1,6 +1,17 @@
 # xArmSDK API code description
+<!-- TOC --> 
+[Contents](#xarmsdk-api-code-description)
+  - [API Code](#api-code)
+  - [Controller Warn Code](#controller-warn-code)
+  - [Controller Error Code](#controller-error-code)
+  - [Servo Error Code](#servo-error-code)
+  - [Gripper Error Code](#gripper-error-code)
+  - [Bio Gripper Error Code](#bio-gripper-error-code)
+  - [Linear Motor Error Code](#linear-motor-error-code)
+  - [Six-axis Force Torque Sensor Error Code](#six-axis-force-torque-sensor-error-code)
 
-## API return value status code
+
+## API Code
 - -12: run blockly app exception
 - -11: convert blockly app to pythen exception
 - -9: emergency stop
@@ -41,14 +52,14 @@
 - 102: end effector has error
 - 103: end effector is not enabled
 
-## Controller warning code
+## Controller Warn Code
 - 11: uxbux que is full
 - 12: parameter error
 - 13: the instruction does not exist
 - 14: command has no solution
 - 15: modbus cmd full
 
-## Controller error code
+## Controller Error Code
 - 1: The Emergency Stop Button is pushed
 - 2: The Emergency IO of the Control Box is triggered
 - 3: The Emergency Stop Button of the Three-state Switch is pressed

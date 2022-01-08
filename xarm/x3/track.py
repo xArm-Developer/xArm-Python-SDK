@@ -8,7 +8,7 @@ from ..core.utils.log import logger
 from ..core.utils import convert
 from .code import APIState
 from .gpio import GPIO
-from .utils import xarm_is_connected, xarm_is_pause, xarm_is_not_simulation_mode
+from .decorator import xarm_is_connected, xarm_wait_until_not_pause, xarm_is_not_simulation_mode
 
 
 class Track(GPIO):

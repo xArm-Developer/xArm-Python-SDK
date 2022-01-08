@@ -105,16 +105,23 @@ class BaseBoard(Base):
 
     @xarm_is_connected(_type='get')
     def get_imu_data(self, board_id=10):
-        ret = self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=1, bid=board_id)
-        if ret[0] == 0:
-            ret1 = self.arm_cmd.tgpio_addr_r32(addr=0x0C00, bid=board_id, fmt='>f')
-            ret2 = self.arm_cmd.tgpio_addr_r32(addr=0x0C02, bid=board_id, fmt='>f')
-            ret3 = self.arm_cmd.tgpio_addr_r32(addr=0x0C04, bid=board_id, fmt='>f')
-            code = 0 if ret1[0] == 0 else ret1[0]
-            code = code if ret2[0] == 0 else ret2[0]
-            code = code if ret3[0] == 0 else ret3[0]
+        code = 0
+        if board_id == 9:
+            self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=1, bid=board_id)
+
+        ret1 = self.arm_cmd.tgpio_addr_r32(addr=0x0C00, bid=board_id, fmt='>f')
+        ret2 = self.arm_cmd.tgpio_addr_r32(addr=0x0C02, bid=board_id, fmt='>f')
+        ret3 = self.arm_cmd.tgpio_addr_r32(addr=0x0C04, bid=board_id, fmt='>f')
+        code = 0 if ret1[0] == 0 else ret1[0]
+        code = code if ret2[0] == 0 else ret2[0]
+        code = code if ret3[0] == 0 else ret3[0]
+
+        if board_id == 9:
+            self.arm_cmd.tgpio_addr_w16(addr=0x0606, value=0, bid=board_id)
+        if code != 0:
+            return code, [1, 1, 1]
+        else:
             return code, [ret1[1], ret2[1], ret3[1]]
-        return ret[0], [1, 1, 1]
 
     @xarm_is_connected(_type='get')
     def read_iden_from_base(self, servo_id=10):

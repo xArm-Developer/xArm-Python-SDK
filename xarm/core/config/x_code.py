@@ -546,12 +546,12 @@ ControllerErrorCodeMap = {
     },
     19: {
         'en': {
-            'title': 'End Module Communication Error',
-            'desc': 'Please check whether gripper is installed and the baud rate setting is correct.'
+            'title': 'End Effector Communication Error',
+            'desc': 'Please check whether end effector is installed and the baud rate setting is correct'
         },
         'cn': {
-            'title': '末端通信失败',
-            'desc': '请检查机械爪是否安装，波特率设置是否正确。'
+            'title': '末端工具通信失败',
+            'desc': '请检查末端工具是否安装，波特率设置是否正确'
         }
     },
     21: {

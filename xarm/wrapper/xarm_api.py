@@ -3456,3 +3456,13 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details. 
         """
         return self._studio.set_initial_point(point)
+
+    def get_mount_degrees(self):
+        """
+        Get the mount degrees from studio
+
+        :return: tuple((code, degrees)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            degrees: mount degrees, [tilt angle, rotate angle]
+        """
+        return self._studio.get_mount_degrees()

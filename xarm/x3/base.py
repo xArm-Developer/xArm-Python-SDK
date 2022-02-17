@@ -2208,7 +2208,8 @@ class Base(Events):
                     # self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx, bid=host_id)
                     time.sleep(0.3)
-                    self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1, bid=host_id)
+                    if host_id != XCONF.LINEER_TRACK_HOST_ID:
+                        self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1, bid=host_id)
                     if host_id == XCONF.TGPIO_HOST_ID:
                         if self.error_code != 19 and self.error_code != 28:
                             self.get_err_warn_code()

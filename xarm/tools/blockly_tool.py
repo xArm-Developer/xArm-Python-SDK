@@ -157,9 +157,9 @@ class BlocklyTool(object):
         # if self._highlight_callback is None:
         #     self._insert_to_file(self.index, 'highlight_callback = lambda x:x')
         if arm is None:
-            self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1])')
+            self._insert_to_file(self.index, 'arm = XArmAPI(sys.argv[1], baud_checkset=False)')
         elif isinstance(arm, str):
-            self._insert_to_file(self.index, 'arm = XArmAPI(\'{}\')'.format(arm))
+            self._insert_to_file(self.index, 'arm = XArmAPI(\'{}\', baud_checkset=False)'.format(arm))
         if init:
             self._insert_to_file(self.index, 'arm.clean_warn()')
             self._insert_to_file(self.index, 'arm.clean_error()')

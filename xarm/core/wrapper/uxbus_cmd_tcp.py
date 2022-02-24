@@ -54,6 +54,9 @@ class UxbusCmdTcp(UxbusCmd):
             self.TX2_PROT_CON = prot_flag
             print('change prot_flag to {}'.format(self.prot_flag))
         return 0
+    
+    def get_prot_flag(self):
+        return self.prot_flag
 
     def check_xbus_prot(self, data, funcode):
         num = convert.bytes_to_u16(data[0:2])

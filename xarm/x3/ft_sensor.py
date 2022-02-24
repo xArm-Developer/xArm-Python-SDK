@@ -132,7 +132,12 @@ class FtSensor(Base):
 
     @xarm_is_connected(_type='get')
     def ft_sensor_iden_load(self):
+        prot_flag = self.arm_cmd.get_prot_flag()
+        self.arm_cmd.set_prot_flag(2)
+        self._keep_heart = False
         ret = self.arm_cmd.ft_sensor_iden_load()
+        self.arm_cmd.set_prot_flag(prot_flag)
+        self._keep_heart = True
         self.log_api_info('API -> ft_sensor_iden_load -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0]), ret[1:11]
 

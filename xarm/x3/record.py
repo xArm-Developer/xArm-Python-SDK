@@ -176,6 +176,7 @@ class Record(Base):
                 # self.set_mode(mode)
                 self.set_mode(0)
                 self.set_state(0)
+            self._sync()
         return ret[0]
 
     @xarm_is_connected(_type='get')

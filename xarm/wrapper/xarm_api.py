@@ -133,6 +133,10 @@ class XArmAPI(object):
         return self._arm.count
 
     @property
+    def only_check_result(self):
+        return self._arm.only_check_result
+
+    @property
     def realtime_tcp_speed(self):
         """
         The real time speed of tcp motion, only available if version > 1.2.11
@@ -3456,3 +3460,58 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details. 
         """
         return self._studio.set_initial_point(point)
+
+    def set_cartesian_velo_continuous(self, on_off):
+        """
+        Set cartesian motion velocity continuous
+        Note:
+            1. only available if firmware_version >= 1.9.0
+        
+        :param on_off: continuous or not, True means continuous, default is False
+        
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_cartesian_velo_continuous(on_off)
+
+    def set_allow_approx_motion(self, on_off):
+        """
+        Settings allow to avoid overspeed near some singularities using approximate solutions
+        Note:
+            1. only available if firmware_version >= 1.9.0
+
+        :param on_off: allow or not, True means allow, default is False
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_allow_approx_motion(on_off)
+
+    def get_joint_states(self, is_radian=None):
+        """
+        Get the joint states
+        Note:
+            1. only available if firmware_version >= 1.9.0
+
+        :param is_radian: the returned value(position and velocity) is in radians or not, default is self.default_is_radian
+        :return: tuple((code, [position, velocity, effort])), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            position: the angles of joints, like [angle-1, ..., angle-7]
+            velocity: the velocities of joints, like [velo-1, ..., velo-7]
+            effort: the efforts of joints, like [effort-1, ..., effort-7]
+        """
+        return self._arm.get_joint_states(is_radian=is_radian)
+
+    def iden_joint_friction(self):
+        """
+        Identification the friction
+        Note:
+            1. only available if firmware_version >= 1.9.0
+        
+        :return: tuple((code, result)) only when code is 0, the returned result is correct.
+            code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            result: 
+                0: success
+                -1: failure
+        """
+        return self._arm.iden_joint_friction()

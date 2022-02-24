@@ -210,6 +210,8 @@ class Base(Events):
             self.linear_track_is_enabled = False
             self._ft_ext_force = [0, 0, 0, 0, 0, 0]
             self._ft_raw_force = [0, 0, 0, 0, 0, 0]
+            self._only_check_result = 0
+            self._keep_heart = True
 
             self._has_motion_cmd = False
             self._need_sync = False
@@ -324,6 +326,8 @@ class Base(Events):
 
         self._has_motion_cmd = False
         self._need_sync = False
+        self._only_check_result = 0
+        self._keep_heart = True
 
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
@@ -409,6 +413,14 @@ class Base(Events):
         except Exception as e:
             print('compare_time: {}, {}'.format(self._version, e))
             return -1
+
+    @property
+    def only_check_result(self):
+        return self._only_check_result
+
+    @only_check_result.setter
+    def only_check_result(self, val):
+        self._only_check_result = val
 
     @property
     def realtime_tcp_speed(self):
@@ -721,6 +733,9 @@ class Base(Events):
         last_send_time = 0
         while self.connected and self._timed_comm_t_alive:
             curr_time = time.time()
+            if not self._keep_heart:
+                time.sleep(1)
+                continue
             if self.arm_cmd and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > self._timed_comm_interval:
                 try:
                     if cnt == 0:
@@ -1080,16 +1095,17 @@ class Base(Events):
         while self.connected:
             try:
                 curr_time = time.time()
-                if prot_flag != 3 and self.version_is_ge(1, 8, 6) and self.arm_cmd.set_prot_flag(3) == 0:
-                    prot_flag = 3
-                if prot_flag == 3 and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > 30:
-                    code, _ = self.get_state()
-                    # print('send heartbeat, code={}'.format(code))
-                    if code >= 0:
-                        last_send_time = curr_time
-                    if curr_time - self.arm_cmd.last_comm_time > 90:
-                        logger.error('client timeout over 90s, disconnect')
-                        break
+                if self._keep_heart:
+                    if prot_flag != 3 and self.version_is_ge(1, 8, 6) and self.arm_cmd.set_prot_flag(3) == 0:
+                        prot_flag = 3
+                    if prot_flag == 3 and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > 30:
+                        code, _ = self.get_state()
+                        # print('send heartbeat, code={}'.format(code))
+                        if code >= 0:
+                            last_send_time = curr_time
+                        if curr_time - self.arm_cmd.last_comm_time > 90:
+                            logger.error('client timeout over 90s, disconnect')
+                            break
                 if not self.reported:
                     # self.get_err_warn_code()
                     if report_socket_connected:
@@ -1949,6 +1965,21 @@ class Base(Events):
         else:
             return ret[0], float(
                 '{:.6f}'.format(self._angles[servo_id - 1] if is_radian else math.degrees(self._angles[servo_id - 1])))
+
+    @xarm_is_connected(_type='get')
+    def get_joint_states(self, is_radian=None):
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        ret = self.arm_cmd.get_joint_states()
+        ret[0] = self._check_code(ret[0])
+        positon = ret[1:8]
+        velocity = ret[8:15]
+        effort = ret[15:22]
+        if ret[0] == 0:
+            if not is_radian:
+                for i in range(7):
+                    positon[i] = math.degrees(positon[i])
+                    velocity[i] = math.degrees(velocity[i])
+        return ret[0], [positon, velocity, effort]
 
     @xarm_is_connected(_type='get')
     def get_position_aa(self, is_radian=None):

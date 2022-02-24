@@ -41,6 +41,9 @@ class UxbusCmdSer(UxbusCmd):
 
     def set_prot_flag(self, prot_flag):
         return 0
+    
+    def get_prot_flag(self):
+        return 0
 
     def check_xbus_prot(self, data, funcode=0):
         self._state_is_ready = not (data[3] & 0x10)

@@ -262,6 +262,7 @@ class XCONF(object):
         LOAD_TRAJ = 63
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
+        ALLOW_APPROX_MOTION = 66
 
         REPORT_TAU_OR_I = 70
         SET_TIMER = 71
@@ -275,6 +276,7 @@ class XCONF(object):
         SET_SELF_COLLIS_CHECK = 77
         SET_COLLIS_TOOL = 78
         SET_SIMULATION_ROBOT = 79
+        SET_CARTV_CONTINUE = 80
 
         VC_SET_JOINTV = 81
         VC_SET_CARTV = 82
@@ -295,6 +297,7 @@ class XCONF(object):
         CALI_TCP_ORIENT = 112
         CALI_WRLD_ORIENT = 113
         CALI_WRLD_POSE = 114
+        IDEN_FRIC = 115
 
         TGPIO_MB_TIOUT = 123
         TGPIO_MODBUS = 124

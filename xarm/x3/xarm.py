@@ -80,7 +80,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 return APIState.HAS_ERROR
             elif self.is_stop:
                 return APIState.NOT_READY
-            time.sleep(0.05) 
+            time.sleep(0.05)
         return 0
 
     def __update_tcp_motion_params(self, speed, acc, mvtime, pose=None):
@@ -117,6 +117,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def _set_position_absolute(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                                speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', 0)
         tcp_pos = [
             self._last_position[0] if x is None else float(x),
             self._last_position[1] if y is None else float(y),
@@ -135,25 +136,28 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self._has_motion_cmd = True
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         if radius is not None and radius >= 0:
-            ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius)
+            ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius, only_check_type)
         else:
-            ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt)
+            ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt, only_check_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, radius, spd, acc), code=ret[0])
         self._is_set_move = True
-        if wait and ret[0] == 0:
+        if only_check_type > 0 and ret[0] == 0:
+            self.only_check_result = ret[3]
+        if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
-        if ret[0] >= 0 or self.get_is_moving():
+        if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
             self.__update_tcp_motion_params(spd, acc, mvt, tcp_pos)
         return ret[0]
 
     def _set_position_relative(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                                speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', 0)
         if self.version_is_ge(1, 8, 100):
             # use relative api
             tcp_pos = [
@@ -167,17 +171,19 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             self._has_motion_cmd = True
             spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
             radius = radius if radius is not None else -1
-            ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False)
+            ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False, only_check_type)
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
             self.log_api_info('API -> set_relative_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
                 ret[0], tcp_pos, radius, spd, acc), code=ret[0])
             self._is_set_move = True
-            if wait and ret[0] == 0:
+            if only_check_type > 0 and ret[0] == 0:
+                self.only_check_result = ret[3]
+            if only_check_type <= 0 and wait and ret[0] == 0:
                 code = self.wait_move(timeout)
                 self.__update_tcp_motion_params(spd, acc, mvt)
                 self._sync()
                 return code
-            if ret[0] >= 0:
+            if only_check_type <= 0 and ret[0] >= 0:
                 self.__update_tcp_motion_params(spd, acc, mvt)
             return ret[0]
         else:
@@ -202,6 +208,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
+        only_check_type = kwargs.get('only_check_type', 0)
+        if only_check_type > 0 and wait:
+            self.wait_move(timeout=timeout)
         if relative:
             return self._set_position_relative(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw, radius=radius,
                                                speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian,
@@ -218,6 +227,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                           speed=None, mvacc=None, mvtime=None, is_radian=None,
                           wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', 0)
+        if only_check_type > 0 and wait:
+            self.wait_move(timeout=timeout)
         tcp_pos = [
             x, y, z,
             to_radian(roll, is_radian),
@@ -226,17 +238,19 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         ]
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
-        ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt)
+        ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt, only_check_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
         self._is_set_move = True
-        if wait and ret[0] == 0:
+        if only_check_type > 0 and ret[0] == 0:
+            self.only_check_result = ret[3]
+        if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
-        if ret[0] >= 0 or self.get_is_moving():
+        if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
             self.__update_tcp_motion_params(spd, acc, mvt)
         return ret[0]
 
@@ -247,21 +261,26 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                         is_radian=None, is_tool_coord=False, relative=False,
                         wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', False)
+        if only_check_type > 0 and wait:
+            self.wait_move(timeout=timeout)
         tcp_pos = [to_radian(mvpose[i], is_radian or i <= 2) for i in range(6)]
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
         self._has_motion_cmd = True
-        ret = self.arm_cmd.move_line_aa(tcp_pos, spd, acc, mvt, mvcoord, int(relative))
+        ret = self.arm_cmd.move_line_aa(tcp_pos, spd, acc, mvt, mvcoord, int(relative), only_check_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
         self._is_set_move = True
-        if wait and ret[0] == 0:
+        if only_check_type > 0 and ret[0] == 0:
+            self.only_check_result = ret[3]
+        if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
-        if ret[0] >= 0 or self.get_is_moving():
+        if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
             self.__update_tcp_motion_params(spd, acc, mvt)
         return ret[0]
 
@@ -287,6 +306,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def _set_servo_angle_absolute(self, angles, speed=None, mvacc=None, mvtime=None,
                                   is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', 0)
         joints = self._last_angles.copy()
         for i in range(min(len(self._last_angles), len(angles))):
             if i >= self.axis or angles[i] is None:
@@ -301,26 +321,29 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
         if self.version_is_ge(1, 5, 20) and radius is not None and radius >= 0:
-            ret = self.arm_cmd.move_jointb(joints, spd, acc, radius)
+            ret = self.arm_cmd.move_jointb(joints, spd, acc, radius, only_check_type)
         else:
-            ret = self.arm_cmd.move_joint(joints, spd, acc, mvt)
+            ret = self.arm_cmd.move_joint(joints, spd, acc, mvt, only_check_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
             ret[0], joints, spd, acc, radius
         ), code=ret[0])
         self._is_set_move = True
-        if wait and ret[0] == 0:
+        if only_check_type > 0 and ret[0] == 0:
+            self.only_check_result = ret[3]
+        if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_joint_motion_params(spd, acc, mvt)
             self._sync()
             return code
-        if ret[0] >= 0 or self.get_is_moving():
+        if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
             self.__update_joint_motion_params(spd, acc, mvt, joints)
         return ret[0]
 
     def _set_servo_angle_relative(self, angles, speed=None, mvacc=None, mvtime=None,
                                   is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', False)
         if self.version_is_ge(1, 8, 100):
             # use relative api
             joints = [0] * 7
@@ -331,18 +354,20 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             self._has_motion_cmd = True
             spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
             radius = radius if radius is not None else -1
-            ret = self.arm_cmd.move_relative(joints, spd, acc, mvt, radius, True, False)
+            ret = self.arm_cmd.move_relative(joints, spd, acc, mvt, radius, True, False, only_check_type)
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
             self.log_api_info('API -> set_relative_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
                 ret[0], joints, spd, acc, radius
             ), code=ret[0])
             self._is_set_move = True
-            if wait and ret[0] == 0:
+            if only_check_type > 0 and ret[0] == 0:
+                self.only_check_result = ret[3]
+            if only_check_type <= 0 and wait and ret[0] == 0:
                 code = self.wait_move(timeout)
                 self.__update_joint_motion_params(spd, acc, mvt)
                 self._sync()
                 return code
-            if ret[0] >= 0:
+            if only_check_type <= 0 and ret[0] >= 0:
                 self.__update_joint_motion_params(spd, acc, mvt)
             return ret[0]
         else:
@@ -375,6 +400,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             angles[servo_id - 1] = angle
         else:
             angles = angle
+        only_check_type = kwargs.get('only_check_type', False)
+        if only_check_type > 0 and wait:
+            self.wait_move(timeout=timeout)
         if relative:
             return self._set_servo_angle_relative(angles, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian,
                                                   wait=wait, timeout=timeout, radius=radius, **kwargs)
@@ -425,6 +453,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     @xarm_is_ready(_type='set')
     def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', False)
+        if only_check_type > 0 and wait:
+            self.wait_move(timeout=timeout)
         pose_1 = []
         pose_2 = []
         for i in range(6):
@@ -432,17 +463,19 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             pose_2.append(to_radian(pose2[i], is_radian or i <= 2))
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
-        ret = self.arm_cmd.move_circle(pose_1, pose_2, spd, acc, mvt, percent)
+        ret = self.arm_cmd.move_circle(pose_1, pose_2, spd, acc, mvt, percent, only_check_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, spd, acc), code=ret[0])
         self._is_set_move = True
-        if wait and ret[0] == 0:
+        if only_check_type > 0 and ret[0] == 0:
+            self.only_check_result = ret[3]
+        if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
-        if ret[0] >= 0 or self.get_is_moving():
+        if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
             self.__update_tcp_motion_params(spd, acc, mvt)
         return ret[0]
 
@@ -451,15 +484,20 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     @xarm_is_ready(_type='set')
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        only_check_type = kwargs.get('only_check_type', False)
+        if only_check_type > 0 and wait:
+            self.wait_move(timeout=timeout)
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
-        ret = self.arm_cmd.move_gohome(spd, acc, mvt)
+        ret = self.arm_cmd.move_gohome(spd, acc, mvt, only_check_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> move_gohome -> code={}, velo={}, acc={}'.format(
             ret[0], spd, acc
         ), code=ret[0])
         self._is_set_move = True
-        if wait and ret[0] == 0:
+        if only_check_type > 0 and ret[0] == 0:
+            self.only_check_result = ret[3]
+        if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self._sync()
             return code
@@ -1593,5 +1631,36 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
 
     @xarm_is_connected(_type='get')
     def iden_tcp_load(self):
+        prot_flag = self.arm_cmd.get_prot_flag()
+        self.arm_cmd.set_prot_flag(2)
+        self._keep_heart = False
         ret = self.arm_cmd.iden_tcp_load()
+        self.arm_cmd.set_prot_flag(prot_flag)
+        self._keep_heart = True
+        self.log_api_info('API -> iden_tcp_load -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0]), ret[1:5]
+
+    @xarm_is_connected(_type='set')
+    def set_cartesian_velo_continuous(self, on_off):
+        ret = self.arm_cmd.set_cartesian_velo_continuous(int(on_off))
+        ret[0] = self._check_code(ret[0])
+        self.log_api_info('API -> set_cartesian_velo_continuous({}) -> code={}'.format(on_off, ret[0]), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='set')
+    def set_allow_approx_motion(self, on_off):
+        ret = self.arm_cmd.set_allow_approx_motion(int(on_off))
+        ret[0] = self._check_code(ret[0])
+        self.log_api_info('API -> set_allow_approx_motion({}) -> code={}'.format(on_off, ret[0]), code=ret[0])
+        return ret[0]
+
+    @xarm_is_connected(_type='get')
+    def iden_joint_friction(self):
+        prot_flag = self.arm_cmd.get_prot_flag()
+        self.arm_cmd.set_prot_flag(2)
+        self._keep_heart = False
+        ret = self.arm_cmd.iden_joint_friction()
+        self.arm_cmd.set_prot_flag(prot_flag)
+        self._keep_heart = True
+        self.log_api_info('API -> iden_joint_friction -> code={}'.format(ret[0]), code=ret[0])
+        return self._check_code(ret[0]), int(ret[1])

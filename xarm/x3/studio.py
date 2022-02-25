@@ -130,7 +130,7 @@ class Studio(object):
             if show_fail_log:
                 logger.error('ip or api_name is empty, ip={}, api_name={}'.format(self.__ip, api_name))
 
-    def get_mount_degrees(self):
+    def get_mount_direction(self):
 
         ret = self.call_studio_api(api_name='XArm.xarm_mount_degrees')
         if ret:

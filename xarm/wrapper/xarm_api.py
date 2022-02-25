@@ -3461,7 +3461,7 @@ class XArmAPI(object):
         """
         return self._studio.set_initial_point(point)
 
-    def get_mount_degrees(self):
+    def get_mount_direction(self):
         """
         Get the mount degrees from studio
 
@@ -3469,7 +3469,7 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             degrees: mount degrees, [tilt angle, rotate angle]
         """
-        return self._studio.get_mount_degrees()
+        return self._studio.get_mount_direction()
 
     def set_cartesian_velo_continuous(self, on_off):
         """

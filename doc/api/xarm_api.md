@@ -287,6 +287,8 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: enable  
 
 
+#### __only_check_result__
+
 #### __position__
 
 > Cartesion position  
@@ -1098,6 +1100,20 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :return: True/False
 
 
+#### def __get_joint_states__(self, is_radian=None):
+
+> Get the joint states  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.9.0  
+>   
+> :param is_radian: the returned value(position and velocity) is in radians or not, default is self.default_is_radian  
+> :return: tuple((code, [position, velocity, effort])), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;position: the angles of joints, like [angle-1, ..., angle-7]  
+> &ensp;&ensp;&ensp;&ensp;velocity: the velocities of joints, like [velo-1, ..., velo-7]  
+> &ensp;&ensp;&ensp;&ensp;effort: the efforts of joints, like [effort-1, ..., effort-7]
+
+
 #### def __get_joints_torque__(self):
 
 > Get joints torque  
@@ -1208,6 +1224,15 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x00: motion finish  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x01: in motion  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x02: has stop
+
+
+#### def __get_mount_degrees__(self):
+
+> Get the mount degrees from studio  
+>   
+> :return: tuple((code, degrees)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;degrees: mount degrees, [tilt angle, rotate angle]
 
 
 #### def __get_pose_offset__(self, pose1, pose2, orient_type_in=0, orient_type_out=0, is_radian=None):
@@ -1458,6 +1483,20 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :return: tuple((code, modbus_response))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;modbus_response: modbus response data
+
+
+#### def __iden_joint_friction__(self, sn=None):
+
+> Identification the friction  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.9.0  
+>   
+> :param sn: sn value  
+> :return: tuple((code, result)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;result:   
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: success  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;-1: failure
 
 
 #### def __iden_tcp_load__(self):
@@ -2060,6 +2099,18 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_allow_approx_motion__(self, on_off):
+
+> Settings allow to avoid overspeed near some singularities using approximate solutions  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.9.0  
+>   
+> :param on_off: allow or not, True means allow, default is False  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __set_baud_checkset_enable__(self, enable):
 
 > Enable auto checkset the baudrate of the end IO board or not  
@@ -2088,6 +2139,18 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > Set the speed of the bio gripper  
 >   
 > :param speed: speed  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_cartesian_velo_continuous__(self, on_off):
+
+> Set cartesian motion velocity continuous  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.9.0  
+>   
+> :param on_off: continuous or not, True means continuous, default is False  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.

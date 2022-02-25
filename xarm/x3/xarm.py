@@ -1655,11 +1655,25 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         return ret[0]
 
     @xarm_is_connected(_type='get')
-    def iden_joint_friction(self):
+    def iden_joint_friction(self, sn=None):
+        if sn is None:
+            code, sn = self.get_robot_sn()
+            if code != 0:
+                self.log_api_info('iden_joint_friction -> get_robot_sn failed, code={}'.format(code), code=code)
+                return APIState.API_EXCEPTION, -1
+        if len(sn) != 14:
+            self.log_api_info('iden_joint_friction, sn is not correct, sn={}'.format(sn), code=APIState.API_EXCEPTION)
+            return APIState.API_EXCEPTION, -1
+        sn = sn.upper()
+        axis_map = {5: 'F', 6: 'I', 7: 'S'}
+        if sn[0] != 'X' or sn[1] != axis_map.get(self.axis, ''):
+            self.log_api_info('iden_joint_friction, sn is not correct, axis={}, sn={}'.format(self.axis, sn), code=APIState.API_EXCEPTION)
+            return APIState.API_EXCEPTION, -1
+
         prot_flag = self.arm_cmd.get_prot_flag()
         self.arm_cmd.set_prot_flag(2)
         self._keep_heart = False
-        ret = self.arm_cmd.iden_joint_friction()
+        ret = self.arm_cmd.iden_joint_friction(sn)
         self.arm_cmd.set_prot_flag(prot_flag)
         self._keep_heart = True
         self.log_api_info('API -> iden_joint_friction -> code={}'.format(ret[0]), code=ret[0])

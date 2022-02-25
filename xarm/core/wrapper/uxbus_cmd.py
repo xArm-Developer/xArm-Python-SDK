@@ -1009,9 +1009,9 @@ class UxbusCmd(object):
     def iden_load(self, iden_type, num_get, timeout=500):
         return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, [iden_type], 1, num_get, timeout=timeout)
 
-    def iden_joint_friction(self, timeout=500):
-        return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_FRIC, 0, 0, 1, timeout=timeout)
-        # return self.get_nfp32(XCONF.UxbusReg.IDEN_FRIC, 1, timeout=timeout)
+    def iden_joint_friction(self, sn, timeout=500):
+        txdata = [ord(i) for i in list(sn)]
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_FRIC, txdata, 14, 1, timeout=timeout)
 
     @lock_require
     def set_impedance(self, coord, c_axis, M, K, B):

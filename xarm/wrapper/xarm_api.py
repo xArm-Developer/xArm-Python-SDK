@@ -3512,16 +3512,17 @@ class XArmAPI(object):
         """
         return self._arm.get_joint_states(is_radian=is_radian)
 
-    def iden_joint_friction(self):
+    def iden_joint_friction(self, sn=None):
         """
         Identification the friction
         Note:
             1. only available if firmware_version >= 1.9.0
         
+        :param sn: sn value
         :return: tuple((code, result)) only when code is 0, the returned result is correct.
             code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             result: 
                 0: success
                 -1: failure
         """
-        return self._arm.iden_joint_friction()
+        return self._arm.iden_joint_friction(sn)

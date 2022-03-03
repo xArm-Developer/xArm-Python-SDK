@@ -48,26 +48,26 @@ logger.WARNING = logging.WARNING
 logger.ERROR = logging.ERROR
 logger.CRITICAL = logging.CRITICAL
 
-findCaller = logger.findCaller
+logger.verbose = functools.partial(logger.log, logger.VERBOSE)
 
-
-def log(msg, *args, **kwargs):
-    level = kwargs.pop('level', logger.INFO)
-    if logger.findCaller == findCaller:
-        rv = findCaller(kwargs.pop('stack_info', False))
-        logger.findCaller = lambda x: rv
-    logger.log(level, msg, *args, **kwargs)
-    if logger.findCaller != findCaller:
-        logger.findCaller = findCaller
-
-# logger.verbose = functools.partial(logger.log, logger.VERBOSE)
-
-logger.verbose = functools.partial(log, level=logger.VERBOSE)
-logger.debug = functools.partial(log, level=logger.DEBUG)
-logger.info = functools.partial(log, level=logger.INFO)
-logger.warning = functools.partial(log, level=logger.WARNING)
-logger.error = functools.partial(log, level=logger.ERROR)
-logger.critical = functools.partial(log, level=logger.CRITICAL)
+# findCaller = logger.findCaller
+#
+#
+# def log(msg, *args, **kwargs):
+#     level = kwargs.pop('level', logger.INFO)
+#     if logger.findCaller == findCaller:
+#         rv = findCaller(kwargs.pop('stack_info', False))
+#         logger.findCaller = lambda x: rv
+#     logger.log(level, msg, *args, **kwargs)
+#     if logger.findCaller != findCaller:
+#         logger.findCaller = findCaller
+#
+# logger.verbose = functools.partial(log, level=logger.VERBOSE)
+# logger.debug = functools.partial(log, level=logger.DEBUG)
+# logger.info = functools.partial(log, level=logger.INFO)
+# logger.warning = functools.partial(log, level=logger.WARNING)
+# logger.error = functools.partial(log, level=logger.ERROR)
+# logger.critical = functools.partial(log, level=logger.CRITICAL)
 
 colors = {
     'none': '{}',

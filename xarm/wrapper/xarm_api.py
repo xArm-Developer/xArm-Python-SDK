@@ -957,7 +957,7 @@ class XArmAPI(object):
         """
         return self._arm.move_circle(pose1, pose2, percent, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
 
-    def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
+    def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         """
         Move to go home (Back to zero), the API will modify self.last_used_position and self.last_used_angles value
         Warnning: without limit detection
@@ -977,7 +977,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
+        return self._arm.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
 
     def move_arc_lines(self, paths, is_radian=None, times=1, first_pause_time=0.1, repeat_pause_time=0,
                        automatic_calibration=True, speed=None, mvacc=None, mvtime=None, wait=False):
@@ -3526,3 +3526,6 @@ class XArmAPI(object):
                 -1: failure
         """
         return self._arm.iden_joint_friction(sn)
+
+    def set_only_check_type(self, only_check_type=0):
+        return self._arm.set_only_check_type(only_check_type)

@@ -117,7 +117,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def _set_position_absolute(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                                speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', 0)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         tcp_pos = [
             self._last_position[0] if x is None else float(x),
             self._last_position[1] if y is None else float(y),
@@ -143,8 +143,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.log_api_info('API -> set_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, radius, spd, acc), code=ret[0])
         self._is_set_move = True
+        self._only_check_result = 0
         if only_check_type > 0 and ret[0] == 0:
-            self.only_check_result = ret[3]
+            self._only_check_result = ret[3]
+            return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
@@ -157,7 +159,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def _set_position_relative(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                                speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', 0)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if self.version_is_ge(1, 8, 100):
             # use relative api
             tcp_pos = [
@@ -176,14 +178,16 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             self.log_api_info('API -> set_relative_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
                 ret[0], tcp_pos, radius, spd, acc), code=ret[0])
             self._is_set_move = True
+            self._only_check_result = 0
             if only_check_type > 0 and ret[0] == 0:
-                self.only_check_result = ret[3]
+                self._only_check_result = ret[3]
+                return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
             if only_check_type <= 0 and wait and ret[0] == 0:
                 code = self.wait_move(timeout)
                 self.__update_tcp_motion_params(spd, acc, mvt)
                 self._sync()
                 return code
-            if only_check_type <= 0 and ret[0] >= 0:
+            if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
                 self.__update_tcp_motion_params(spd, acc, mvt)
             return ret[0]
         else:
@@ -208,7 +212,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def set_position(self, x=None, y=None, z=None, roll=None, pitch=None, yaw=None, radius=None,
                      speed=None, mvacc=None, mvtime=None, relative=False, is_radian=None,
                      wait=False, timeout=None, **kwargs):
-        only_check_type = kwargs.get('only_check_type', 0)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
         if relative:
@@ -227,7 +231,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                           speed=None, mvacc=None, mvtime=None, is_radian=None,
                           wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', 0)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
         tcp_pos = [
@@ -243,8 +247,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
         self._is_set_move = True
+        self._only_check_result = 0
         if only_check_type > 0 and ret[0] == 0:
-            self.only_check_result = ret[3]
+            self._only_check_result = ret[3]
+            return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
@@ -261,7 +267,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                         is_radian=None, is_tool_coord=False, relative=False,
                         wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', False)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
         tcp_pos = [to_radian(mvpose[i], is_radian or i <= 2) for i in range(6)]
@@ -273,8 +279,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
         self._is_set_move = True
+        self._only_check_result = 0
         if only_check_type > 0 and ret[0] == 0:
-            self.only_check_result = ret[3]
+            self._only_check_result = ret[3]
+            return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
@@ -306,7 +314,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def _set_servo_angle_absolute(self, angles, speed=None, mvacc=None, mvtime=None,
                                   is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', 0)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         joints = self._last_angles.copy()
         for i in range(min(len(self._last_angles), len(angles))):
             if i >= self.axis or angles[i] is None:
@@ -329,8 +337,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             ret[0], joints, spd, acc, radius
         ), code=ret[0])
         self._is_set_move = True
+        self._only_check_result = 0
         if only_check_type > 0 and ret[0] == 0:
-            self.only_check_result = ret[3]
+            self._only_check_result = ret[3]
+            return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_joint_motion_params(spd, acc, mvt)
@@ -343,7 +353,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def _set_servo_angle_relative(self, angles, speed=None, mvacc=None, mvtime=None,
                                   is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', False)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if self.version_is_ge(1, 8, 100):
             # use relative api
             joints = [0] * 7
@@ -360,14 +370,16 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 ret[0], joints, spd, acc, radius
             ), code=ret[0])
             self._is_set_move = True
+            self._only_check_result = 0
             if only_check_type > 0 and ret[0] == 0:
-                self.only_check_result = ret[3]
+                self._only_check_result = ret[3]
+                return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
             if only_check_type <= 0 and wait and ret[0] == 0:
                 code = self.wait_move(timeout)
                 self.__update_joint_motion_params(spd, acc, mvt)
                 self._sync()
                 return code
-            if only_check_type <= 0 and ret[0] >= 0:
+            if only_check_type <= 0 and (ret[0] >= 0 or self.get_is_moving()):
                 self.__update_joint_motion_params(spd, acc, mvt)
             return ret[0]
         else:
@@ -400,7 +412,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             angles[servo_id - 1] = angle
         else:
             angles = angle
-        only_check_type = kwargs.get('only_check_type', False)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
         if relative:
@@ -453,7 +465,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     @xarm_is_ready(_type='set')
     def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', False)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
         pose_1 = []
@@ -468,8 +480,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, spd, acc), code=ret[0])
         self._is_set_move = True
+        self._only_check_result = 0
         if only_check_type > 0 and ret[0] == 0:
-            self.only_check_result = ret[3]
+            self._only_check_result = ret[3]
+            return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self.__update_tcp_motion_params(spd, acc, mvt)
@@ -484,7 +498,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     @xarm_is_ready(_type='set')
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        only_check_type = kwargs.get('only_check_type', False)
+        only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
@@ -495,8 +509,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             ret[0], spd, acc
         ), code=ret[0])
         self._is_set_move = True
+        self._only_check_result = 0
         if only_check_type > 0 and ret[0] == 0:
-            self.only_check_result = ret[3]
+            self._only_check_result = ret[3]
+            return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
             code = self.wait_move(timeout)
             self._sync()

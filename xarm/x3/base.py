@@ -148,6 +148,7 @@ class Base(Events):
             self._is_first_report = True
             self._first_report_over = False
             self._default_is_radian = is_radian
+            self._only_check_type = kwargs.get('only_check_type', 0)
 
             self._sleep_finish_time = time.time()
             self._is_old_protocol = False
@@ -417,10 +418,6 @@ class Base(Events):
     @property
     def only_check_result(self):
         return self._only_check_result
-
-    @only_check_result.setter
-    def only_check_result(self, val):
-        self._only_check_result = val
 
     @property
     def realtime_tcp_speed(self):
@@ -2344,3 +2341,6 @@ class Base(Events):
         ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
         self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
         return ret[0]
+
+    def set_only_check_type(self, only_check_type):
+        self._only_check_type = only_check_type if only_check_type in [0, 1, 2, 3] else 0

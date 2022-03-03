@@ -1206,3 +1206,13 @@ class UxbusCmd(object):
     def iden_tcp_load(self):
         return self.iden_load(1, 4, timeout=300)
 
+    @lock_require
+    def servo_error_addr_r32(self, axis, addr):
+        txdata = bytes([axis])
+        txdata += convert.u16_to_bytes(addr)
+        ret = self.send_xbus(XCONF.UxbusReg.SERVO_ERROR, txdata, 3)
+        if ret != 0:
+            return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
+
+        ret = self.send_pend(XCONF.UxbusReg.SERVO_ERROR, 4, self._GET_TIMEOUT)
+        return [ret[0], convert.bytes_to_long_big(ret[1:5])]

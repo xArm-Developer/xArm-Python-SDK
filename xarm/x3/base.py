@@ -2314,10 +2314,10 @@ class Base(Events):
         #     self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
 
-    def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False):
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False, host_id=XCONF.TGPIO_HOST_ID):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
-        ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas))
+        ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id)
         ret[0] = self._check_modbus_code(ret, min_res_len + 2)
         if not ignore_log:
             self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])

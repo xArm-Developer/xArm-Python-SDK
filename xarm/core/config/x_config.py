@@ -292,6 +292,7 @@ class XCONF(object):
         SERVO_R32B = 104
         SERVO_ZERO = 105
         SERVO_DBMSG = 106
+        SERVO_ERROR = 107
 
         CALI_TCP_POSE = 111
         CALI_TCP_ORIENT = 112

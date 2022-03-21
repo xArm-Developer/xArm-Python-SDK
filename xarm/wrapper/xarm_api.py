@@ -2787,6 +2787,7 @@ class XArmAPI(object):
         
         :param datas: data_list
         :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
+        :param host_id: host_id, default is 9 (TGPIO_HOST_ID)
         
         :return: tuple((code, modbus_response))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -3528,4 +3529,13 @@ class XArmAPI(object):
         return self._arm.iden_joint_friction(sn)
 
     def set_only_check_type(self, only_check_type=0):
+        """
+        Reversed, no description, please do not use 
+        Note:
+            1. only available if firmware_version >= 1.10.0
+            
+        :param only_check_type: 
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
         return self._arm.set_only_check_type(only_check_type)

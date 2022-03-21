@@ -1226,7 +1226,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x02: has stop
 
 
-#### def __get_mount_degrees__(self):
+#### def __get_mount_direction__(self):
 
 > Get the mount degrees from studio  
 >   
@@ -1473,12 +1473,13 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __getset_tgpio_modbus_data__(self, datas, min_res_len=0):
+#### def __getset_tgpio_modbus_data__(self, datas, min_res_len=0, host_id=9):
 
 > Send the modbus data to the tool gpio  
 >   
 > :param datas: data_list  
 > :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check  
+> :param host_id: host_id, default is 9 (TGPIO_HOST_ID)  
 >   
 > :return: tuple((code, modbus_response))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -1602,7 +1603,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
 
 
-#### def __move_gohome__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None):
+#### def __move_gohome__(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
 
 > Move to go home (Back to zero), the API will modify self.last_used_position and self.last_used_angles value  
 > Warnning: without limit detection  
@@ -2596,6 +2597,17 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param base_tilt_deg: tilt degree  
 > :param rotation_deg: rotation degree  
 > :param is_radian: the base_tilt_deg/rotation_deg in radians or not, default is self.default_is_radian  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_only_check_type__(self, only_check_type=0):
+
+> Reversed, no description, please do not use   
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
+> &ensp;&ensp;&ensp;&ensp;  
+> :param only_check_type:   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

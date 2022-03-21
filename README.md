@@ -30,6 +30,13 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 
+- > ### 1.9.0
+  - Support friction parameter identification interface
+  - Support relative motion
+  - Support xarm6-type11 firmware
+  - Repair time-consuming interface (identification) failure due to heartbeat mechanism
+  - Fix several bugs
+
 - > ### 1.8.4
   - Support the Six-axis Force Torque Sensor (not a third party)
   - Add threads to handle callbacks
@@ -46,11 +53,6 @@ Install is not necessary, you can run examples without installation.Only Python3
   - Support linear track interface (requires firmware 1.8.0 or higher)
   - Support calling some studio APIs
 
-- > ### 1.6.9
-
-  - Support for blocky code conversion and operation of xArmStudio1.6.9
-  - Support velocity control
-  - Support calibrate tcp offset and user offset
 
 - >### [More](ReleaseNotes.md)
 

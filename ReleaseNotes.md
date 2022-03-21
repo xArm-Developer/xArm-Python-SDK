@@ -2,6 +2,13 @@
 
 ## Update Summary
 
+- > ### 1.9.0
+  - Support friction parameter identification interface
+  - Support relative motion
+  - Support xarm6-type11 firmware
+  - Repair time-consuming interface (identification) failure due to heartbeat mechanism
+  - Fix several bugs
+
 - > ### 1.8.4
   - Support the Six-axis Force Torque Sensor (not a third party)
   - Add threads to handle callbacks

@@ -99,6 +99,7 @@ class XArmAPI(object):
             'set_fense_mode': self.set_fence_mode,
             'get_suction_cup': self.get_vacuum_gripper,
             'set_suction_cup': self.set_vacuum_gripper,
+            'get_ft_senfor_config': self.get_ft_sensor_config,
         }
 
     def __getattr__(self, item):
@@ -3161,7 +3162,7 @@ class XArmAPI(object):
         """
         return self._arm.get_ft_sensor_data()
 
-    def get_ft_senfor_config(self):
+    def get_ft_sensor_config(self):
         """
         Get the config of the Six-axis Force Torque Sensor
         Note:
@@ -3201,7 +3202,7 @@ class XArmAPI(object):
                 [20] kd: differential gain.
                 [21] xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
         """
-        return self._arm.get_ft_senfor_config()
+        return self._arm.get_ft_sensor_config()
 
     def get_ft_sensor_error(self):
         """
@@ -3216,17 +3217,19 @@ class XArmAPI(object):
         """
         return self._arm.get_ft_sensor_error()
 
-    def iden_tcp_load(self):
+    def iden_tcp_load(self, estimated_mass=0):
         """
         Identification the tcp load with current
         Note:
             1. only available if firmware_version >= 1.8.0
         
+        :param estimated_mass: estimated mass
+            Note: this parameter is only available on the lite6 model manipulator, and this parameter must be specified for the lite6 model manipulator
         :return: tuple((code, load)) only when code is 0, the returned result is correct.
             code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             load:  [mass，x_centroid，y_centroid，z_centroid]
         """
-        return self._arm.iden_tcp_load()
+        return self._arm.iden_tcp_load(estimated_mass)
 
     def get_linear_track_registers(self, **kwargs):
         """
@@ -3539,3 +3542,12 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.set_only_check_type(only_check_type)
+
+    def open_lite6_gripper(self):
+        return self._arm.open_lite6_gripper()
+
+    def close_lite6_gripper(self):
+        return self._arm.close_lite6_gripper()
+
+    def stop_lite6_gripper(self):
+        return self._arm.stop_lite6_gripper()

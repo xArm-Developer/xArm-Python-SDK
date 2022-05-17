@@ -26,7 +26,8 @@ from .code import APIState
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_wait_until_not_pause, xarm_wait_until_cmdnum_lt_max
 from .utils import to_radian
 try:
-    from ..tools.blockly_tool import BlocklyTool
+    # from ..tools.blockly_tool import BlocklyTool
+    from ..tools.blockly import BlocklyTool
 except:
     print('import BlocklyTool module failed')
     BlocklyTool = None
@@ -1357,7 +1358,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             if not os.path.exists(path):
                 raise FileNotFoundError
             blockly_tool = BlocklyTool(path)
-            succeed = blockly_tool.to_python(arm=self._api_instance, **kwargs)
+            succeed = blockly_tool.to_python(arm=self._api_instance, is_exec=True, **kwargs)
             if succeed:
                 times = kwargs.get('times', 1)
                 highlight_callback = kwargs.get('highlight_callback', None)
@@ -1368,7 +1369,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 count_changed_callbacks = self._report_callbacks[self.REPORT_COUNT_CHANGED_ID].copy()
                 code = APIState.NORMAL
                 try:
-                    for i in range(times):
+                    for _ in range(times):
                         exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
                 except Exception as e:
                     code = APIState.RUN_BLOCKLY_EXCEPTION
@@ -1646,11 +1647,13 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         return self.arm_cmd.get_max_joint_velocity(eveloc, joints)
 
     @xarm_is_connected(_type='get')
-    def iden_tcp_load(self):
+    def iden_tcp_load(self, estimated_mass=0):
         prot_flag = self.arm_cmd.get_prot_flag()
         self.arm_cmd.set_prot_flag(2)
         self._keep_heart = False
-        ret = self.arm_cmd.iden_tcp_load()
+        if self.version_is_ge(1, 9, 100) and estimated_mass <= 0:
+            estimated_mass = 0.5
+        ret = self.arm_cmd.iden_tcp_load(estimated_mass)
         self.arm_cmd.set_prot_flag(prot_flag)
         self._keep_heart = True
         self.log_api_info('API -> iden_tcp_load -> code={}'.format(ret[0]), code=ret[0])

@@ -16,9 +16,10 @@ import json
 import time
 import random
 from .blockly_highlight_block import HIGHLIGHT_BLOCKS
+from .blockly import BlocklyTool
 
 
-class BlocklyTool(object):
+class BlocklyToolOld(object):
     def __init__(self, path):
         self.tree = ET.parse(path)
         self.root = self.tree.getroot()
@@ -1400,8 +1401,9 @@ class BlocklyTool(object):
     def _handle_math_change(self, block, prefix='', arg_map=None):
         field = self.get_node('field', block).text
         value = self.get_node('value', root=block)
-        shadow = self.get_node('shadow', root=value)
-        val = self.get_node('field', root=shadow).text
+        # shadow = self.get_node('shadow', root=value)
+        # val = self.get_node('field', root=shadow).text
+        val = self.__get_block_val(value)
         # self._append_to_file('{}params[\'variables\'][\'{}\'] += {}'.format(prefix, field, val))
 
         prefix = self.__check_is_quit(prefix)

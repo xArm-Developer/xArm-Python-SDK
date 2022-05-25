@@ -807,7 +807,7 @@ class XArmAPI(object):
 
     def set_tool_position(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0,
                           speed=None, mvacc=None, mvtime=None, is_radian=None,
-                          wait=False, timeout=None, **kwargs):
+                          wait=False, timeout=None, radius=None, **kwargs):
         """
         Movement relative to the tool coordinate system
         Note:
@@ -828,6 +828,13 @@ class XArmAPI(object):
         :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+        :param radius: move radius, if radius is None or radius less than 0, will MoveToolLine, else MoveToolArcLine
+            only available if firmware_version >= 1.10.110
+            MoveToolLine: Linear motion
+                ex: code = arm.set_tool_position(..., radius=None)
+            MoveToolArcLine: Linear arc motion with interpolation
+                ex: code = arm.set_tool_position(..., radius=0)
+                Note: Need to set radius>=0
         :param kwargs: reserved
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -836,9 +843,9 @@ class XArmAPI(object):
         """
         return self._arm.set_tool_position(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw,
                                            speed=speed, mvacc=mvacc, mvtime=mvtime,
-                                           is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
+                                           is_radian=is_radian, wait=wait, timeout=timeout, radius=radius, **kwargs)
 
-    def get_servo_angle(self, servo_id=None, is_radian=None):
+    def get_servo_angle(self, servo_id=None, is_radian=None, is_real=False):
         """
         Get the servo angle
         Note:
@@ -853,7 +860,7 @@ class XArmAPI(object):
         :return: tuple((code, angle list if servo_id is None or 8 else angle)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.get_servo_angle(servo_id=servo_id, is_radian=is_radian)
+        return self._arm.get_servo_angle(servo_id=servo_id, is_radian=is_radian, is_real=is_real)
 
     def set_servo_angle(self, servo_id=None, angle=None, speed=None, mvacc=None, mvtime=None,
                         relative=False, is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
@@ -936,7 +943,8 @@ class XArmAPI(object):
         return self._arm.set_servo_cartesian(mvpose, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian,
                                              is_tool_coord=is_tool_coord, **kwargs)
 
-    def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+    def move_circle(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None,
+                    wait=False, timeout=None, is_tool_coord=False, is_axis_angle=False, **kwargs):
         """
         The motion calculates the trajectory of the space circle according to the three-point coordinates.
         The three-point coordinates are (current starting point, pose1, pose2).
@@ -950,13 +958,17 @@ class XArmAPI(object):
         :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+        :param is_tool_coord: is tool coord or not, default is False, only available if firmware_version >= 1.10.110
+        :param is_axis_angle: is axis angle or not, default is False, only available if firmware_version >= 1.10.110
         :param kwargs: reserved
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
                 code < 0: the last_used_tcp_speed/last_used_tcp_acc will not be modified
                 code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
         """
-        return self._arm.move_circle(pose1, pose2, percent, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout, **kwargs)
+        return self._arm.move_circle(pose1, pose2, percent, speed=speed, mvacc=mvacc, mvtime=mvtime,
+                                     is_radian=is_radian, wait=wait, timeout=timeout,
+                                     is_tool_coord=is_tool_coord, is_axis_angle=is_axis_angle, **kwargs)
 
     def move_gohome(self, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         """
@@ -2395,7 +2407,7 @@ class XArmAPI(object):
         return self._arm.config_io_reset_when_stop(0, on_off)
 
     def set_position_aa(self, axis_angle_pose, speed=None, mvacc=None, mvtime=None,
-                        is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None, **kwargs):
+                        is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None, radius=None, **kwargs):
         """
         Set the pose represented by the axis angle pose
         
@@ -2408,12 +2420,19 @@ class XArmAPI(object):
         :param relative: relative move or not
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
+        :param radius: move radius, if radius is None or radius less than 0, will MoveLineAA, else MoveArcLineAA
+            only available if firmware_version >= 1.10.110
+            MoveLineAA: Linear motion
+                ex: code = arm.set_position_aa(..., radius=None)
+            MoveArcLineAA: Linear arc motion with interpolation
+                ex: code = arm.set_position_aa(..., radius=0)
+                Note: Need to set radius>=0
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.set_position_aa(axis_angle_pose, speed=speed, mvacc=mvacc, mvtime=mvtime,
                                          is_radian=is_radian, is_tool_coord=is_tool_coord, relative=relative,
-                                         wait=wait, timeout=timeout, **kwargs)
+                                         wait=wait, timeout=timeout, radius=radius, **kwargs)
 
     def set_servo_cartesian_aa(self, axis_angle_pose, speed=None, mvacc=None, is_radian=None, is_tool_coord=False, relative=False, **kwargs):
         """
@@ -3501,7 +3520,7 @@ class XArmAPI(object):
         """
         return self._arm.set_allow_approx_motion(on_off)
 
-    def get_joint_states(self, is_radian=None):
+    def get_joint_states(self, is_radian=None, num=3):
         """
         Get the joint states
         Note:
@@ -3514,7 +3533,7 @@ class XArmAPI(object):
             velocity: the velocities of joints, like [velo-1, ..., velo-7]
             effort: the efforts of joints, like [effort-1, ..., effort-7]
         """
-        return self._arm.get_joint_states(is_radian=is_radian)
+        return self._arm.get_joint_states(is_radian=is_radian, num=num)
 
     def iden_joint_friction(self, sn=None):
         """

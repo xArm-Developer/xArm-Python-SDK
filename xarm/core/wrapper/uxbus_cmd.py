@@ -358,6 +358,16 @@ class UxbusCmd(object):
             byte_data = bytes([only_check_type])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE, txdata, 9, byte_data, 3, timeout=10)
 
+    def move_line_common(self, mvpose, mvvelo, mvacc, mvtime, radius=-1, coord=0, is_axis_angle=False, only_check_type=0):
+        """
+        通用指令，固件1.10.0开始支持 
+        """
+        txdata = [mvpose[i] for i in range(6)]
+        _radius = -1 if radius is None else radius
+        txdata += [mvvelo, mvacc, mvtime, _radius]
+        byte_data = bytes([coord, int(is_axis_angle), only_check_type])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE, txdata, 10, byte_data, 3, timeout=10)
+
     def move_line_aa(self, mvpose, mvvelo, mvacc, mvtime, mvcoord, relative, only_check_type=0):
         float_data = [mvpose[i] for i in range(6)]
         float_data += [mvvelo, mvacc, mvtime]
@@ -496,6 +506,21 @@ class UxbusCmd(object):
             byte_data = bytes([only_check_type])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_CIRCLE, txdata, 16, byte_data, 3, timeout=10)
 
+    def move_circle_common(self, pose1, pose2, mvvelo, mvacc, mvtime, percent, coord=0, is_axis_angle=False, only_check_type=0):
+        """
+        通用指令，固件1.10.0开始支持 
+        """
+        txdata = [0] * 16
+        for i in range(6):
+            txdata[i] = pose1[i]
+            txdata[6 + i] = pose2[i]
+        txdata[12] = mvvelo
+        txdata[13] = mvacc
+        txdata[14] = mvtime
+        txdata[15] = percent
+        byte_data = bytes([coord, int(is_axis_angle), only_check_type])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_CIRCLE, txdata, 16, byte_data, 3, timeout=10)
+
     def set_tcp_jerk(self, jerk):
         txdata = [jerk]
         return self.set_nfp32(XCONF.UxbusReg.SET_TCP_JERK, txdata, 1)
@@ -540,8 +565,8 @@ class UxbusCmd(object):
     def get_joint_pos(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_JOINT_POS, 7)
 
-    def get_joint_states(self):
-        return self.get_nfp32_with_datas(XCONF.UxbusReg.GET_JOINT_POS, [3], 1, 21)
+    def get_joint_states(self, num=3):
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.GET_JOINT_POS, [num], 1, 7 * num)
 
     def get_tcp_pose(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_TCP_POSE, 6)

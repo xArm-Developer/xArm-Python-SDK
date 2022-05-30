@@ -140,6 +140,7 @@ class BlocklyTool(_BlocklyHandler):
         self.__define_robot_init_func(init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
         self.__define_error_warn_changed_callback_func(error_exit=error_exit)
         self.__define_state_changed_callback_func(stop_exit=stop_exit)
+        self.__define_count_changed_callback_func()
         self.__define_cgpio_digitals_is_matchs_bin_func()
         self.__define_check_code_func()
         self.__define_is_prime_func()
@@ -257,6 +258,9 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('        self._arm.register_error_warn_changed_callback(self._error_warn_changed_callback)')
         if stop_exit:
             self._append_main_init_code('        self._arm.register_state_changed_callback(self._state_changed_callback)')
+        
+        self._append_main_init_code('        if hasattr(self._arm, \'register_count_changed_callback\'):')
+        self._append_main_init_code('            self._arm.register_count_changed_callback(self._count_changed_callback)')
         self._append_main_init_code('')
 
     def __define_error_warn_changed_callback_func(self, error_exit=True):
@@ -278,6 +282,13 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('            self.alive = False')
             self._append_main_init_code('            self.pprint(\'state=4, quit\')')
             self._append_main_init_code('            self._arm.release_state_changed_callback(self._state_changed_callback)\n')
+
+    def __define_count_changed_callback_func(self):
+        # Define count changed callback
+        self._append_main_init_code('    # Register state changed callback')
+        self._append_main_init_code('    def _count_changed_callback(self, data):')
+        self._append_main_init_code('        if self.is_alive:')
+        self._append_main_init_code('            self.pprint(\'counter val: {}\'.format(data[\'count\']))\n')
 
     def __define_pprint_func(self):
         self._append_main_init_code('    @staticmethod')

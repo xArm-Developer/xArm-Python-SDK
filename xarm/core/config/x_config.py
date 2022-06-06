@@ -69,10 +69,10 @@ class XCONF(object):
                 ],
                 Type.XARM6_X9: [
                     (-2 * math.pi, 2 * math.pi),
+                    (-2.6179938779914944, 2.6179938779914944),
+                    (-0.061086523819801536, 5.235987755982989),
                     (-2 * math.pi, 2 * math.pi),
-                    (-2 * math.pi, 2 * math.pi),
-                    (-2 * math.pi, 2 * math.pi),
-                    (-2 * math.pi, 2 * math.pi),
+                    (-2.1642082724729685, 2.1642082724729685),
                     (-2 * math.pi, 2 * math.pi),
                 ],
                 Type.XARM6_X11: [
@@ -138,6 +138,14 @@ class XCONF(object):
                     (-1000, 1000),
                     (-1000, 1000),
                     (-600, 1200),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
+                Type.XARM6_X9: [
+                    (-500, 500),
+                    (-500, 500),
+                    (-150, 750),
                     (-math.pi, math.pi),
                     (-math.pi, math.pi),
                     (-math.pi, math.pi)
@@ -399,6 +407,8 @@ class XCONF(object):
 
         MODBUS_BAUDRATE = 0x0A0B
         TOOL_MB_TIMEOUT = 0x0A0E
+        TI2_IN = 0x0A12
+        TI2_TIME = 0x0A13
         DIGITAL_IN = 0x0A14
         DIGITAL_OUT = 0x0A15
         ANALOG_IO1 = 0x0A16

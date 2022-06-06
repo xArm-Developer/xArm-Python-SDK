@@ -695,3 +695,21 @@ class Gripper(GPIO):
         self.log_api_info('API -> clean_bio_gripper_error -> code={}'.format(code), code=code)
         self.get_bio_gripper_status()
         return code
+
+    @xarm_is_connected(_type='set')
+    def open_lite6_gripper(self):
+        code1 = self.set_tgpio_digital(0, 1)
+        code2 = self.set_tgpio_digital(1, 0)
+        return code1 if code2 == 0 else code2
+
+    @xarm_is_connected(_type='set')
+    def close_lite6_gripper(self):
+        code1 = self.set_tgpio_digital(0, 0)
+        code2 = self.set_tgpio_digital(1, 1)
+        return code1 if code2 == 0 else code2
+
+    @xarm_is_connected(_type='set')
+    def stop_lite6_gripper(self):
+        code1 = self.set_tgpio_digital(0, 0)
+        code2 = self.set_tgpio_digital(1, 0)
+        return code1 if code2 == 0 else code2

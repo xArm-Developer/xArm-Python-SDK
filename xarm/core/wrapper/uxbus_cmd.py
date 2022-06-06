@@ -358,6 +358,16 @@ class UxbusCmd(object):
             byte_data = bytes([only_check_type])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE, txdata, 9, byte_data, 3, timeout=10)
 
+    def move_line_common(self, mvpose, mvvelo, mvacc, mvtime, radius=-1, coord=0, is_axis_angle=False, only_check_type=0):
+        """
+        通用指令，固件1.10.0开始支持 
+        """
+        txdata = [mvpose[i] for i in range(6)]
+        _radius = -1 if radius is None else radius
+        txdata += [mvvelo, mvacc, mvtime, _radius]
+        byte_data = bytes([coord, int(is_axis_angle), only_check_type])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE, txdata, 10, byte_data, 3, timeout=10)
+
     def move_line_aa(self, mvpose, mvvelo, mvacc, mvtime, mvcoord, relative, only_check_type=0):
         float_data = [mvpose[i] for i in range(6)]
         float_data += [mvvelo, mvacc, mvtime]
@@ -496,6 +506,21 @@ class UxbusCmd(object):
             byte_data = bytes([only_check_type])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_CIRCLE, txdata, 16, byte_data, 3, timeout=10)
 
+    def move_circle_common(self, pose1, pose2, mvvelo, mvacc, mvtime, percent, coord=0, is_axis_angle=False, only_check_type=0):
+        """
+        通用指令，固件1.10.0开始支持 
+        """
+        txdata = [0] * 16
+        for i in range(6):
+            txdata[i] = pose1[i]
+            txdata[6 + i] = pose2[i]
+        txdata[12] = mvvelo
+        txdata[13] = mvacc
+        txdata[14] = mvtime
+        txdata[15] = percent
+        byte_data = bytes([coord, int(is_axis_angle), only_check_type])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_CIRCLE, txdata, 16, byte_data, 3, timeout=10)
+
     def set_tcp_jerk(self, jerk):
         txdata = [jerk]
         return self.set_nfp32(XCONF.UxbusReg.SET_TCP_JERK, txdata, 1)
@@ -540,8 +565,8 @@ class UxbusCmd(object):
     def get_joint_pos(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_JOINT_POS, 7)
 
-    def get_joint_states(self):
-        return self.get_nfp32_with_datas(XCONF.UxbusReg.GET_JOINT_POS, [3], 1, 21)
+    def get_joint_states(self, num=3):
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.GET_JOINT_POS, [num], 1, 7 * num)
 
     def get_tcp_pose(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_TCP_POSE, 6)
@@ -1006,8 +1031,11 @@ class UxbusCmd(object):
             additional_bytes += convert.fp32_to_bytes(duration)
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, additional_bytes)
 
-    def iden_load(self, iden_type, num_get, timeout=500):
-        return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, [iden_type], 1, num_get, timeout=timeout)
+    def iden_load(self, iden_type, num_get, timeout=500, estimated_mass=0):
+        txdata = bytes([iden_type])
+        if estimated_mass > 0:
+            txdata += convert.fp32_to_bytes(estimated_mass)
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, txdata, 5 if estimated_mass > 0 else 1, num_get, timeout=timeout)
 
     def iden_joint_friction(self, sn, timeout=500):
         txdata = [ord(i) for i in list(sn)]
@@ -1090,7 +1118,7 @@ class UxbusCmd(object):
     def ft_sensor_get_data(self, is_new=True):
         return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_GET_DATA if is_new else XCONF.UxbusReg.FTSENSOR_GET_DATA_OLD, 6)
 
-    def ft_senfor_get_config(self):
+    def ft_sensor_get_config(self):
         ret = self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_CONFIG, 280)
         if ret[0] in [0, 1, 2]:
             ft_app_status = ret[1]
@@ -1203,8 +1231,8 @@ class UxbusCmd(object):
         ret = self.tgpio_set_modbus(txdata, 6, host_id=XCONF.LINEER_TRACK_HOST_ID, limit_sec=0.001)
         return ret
 
-    def iden_tcp_load(self):
-        return self.iden_load(1, 4, timeout=300)
+    def iden_tcp_load(self, estimated_mass=0):
+        return self.iden_load(1, 4, timeout=300, estimated_mass=estimated_mass)
 
     @lock_require
     def servo_error_addr_r32(self, axis, addr):

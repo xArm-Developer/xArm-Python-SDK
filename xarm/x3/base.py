@@ -358,7 +358,7 @@ class Base(Events):
 
             if self._version and isinstance(self._version, str):
                 pattern = re.compile(
-                    r'.*(\d+),(\d+),(\S+),(\S+),.*[vV](\d+)\.(\d+)\.(\d+)')
+                    r'.*(\d+),(\d+),(\S+),(\S+),.*[vV]*(\d+)\.(\d+)\.(\d+)')
                 m = re.match(pattern, self._version)
                 if m:
                     (xarm_axis, xarm_type, xarm_sn, ac_version,
@@ -377,7 +377,7 @@ class Base(Events):
                     self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300 if xarm_sn[2:6].isdigit() else False
                     self._control_box_type_is_1300 = int(ac_version[2:6]) >= 1300 if ac_version[2:6].isdigit() else False
                 else:
-                    pattern = re.compile(r'.*[vV](\d+)\.(\d+)\.(\d+)')
+                    pattern = re.compile(r'.*[vV]*(\d+)\.(\d+)\.(\d+)')
                     m = re.match(pattern, self._version)
                     if m:
                         (self._major_version_number,
@@ -454,6 +454,10 @@ class Base(Events):
     def check_is_simulation_robot(self):
         return self._check_simulation_mode and self.is_simulation_robot
         # return self._check_simulation_mode and self.mode != 4
+    
+    @property
+    def is_lite6(self):
+        return self.axis == 6 and self.device_type == 9
 
     @property
     def version(self):
@@ -762,7 +766,7 @@ class Base(Events):
             return
         if axis in [5, 6, 7]:
             self._arm_axis = axis
-        if arm_type in [3, 5, 6, 7]:
+        if arm_type in [3, 5, 6, 7, 8, 9, 11]:
             self._arm_type = arm_type
         self._is_ready = True
         self._port = port if port is not None else self._port
@@ -1950,9 +1954,12 @@ class Base(Events):
                         i in range(len(self._position))]
 
     @xarm_is_connected(_type='get')
-    def get_servo_angle(self, servo_id=None, is_radian=None):
+    def get_servo_angle(self, servo_id=None, is_radian=None, is_real=False):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        ret = self.arm_cmd.get_joint_pos()
+        if is_real and self.version_is_ge(1, 9, 110):
+            ret = self.arm_cmd.get_joint_states(num=1)
+        else:
+            ret = self.arm_cmd.get_joint_pos()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 7:
             self._angles = [filter_invaild_number(ret[i], 6, default=self._angles[i-1]) for i in range(1, 8)]
@@ -1964,19 +1971,25 @@ class Base(Events):
                 '{:.6f}'.format(self._angles[servo_id - 1] if is_radian else math.degrees(self._angles[servo_id - 1])))
 
     @xarm_is_connected(_type='get')
-    def get_joint_states(self, is_radian=None):
+    def get_joint_states(self, is_radian=None, num=3):
         is_radian = self._default_is_radian if is_radian is None else is_radian
-        ret = self.arm_cmd.get_joint_states()
+        ret = self.arm_cmd.get_joint_states(num=num)
         ret[0] = self._check_code(ret[0])
         positon = ret[1:8]
-        velocity = ret[8:15]
-        effort = ret[15:22]
+        result = [positon]
+        if num >= 2:
+            velocity = ret[8:15]
+            result.append(velocity)
+        if num >= 3:
+            effort = ret[15:22]
+            result.append(effort)
         if ret[0] == 0:
             if not is_radian:
                 for i in range(7):
                     positon[i] = math.degrees(positon[i])
-                    velocity[i] = math.degrees(velocity[i])
-        return ret[0], [positon, velocity, effort]
+                    if num >= 2:
+                        velocity[i] = math.degrees(velocity[i])
+        return ret[0], result
 
     @xarm_is_connected(_type='get')
     def get_position_aa(self, is_radian=None):

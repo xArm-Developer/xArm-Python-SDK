@@ -285,7 +285,7 @@ class BlocklyTool(_BlocklyHandler):
 
     def __define_count_changed_callback_func(self):
         # Define count changed callback
-        self._append_main_init_code('    # Register state changed callback')
+        self._append_main_init_code('    # Register count changed callback')
         self._append_main_init_code('    def _count_changed_callback(self, data):')
         self._append_main_init_code('        if self.is_alive:')
         self._append_main_init_code('            self.pprint(\'counter val: {}\'.format(data[\'count\']))\n')

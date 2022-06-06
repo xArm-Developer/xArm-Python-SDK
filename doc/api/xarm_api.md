@@ -684,6 +684,17 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __close_lite6_gripper__(self):
+
+> Close the gripper of Lite6 series robotic arms  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
+> &ensp;&ensp;&ensp;&ensp;2. this API can only be used on Lite6 series robotic arms  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __config_cgpio_reset_when_stop__(self, on_off):
 
 > Config the Controller GPIO reset the digital output when the robot is in stop state  
@@ -964,7 +975,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
 
 
-#### def __get_ft_senfor_config__(self):
+#### def __get_ft_sensor_config__(self):
 
 > Get the config of the Six-axis Force Torque Sensor  
 > Note:  
@@ -1100,7 +1111,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :return: True/False
 
 
-#### def __get_joint_states__(self, is_radian=None):
+#### def __get_joint_states__(self, is_radian=None, num=3):
 
 > Get the joint states  
 > Note:  
@@ -1340,7 +1351,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;safe_level: safe level
 
 
-#### def __get_servo_angle__(self, servo_id=None, is_radian=None):
+#### def __get_servo_angle__(self, servo_id=None, is_radian=None, is_real=False):
 
 > Get the servo angle  
 > Note:  
@@ -1500,12 +1511,14 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;-1: failure
 
 
-#### def __iden_tcp_load__(self):
+#### def __iden_tcp_load__(self, estimated_mass=0):
 
 > Identification the tcp load with current  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
+> :param estimated_mass: estimated mass  
+> &ensp;&ensp;&ensp;&ensp;Note: this parameter is only available on the lite6 model manipulator, and this parameter must be specified for the lite6 model manipulator  
 > :return: tuple((code, load)) only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;load:  [mass，x_centroid，y_centroid，z_centroid]
@@ -1582,7 +1595,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param wait: whether to wait for the arm to complete, default is False
 
 
-#### def __move_circle__(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __move_circle__(self, pose1, pose2, percent, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, is_tool_coord=False, is_axis_angle=False, **kwargs):
 
 > The motion calculates the trajectory of the space circle according to the three-point coordinates.  
 > The three-point coordinates are (current starting point, pose1, pose2).  
@@ -1596,6 +1609,8 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian  
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  
+> :param is_tool_coord: is tool coord or not, default is False, only available if firmware_version >= 1.10.110  
+> :param is_axis_angle: is axis angle or not, default is False, only available if firmware_version >= 1.10.110  
 > :param kwargs: reserved  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -1631,6 +1646,17 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param speed: speed value, default is 0 (not set the speed)  
 > :param wait: whether to wait for the bio gripper motion complete, default is True  
 > :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __open_lite6_gripper__(self):
+
+> Open the gripper of Lite6 series robotic arms  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
+> &ensp;&ensp;&ensp;&ensp;2. this API can only be used on Lite6 series robotic arms  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2660,7 +2686,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code >= 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will be modified
 
 
-#### def __set_position_aa__(self, axis_angle_pose, speed=None, mvacc=None, mvtime=None, is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None, **kwargs):
+#### def __set_position_aa__(self, axis_angle_pose, speed=None, mvacc=None, mvtime=None, is_radian=None, is_tool_coord=False, relative=False, wait=False, timeout=None, radius=None, **kwargs):
 
 > Set the pose represented by the axis angle pose  
 >   
@@ -2673,6 +2699,13 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param relative: relative move or not  
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  
+> :param radius: move radius, if radius is None or radius less than 0, will MoveLineAA, else MoveArcLineAA  
+> &ensp;&ensp;&ensp;&ensp;only available if firmware_version >= 1.10.110  
+> &ensp;&ensp;&ensp;&ensp;MoveLineAA: Linear motion  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;ex: code = arm.set_position_aa(..., radius=None)  
+> &ensp;&ensp;&ensp;&ensp;MoveArcLineAA: Linear arc motion with interpolation  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;ex: code = arm.set_position_aa(..., radius=0)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: Need to set radius>=0  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3037,7 +3070,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param timeout: seconds
 
 
-#### def __set_tool_position__(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
+#### def __set_tool_position__(self, x=0, y=0, z=0, roll=0, pitch=0, yaw=0, speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, radius=None, **kwargs):
 
 > Movement relative to the tool coordinate system  
 > Note:  
@@ -3058,6 +3091,13 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian  
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  
+> :param radius: move radius, if radius is None or radius less than 0, will MoveToolLine, else MoveToolArcLine  
+> &ensp;&ensp;&ensp;&ensp;only available if firmware_version >= 1.10.110  
+> &ensp;&ensp;&ensp;&ensp;MoveToolLine: Linear motion  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;ex: code = arm.set_tool_position(..., radius=None)  
+> &ensp;&ensp;&ensp;&ensp;MoveToolArcLine: Linear arc motion with interpolation  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;ex: code = arm.set_tool_position(..., radius=0)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: Need to set radius>=0  
 > :param kwargs: reserved  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -3108,6 +3148,17 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. This interface relies on Firmware 1.2.0 or above  
 > &ensp;&ensp;&ensp;&ensp;2. set joint teaching mode: set_mode(2);set_state(0)  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __stop_lite6_gripper__(self):
+
+> Stop the gripper of Lite6 series robotic arms  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
+> &ensp;&ensp;&ensp;&ensp;2. this API can only be used on Lite6 series robotic arms  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.

@@ -3563,10 +3563,37 @@ class XArmAPI(object):
         return self._arm.set_only_check_type(only_check_type)
 
     def open_lite6_gripper(self):
+        """
+        Open the gripper of Lite6 series robotic arms
+        Note:
+            1. only available if firmware_version >= 1.10.0
+            2. this API can only be used on Lite6 series robotic arms
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details. 
+        """
         return self._arm.open_lite6_gripper()
 
     def close_lite6_gripper(self):
+        """
+        Close the gripper of Lite6 series robotic arms
+        Note:
+            1. only available if firmware_version >= 1.10.0
+            2. this API can only be used on Lite6 series robotic arms
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
         return self._arm.close_lite6_gripper()
 
     def stop_lite6_gripper(self):
+        """
+        Stop the gripper of Lite6 series robotic arms
+        Note:
+            1. only available if firmware_version >= 1.10.0
+            2. this API can only be used on Lite6 series robotic arms
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
         return self._arm.stop_lite6_gripper()

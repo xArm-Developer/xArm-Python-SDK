@@ -79,17 +79,18 @@ class GPIO(Base):
 
     @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
-        assert ionum is None or ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1 or None.'
+        assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2, 'The value of parameter ionum can only be 0 or 1 or None.'
         if self.check_is_simulation_robot():
             return 0, [0, 0] if ionum is None else 0
-        ret = self.arm_cmd.tgpio_get_digital()
-        if ret[0] == 0:
-            self.tgpio_state['digital'] = ret[1:]
-        # if ret[0] != 0:
-        #     self.get_err_warn_code()
-        #     if self.error_code != 19:
-        #         ret[0] = 0
-        return ret[0], ret[1:] if ionum is None else ret[ionum+1]
+        if ionum == 2:
+            # only available in Lite6
+            ret = self.arm_cmd.tgpio_addr_r16(0x0A12)
+            return ret[0], ret[1] & 0x0001
+        else:
+            ret = self.arm_cmd.tgpio_get_digital()
+            if ret[0] == 0:
+                self.tgpio_state['digital'] = ret[1:]
+            return ret[0], ret[1:] if ionum is None else ret[ionum+1]
 
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max

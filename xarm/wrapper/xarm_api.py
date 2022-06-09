@@ -1395,7 +1395,7 @@ class XArmAPI(object):
         """
         return self._arm.set_state(state=state)
 
-    def set_mode(self, mode=0):
+    def set_mode(self, mode=0, detection_param=0):
         """
         Set the xArm mode
 
@@ -1412,7 +1412,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_mode(mode=mode)
+        return self._arm.set_mode(mode=mode, detection_param=detection_param)
 
     def get_cmdnum(self):
         """

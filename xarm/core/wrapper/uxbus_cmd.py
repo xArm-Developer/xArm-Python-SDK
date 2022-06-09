@@ -330,9 +330,13 @@ class UxbusCmd(object):
         txdata = [axis_id, int(enable)]
         return self.set_nu8(XCONF.UxbusReg.SET_BRAKE, txdata, 2)
 
-    def set_mode(self, mode):
-        txdata = [mode]
-        return self.set_nu8(XCONF.UxbusReg.SET_MODE, txdata, 1)
+    def set_mode(self, mode, detection_param=-1):
+        if detection_param >= 0:
+            txdata = [mode, detection_param]
+            return self.set_nu8(XCONF.UxbusReg.SET_MODE, txdata, 2)
+        else:
+            txdata = [mode]
+            return self.set_nu8(XCONF.UxbusReg.SET_MODE, txdata, 1)
 
     def set_report_tau_or_i(self, tau_or_i):  # 0 for tau(default), 1 for i
         txdata = [tau_or_i]

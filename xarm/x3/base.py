@@ -2060,8 +2060,12 @@ class Base(Events):
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def set_mode(self, mode=0):
-        ret = self.arm_cmd.set_mode(mode)
+    def set_mode(self, mode=0, detection_param=0):
+        if self.version_is_ge(1, 10, 0):
+            detection_param = detection_param if detection_param >= 0 else 0
+        else:
+            detection_param = -1
+        ret = self.arm_cmd.set_mode(mode, detection_param=detection_param)
         ret[0] = self._check_code(ret[0])
         self.log_api_info('API -> set_mode({}) -> code={}'.format(mode, ret[0]), code=ret[0])
         return ret[0]

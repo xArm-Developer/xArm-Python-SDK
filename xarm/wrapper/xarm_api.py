@@ -1409,6 +1409,12 @@ class XArmAPI(object):
             3: cartesian teaching mode (invalid)
             4: joint velocity control mode
             5: cartesian velocity control mode
+        :param detection_param: Teaching detection parameters, default is 0
+            0: Turn on motion detection 
+            1: Turn off motion detection
+            Note:
+                1. only available if firmware_version >= 1.10.1
+                2. only available if set_mode(2)
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -3552,11 +3558,47 @@ class XArmAPI(object):
 
     def set_only_check_type(self, only_check_type=0):
         """
-        Reversed, no description, please do not use 
+        Set the motion process detection type (valid for all motion interfaces of the current SDK instance)
+
         Note:
             1. only available if firmware_version >= 1.10.0
-            
-        :param only_check_type: 
+            2. This interface is a global configuration item of the current SDK, and affects all motion-related interfaces
+            3. Generally, you only need to call when you don't want to move the robotic arm and only check whether some paths will have self-collision or overspeed.
+            4. Currently only self-collision and overspeeding are detected
+            5. If only_check_type is set to be greater than 0, and the return value of calling the motion interface is not 0, you can view arm.only_check_result to view the specific error code
+        
+        Example: (Common scenarios, here is an example of the set_position interface)
+            1. Check whether the process from point A to point B is normal (no self-collision and overspeed triggered)
+                1.1 Move to point A
+                    arm.set_only_check_type(0)
+                    code = arm.set_position(A)
+                1.2 Check if the process from point A to point B is normal (no self-collision and overspeed triggered)
+                    arm.set_only_check_type(1)
+                    code = arm.set_position(B)
+                    # If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result
+                    arm.set_only_check_type(0)
+                    
+            2. Check whether the process from point A to point B, C, and D to point E is normal (no self-collision and overspeed are triggered)
+                2.1 Move to point A
+                    arm.set_only_check_type(0)
+                    code = arm.set_position(A)
+                2.2 Check whether the process of point A passing through points B, C, D to point E is normal (no self-collision and overspeed are triggered)
+                    arm.set_only_check_type(3)
+                    code = arm.set_position(B)
+                    # If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result
+                    code = arm.set_position(C)
+                    # If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result
+                    code = arm.set_position(D)
+                    # If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result
+                    code = arm.set_position(E)
+                    # If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result
+                    arm.set_only_check_type(0)
+
+        :param only_check_type: Motion Detection Type
+            only_check_type == 0: Restore the original function of the motion interface, it will move, the default is 0
+            only_check_type == 1: Only check the self-collision without moving, take the actual state of the manipulator as the initial planned path, and check whether the path has self-collision (the intermediate state will be updated at this time)
+            only_check_type == 2: Only check the self-collision without moving, use the intermediate state as the starting planning path, check whether the path has self-collision (the intermediate state will be updated at this time), and restore the intermediate state to the actual state after the end
+            only_check_type == 3: Only check the self-collision without moving, use the intermediate state as the starting planning path, and check whether the path has self-collision (the intermediate state will be updated at this time)
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """

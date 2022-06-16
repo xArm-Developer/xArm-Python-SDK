@@ -2592,7 +2592,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_mode__(self, mode=0):
+#### def __set_mode__(self, mode=0, detection_param=0):
 
 > Set the xArm mode  
 >   
@@ -2606,6 +2606,12 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;3: cartesian teaching mode (invalid)  
 > &ensp;&ensp;&ensp;&ensp;4: joint velocity control mode  
 > &ensp;&ensp;&ensp;&ensp;5: cartesian velocity control mode  
+> :param detection_param: Teaching detection parameters, default is 0  
+> &ensp;&ensp;&ensp;&ensp;0: Turn on motion detection   
+> &ensp;&ensp;&ensp;&ensp;1: Turn off motion detection  
+> &ensp;&ensp;&ensp;&ensp;Note:  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.1  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2. only available if set_mode(2)  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2629,11 +2635,47 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 
 #### def __set_only_check_type__(self, only_check_type=0):
 
-> Reversed, no description, please do not use   
+> Set the motion process detection type (valid for all motion interfaces of the current SDK instance)  
+>   
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
-> &ensp;&ensp;&ensp;&ensp;  
-> :param only_check_type:   
+> &ensp;&ensp;&ensp;&ensp;2. This interface is a global configuration item of the current SDK, and affects all motion-related interfaces  
+> &ensp;&ensp;&ensp;&ensp;3. Generally, you only need to call when you don't want to move the robotic arm and only check whether some paths will have self-collision or overspeed.  
+> &ensp;&ensp;&ensp;&ensp;4. Currently only self-collision and overspeeding are detected  
+> &ensp;&ensp;&ensp;&ensp;5. If only_check_type is set to be greater than 0, and the return value of calling the motion interface is not 0, you can view arm.only_check_result to view the specific error code  
+>   
+> Example: (Common scenarios, here is an example of the set_position interface)  
+> &ensp;&ensp;&ensp;&ensp;1. Check whether the process from point A to point B is normal (no self-collision and overspeed triggered)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1.1 Move to point A  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;arm.set_only_check_type(0)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(A)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1.2 Check if the process from point A to point B is normal (no self-collision and overspeed triggered)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;arm.set_only_check_type(1)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(B)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;# If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;arm.set_only_check_type(0)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;  
+> &ensp;&ensp;&ensp;&ensp;2. Check whether the process from point A to point B, C, and D to point E is normal (no self-collision and overspeed are triggered)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2.1 Move to point A  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;arm.set_only_check_type(0)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(A)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2.2 Check whether the process of point A passing through points B, C, D to point E is normal (no self-collision and overspeed are triggered)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;arm.set_only_check_type(3)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(B)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;# If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(C)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;# If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(D)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;# If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code = arm.set_position(E)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;# If code is not equal to 0, it means that the path does not pass. You can check the specific error code through arm.only_check_result  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;arm.set_only_check_type(0)  
+>   
+> :param only_check_type: Motion Detection Type  
+> &ensp;&ensp;&ensp;&ensp;only_check_type == 0: Restore the original function of the motion interface, it will move, the default is 0  
+> &ensp;&ensp;&ensp;&ensp;only_check_type == 1: Only check the self-collision without moving, take the actual state of the manipulator as the initial planned path, and check whether the path has self-collision (the intermediate state will be updated at this time)  
+> &ensp;&ensp;&ensp;&ensp;only_check_type == 2: Only check the self-collision without moving, use the intermediate state as the starting planning path, check whether the path has self-collision (the intermediate state will be updated at this time), and restore the intermediate state to the actual state after the end  
+> &ensp;&ensp;&ensp;&ensp;only_check_type == 3: Only check the self-collision without moving, use the intermediate state as the starting planning path, and check whether the path has self-collision (the intermediate state will be updated at this time)  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

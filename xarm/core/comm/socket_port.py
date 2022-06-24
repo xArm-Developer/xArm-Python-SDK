@@ -101,7 +101,8 @@ class SocketPort(Port):
             socket.setdefaulttimeout(1)
             use_uds = False
             # if not forbid_uds and platform.system() == 'Linux' and is_xarm_local_ip(server_ip):
-            if not forbid_uds and platform.system() == 'Linux' and server_ip in get_all_ips():
+            # if not forbid_uds and platform.system() == 'Linux' and server_ip in get_all_ips():
+            if not forbid_uds and platform.system() == 'Linux':
                 uds_path = os.path.join('/tmp/xarmcontroller_uds_{}'.format(server_port))
                 if os.path.exists(uds_path):
                     try:

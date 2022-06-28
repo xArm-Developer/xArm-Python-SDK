@@ -2179,8 +2179,8 @@ class Base(Events):
             if self.error_code != 0:
                 self.log_api_info('wait_move, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
                 return APIState.HAS_ERROR
-            # no wait in velocity mode
-            if self.mode in [4, 5]:
+            # only wait in position mode
+            if self.mode != 0:
                 return 0
             if self.is_stop:
                 _, state = self.get_state()

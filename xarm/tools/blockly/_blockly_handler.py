@@ -271,12 +271,12 @@ class _BlocklyHandler(_BlocklyBase):
 
     def _handle_tool_message(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', block)
-        msg = json.dumps(fields[-1].text, ensure_ascii=False)
+        msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
         self._append_main_code('print({})'.format(msg), indent + 2)
 
     def _handle_tool_console(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', block)
-        msg = json.dumps(fields[1].text, ensure_ascii=False)
+        msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
         self._append_main_code('print({})'.format(msg), indent + 2)
 
     def _handle_tool_console_with_variable(self, block, indent=0, arg_map=None):

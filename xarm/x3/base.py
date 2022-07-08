@@ -2335,7 +2335,7 @@ class Base(Events):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
         ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id)
-        ret[0] = self._check_modbus_code(ret, min_res_len + 2)
+        ret[0] = self._check_modbus_code(ret, min_res_len + 2, host_id=host_id)
         if not ignore_log:
             self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])
         return ret[0], ret[2:]

@@ -271,23 +271,38 @@ class _BlocklyHandler(_BlocklyBase):
 
     def _handle_tool_message(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', block)
+        color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
         msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
-        self._append_main_code('print({})'.format(msg), indent + 2)
+        if self._highlight_callback is not None:
+            self._append_main_code('print({}, {})'.format(msg, color), indent + 2)
+        else:
+            self._append_main_code('print({})'.format(msg), indent + 2)
 
     def _handle_tool_console(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', block)
+        color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
         msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
-        self._append_main_code('print({})'.format(msg), indent + 2)
+        if self._highlight_callback is not None:
+            self._append_main_code('print({}, {})'.format(msg, color), indent + 2)
+        else:
+            self._append_main_code('print({})'.format(msg), indent + 2)
 
     def _handle_tool_console_with_variable(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', block)
+        color = json.dumps(fields[0].text, ensure_ascii=False)
         msg = fields[1].text
         value = self._get_node('value', block)
         expression = self._get_condition_expression(value, arg_map=arg_map)
         if msg:
-            self._append_main_code('print({}.format({}))'.format(json.dumps(msg+'{}', ensure_ascii=False), expression), indent + 2)
+            if self._highlight_callback is not None:
+                self._append_main_code('print({}.format({}), {})'.format(json.dumps(msg+'{}', ensure_ascii=False), expression, color), indent + 2)
+            else:
+                self._append_main_code('print({}.format({}))'.format(json.dumps(msg+'{}', ensure_ascii=False), expression), indent + 2)
         else:
-            self._append_main_code('print(\'{{}}\'.format({}))'.format(expression), indent + 2)
+            if self._highlight_callback is not None:
+                self._append_main_code('print(\'{{}}\'.format({}), {})'.format(expression, color), indent + 2)
+            else:
+                self._append_main_code('print(\'{{}}\'.format({}))'.format(expression), indent + 2)
 
     def _handle_wait(self, block, indent=0, arg_map=None):
         value = self._get_node('value', root=block)

@@ -193,13 +193,17 @@ class BlocklyTool(_BlocklyHandler):
             
             self._append_main_init_code('    def _listen_gpio_thread(self):')
             if self._listen_tgpio_digital or len(self._tgpio_digital_callbacks):
-                self._append_main_init_code('        tgpio_digitals = None')
+                self._append_main_init_code('        _, values = self._arm.get_tgpio_digital()')
+                self._append_main_init_code('        tgpio_digitals = values if _ == 0 else [0] * 2')
             if self._listen_tgpio_analog or len(self._tgpio_analog_callbacks):
-                self._append_main_init_code('        tgpio_analogs = None')
+                self._append_main_init_code('        _, values = self._arm.get_tgpio_analog()')
+                self._append_main_init_code('        tgpio_analogs = values if _ == 0 else [0] * 2')
+            if self._listen_cgpio_state or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
+                self._append_main_init_code('        _, values = self._arm.get_cgpio_state()')
             if self._listen_cgpio_state or len(self._cgpio_digital_callbacks):
-                self._append_main_init_code('        cgpio_digitals = None')
+                self._append_main_init_code('        cgpio_digitals = [values[3] >> i & 0x0001 if values[10][i] in [0, 255] else 1 for i in range(len(values[10]))] if _ == 0 else [0] * 16')
             if self._listen_cgpio_state or len(self._cgpio_analog_callbacks):
-                self._append_main_init_code('        cgpio_analogs = None')
+                self._append_main_init_code('        cgpio_analogs = [values[6], values[7]] if _ == 0 else [0] * 2')
 
             self._append_main_init_code('        while self.is_alive:')
             if self._listen_tgpio_digital or len(self._tgpio_digital_callbacks):

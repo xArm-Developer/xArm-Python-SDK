@@ -86,17 +86,25 @@ class BlocklyTool(_BlocklyHandler):
         # catch exception and release callback
         self._append_main_code('        except Exception as e:', indent=-1)
         self._append_main_code('            self.pprint(\'MainException: {}\'.format(e))', indent=-1)
-        if stop_exit or error_exit:
-            self._append_main_code('        finally:', indent=-1)
-            if error_exit:
-                self._append_main_code('            self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
-            if stop_exit:
-                self._append_main_code('            self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
+        # if stop_exit or error_exit:
+        #     self._append_main_code('        finally:', indent=-1)
+        #     if error_exit:
+        #         self._append_main_code('            self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
+        #     if stop_exit:
+        #         self._append_main_code('            self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
         if self._listen_tgpio_digital or self._listen_tgpio_analog or self._listen_cgpio_state \
             or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
             self._append_main_code('        # Event Loop', indent=-1)
             self._append_main_code('        while self.is_alive:', indent=-1)
             self._append_main_code('            time.sleep(0.5)', indent=-1)
+        self._append_main_code('        self.alive = False', indent=-1)
+        if stop_exit or error_exit:
+            if error_exit:
+                self._append_main_code('        self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
+            if stop_exit:
+                self._append_main_code('        self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
+        self._append_main_code('        if hasattr(self._arm, \'release_count_changed_callback\'):', indent=-1)
+        self._append_main_code('            self._arm.release_count_changed_callback(self._count_changed_callback)', indent=-1)
 
     def _init_robot_main_class_codes(self, init=True, wait_seconds=1, mode=0, state=0, error_exit=True, stop_exit=True):
         self._append_main_init_code('class RobotMain(object):')
@@ -177,7 +185,7 @@ class BlocklyTool(_BlocklyHandler):
         # Define callback thread function
         if  len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
             self._append_main_init_code('    def _event_callback_handle_thread(self):')
-            self._append_main_init_code('        while self.is_alive:')
+            self._append_main_init_code('        while self.alive:')
             self._append_main_init_code('            try:')
             self._append_main_init_code('                callback = self._callback_que.get(timeout=1)')
             self._append_main_init_code('                callback() if not self._callback_in_thread else threading.Thread(target=callback, daemon=True).start()')
@@ -205,7 +213,7 @@ class BlocklyTool(_BlocklyHandler):
             if self._listen_cgpio_state or len(self._cgpio_analog_callbacks):
                 self._append_main_init_code('        cgpio_analogs = [values[6], values[7]] if _ == 0 else [0] * 2')
 
-            self._append_main_init_code('        while self.is_alive:')
+            self._append_main_init_code('        while self.alive:')
             if self._listen_tgpio_digital or len(self._tgpio_digital_callbacks):
                 self._append_main_init_code('            _, values = self._arm.get_tgpio_digital()')
                 self._append_main_init_code('            if _ == 0 and tgpio_digitals is not None:')
@@ -308,7 +316,16 @@ class BlocklyTool(_BlocklyHandler):
     def __define_is_alive_property(self):
         self._append_main_init_code('    @property')
         self._append_main_init_code('    def is_alive(self):')
-        self._append_main_init_code('        return self.alive and self._arm.connected and self._arm.error_code == 0 and self._arm.state < 4\n')
+        self._append_main_init_code('        if self.alive and self._arm.connected and self._arm.error_code == 0:')
+        self._append_main_init_code('            if self._arm.state == 5:')
+        self._append_main_init_code('                cnt = 0')
+        self._append_main_init_code('                while self._arm.state == 5 and cnt < 5:')
+        self._append_main_init_code('                    cnt += 1')
+        self._append_main_init_code('                    time.sleep(0.1)')
+        self._append_main_init_code('            return self._arm.state < 4')
+        self._append_main_init_code('        else:')
+        self._append_main_init_code('            return False\n')
+        # self._append_main_init_code('        return self.alive and self._arm.connected and self._arm.error_code == 0 and self._arm.state < 4\n')
 
     def __define_check_code_func(self):
         self._append_main_init_code('    def _check_code(self, code, label):')

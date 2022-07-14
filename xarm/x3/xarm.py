@@ -71,9 +71,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 return True
         return False
     
-    def __wait_sync(self, relative=False):
-        if not relative:
-            return 0
+    def __wait_sync(self):
         while not self._is_sync or self._need_sync:
             if not self.connected:
                 return APIState.NOT_CONNECTED
@@ -195,9 +193,6 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 self.__update_tcp_motion_params(spd, acc, mvt)
             return ret[0]
         else:
-            code = self.__wait_sync(True)
-            if code != 0:
-                return code
             # use absolute api
             tcp_pos = [
                 self._last_position[0] if x is None else (self._last_position[0] + float(x)),
@@ -219,6 +214,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
+        code = self.__wait_sync()
+        if code != 0:
+            return code
         if relative:
             return self._set_position_relative(x=x, y=y, z=z, roll=roll, pitch=pitch, yaw=yaw, radius=radius,
                                                speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian,
@@ -396,9 +394,6 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 self.__update_joint_motion_params(spd, acc, mvt)
             return ret[0]
         else:
-            code = self.__wait_sync(True)
-            if code != 0:
-                return code
             # use absolute api
             joints = self._last_angles.copy()
             for i in range(min(len(self._last_angles), len(angles))):
@@ -428,6 +423,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
             self.wait_move(timeout=timeout)
+        code = self.__wait_sync()
+        if code != 0:
+            return code
         if relative:
             return self._set_servo_angle_relative(angles, speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian,
                                                   wait=wait, timeout=timeout, radius=radius, **kwargs)

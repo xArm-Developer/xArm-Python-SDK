@@ -1291,7 +1291,7 @@ class Base(Events):
             self._report_location_callback()
 
             self._report_callback()
-            if not self._is_sync and self._error_code == 0 and self._state not in [4, 5]:
+            if not self._is_sync and self._error_code == 0 and self._state not in [4, 5, 6]:
                 self._sync()
                 self._is_sync = True
 

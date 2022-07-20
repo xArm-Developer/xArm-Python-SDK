@@ -29,6 +29,9 @@ Install is not necessary, you can run examples without installation.Only Python3
 - #### [API Code Document](doc/api/xarm_api_code.md)
 
 ## Update Summary
+- > ### 1.10.0
+  - Fix several bugs
+  
 - > ### 1.9.10
   - Support Lite6 Model
   - Fix several bugs

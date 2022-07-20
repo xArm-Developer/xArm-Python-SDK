@@ -1609,8 +1609,8 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian  
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  
-> :param is_tool_coord: is tool coord or not, default is False, only available if firmware_version >= 1.10.110  
-> :param is_axis_angle: is axis angle or not, default is False, only available if firmware_version >= 1.10.110  
+> :param is_tool_coord: is tool coord or not, default is False, only available if firmware_version >= 1.11.100  
+> :param is_axis_angle: is axis angle or not, default is False, only available if firmware_version >= 1.11.100  
 > :param kwargs: reserved  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -2606,6 +2606,8 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;3: cartesian teaching mode (invalid)  
 > &ensp;&ensp;&ensp;&ensp;4: joint velocity control mode  
 > &ensp;&ensp;&ensp;&ensp;5: cartesian velocity control mode  
+> &ensp;&ensp;&ensp;&ensp;6: joint online trajectory planning mode   
+> &ensp;&ensp;&ensp;&ensp;7: cartesian online trajectory planning mode   
 > :param detection_param: Teaching detection parameters, default is 0  
 > &ensp;&ensp;&ensp;&ensp;0: Turn on motion detection   
 > &ensp;&ensp;&ensp;&ensp;1: Turn off motion detection  
@@ -2742,7 +2744,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  
 > :param radius: move radius, if radius is None or radius less than 0, will MoveLineAA, else MoveArcLineAA  
-> &ensp;&ensp;&ensp;&ensp;only available if firmware_version >= 1.10.110  
+> &ensp;&ensp;&ensp;&ensp;only available if firmware_version >= 1.11.100  
 > &ensp;&ensp;&ensp;&ensp;MoveLineAA: Linear motion  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;ex: code = arm.set_position_aa(..., radius=None)  
 > &ensp;&ensp;&ensp;&ensp;MoveArcLineAA: Linear arc motion with interpolation  
@@ -3134,7 +3136,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  
 > :param radius: move radius, if radius is None or radius less than 0, will MoveToolLine, else MoveToolArcLine  
-> &ensp;&ensp;&ensp;&ensp;only available if firmware_version >= 1.10.110  
+> &ensp;&ensp;&ensp;&ensp;only available if firmware_version >= 1.11.100  
 > &ensp;&ensp;&ensp;&ensp;MoveToolLine: Linear motion  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;ex: code = arm.set_tool_position(..., radius=None)  
 > &ensp;&ensp;&ensp;&ensp;MoveToolArcLine: Linear arc motion with interpolation  

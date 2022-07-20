@@ -134,7 +134,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 return APIState.TCP_LIMIT
         self._has_motion_cmd = True
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
-        if self.version_is_ge(1, 10, 110) or kwargs.get('debug', False):
+        if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=0, is_axis_angle=False, only_check_type=only_check_type)
         else:
             if radius is not None and radius >= 0:
@@ -244,7 +244,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         ]
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
-        if self.version_is_ge(1, 10, 110) or kwargs.get('debug', False):
+        if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type)
         else:
             ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt, only_check_type)
@@ -279,7 +279,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
         self._has_motion_cmd = True
-        if self.version_is_ge(1, 10, 110) or kwargs.get('debug', False):
+        if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             if relative:
                 ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type)
             else:
@@ -487,7 +487,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             pose_2.append(to_radian(pose2[i], is_radian or i <= 2))
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
-        if self.version_is_ge(1, 10, 110) or kwargs.get('debug', False):
+        if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             ret = self.arm_cmd.move_circle_common(pose_1, pose_2, spd, acc, mvt, percent, coord=1 if is_tool_coord else 0, is_axis_angle=is_axis_angle, only_check_type=only_check_type)
         else:
             ret = self.arm_cmd.move_circle(pose_1, pose_2, spd, acc, mvt, percent, only_check_type)

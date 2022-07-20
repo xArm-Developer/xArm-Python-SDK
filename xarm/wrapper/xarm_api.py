@@ -829,7 +829,7 @@ class XArmAPI(object):
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param radius: move radius, if radius is None or radius less than 0, will MoveToolLine, else MoveToolArcLine
-            only available if firmware_version >= 1.10.110
+            only available if firmware_version >= 1.11.100
             MoveToolLine: Linear motion
                 ex: code = arm.set_tool_position(..., radius=None)
             MoveToolArcLine: Linear arc motion with interpolation
@@ -958,8 +958,8 @@ class XArmAPI(object):
         :param is_radian: roll/pitch/yaw value is radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
-        :param is_tool_coord: is tool coord or not, default is False, only available if firmware_version >= 1.10.110
-        :param is_axis_angle: is axis angle or not, default is False, only available if firmware_version >= 1.10.110
+        :param is_tool_coord: is tool coord or not, default is False, only available if firmware_version >= 1.11.100
+        :param is_axis_angle: is axis angle or not, default is False, only available if firmware_version >= 1.11.100
         :param kwargs: reserved
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -1409,6 +1409,8 @@ class XArmAPI(object):
             3: cartesian teaching mode (invalid)
             4: joint velocity control mode
             5: cartesian velocity control mode
+            6: joint online trajectory planning mode 
+            7: cartesian online trajectory planning mode 
         :param detection_param: Teaching detection parameters, default is 0
             0: Turn on motion detection 
             1: Turn off motion detection
@@ -2427,7 +2429,7 @@ class XArmAPI(object):
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param radius: move radius, if radius is None or radius less than 0, will MoveLineAA, else MoveArcLineAA
-            only available if firmware_version >= 1.10.110
+            only available if firmware_version >= 1.11.100
             MoveLineAA: Linear motion
                 ex: code = arm.set_position_aa(..., radius=None)
             MoveArcLineAA: Linear arc motion with interpolation

@@ -30,6 +30,7 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## Update Summary
 - > ### 1.10.0
+  - Use monotonic time
   - Fix several bugs
   
 - > ### 1.9.10

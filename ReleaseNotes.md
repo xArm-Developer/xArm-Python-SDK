@@ -3,6 +3,10 @@
 ## Update Summary
 
 - > ### 1.9.10
+  - Use monotonic time
+  - Fix several bugs
+
+- > ### 1.9.10
   - Support Lite6 Model
   - Fix several bugs
 

@@ -37,7 +37,7 @@ class UxbusCmdTcp(UxbusCmd):
         self.prot_flag = TX2_PROT_CON
         self.TX2_PROT_CON = TX2_PROT_CON
         self._has_err_warn = False
-        self._last_comm_time = time.time()
+        self._last_comm_time = time.monotonic()
 
     @property
     def has_err_warn(self):
@@ -95,12 +95,12 @@ class UxbusCmdTcp(UxbusCmd):
     def send_pend(self, funcode, num, timeout):
         ret = [0] * 320 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
-        expired = time.time() + timeout
-        while time.time() < expired:
-            remaining = expired - time.time()
+        expired = time.monotonic() + timeout
+        while time.monotonic() < expired:
+            remaining = expired - time.monotonic()
             rx_data = self.arm_port.read(remaining)
             if rx_data != -1 and len(rx_data) > 7:
-                self._last_comm_time = time.time()
+                self._last_comm_time = time.monotonic()
                 if self._debug:
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
                 ret[0] = self.check_xbus_prot(rx_data, funcode)

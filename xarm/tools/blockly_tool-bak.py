@@ -786,8 +786,8 @@ class BlocklyTool(object):
             self._append_to_file('{}# set_bio_gripper_enable(True)'.format(prefix))
         self._append_to_file('{}if not params[\'quit\'] and arm.set_bio_gripper_enable(True) != 0:'.format(prefix))
         self._append_to_file('{}    params[\'quit\'] = True'.format(prefix))
-        self._append_to_file('{}expired = time.time() + 2'.format(prefix))
-        self._append_to_file('{}while not params[\'quit\'] and time.time() < expired:'.format(prefix))
+        self._append_to_file('{}expired = time.monotonic() + 2'.format(prefix))
+        self._append_to_file('{}while not params[\'quit\'] and time.monotonic() < expired:'.format(prefix))
         self._append_to_file('{}    time.sleep(0.1)'.format(prefix))
 
     def _handle_set_bio_gripper(self, block, prefix=''):

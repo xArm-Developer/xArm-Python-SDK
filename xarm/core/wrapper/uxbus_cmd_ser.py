@@ -61,10 +61,10 @@ class UxbusCmdSer(UxbusCmd):
 
     def send_pend(self, funcode, num, timeout):
         ret = [0] * 254 if num == -1 else [0] * (num + 1)
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         ret[0] = XCONF.UxbusState.ERR_TOUT
-        while time.time() < expired:
-            remaining = expired - time.time()
+        while time.monotonic() < expired:
+            remaining = expired - time.monotonic()
             rx_data = self.arm_port.read(remaining)
             if rx_data != -1 and len(rx_data) > 5:
                 if self._debug:

@@ -811,8 +811,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         if wait:
             time.sleep(sltime)
         else:
-            if time.time() >= self._sleep_finish_time:
-                self._sleep_finish_time = time.time() + sltime
+            if time.monotonic() >= self._sleep_finish_time:
+                self._sleep_finish_time = time.monotonic() + sltime
             else:
                 self._sleep_finish_time += sltime
         self.log_api_info('API -> set_pause_time -> code={}, sltime={}'.format(ret[0], sltime), code=ret[0])
@@ -1007,8 +1007,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
     def emergency_stop(self):
         logger.info('emergency_stop--begin')
         self.set_state(4)
-        expired = time.time() + 3
-        while self.state not in [4] and time.time() < expired:
+        expired = time.monotonic() + 3
+        while self.state not in [4] and time.monotonic() < expired:
             self.set_state(4)
             time.sleep(0.1)
         self._sleep_finish_time = 0

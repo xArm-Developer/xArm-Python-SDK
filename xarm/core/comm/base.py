@@ -196,7 +196,7 @@ class Port(threading.Thread):
 
                         # # buffer[494:502]
                         # data_curr_us = convert.bytes_to_u64(buffer[-8:])
-                        # recv_curr_us = time.time() * 1000000
+                        # recv_curr_us = time.monotonic() * 1000000
                         #
                         # if data_prev_us != 0 and recv_prev_us != 0:
                         #     data_interval_us = data_curr_us - data_prev_us

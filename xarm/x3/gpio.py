@@ -275,11 +275,11 @@ class GPIO(Base):
             code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec)
         code = code1 if code2 == 0 else code2
         if code == 0 and wait:
-            start = time.time()
+            start = time.monotonic()
             code = APIState.SUCTION_CUP_TOUT
             if delay_sec is not None and delay_sec > 0:
                 timeout += delay_sec
-            while time.time() - start < timeout:
+            while time.monotonic() - start < timeout:
                 ret = self.get_suction_cup()
                 if ret[0] == XCONF.UxbusState.ERR_CODE:
                     code = XCONF.UxbusState.ERR_CODE
@@ -343,9 +343,9 @@ class GPIO(Base):
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=False)
     def check_air_pump_state(self, state, timeout=3):
-        start_time = time.time()
+        start_time = time.monotonic()
         is_first = True
-        while is_first or time.time() - start_time < timeout:
+        while is_first or time.monotonic() - start_time < timeout:
             is_first = False
             if not self.connected or self.state == 4:
                 return False

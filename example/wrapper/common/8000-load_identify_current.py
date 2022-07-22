@@ -50,9 +50,9 @@ def progress(item):
 
 
 arm.register_iden_progress_changed_callback(progress)
-start_time = time.time()
+start_time = time.monotonic()
 code, result = arm.iden_tcp_load()
-end_time = time.time()
+end_time = time.monotonic()
 print('code={}, result={}, cost_time={}'.format(code, result, end_time - start_time))
 arm.release_iden_progress_changed_callback(progress)
 arm.disconnect()

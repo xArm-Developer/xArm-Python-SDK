@@ -222,9 +222,9 @@ class Track(GPIO):
         failed_cnt = 0
         if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
             timeout = 100
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
-        while self.connected and time.time() < expired:
+        while self.connected and time.monotonic() < expired:
             _, status = self.get_linear_track_registers(addr=0x0A22, number_of_registers=5)
             if _ == 0 and status['sci'] == 0:
                 return APIState.LINEAR_TRACK_SCI_IS_LOW
@@ -243,9 +243,9 @@ class Track(GPIO):
         failed_cnt = 0
         if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
             timeout = 10
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
-        while self.connected and time.time() < expired:
+        while self.connected and time.monotonic() < expired:
             _, status = self.get_linear_track_registers(addr=0x0A22, number_of_registers=5)
             if _ == 0 and status['sci'] == 0:
                 return APIState.LINEAR_TRACK_SCI_IS_LOW

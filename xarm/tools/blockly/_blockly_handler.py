@@ -785,11 +785,11 @@ class _BlocklyHandler(_BlocklyBase):
         statement = self._get_node('statement', root=block)
         if statement:
             if self._loop_interval_sec > 0:
-                self._append_main_code('    t1 = time.time()', indent=indent+2)
+                self._append_main_code('    t1 = time.monotonic()', indent=indent+2)
             self._parse_block(statement, indent+1, arg_map=arg_map)
             if self._loop_interval_sec > 0:
                 # limit frequency
-                self._append_main_code('    interval = time.time() - t1', indent=indent+2)
+                self._append_main_code('    interval = time.monotonic() - t1', indent=indent+2)
                 self._append_main_code('    if interval < {}:'.format(self._loop_interval_sec), indent=indent+2)
                 self._append_main_code('        time.sleep({} - interval)'.format(self._loop_interval_sec), indent=indent+2)
         else:
@@ -811,11 +811,11 @@ class _BlocklyHandler(_BlocklyBase):
         statement = self._get_node('statement', root=block)
         if statement:
             if self._loop_interval_sec > 0:
-                self._append_main_code('    t1 = time.time()', indent=indent+2)
+                self._append_main_code('    t1 = time.monotonic()', indent=indent+2)
             self._parse_block(statement, indent+1, arg_map=arg_map)
             if self._loop_interval_sec > 0:
                 # limit frequency
-                self._append_main_code('    interval = time.time() - t1', indent=indent+2)
+                self._append_main_code('    interval = time.monotonic() - t1', indent=indent+2)
                 self._append_main_code('    if interval < {}:'.format(self._loop_interval_sec), indent=indent+2)
                 self._append_main_code('        time.sleep({} - interval)'.format(self._loop_interval_sec), indent=indent+2)
         else:
@@ -829,11 +829,11 @@ class _BlocklyHandler(_BlocklyBase):
         statement = self._get_node('statement', root=block)
         if statement:
             if self._loop_interval_sec > 0:
-                self._append_main_code('    t1 = time.time()', indent=indent+2)
+                self._append_main_code('    t1 = time.monotonic()', indent=indent+2)
             self._parse_block(statement, indent+1, arg_map=arg_map)
             if self._loop_interval_sec > 0:
                 # limit frequency
-                self._append_main_code('    interval = time.time() - t1', indent=indent+2)
+                self._append_main_code('    interval = time.monotonic() - t1', indent=indent+2)
                 self._append_main_code('    if interval < {}:'.format(self._loop_interval_sec), indent=indent+2)
                 self._append_main_code('        time.sleep({} - interval)'.format(self._loop_interval_sec), indent=indent+2)
         else:

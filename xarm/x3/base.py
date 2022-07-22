@@ -150,7 +150,7 @@ class Base(Events):
             self._default_is_radian = is_radian
             self._only_check_type = kwargs.get('only_check_type', 0)
 
-            self._sleep_finish_time = time.time()
+            self._sleep_finish_time = time.monotonic()
             self._is_old_protocol = False
 
             self._major_version_number = 0  # 固件主版本号
@@ -170,7 +170,7 @@ class Base(Events):
             self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
 
             self._count = -1
-            self._last_report_time = time.time()
+            self._last_report_time = time.monotonic()
             self._max_report_interval = 0
 
             self._cgpio_reset_enable = 0
@@ -261,7 +261,7 @@ class Base(Events):
         self._is_first_report = True
         self._first_report_over = False
 
-        self._sleep_finish_time = time.time()
+        self._sleep_finish_time = time.monotonic()
         self._is_old_protocol = False
 
         self._major_version_number = 0  # 固件主版本号
@@ -281,7 +281,7 @@ class Base(Events):
         self._realtime_joint_speeds = [0, 0, 0, 0, 0, 0, 0]
 
         self._count = -1
-        self._last_report_time = time.time()
+        self._last_report_time = time.monotonic()
         self._max_report_interval = 0
 
         self._cgpio_reset_enable = 0
@@ -716,7 +716,7 @@ class Base(Events):
         if not self._check_cmdnum_limit:
             return
         while self.connected and self.cmd_num >= self._max_cmd_num:
-            if time.time() - self._last_report_time > 0.4:
+            if time.monotonic() - self._last_report_time > 0.4:
                 self.get_cmdnum()
             time.sleep(0.05)
 
@@ -733,7 +733,7 @@ class Base(Events):
         cnt = 0
         last_send_time = 0
         while self.connected and self._timed_comm_t_alive:
-            curr_time = time.time()
+            curr_time = time.monotonic()
             if not self._keep_heart:
                 time.sleep(1)
                 continue
@@ -1095,7 +1095,7 @@ class Base(Events):
 
         while self.connected:
             try:
-                curr_time = time.time()
+                curr_time = time.monotonic()
                 if self._keep_heart:
                     if prot_flag != 3 and self.version_is_ge(1, 8, 6) and self.arm_cmd.set_prot_flag(3) == 0:
                         prot_flag = 3
@@ -1158,7 +1158,7 @@ class Base(Events):
 
     def _handle_report_data(self, data):
         def __handle_report_normal_old(rx_data):
-            report_time = time.time()
+            report_time = time.monotonic()
             interval = report_time - self._last_report_time
             self._max_report_interval = max(self._max_report_interval, interval)
             self._last_report_time = report_time
@@ -1269,7 +1269,7 @@ class Base(Events):
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
 
-            update_time = time.time()
+            update_time = time.monotonic()
             self._last_update_cmdnum_time = update_time
             self._last_update_state_time = update_time
             self._last_update_err_time = update_time
@@ -1391,14 +1391,14 @@ class Base(Events):
                 self._ft_raw_force = convert.bytes_to_fp32s(rx_data[111:135], 6)
 
         def __handle_report_normal(rx_data):
-            report_time = time.time()
+            report_time = time.monotonic()
             interval = report_time - self._last_report_time
             self._max_report_interval = max(self._max_report_interval, interval)
             self._last_report_time = report_time
             # print('length:', convert.bytes_to_u32(rx_data[0:4]), len(rx_data))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
             # if state != self._state or mode != self._mode:
-            #     print('mode: {}, state={}, time={}'.format(mode, state, time.time()))
+            #     print('mode: {}, state={}, time={}'.format(mode, state, time.monotonic()))
             cmd_num = convert.bytes_to_u16(rx_data[5:7])
             angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
             pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
@@ -1536,7 +1536,7 @@ class Base(Events):
             self._mode = mode
             self._cmd_num = cmd_num
 
-            update_time = time.time()
+            update_time = time.monotonic()
             self._last_update_cmdnum_time = update_time
             self._last_update_state_time = update_time
             self._last_update_err_time = update_time
@@ -2028,7 +2028,7 @@ class Base(Events):
             #     self._state = ret[1]
             #     self._report_state_changed_callback()
             self._state = ret[1]
-            self._last_update_state_time = time.time()
+            self._last_update_state_time = time.monotonic()
         return ret[0], ret[1] if ret[0] == 0 else self._state
 
     @xarm_is_connected(_type='set')
@@ -2078,7 +2078,7 @@ class Base(Events):
             if ret[1] != self._cmd_num:
                 self._report_cmdnum_changed_callback()
             self._cmd_num = ret[1]
-            self._last_update_cmdnum_time = time.time()
+            self._last_update_cmdnum_time = time.monotonic()
         return ret[0], self._cmd_num
 
     @xarm_is_connected(_type='get')
@@ -2092,7 +2092,7 @@ class Base(Events):
             #     self._report_error_warn_changed_callback()
 
             self._error_code, self._warn_code = ret[1:3]
-            self._last_update_err_time = time.time()
+            self._last_update_err_time = time.monotonic()
         if show:
             pretty_print('************* {}, {}: {} **************'.format(
                          '获取控制器错误警告码' if lang == 'cn' else 'GetErrorWarnCode',
@@ -2163,17 +2163,17 @@ class Base(Events):
 
     def wait_move(self, timeout=None):
         if timeout is not None:
-            expired = time.time() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.time() else 0)
+            expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
             expired = 0
         count = 0
         _, state = self.get_state()
         max_cnt = 4 if _ == 0 and state == 1 else 10
-        while timeout is None or time.time() < expired:
+        while timeout is None or time.monotonic() < expired:
             if not self.connected:
                 self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
                 return APIState.NOT_CONNECTED
-            if not self._enable_report or (time.time() - self._last_report_time > 0.4):
+            if not self._enable_report or (time.monotonic() - self._last_report_time > 0.4):
                 self.get_state()
                 self.get_err_warn_code()
             if self.error_code != 0:
@@ -2190,7 +2190,7 @@ class Base(Events):
                 self._sleep_finish_time = 0
                 self.log_api_info('wait_move, xarm is stop, state={}'.format(self.state), code=APIState.EMERGENCY_STOP)
                 return APIState.EMERGENCY_STOP
-            if time.time() < self._sleep_finish_time or self.state == 3:
+            if time.monotonic() < self._sleep_finish_time or self.state == 3:
                 time.sleep(0.02)
                 count = 0
                 continue

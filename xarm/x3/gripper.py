@@ -252,10 +252,10 @@ class Gripper(GPIO):
                 is_add = True if pos > last_pos else False
             count = 0
             count2 = 0
-            start_time = time.time()
             if not timeout or not isinstance(timeout, (int, float)):
                 timeout = 10
-            while time.time() - start_time < timeout:
+            expired = time.monotonic() + timeout
+            while time.monotonic() < expired:
                 _, p = self._get_gripper_position()
                 if _ == 0 and p is not None:
                     cur_pos = int(p)
@@ -382,10 +382,10 @@ class Gripper(GPIO):
         count2 = 0
         if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
             timeout = 10
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         failed_cnt = 0
         code = APIState.WAIT_FINISH_TIMEOUT
-        while self.connected and time.time() < expired:
+        while self.connected and time.monotonic() < expired:
             _, p = self._get_modbus_gripper_position()
             if self._gripper_error_code != 0:
                 print('xArm Gripper ErrorCode: {}'.format(self._gripper_error_code))
@@ -431,9 +431,9 @@ class Gripper(GPIO):
         failed_cnt = 0
         if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
             timeout = 10
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
-        while self.connected and time.time() < expired:
+        while self.connected and time.monotonic() < expired:
             _, status = self.get_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
@@ -533,10 +533,10 @@ class Gripper(GPIO):
 
     def __bio_gripper_wait_motion_completed(self, timeout=5, **kwargs):
         failed_cnt = 0
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
         check_detected = kwargs.get('check_detected', False)
-        while time.time() < expired:
+        while time.monotonic() < expired:
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
@@ -556,9 +556,9 @@ class Gripper(GPIO):
 
     def __bio_gripper_wait_enable_completed(self, timeout=3):
         failed_cnt = 0
-        expired = time.time() + timeout
+        expired = time.monotonic() + timeout
         code = APIState.WAIT_FINISH_TIMEOUT
-        while time.time() < expired:
+        while time.monotonic() < expired:
             _, status = self.get_bio_gripper_status()
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:

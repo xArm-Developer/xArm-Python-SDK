@@ -135,9 +135,9 @@ class RobotIQ(Base):
 
     def robotiq_wait_activation_completed(self, timeout=3):
         failed_cnt = 0
-        expired = time.time() + timeout if timeout is not None and timeout > 0 else 0
+        expired = time.monotonic() + timeout if timeout is not None and timeout > 0 else 0
         code = APIState.WAIT_FINISH_TIMEOUT
-        while expired == 0 or time.time() < expired:
+        while expired == 0 or time.monotonic() < expired:
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
@@ -154,10 +154,10 @@ class RobotIQ(Base):
 
     def robotiq_wait_motion_completed(self, timeout=5, **kwargs):
         failed_cnt = 0
-        expired = time.time() + timeout if timeout is not None and timeout > 0 else 0
+        expired = time.monotonic() + timeout if timeout is not None and timeout > 0 else 0
         code = APIState.WAIT_FINISH_TIMEOUT
         check_detected = kwargs.get('check_detected', False)
-        while expired == 0 or time.time() < expired:
+        while expired == 0 or time.monotonic() < expired:
             _, ret = self.robotiq_get_status(number_of_registers=3)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:

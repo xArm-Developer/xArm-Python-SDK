@@ -50,10 +50,10 @@ def progress(item):
 
 
 arm.register_iden_progress_changed_callback(progress)
-start_time = time.time()
+start_time = time.monotonic()
 arm.ft_sensor_enable(1)
 code, result = arm.ft_sensor_iden_load()
-end_time = time.time()
+end_time = time.monotonic()
 print('code={}, result={}, cost_time={}'.format(code, result, end_time - start_time))
 arm.release_iden_progress_changed_callback(progress)
 arm.ft_sensor_app_set(0)

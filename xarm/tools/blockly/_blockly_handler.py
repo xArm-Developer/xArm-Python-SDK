@@ -516,13 +516,17 @@ class _BlocklyHandler(_BlocklyBase):
         func = ''
         if op == 'OPEN':
             func = 'open_lite6_gripper'
+            self._append_main_code('code = self._arm.{}()'.format(func), indent + 2)
+            self._append_main_code('time.sleep(0.5)'.format(func), indent + 2)
+            self._append_main_code('self._arm.stop_lite6_gripper()', indent + 2)
         elif op == 'CLOSE':
             func = 'close_lite6_gripper'
+            self._append_main_code('code = self._arm.{}()'.format(func), indent + 2)
         elif op == 'STOP':
             func = 'stop_lite6_gripper'
+            self._append_main_code('code = self._arm.{}()'.format(func), indent + 2)
         else:
             return
-        self._append_main_code('code = self._arm.{}()'.format(func), indent + 2)
         self._append_main_code('if not self._check_code(code, \'{}\'):'.format(func), indent + 2)
         self._append_main_code('    return', indent + 2)
 

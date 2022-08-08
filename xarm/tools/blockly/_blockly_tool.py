@@ -247,8 +247,8 @@ class BlocklyTool(_BlocklyHandler):
             if self._listen_cgpio_state or len(self._cgpio_analog_callbacks):
                 self._append_main_init_code('                analogs = [values[6], values[7]]')
                 self._append_main_init_code('                for item in self._cgpio_analog_callbacks:')
-                self._append_main_init_code('                    for io in range(len(digitals)):')
-                self._append_main_init_code('                        if item[\'io\'] == io and eval(\'{} {} {}\'.format(digitals[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(cgpio_analogs[io], item[\'op\'], item[\'trigger\'])):')
+                self._append_main_init_code('                    for io in range(len(analogs)):')
+                self._append_main_init_code('                        if item[\'io\'] == io and eval(\'{} {} {}\'.format(analogs[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(cgpio_analogs[io], item[\'op\'], item[\'trigger\'])):')
                 self._append_main_init_code('                            self._callback_que.put(item[\'callback\'])')
                 self._append_main_init_code('                cgpio_analogs = analogs')
             self._append_main_init_code('            self._cgpio_state = values if _ == 0 else self._cgpio_state')

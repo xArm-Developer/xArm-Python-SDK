@@ -103,8 +103,9 @@ class UxbusCmdTcp(UxbusCmd):
                 self._last_comm_time = time.monotonic()
                 if self._debug:
                     debug_log_datas(rx_data, label='recv({})'.format(funcode))
-                ret[0] = self.check_xbus_prot(rx_data, funcode)
-                if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]:
+                code = self.check_xbus_prot(rx_data, funcode)
+                if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]:
+                    ret[0] = code
                     num = (convert.bytes_to_u16(rx_data[4:6]) - 2) if num == -1 else num
                     ret = ret[:num + 1] if len(ret) <= num + 1 else [ret[0]] * (num + 1)
                     length = len(rx_data) - 8
@@ -113,7 +114,8 @@ class UxbusCmdTcp(UxbusCmd):
                             break
                         ret[i + 1] = rx_data[i + 8]
                     return ret
-                elif ret[0] != XCONF.UxbusState.ERR_NUM:
+                elif code != XCONF.UxbusState.ERR_NUM:
+                    ret[0] = code
                     return ret
             else:
                 time.sleep(0.001)

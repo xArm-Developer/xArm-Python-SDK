@@ -68,19 +68,22 @@ class Record(Base):
         if ret[0] == 0:
             if wait:
                 expired = time.monotonic() + timeout
+                idle_cnts = 0
                 while time.monotonic() < expired:
+                    time.sleep(0.1)
                     code, status = self.get_trajectory_rw_status()
                     if self._check_code(code) == 0:
                         if status == XCONF.TrajState.IDLE:
-                            logger.error('Save {} failed, idle'.format(filename))
-                            return APIState.TRAJ_RW_FAILED
+                            idle_cnts += 1
+                            if idle_cnts >= 5:
+                                logger.error('Save {} failed, idle'.format(filename))
+                                return APIState.TRAJ_RW_FAILED
                         elif status == XCONF.TrajState.SAVE_SUCCESS:
                             logger.info('Save {} success'.format(filename))
                             return 0
                         elif status == XCONF.TrajState.SAVE_FAIL:
                             logger.error('Save {} failed'.format(filename))
                             return APIState.TRAJ_RW_FAILED
-                    time.sleep(0.1)
                 logger.warning('Save {} timeout'.format(filename))
                 return APIState.TRAJ_RW_TOUT
             else:
@@ -101,19 +104,22 @@ class Record(Base):
         if ret[0] == 0:
             if wait:
                 expired = time.monotonic() + timeout
+                idle_cnts = 0
                 while time.monotonic() < expired:
+                    time.sleep(0.1)
                     code, status = self.get_trajectory_rw_status()
                     if code == 0:
                         if status == XCONF.TrajState.IDLE:
-                            logger.info('Load {} failed, idle'.format(filename))
-                            return APIState.TRAJ_RW_FAILED
+                            idle_cnts += 1
+                            if idle_cnts >= 5:
+                                logger.info('Load {} failed, idle'.format(filename))
+                                return APIState.TRAJ_RW_FAILED
                         elif status == XCONF.TrajState.LOAD_SUCCESS:
                             logger.info('Load {} success'.format(filename))
                             return 0
                         elif status == XCONF.TrajState.LOAD_FAIL:
                             logger.error('Load {} failed'.format(filename))
                             return APIState.TRAJ_RW_FAILED
-                    time.sleep(0.1)
                 logger.warning('Load {} timeout'.format(filename))
                 return APIState.TRAJ_RW_TOUT
             else:

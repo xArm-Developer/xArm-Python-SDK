@@ -1349,7 +1349,7 @@ class ServoError(BaseCode):
 
 class GripperError(BaseCode):
     def __init__(self, code, status=0):
-        self._code_map = GripperError
+        self._code_map = GripperErrorCodeMap
         super(GripperError, self).__init__(code, status=status)
 
 

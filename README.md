@@ -96,11 +96,11 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 
 - #####  [1009-cartesian_velocity_control](example/wrapper/common/1009-cartesian_velocity_control.py)
 
-- #####  [1010-mode7](example/wrapper/common/1010-mode7.py)
+- #####  [1010-cartesian_online_trajectory_planning](example/wrapper/common/1010-cartesian_online_trajectory_planning.py)
 
 - #####  [2000-joint_velocity_control](example/wrapper/common/2000-joint_velocity_control.py)
   
-- #####  [2006-mode6](example/wrapper/common/2006-mode6.py)
+- #####  [2006-joint_online_trajectory_planning](example/wrapper/common/2006-joint_online_trajectory_planning.py)
 
 - ##### 2001-move_joint --> [xarm5](example/wrapper/xarm5/2001-move_joint.py) --- [xarm6](example/wrapper/xarm6/2001-move_joint.py) --- [xarm7](example/wrapper/xarm7/2001-move_joint.py)
 

@@ -2777,16 +2777,18 @@ class XArmAPI(object):
         """
         return self._arm.clean_bio_gripper_error()
 
-    def set_tgpio_modbus_timeout(self, timeout):
+    def set_tgpio_modbus_timeout(self, timeout, is_transparent_transmission=False, **kwargs):
         """
         Set the modbus timeout of the tool gpio
         
         :param timeout: timeout, seconds
+        :param is_transparent_transmission: whether the set timeout is the timeout of transparent transmission
+            Note: only available if firmware_version >= 1.11.0
         
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_tgpio_modbus_timeout(timeout)
+        return self._arm.set_tgpio_modbus_timeout(timeout, is_transparent_transmission=is_transparent_transmission, **kwargs)
 
     def set_tgpio_modbus_baudrate(self, baud):
         """
@@ -2809,19 +2811,26 @@ class XArmAPI(object):
         """
         return self._arm.get_tgpio_modbus_baudrate()
 
-    def getset_tgpio_modbus_data(self, datas, min_res_len=0, host_id=9):
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
         """
         Send the modbus data to the tool gpio
         
         :param datas: data_list
         :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
         :param host_id: host_id, default is 9 (TGPIO_HOST_ID)
-        
+            9: END RS485
+            10: CONTROLLER RS485
+        :param is_transparent_transmission: whether to choose transparent transmission, default is False
+            Note: only available if firmware_version >= 1.11.0
+        :param use_503_port: whether to use port 503 for communication, default is False
+            Note: if it is True, it will connect to 503 port for communication when it is used for the first time, which is generally only useful for transparent transmission.
+            Note: only available if firmware_version >= 1.11.0
+
         :return: tuple((code, modbus_response))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             modbus_response: modbus response data
         """
-        return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len, host_id=host_id)
+        return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len, host_id=host_id, is_transparent_transmission=is_transparent_transmission, use_503_port=use_503_port, **kwargs)
 
     def set_report_tau_or_i(self, tau_or_i=0):
         """
@@ -3108,10 +3117,11 @@ class XArmAPI(object):
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
+            3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)
 
         :return: tuple((code, load)) only when code is 0, the returned result is correct.
             code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            load:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]
+            load:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
         """
         return self._arm.ft_sensor_iden_load()
 
@@ -3121,8 +3131,9 @@ class XArmAPI(object):
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
+            3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)
 
-        :param iden_result_list:  [mass，x_centroid，y_centroid，z_centroid，Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]
+        :param iden_result_list:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
         :param association_setting_tcp_load: whether to convert the parameter to the corresponding tcp load and set, default is False
             Note: If True, the value of tcp load will be modified
         :return: code

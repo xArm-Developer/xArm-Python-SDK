@@ -139,11 +139,22 @@ class FtSensor(Base):
         self.arm_cmd.set_prot_flag(prot_flag)
         self._keep_heart = True
         self.log_api_info('API -> ft_sensor_iden_load -> code={}'.format(ret[0]), code=ret[0])
+        code = self._check_code(ret[0])
+        if code == 0 or len(ret) > 5:
+            ret[2] = ret[2] * 1000  # x_centroid, 从m转成mm
+            ret[3] = ret[3] * 1000  # y_centroid, 从m转成mm
+            ret[4] = ret[4] * 1000  # z_centroid, 从m转成mm
         return self._check_code(ret[0]), ret[1:11]
 
     @xarm_is_connected(_type='set')
     def ft_sensor_cali_load(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
-        ret = self.arm_cmd.ft_sensor_cali_load(iden_result_list)
+        if len(iden_result_list) < 10:
+            return APIState.PARAM_ERROR
+        params = iden_result_list[:]
+        params[1] = params[1] / 1000.0  # x_centroid, 从mm转成m
+        params[2] = params[2] / 1000.0  # y_centroid, 从mm转成m
+        params[3] = params[3] / 1000.0  # z_centroid, 从mm转成m
+        ret = self.arm_cmd.ft_sensor_cali_load(params)
         self.log_api_info('API -> ft_sensor_cali_load -> code={}, iden_result_list={}'.format(ret[0], iden_result_list), code=ret[0])
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and association_setting_tcp_load:
@@ -151,11 +162,11 @@ class FtSensor(Base):
             x = kwargs.get('x', -17)
             y = kwargs.get('y', 9)
             z = kwargs.get('z', 11.8)
-            weight = iden_result_list[0] + m
+            weight = params[0] + m
             center_of_gravity = [
-                (m * x + iden_result_list[0] * iden_result_list[1]) / weight,
-                (m * y + iden_result_list[0] * iden_result_list[2]) / weight,
-                (m * z + iden_result_list[0] * (32 + iden_result_list[3])) / weight
+                (m * x + params[0] * params[1]) / weight,
+                (m * y + params[0] * params[2]) / weight,
+                (m * z + params[0] * (32 + params[3])) / weight
             ]
             return self.set_tcp_load(weight, center_of_gravity)
         return ret[0]

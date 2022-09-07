@@ -29,6 +29,12 @@ Install is not necessary, you can run examples without installation.Only Python3
 - #### [API Code Document](doc/api/xarm_api_code.md)
 
 ## Update Summary
+- > ### 1.11.0
+  - Support transparent transmission
+    - 240: `set_tgpio_modbus_timeout(..., is_transparent_transmission=True)`
+    - 241: `getset_tgpio_modbus_data(..., is_transparent_transmission=True)`
+  - Modified the centroid unit of the `ft_sensor_iden_load` and `ft_sensor_cali_load` interfaces to millimeters (originally meters)
+
 - > ### 1.10.0
   - Use monotonic time
   - Fix several bugs

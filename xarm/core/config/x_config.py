@@ -352,6 +352,9 @@ class XCONF(object):
 
         GET_MAX_JOINT_VELOCITY = 231
 
+        TGPIO_COM_TIOUT = 240
+        TGPIO_COM_DATA = 241
+
     class UxbusConf:
         SET_TIMEOUT = 2000  # ms
         GET_TIMEOUT = 2000  # ms

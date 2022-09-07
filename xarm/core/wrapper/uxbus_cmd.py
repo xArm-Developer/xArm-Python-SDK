@@ -710,9 +710,9 @@ class UxbusCmd(object):
         value[1] = ret[1] * 3.3 / 4095.0
         return value
 
-    def set_modbus_timeout(self, value):
+    def set_modbus_timeout(self, value, is_transparent_transmission=False):
         txdata = [int(value)]
-        return self.set_nu16(XCONF.UxbusReg.TGPIO_MB_TIOUT, txdata, 1)
+        return self.set_nu16(XCONF.UxbusReg.TGPIO_COM_TIOUT if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MB_TIOUT, txdata, 1)
 
     def set_modbus_baudrate(self, baudrate):
         if baudrate not in self.BAUDRATES:
@@ -728,14 +728,14 @@ class UxbusCmd(object):
         return ret[:2]
 
     @lock_require
-    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID, limit_sec=0.0):
+    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID, limit_sec=0.0, is_transparent_transmission=False):
         txdata = bytes([host_id])
         txdata += bytes(modbus_t)
         if limit_sec > 0:
             diff_time = time.monotonic() - self._last_modbus_comm_time
             if diff_time < limit_sec:
                 time.sleep(limit_sec - diff_time)
-        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
+        ret = self.send_xbus(XCONF.UxbusReg.TGPIO_COM_DATA if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
         if ret != 0:
             self._last_modbus_comm_time = time.monotonic()
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)

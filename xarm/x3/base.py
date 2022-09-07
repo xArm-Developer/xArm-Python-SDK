@@ -97,6 +97,8 @@ class Base(Events):
             self._stream_type = 'serial'
             self._stream = None
             self.arm_cmd = None
+            self._stream_503 = None # 透传使用
+            self.arm_cmd_503 = None # 透传使用
             self._stream_report = None
             self._report_thread = None
             self._only_report_err_warn_changed = True
@@ -433,11 +435,15 @@ class Base(Events):
 
     @property
     def connected(self):
-        return self._stream and self._stream.connected
+        return self._stream is not None and self._stream.connected
+
+    @property
+    def connected_503(self):
+        return self._stream_503 is not None and self._stream_503.connected
 
     @property
     def reported(self):
-        return self._stream_report and self._stream_report.connected
+        return self._stream_report is not None and self._stream_report.connected
 
     @property
     def ready(self):
@@ -760,6 +766,14 @@ class Base(Events):
                 self._pool.join()
             except:
                 pass
+    
+    def connect_503(self):
+        self._stream_503 = SocketPort(self._port, XCONF.SocketConf.TCP_CONTROL_PORT + 1,
+            heartbeat=self._enable_heartbeat, buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=self._forbid_uds)
+        if not self.connected_503:
+            return -1
+        self.arm_cmd_503 = UxbusCmdTcp(self._stream_503)
+        return 0
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
         if self.connected:
@@ -920,6 +934,11 @@ class Base(Events):
             self._stream.close()
         except:
             pass
+        if self._stream_503:
+            try:
+                self._stream_503.close()
+            except:
+                pass
         if self._stream_report:
             try:
                 self._stream_report.close()
@@ -2313,8 +2332,8 @@ class Base(Events):
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
-    def set_tgpio_modbus_timeout(self, timeout):
-        ret = self.arm_cmd.set_modbus_timeout(timeout)
+    def set_tgpio_modbus_timeout(self, timeout, is_transparent_transmission=False, **kwargs):
+        ret = self.arm_cmd.set_modbus_timeout(timeout, is_transparent_transmission=kwargs.get('is_tt', is_transparent_transmission))
         self.log_api_info('API -> set_tgpio_modbus_timeout -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
 
@@ -2331,10 +2350,19 @@ class Base(Events):
         #     self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
 
-    def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False, host_id=XCONF.TGPIO_HOST_ID):
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False, host_id=XCONF.TGPIO_HOST_ID, is_transparent_transmission=False, use_503_port=False, **kwargs):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
-        ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id)
+        is_tt = kwargs.get('is_tt', is_transparent_transmission)
+        if is_tt:
+            if use_503_port:
+                if not self.connected_503 and self.connect_503() != 0:
+                    return APIState.NOT_CONNECTED, []
+                ret = self.arm_cmd_503.tgpio_set_modbus(datas, len(datas), host_id=host_id, is_transparent_transmission=True)
+            else:
+                ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id, is_transparent_transmission=True)
+        else:
+            ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id)
         ret[0] = self._check_modbus_code(ret, min_res_len + 2, host_id=host_id)
         if not ignore_log:
             self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])

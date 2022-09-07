@@ -2781,7 +2781,7 @@ class XArmAPI(object):
         """
         Set the modbus timeout of the tool gpio
         
-        :param timeout: timeout, seconds
+        :param timeout: timeout, milliseconds
         :param is_transparent_transmission: whether the set timeout is the timeout of transparent transmission
             Note: only available if firmware_version >= 1.11.0
         

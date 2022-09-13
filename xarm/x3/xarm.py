@@ -962,7 +962,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         return_is_radian = self._default_is_radian if return_is_radian is None else return_is_radian
         # assert len(angles) >= 7
         joints = [0] * 7
-        for i in range(len(angles), 7):
+        for i in range(min(len(angles), 7)):
             joints[i] = to_radian(angles[i], input_is_radian)
 
         ret = self.arm_cmd.get_fk(joints)

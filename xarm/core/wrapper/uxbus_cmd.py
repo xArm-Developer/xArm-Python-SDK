@@ -740,7 +740,7 @@ class UxbusCmd(object):
             self._last_modbus_comm_time = time.monotonic()
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.send_pend(XCONF.UxbusReg.TGPIO_MODBUS, -1, self._GET_TIMEOUT)
+        ret = self.send_pend(XCONF.UxbusReg.TGPIO_COM_DATA if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MODBUS, -1, self._GET_TIMEOUT)
         self._last_modbus_comm_time = time.monotonic()
         return ret
 

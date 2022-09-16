@@ -504,7 +504,7 @@ class _BlocklyHandler(_BlocklyBase):
         roll = fields[4].text
         pitch = fields[5].text
         yaw = fields[6].text
-        self._append_main_code('code = self._arm.set_world_offset([{}, {}, {}, {}, {}, {}], wait=True)'.format(x, y, z, roll, pitch, yaw), indent + 2)
+        self._append_main_code('code = self._arm.set_world_offset([{}, {}, {}, {}, {}, {}])'.format(x, y, z, roll, pitch, yaw), indent + 2)
         self._append_main_code('self._arm.set_state(0)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_world_offset\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
@@ -612,7 +612,7 @@ class _BlocklyHandler(_BlocklyBase):
             trigger = fields[1].text
 
             num = 1
-
+            indent = 0
             self._is_main_run_code = False
             if gpio_type == 'tgpio_digital':
                 num = len(self._tgpio_digital_callbacks) + 1

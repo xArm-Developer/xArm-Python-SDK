@@ -92,7 +92,7 @@ class SocketPort(Port):
     def __init__(self, server_ip, server_port, rxque_max=XCONF.SocketConf.TCP_RX_QUE_MAX, heartbeat=False,
                  buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=False):
         super(SocketPort, self).__init__(rxque_max)
-        if server_port == XCONF.SocketConf.TCP_CONTROL_PORT:
+        if server_port == XCONF.SocketConf.TCP_CONTROL_PORT or server_port == XCONF.SocketConf.TCP_CONTROL_PORT + 1:
             self.port_type = 'main-socket'
             # self.com.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, 5)
         else:

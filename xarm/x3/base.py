@@ -773,6 +773,7 @@ class Base(Events):
         if not self.connected_503:
             return -1
         self.arm_cmd_503 = UxbusCmdTcp(self._stream_503)
+        self.arm_cmd_503.set_debug(self._debug)
         return 0
 
     def connect(self, port=None, baudrate=None, timeout=None, axis=None, arm_type=None):
@@ -2281,7 +2282,7 @@ class Base(Events):
                             self.clean_error()
                             if self._ignore_state:
                                 self.set_state(state if state >= 3 else 0)
-                            time.sleep(1)
+                        time.sleep(1)
                     else:
                         if self.error_code != 100 + host_id:
                             self.get_err_warn_code()
@@ -2289,7 +2290,7 @@ class Base(Events):
                             self.clean_error()
                             if self._ignore_state:
                                 self.set_state(state if state >= 3 else 0)
-                            time.sleep(1)
+                        time.sleep(1)
                 except Exception as e:
                     self._ignore_error = False
                     self._ignore_state = False

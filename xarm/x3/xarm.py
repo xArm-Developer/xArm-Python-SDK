@@ -1710,4 +1710,4 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self.arm_cmd.set_prot_flag(prot_flag)
         self._keep_heart = True
         self.log_api_info('API -> iden_joint_friction -> code={}'.format(ret[0]), code=ret[0])
-        return self._check_code(ret[0]), int(ret[1])
+        return self._check_code(ret[0]), 0 if int(ret[1]) == 0 else -1

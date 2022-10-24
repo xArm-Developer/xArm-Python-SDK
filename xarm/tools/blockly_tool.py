@@ -15,7 +15,7 @@ import sys
 import json
 import time
 import random
-from .blockly_highlight_block import HIGHLIGHT_BLOCKS
+from .blockly._blockly_highlight import HIGHLIGHT_BLOCKS
 from .blockly import BlocklyTool
 
 

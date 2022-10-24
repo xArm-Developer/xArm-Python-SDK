@@ -917,3 +917,9 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code = self._arm.set_linear_track_back_origin(wait=True, auto_enable=True)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_linear_track_back_origin\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
+    
+    def _handle_python_code(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', block)
+        codes = fields[0].text.split('\n')
+        for code in codes:
+            self._append_main_code(code, indent + 2)

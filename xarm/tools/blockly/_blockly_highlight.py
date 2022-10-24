@@ -84,4 +84,7 @@ HIGHLIGHT_BLOCKS = [
     'controls_whileUntil',
     'controls_repeat_ext',
     'loop_break',
+
+    'python_code',
+    'python_expression',
 ]

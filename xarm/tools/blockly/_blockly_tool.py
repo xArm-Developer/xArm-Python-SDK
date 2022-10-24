@@ -6,6 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import json
 from ._blockly_handler import _BlocklyHandler
 
 
@@ -117,7 +118,14 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('        self._angle_speed = 20')
         self._append_main_init_code('        self._angle_acc = 500')
         self._append_main_init_code('        self._variables = {}'.format({var: 0 for var in self._parse_variables()}))
-        self._append_main_init_code('        self._robot_init()')            
+        if len(self._funcs):
+            self._append_main_init_code('        self._funcs = {')
+            for key, val in self._funcs.items():
+                self._append_main_init_code('            {}: self.{},'.format(json.dumps(key, ensure_ascii=False), val))
+            self._append_main_init_code('        }')
+        else:
+            self._append_main_init_code('        self._funcs = {}')
+        self._append_main_init_code('        self._robot_init()')
         if len(self._tgpio_digital_callbacks):
             self._append_main_init_code('        self._tgpio_digital_callbacks = []')
         if len(self._tgpio_analog_callbacks):

@@ -164,6 +164,9 @@ class _BlocklyBase(_BlocklyNode):
                     [self._get_condition_expression(val, arg_map=arg_map) for val in values]))
             else:
                 return 'self.{}()'.format(name)
+        elif block.attrib['type'] == 'python_expression':
+            fields = self._get_nodes('field', block)
+            return '{}'.format(fields[0].text)
 
     def __get_logic_compare(self, block, arg_map=None):
         op = OPS_MAP.get(self._get_node('field', block).text)

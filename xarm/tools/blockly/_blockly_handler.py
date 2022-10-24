@@ -702,12 +702,12 @@ class _BlocklyHandler(_BlocklyBase):
             self._append_main_code('    {}'.format(comment), indent=indent+1)
             self._append_main_code('    """', indent=indent+1)
             statement = self._get_node('statement', root=block)
+            self._funcs[field] = name
             if statement:
                 self._parse_block(statement, indent, arg_map=arg_map_)
             else:
                 self._append_main_code('    pass', indent=indent+1)
             self._append_main_code('')
-            self._funcs[field] = name
             return arg_map_
         except Exception as e:
             self._succeed = False
@@ -917,3 +917,13 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code = self._arm.set_linear_track_back_origin(wait=True, auto_enable=True)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_linear_track_back_origin\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
+
+    def _handle_python_code(self, block, indent=0, arg_map=None):
+        self._append_main_code('# Python code', indent + 2)
+        if self._get_field_value(block).find('\n') > -1:
+            python_value_li = self._get_field_value(block).split('\n')
+            for value in python_value_li:
+                self._append_main_code('{}'.format(value), indent + 2)
+        else:
+            self._append_main_code('{}'.format(self._get_field_value(block)), indent + 2)
+        self._append_main_code('###################', indent + 2)

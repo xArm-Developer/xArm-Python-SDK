@@ -274,7 +274,7 @@ class _BlocklyHandler(_BlocklyBase):
         color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
         msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
         if self._highlight_callback is not None:
-            self._append_main_code('print({}, {})'.format(msg, color), indent + 2)
+            self._append_main_code('print({}, color={})'.format(msg, color), indent + 2)
         else:
             self._append_main_code('print({})'.format(msg), indent + 2)
 
@@ -283,7 +283,7 @@ class _BlocklyHandler(_BlocklyBase):
         color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
         msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
         if self._highlight_callback is not None:
-            self._append_main_code('print({}, {})'.format(msg, color), indent + 2)
+            self._append_main_code('print({}, color={})'.format(msg, color), indent + 2)
         else:
             self._append_main_code('print({})'.format(msg), indent + 2)
 
@@ -295,12 +295,12 @@ class _BlocklyHandler(_BlocklyBase):
         expression = self._get_condition_expression(value, arg_map=arg_map)
         if msg:
             if self._highlight_callback is not None:
-                self._append_main_code('print({}.format({}), {})'.format(json.dumps(msg+'{}', ensure_ascii=False), expression, color), indent + 2)
+                self._append_main_code('print({}.format({}), color={})'.format(json.dumps(msg+'{}', ensure_ascii=False), expression, color), indent + 2)
             else:
                 self._append_main_code('print({}.format({}))'.format(json.dumps(msg+'{}', ensure_ascii=False), expression), indent + 2)
         else:
             if self._highlight_callback is not None:
-                self._append_main_code('print(\'{{}}\'.format({}), {})'.format(expression, color), indent + 2)
+                self._append_main_code('print(\'{{}}\'.format({}), color={})'.format(expression, color), indent + 2)
             else:
                 self._append_main_code('print(\'{{}}\'.format({}))'.format(expression), indent + 2)
 

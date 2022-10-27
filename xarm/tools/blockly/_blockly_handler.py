@@ -274,7 +274,7 @@ class _BlocklyHandler(_BlocklyBase):
         color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
         msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
         if self._highlight_callback is not None:
-            self._append_main_code('print({}, {})'.format(msg, color), indent + 2)
+            self._append_main_code('print({}, color={})'.format(msg, color), indent + 2)
         else:
             self._append_main_code('print({})'.format(msg), indent + 2)
 
@@ -283,7 +283,7 @@ class _BlocklyHandler(_BlocklyBase):
         color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
         msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
         if self._highlight_callback is not None:
-            self._append_main_code('print({}, {})'.format(msg, color), indent + 2)
+            self._append_main_code('print({}, color={})'.format(msg, color), indent + 2)
         else:
             self._append_main_code('print({})'.format(msg), indent + 2)
 
@@ -295,12 +295,12 @@ class _BlocklyHandler(_BlocklyBase):
         expression = self._get_condition_expression(value, arg_map=arg_map)
         if msg:
             if self._highlight_callback is not None:
-                self._append_main_code('print({}.format({}), {})'.format(json.dumps(msg+'{}', ensure_ascii=False), expression, color), indent + 2)
+                self._append_main_code('print({}.format({}), color={})'.format(json.dumps(msg+'{}', ensure_ascii=False), expression, color), indent + 2)
             else:
                 self._append_main_code('print({}.format({}))'.format(json.dumps(msg+'{}', ensure_ascii=False), expression), indent + 2)
         else:
             if self._highlight_callback is not None:
-                self._append_main_code('print(\'{{}}\'.format({}), {})'.format(expression, color), indent + 2)
+                self._append_main_code('print(\'{{}}\'.format({}), color={})'.format(expression, color), indent + 2)
             else:
                 self._append_main_code('print(\'{{}}\'.format({}))'.format(expression), indent + 2)
 
@@ -697,17 +697,18 @@ class _BlocklyHandler(_BlocklyBase):
                 arg_map_ = {arg: 'arg_{}'.format(i + 1) for i, arg in enumerate(arg_list)}
                 args_str = ', '.join(map(lambda x: arg_map_[x], arg_list)).strip()
                 self._append_main_code('    def {}(self, {}):'.format(name, args_str), indent=indent)
-            comment = self._get_node('comment', block).text
+            comment_block = self._get_node('comment', block)
+            comment = '' if comment_block is None else comment_block.text
             self._append_main_code('    """', indent=indent+1)
             self._append_main_code('    {}'.format(comment), indent=indent+1)
             self._append_main_code('    """', indent=indent+1)
             statement = self._get_node('statement', root=block)
+            self._funcs[field] = name
             if statement:
                 self._parse_block(statement, indent, arg_map=arg_map_)
             else:
                 self._append_main_code('    pass', indent=indent+1)
             self._append_main_code('')
-            self._funcs[field] = name
             return arg_map_
         except Exception as e:
             self._succeed = False
@@ -923,3 +924,19 @@ class _BlocklyHandler(_BlocklyBase):
         codes = fields[0].text.split('\n')
         for code in codes:
             self._append_main_code(code, indent + 2)
+
+    def _handle_python_code(self, block, indent=0, arg_map=None):
+        self._append_main_code('##### Python code #####', indent + 2)
+        text = self._get_field_value(block)
+        codes = text.split('\n') if isinstance(text, str) else []
+        prev_is_empty = False
+        length = len(codes)
+        for i, code in enumerate(codes):
+            if not code:
+                if prev_is_empty or i == length - 1:
+                    continue
+                prev_is_empty = True
+            else:
+                prev_is_empty = False
+            self._append_main_code(code, indent + 2)
+        self._append_main_code('#######################', indent + 2)

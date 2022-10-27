@@ -161,6 +161,7 @@ class BlocklyTool(_BlocklyHandler):
         self.__define_check_code_func()
         self.__define_is_prime_func()
         self.__define_pprint_func()
+        self.__define_property()
         self.__define_is_alive_property()
 
     def __define_is_prime_func(self):
@@ -188,6 +189,20 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('            if bin_val_[i] != digitals_bin[i]:')
             self._append_main_init_code('                return False')
             self._append_main_init_code('        return True\n')
+    
+    def __define_property(self):
+        # define property: self.arm -> self._arm
+        self._append_main_init_code('    @property')
+        self._append_main_init_code('    def arm(self):')
+        self._append_main_init_code('        return self._arm\n')
+        # define property: self.VARS -> self._variables
+        self._append_main_init_code('    @property')
+        self._append_main_init_code('    def VARS(self):')
+        self._append_main_init_code('        return self._variables\n')
+        # define property: self.FUNCS -> self._funcs
+        self._append_main_init_code('    @property')
+        self._append_main_init_code('    def FUNCS(self):')
+        self._append_main_init_code('        return self._funcs\n')
 
     def __define_callback_thread_func(self):
         # Define callback thread function

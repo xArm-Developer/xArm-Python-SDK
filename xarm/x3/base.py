@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import re
+import sys
 import time
 import math
 import threading
@@ -16,8 +17,15 @@ except:
     ThreadPool = None
 try:
     import asyncio
+
+    if sys.version_info.major >= 3 and sys.version_info.minor >= 5:
+        from .grammar_async import AsyncObject as BaseObject
+    else:
+        from .grammar_coroutine import CoroutineObject as BaseObject
 except:
     asyncio = None
+if not hasattr(math, 'inf'):
+    setattr(math, 'inf', float('inf'))
 from .events import Events
 from ..core.config.x_config import XCONF
 from ..core.comm import SerialPort, SocketPort
@@ -37,7 +45,7 @@ controller_warn_keys = ControllerWarnCodeMap.keys()
 print('SDK_VERSION: {}'.format(__version__))
 
 
-class Base(Events):
+class Base(BaseObject, Events):
     def __init__(self, port=None, is_radian=False, do_not_open=False, **kwargs):
         if kwargs.get('init', False):
             super(Base, self).__init__()
@@ -849,6 +857,8 @@ class Base(Events):
 
                 self._report_connect_changed_callback()
             else:
+                if SerialPort is None:
+                    raise Exception('serial module is not found, if you want to connect to xArm with serial, please `pip install pyserial==3.4`')
                 self._stream = SerialPort(self._port)
                 if not self.connected:
                     raise Exception('connect serail failed')
@@ -881,26 +891,27 @@ class Base(Events):
 
     if asyncio:
         def _run_asyncio_loop(self):
-            @asyncio.coroutine
-            def _asyncio_loop():
-                logger.debug('asyncio thread start ...')
-                while self.connected:
-                    yield from asyncio.sleep(0.001)
-                logger.debug('asyncio thread exit ...')
+            # @asyncio.coroutine
+            # def _asyncio_loop():
+            #     logger.debug('asyncio thread start ...')
+            #     while self.connected:
+            #         yield from asyncio.sleep(0.001)
+            #     logger.debug('asyncio thread exit ...')
 
             try:
                 asyncio.set_event_loop(self._asyncio_loop)
                 self._asyncio_loop_alive = True
-                self._asyncio_loop.run_until_complete(_asyncio_loop())
+                # self._asyncio_loop.run_until_complete(_asyncio_loop())
+                self._asyncio_loop.run_until_complete(self._asyncio_loop_func())
             except Exception as e:
                 pass
 
             self._asyncio_loop_alive = False
 
-        @staticmethod
-        @asyncio.coroutine
-        def _async_run_callback(callback, msg):
-            yield from callback(msg)
+        # @staticmethod
+        # @asyncio.coroutine
+        # def _async_run_callback(callback, msg):
+        #     yield from callback(msg)
 
     def _run_callback(self, callback, msg, name='', enable_callback_thread=True):
         try:

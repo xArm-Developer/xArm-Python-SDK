@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import json
+import re
 from ._blockly_base import _BlocklyBase, OPS_MAP
 from ._blockly_highlight import HIGHLIGHT_BLOCKS
 
@@ -380,6 +381,24 @@ class _BlocklyHandler(_BlocklyBase):
         io = self._get_node('field', block).text
         self._append_main_code('self._arm.get_cgpio_digital({})'.format(io), indent + 2)
 
+    def _handle_gpio_get_controller_ci_li(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        values = []
+        for field in fields[:-1]:
+            values.append(int(field.text))
+        timeout = int(fields[-1].text)
+        self._append_main_code('self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=True)'.format(values, timeout),
+                               indent + 2)
+
+    def _handle_gpio_get_controller_di_li(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        values = []
+        for field in fields[:-1]:
+            values.append(int(field.text))
+        timeout = int(fields[-1].text)
+        self._append_main_code('self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=False)'.format(values, timeout),
+                               indent + 2)
+
     def _handle_gpio_get_controller_analog(self, block, indent=0, arg_map=None):
         io = self._get_node('field', block).text
         self._append_main_code('self._arm.get_cgpio_analog({})'.format(io), indent + 2)
@@ -517,8 +536,6 @@ class _BlocklyHandler(_BlocklyBase):
         if op == 'OPEN':
             func = 'open_lite6_gripper'
             self._append_main_code('code = self._arm.{}()'.format(func), indent + 2)
-            self._append_main_code('time.sleep(0.5)'.format(func), indent + 2)
-            self._append_main_code('self._arm.stop_lite6_gripper()', indent + 2)
         elif op == 'CLOSE':
             func = 'close_lite6_gripper'
             self._append_main_code('code = self._arm.{}()'.format(func), indent + 2)
@@ -918,12 +935,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code = self._arm.set_linear_track_back_origin(wait=True, auto_enable=True)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_linear_track_back_origin\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
-    
-    def _handle_python_code(self, block, indent=0, arg_map=None):
-        fields = self._get_nodes('field', block)
-        codes = fields[0].text.split('\n')
-        for code in codes:
-            self._append_main_code(code, indent + 2)
+
 
     def _handle_python_code(self, block, indent=0, arg_map=None):
         self._append_main_code('##### Python code #####', indent + 2)
@@ -938,5 +950,8 @@ class _BlocklyHandler(_BlocklyBase):
                 prev_is_empty = True
             else:
                 prev_is_empty = False
+            code_indent = re.match('(\s*).*', code).group(1)
+            self._append_main_code(code_indent + 'if not self.is_alive:', indent + 2)
+            self._append_main_code(code_indent + 'return', indent + 3)
             self._append_main_code(code, indent + 2)
         self._append_main_code('#######################', indent + 2)

@@ -87,4 +87,6 @@ HIGHLIGHT_BLOCKS = [
 
     'python_code',
     'python_expression',
+    'gpio_get_controller_ci_li',
+    'gpio_get_controller_di_li'
 ]

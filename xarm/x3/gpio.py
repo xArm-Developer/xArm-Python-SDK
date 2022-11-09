@@ -262,6 +262,30 @@ class GPIO(Base):
         # print('cgpio_digital_output_fun:', ret[12])
         return code, states
 
+    @xarm_is_connected(_type='get')
+    def get_cgpio_li_state(self, Ci_Li, timeout=3, is_ci=True):
+        start_time = time.monotonic()
+        is_first = True
+        while is_first or time.monotonic() - start_time < timeout:
+            code = 0
+            is_first = False
+            if not self.connected or self.state == 4:
+                return False
+            codes, ret = self.get_cgpio_state()
+            digitals = [ret[3] >> i & 0x0001 if ret[10][i] in [0, 255] else 1 for i in
+                        range(len(ret[10]))]
+            if codes == XCONF.UxbusState.ERR_CODE:
+                return False
+            if codes == 0:
+                for CI_num, CI in enumerate(Ci_Li):
+                    if int(CI) == digitals[CI_num if is_ci else CI_num + 8]:
+                        code = -1
+                        break
+                if code == 0:
+                    return True
+            time.sleep(0.1)
+        return False
+
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')

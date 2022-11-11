@@ -278,7 +278,7 @@ class GPIO(Base):
                 return False
             if codes == 0:
                 for CI_num, CI in enumerate(Ci_Li):
-                    if int(CI) == digitals[CI_num if is_ci else CI_num + 8]:
+                    if int(CI) != digitals[CI_num if is_ci else CI_num + 8]:
                         code = -1
                         break
                 if code == 0:

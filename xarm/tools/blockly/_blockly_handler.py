@@ -944,7 +944,7 @@ class _BlocklyHandler(_BlocklyBase):
         prev_is_empty = False
         length = len(codes)
         for i, code in enumerate(codes):
-            if not code:
+            if not code.strip():
                 if prev_is_empty or i == length - 1:
                     continue
                 prev_is_empty = True

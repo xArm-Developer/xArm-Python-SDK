@@ -785,7 +785,7 @@ class _BlocklyHandler(_BlocklyBase):
         if arg_map and field in arg_map:
             self._append_main_code('{} = {}'.format(arg_map[field], expression), indent=indent+2)
         else:
-            self._append_main_code('self._variables[\'{}\'] = {}'.format(field, expression), indent=indent+2)
+            self._append_main_code('self._vars[\'{}\'] = {}'.format(field, expression), indent=indent+2)
 
     def _handle_math_change(self, block, indent=0, arg_map=None):
         field = self._get_node('field', block).text
@@ -796,7 +796,7 @@ class _BlocklyHandler(_BlocklyBase):
         if arg_map and field in arg_map:
             self._append_main_code('{} += {}'.format(arg_map[field], val), indent=indent+2)
         else:
-            self._append_main_code('self._variables[\'{}\'] += {}'.format(field, val), indent=indent+2)
+            self._append_main_code('self._vars[\'{}\'] += {}'.format(field, val), indent=indent+2)
 
     def _handle_controls_repeat_ext(self, block, indent=0, arg_map=None):
         value = self._get_node('value', root=block)

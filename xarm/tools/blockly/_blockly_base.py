@@ -136,7 +136,7 @@ class _BlocklyBase(_BlocklyNode):
             if arg_map and field in arg_map:
                 return '{}'.format(arg_map[field])
             else:
-                return 'self._variables.get(\'{}\', 0)'.format(field)
+                return 'self._vars.get(\'{}\', 0)'.format(field)
         elif block.attrib['type'] == 'move_var':
             val = self._get_node('field', block).text
             return val

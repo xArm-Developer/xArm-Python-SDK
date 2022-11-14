@@ -117,7 +117,7 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('        self._tcp_acc = 2000')
         self._append_main_init_code('        self._angle_speed = 20')
         self._append_main_init_code('        self._angle_acc = 500')
-        self._append_main_init_code('        self._variables = {}'.format({var: 0 for var in self._parse_variables()}))
+        self._append_main_init_code('        self._vars = {}'.format({var: 0 for var in self._parse_variables()}))
         if len(self._funcs):
             self._append_main_init_code('        self._funcs = {')
             for key, val in self._funcs.items():
@@ -195,10 +195,10 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('    @property')
         self._append_main_init_code('    def arm(self):')
         self._append_main_init_code('        return self._arm\n')
-        # define property: self.VARS -> self._variables
+        # define property: self.VARS -> self._vars
         self._append_main_init_code('    @property')
         self._append_main_init_code('    def VARS(self):')
-        self._append_main_init_code('        return self._variables\n')
+        self._append_main_init_code('        return self._vars\n')
         # define property: self.FUNCS -> self._funcs
         self._append_main_init_code('    @property')
         self._append_main_init_code('    def FUNCS(self):')

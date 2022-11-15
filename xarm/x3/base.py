@@ -367,8 +367,10 @@ class Base(BaseObject, Events):
                     return -2
 
             if self._version and isinstance(self._version, str):
+                # pattern = re.compile(
+                #     r'.*(\d+),(\d+),(\S+),(\S+),.*[vV]*(\d+)\.(\d+)\.(\d+)')
                 pattern = re.compile(
-                    r'.*(\d+),(\d+),(\S+),(\S+),.*[vV]*(\d+)\.(\d+)\.(\d+)')
+                    r'.*(\d+),(\d+),(.*),(.*),.*[vV]*(\d+)\.(\d+)\.(\d+).*')
                 m = re.match(pattern, self._version)
                 if m:
                     (xarm_axis, xarm_type, xarm_sn, ac_version,
@@ -387,7 +389,7 @@ class Base(BaseObject, Events):
                     self._arm_type_is_1300 = int(xarm_sn[2:6]) >= 1300 if xarm_sn[2:6].isdigit() else False
                     self._control_box_type_is_1300 = int(ac_version[2:6]) >= 1300 if ac_version[2:6].isdigit() else False
                 else:
-                    pattern = re.compile(r'.*[vV]*(\d+)\.(\d+)\.(\d+)')
+                    pattern = re.compile(r'.*[vV]*(\d+)\.(\d+)\.(\d+).*')
                     m = re.match(pattern, self._version)
                     if m:
                         (self._major_version_number,
@@ -416,9 +418,10 @@ class Base(BaseObject, Events):
                         count -= 1
                 if self.warn_code != 0:
                     self.clean_warn()
-                print('FIRMWARE_VERSION: v{}, PROTOCOL: {}, DETAIL: {}'.format(
+                print('ROBOT_IP: {}, VERSION: v{}, PROTOCOL: {}, DETAIL: {}, TYPE1300: [{:d}, {:d}]'.format(
+                    self._port,
                     '{}.{}.{}'.format(self._major_version_number, self._minor_version_number, self._revision_version_number),
-                    'V0' if self._is_old_protocol else 'V1', self._version
+                    'V0' if self._is_old_protocol else 'V1', self._version, self._control_box_type_is_1300, self._arm_type_is_1300
                 ))
             return 0
         except Exception as e:
@@ -2191,57 +2194,98 @@ class Base(BaseObject, Events):
             self._is_ready = True
         self.log_api_info('API -> motion_enable -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
-
+    
     def wait_move(self, timeout=None):
         if timeout is not None:
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
             expired = 0
-        count = 0
         _, state = self.get_state()
-        max_cnt = 4 if _ == 0 and state == 1 else 10
+        cnt = 0
+        max_cnt = 1 if _ == 0 and state == 1 else 10
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
                 self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
                 return APIState.NOT_CONNECTED
-            if not self._enable_report or (time.monotonic() - self._last_report_time > 0.4):
-                self.get_state()
-                self.get_err_warn_code()
             if self.error_code != 0:
                 self.log_api_info('wait_move, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
                 return APIState.HAS_ERROR
-            # only wait in position mode
             if self.mode != 0:
                 return 0
-            if self.is_stop:
-                _, state = self.get_state()
-                if _ != 0 or state not in [4, 5]:
-                    time.sleep(0.02)
-                    continue
+            code, state = self.get_state()
+            if code != 0:
+                return code
+            if state >= 4:
                 self._sleep_finish_time = 0
-                self.log_api_info('wait_move, xarm is stop, state={}'.format(self.state), code=APIState.EMERGENCY_STOP)
+                self.log_api_info('wait_move, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
                 return APIState.EMERGENCY_STOP
-            if time.monotonic() < self._sleep_finish_time or self.state == 3:
-                time.sleep(0.02)
-                count = 0
+            if time.monotonic() < self._sleep_finish_time or state == 3:
+                cnt = 0
+                max_cnt = 2 if state == 3 else max_cnt
+                time.sleep(0.05)
                 continue
-            if self.state != 1:
-                count += 1
-                if count >= max_cnt:
-                    _, state = self.get_state()
-                    self.get_err_warn_code()
-                    if _ == 0 and state != 1:
-                        return 0
-                    else:
-                        count = 0
-                #     return 0
-                # if count % 4 == 0:
-                #     self.get_state()
-                #     self.get_err_warn_code()
+            if state == 1:
+                cnt = 0
+                max_cnt = 2
+                time.sleep(0.05)
+                continue
             else:
-                count = 0
-            time.sleep(0.05)
+                cnt += 1
+                if cnt >= max_cnt:
+                    return 0
+                time.sleep(0.05)
         return APIState.WAIT_FINISH_TIMEOUT
+
+    # def wait_move(self, timeout=None):
+    #     if timeout is not None:
+    #         expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
+    #     else:
+    #         expired = 0
+    #     count = 0
+    #     _, state = self.get_state()
+    #     max_cnt = 4 if _ == 0 and state == 1 else 10
+    #     while timeout is None or time.monotonic() < expired:
+    #         if not self.connected:
+    #             self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
+    #             return APIState.NOT_CONNECTED
+    #         if not self._enable_report or (time.monotonic() - self._last_report_time > 0.4):
+    #             self.get_state()
+    #             self.get_err_warn_code()
+    #         if self.error_code != 0:
+    #             self.log_api_info('wait_move, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
+    #             return APIState.HAS_ERROR
+    #         # only wait in position mode
+    #         if self.mode != 0:
+    #             return 0
+    #         if self.is_stop:
+    #             _, state = self.get_state()
+    #             if _ != 0 or state not in [4, 5]:
+    #                 time.sleep(0.02)
+    #                 continue
+    #             self._sleep_finish_time = 0
+    #             self.log_api_info('wait_move, xarm is stop, state={}'.format(self.state), code=APIState.EMERGENCY_STOP)
+    #             return APIState.EMERGENCY_STOP
+    #         if time.monotonic() < self._sleep_finish_time or self.state == 3:
+    #             time.sleep(0.02)
+    #             count = 0
+    #             continue
+    #         if self.state != 1:
+    #             count += 1
+    #             if count >= max_cnt:
+    #                 _, state = self.get_state()
+    #                 self.get_err_warn_code()
+    #                 if _ == 0 and state != 1:
+    #                     return 0
+    #                 else:
+    #                     count = 0
+    #             #     return 0
+    #             # if count % 4 == 0:
+    #             #     self.get_state()
+    #             #     self.get_err_warn_code()
+    #         else:
+    #             count = 0
+    #         time.sleep(0.05)
+    #     return APIState.WAIT_FINISH_TIMEOUT
 
     @xarm_is_connected(_type='set')
     def _check_modbus_code(self, ret, length=2, only_check_code=False, host_id=XCONF.TGPIO_HOST_ID):

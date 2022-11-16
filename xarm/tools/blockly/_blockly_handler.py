@@ -105,7 +105,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('    return', indent + 2)
 
     def _handle_reset(self, block, indent=0, arg_map=None):
-        self._append_main_code('self._arm.reset()', indent + 2)
+        self._append_main_code('self._arm.move_gohome()', indent + 2)
 
     def _handle_sleep(self, block, indent=0, arg_map=None):
         value = self._get_node('value', root=block)

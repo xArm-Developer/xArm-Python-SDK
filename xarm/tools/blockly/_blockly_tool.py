@@ -35,7 +35,7 @@ class BlocklyTool(_BlocklyHandler):
                 self._loop_interval_sec = 0.001
             self._init_header_codes()
             self._init_robot_main_run_codes()
-            self._parse_block()
+            self._parse_block(is_exec=kwargs.get('is_exec', False))
             self._finish_robot_main_run_codes(error_exit, stop_exit)
             self._init_robot_main_class_codes(init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
             self._init_main_codes(arm=arm, is_exec=kwargs.get('is_exec', False))

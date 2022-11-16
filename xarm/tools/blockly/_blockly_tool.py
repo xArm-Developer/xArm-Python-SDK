@@ -22,6 +22,7 @@ class BlocklyTool(_BlocklyHandler):
 
     def to_python(self, path=None, arm=None, init=True, wait_seconds=1, mode=0, state=0, error_exit=True, stop_exit=True, **kwargs):
         if not self._is_converted:
+            self._is_exec = kwargs.get('is_exec', False)
             # highlight_callback: only use pack to run blockly in studio
             self._highlight_callback = kwargs.get('highlight_callback', None)
             # loop_max_frequency: limit frequency in loop, only use pack to run blockly in studio
@@ -35,10 +36,10 @@ class BlocklyTool(_BlocklyHandler):
                 self._loop_interval_sec = 0.001
             self._init_header_codes()
             self._init_robot_main_run_codes()
-            self._parse_block(is_exec=kwargs.get('is_exec', False))
+            self._parse_block()
             self._finish_robot_main_run_codes(error_exit, stop_exit)
             self._init_robot_main_class_codes(init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
-            self._init_main_codes(arm=arm, is_exec=kwargs.get('is_exec', False))
+            self._init_main_codes(arm=arm)
             self._codes.extend(self._init_code_list)
             self._codes.extend(self._main_init_code_list)
             self._codes.extend(self._main_func_code_list)
@@ -360,10 +361,10 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('            self.pprint(\'{}, code={}, connected={}, state={}, error={}, ret1={}. ret2={}\'.format(label, code, self._arm.connected, self._arm.state, self._arm.error_code, ret1, ret2))')
         self._append_main_init_code('        return self.is_alive\n')
 
-    def _init_main_codes(self, arm=None, is_exec=False):
+    def _init_main_codes(self, arm=None):
         # exec can not run main function, if run in exec(), the parameter is_exec must set True
         self._append_main_code('\n', indent=-1)
-        if not is_exec:
+        if not self._is_exec:
             self._append_main_code('if __name__ == \'__main__\':', indent=-1)
             indent = 0
         else:

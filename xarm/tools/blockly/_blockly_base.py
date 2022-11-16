@@ -172,15 +172,15 @@ class _BlocklyBase(_BlocklyNode):
             values = []
             for field in fields[:-1]:
                 values.append(int(field.text))
-            timeout = int(fields[-1].text)
-            return 'self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=True)'.format(values, timeout)
+            timeout = float(fields[-1].text)
+            return 'self._arm.arm.get_cgpio_li_state({}, timeout={}, is_ci=True)'.format(values, timeout)
         elif block.attrib['type'] == 'gpio_get_controller_di_li':
             fields = self._get_nodes('field', root=block)
             values = []
             for field in fields[:-1]:
                 values.append(int(field.text))
-            timeout = int(fields[-1].text)
-            return 'self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=False)'.format(values, timeout)
+            timeout = float(fields[-1].text)
+            return 'self._arm.arm.get_cgpio_li_state({}, timeout={}, is_ci=False)'.format(values, timeout)
 
     def __get_logic_compare(self, block, arg_map=None):
         op = OPS_MAP.get(self._get_node('field', block).text)

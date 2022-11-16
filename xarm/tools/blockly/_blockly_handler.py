@@ -23,6 +23,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._main_func_code_list = []
         self._main_run_code_list = []
         self._is_main_run_code = True
+        self._is_exec = False
 
         self._listen_tgpio_digital = False
         self._listen_tgpio_analog = False
@@ -53,7 +54,6 @@ class _BlocklyHandler(_BlocklyBase):
         return var_list
     
     def _parse_block(self, root=None, indent=0, arg_map=None, **kwargs):
-        is_exec = kwargs.pop('is_exec', False)
         blocks = self._get_nodes('block', root=root)
         for block in blocks:
             # if not self._succeed:
@@ -75,10 +75,7 @@ class _BlocklyHandler(_BlocklyBase):
                         if block.attrib['type'] in HIGHLIGHT_BLOCKS:
                             self._append_main_code('highlight_callback(\'{}\')'.format(block.attrib['id']), indent=indent+2)
                     try:
-                        if '_handle_{}'.format(block.attrib['type']) == '_handle_python_code' and is_exec:
-                            func(block, indent, arg_map=arg_map, is_exec=True, **kwargs)
-                        else:
-                            func(block, indent, arg_map=arg_map, **kwargs)
+                        func(block, indent, arg_map=arg_map, **kwargs)
                     except Exception as e:
                         self._succeed = False
                         print('convert {} failed, {}'.format(block.attrib['type'], e))
@@ -942,7 +939,6 @@ class _BlocklyHandler(_BlocklyBase):
 
 
     def _handle_python_code(self, block, indent=0, arg_map=None, **kwargs):
-        is_exec = kwargs.get('is_exec', False)
         self._append_main_code('##### Python code #####', indent + 2)
         text = self._get_field_value(block)
         codes = text.split('\n') if isinstance(text, str) else []
@@ -955,7 +951,7 @@ class _BlocklyHandler(_BlocklyBase):
                 prev_is_empty = True
             else:
                 prev_is_empty = False
-            if is_exec and code.strip():
+            if self._is_exec and code.strip():
                 code_indent = re.match('(\s*).*', code).group(1)
                 self._append_main_code(code_indent + 'if not self.is_alive:', indent + 2)
                 self._append_main_code(code_indent + 'return', indent + 3)

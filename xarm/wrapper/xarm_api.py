@@ -795,7 +795,12 @@ class XArmAPI(object):
         :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
-        :param kwargs: reserved
+        :param kwargs: extra parameters
+            :param ik: whether to convert to joint planning through IK
+                Note: 
+                    1. only available if firmware_version >= 1.11.100
+                    2. the specified radius is not supported, that is, the radius can only be -1 
+                    3. if there is no suitable IK, a C40 error will be triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
                 code < 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will not be modified
@@ -835,7 +840,12 @@ class XArmAPI(object):
             MoveToolArcLine: Linear arc motion with interpolation
                 ex: code = arm.set_tool_position(..., radius=0)
                 Note: Need to set radius>=0
-        :param kwargs: reserved
+        :param kwargs: extra parameters
+            :param ik: whether to convert to joint planning through IK
+                Note: 
+                    1. only available if firmware_version >= 1.11.100
+                    2. the specified radius is not supported, that is, the radius can only be -1 
+                    3. if there is no suitable IK, a C40 error will be triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
                 code < 0: the last_used_tcp_speed/last_used_tcp_acc will not be modified
@@ -2435,6 +2445,12 @@ class XArmAPI(object):
             MoveArcLineAA: Linear arc motion with interpolation
                 ex: code = arm.set_position_aa(..., radius=0)
                 Note: Need to set radius>=0
+        :param kwargs: extra parameters
+            :param ik: whether to convert to joint planning through IK
+                Note: 
+                    1. only available if firmware_version >= 1.11.100
+                    2. the specified radius is not supported, that is, the radius can only be -1 
+                    3. if there is no suitable IK, a C40 error will be triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -3574,10 +3590,10 @@ class XArmAPI(object):
         Set the motion process detection type (valid for all motion interfaces of the current SDK instance)
 
         Note:
-            1. only available if firmware_version >= 1.10.0
+            1. only available if firmware_version >= 1.11.100
             2. This interface is a global configuration item of the current SDK, and affects all motion-related interfaces
-            3. Generally, you only need to call when you don't want to move the robotic arm and only check whether some paths will have self-collision or overspeed.
-            4. Currently only self-collision and overspeeding are detected
+            3. Generally, you only need to call when you don't want to move the robotic arm and only check whether some paths will have self-collision/angle-limit/cartesian-limit/overspeed.
+            4. Currently only self-collision/angle-limit/cartesian-limit/overspeed are detected
             5. If only_check_type is set to be greater than 0, and the return value of calling the motion interface is not 0, you can view arm.only_check_result to view the specific error code
         
         Example: (Common scenarios, here is an example of the set_position interface)

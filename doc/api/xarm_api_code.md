@@ -92,6 +92,7 @@
 - 37: Abnormal movement in Manual Mode
 - 38: Abnormal Joint Angle
 - 39: Abnormal Communication Between Master and Slave IC of Power Board
+- 40: No IK available
 - 50: Six-axis Force Torque Sensor read error
 - 51: Six-axis Force Torque Sensor set mode error
 - 52: Six-axis Force Torque Sensor set zero error

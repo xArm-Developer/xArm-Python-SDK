@@ -734,6 +734,16 @@ ControllerErrorCodeMap = {
             'desc': '请联系技术支持。'
         }
     },
+    40: {
+        'en': {
+            'title': 'No IK available',
+            'desc': ''
+        },
+        'cn': {
+            'title': '没有可用的IK',
+            'desc': ''
+        }
+    },
     50: {
         'en': {
             'title': 'Six-axis Force Torque Sensor read error',

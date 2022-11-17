@@ -387,7 +387,7 @@ class _BlocklyHandler(_BlocklyBase):
         values = []
         for field in fields[:-1]:
             values.append(int(field.text))
-        timeout = int(fields[-1].text)
+        timeout = float(fields[-1].text)
         self._append_main_code('self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=True)'.format(values, timeout),
                                indent + 2)
 
@@ -396,7 +396,7 @@ class _BlocklyHandler(_BlocklyBase):
         values = []
         for field in fields[:-1]:
             values.append(int(field.text))
-        timeout = int(fields[-1].text)
+        timeout = float(fields[-1].text)
         self._append_main_code('self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=False)'.format(values, timeout),
                                indent + 2)
 

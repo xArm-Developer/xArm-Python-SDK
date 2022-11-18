@@ -2,6 +2,11 @@
 
 ## Update Summary
 
+- > ### 1.11.5
+  - Optimization pause time is too long (wait=true)
+  - Add common motion api (Enabled after firmware version 1.11.100)
+  - The Cartesian motion-related interface adds the motion_type parameter to determine the planning method (Enabled after firmware version 1.11.100)
+
 - > ### 1.11.0
   - Support transparent transmission
     - 240: `set_tgpio_modbus_timeout(..., is_transparent_transmission=True)`

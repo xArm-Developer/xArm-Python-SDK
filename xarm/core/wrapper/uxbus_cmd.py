@@ -353,36 +353,36 @@ class UxbusCmd(object):
         txdata = [int(on_off)]
         return self.set_nu8(XCONF.UxbusReg.ALLOW_APPROX_MOTION, txdata, 1)
 
-    def move_line(self, mvpose, mvvelo, mvacc, mvtime, only_check_type=0, ik=0):
+    def move_line(self, mvpose, mvvelo, mvacc, mvtime, only_check_type=0, motion_type=0):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]
-        if only_check_type <= 0 and ik == 0:
+        if only_check_type <= 0 and motion_type == 0:
             return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE, txdata, 9)
         else:
-            byte_data = bytes([only_check_type]) if ik == 0 else bytes([only_check_type, int(ik)])
+            byte_data = bytes([only_check_type]) if motion_type == 0 else bytes([only_check_type, int(motion_type)])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE, txdata, 9, byte_data, 3, timeout=10)
 
-    def move_line_common(self, mvpose, mvvelo, mvacc, mvtime, radius=-1, coord=0, is_axis_angle=False, only_check_type=0, ik=0):
+    def move_line_common(self, mvpose, mvvelo, mvacc, mvtime, radius=-1, coord=0, is_axis_angle=False, only_check_type=0, motion_type=0):
         """
         通用指令，固件1.10.0开始支持 
         """
         txdata = [mvpose[i] for i in range(6)]
         _radius = -1 if radius is None else radius
         txdata += [mvvelo, mvacc, mvtime, _radius]
-        if ik == 0:
+        if motion_type == 0:
             byte_data = bytes([coord, int(is_axis_angle), only_check_type])
         else:
-            byte_data = bytes([coord, int(is_axis_angle), only_check_type, int(ik)])
+            byte_data = bytes([coord, int(is_axis_angle), only_check_type, int(motion_type)])
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE, txdata, 10, byte_data, 3, timeout=10)
 
-    def move_line_aa(self, mvpose, mvvelo, mvacc, mvtime, mvcoord, relative, only_check_type=0, ik=0):
+    def move_line_aa(self, mvpose, mvvelo, mvacc, mvtime, mvcoord, relative, only_check_type=0, motion_type=0):
         float_data = [mvpose[i] for i in range(6)]
         float_data += [mvvelo, mvacc, mvtime]
         byte_data = bytes([mvcoord, relative])
-        if only_check_type <= 0 and ik == 0:
+        if only_check_type <= 0 and motion_type == 0:
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE_AA, float_data, 9, byte_data)
         else:
-            byte_data += bytes([only_check_type]) if ik == 0 else bytes([only_check_type, int(ik)])
+            byte_data += bytes([only_check_type]) if motion_type == 0 else bytes([only_check_type, int(motion_type)])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE_AA, float_data, 9, byte_data, 3, timeout=10)
 
     def move_servo_cart_aa(self, mvpose, mvvelo, mvacc, tool_coord, relative):
@@ -391,17 +391,16 @@ class UxbusCmd(object):
         byte_data = bytes([relative])
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_SERVO_CART_AA, float_data, 9, byte_data)
 
-    def move_relative(self, pose, mvvelo, mvacc, mvtime, radius, is_joint_motion=False, is_angle_axis=False, only_check_type=0, ik=0):
+    def move_relative(self, pose, mvvelo, mvacc, mvtime, radius, is_joint_motion=False, is_angle_axis=False, only_check_type=0, motion_type=0):
         float_data = [0] * 7
         for i in range(min(7, len(pose))):
             float_data[i] = pose[i]
         float_data += [mvvelo, mvacc, mvtime, radius]
         byte_data = bytes([int(is_joint_motion), int(is_angle_axis)])
-        print(only_check_type, ik)
-        if only_check_type <= 0 and ik == 0:
+        if only_check_type <= 0 and motion_type == 0:
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_RELATIVE, float_data, 11, byte_data)
         else:
-            byte_data += bytes([only_check_type]) if ik == 0 else bytes([only_check_type, int(ik)])
+            byte_data += bytes([only_check_type]) if motion_type == 0 else bytes([only_check_type, int(motion_type)])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_RELATIVE, float_data, 11, byte_data, 3, timeout=10)
 
     def get_position_aa(self):
@@ -427,22 +426,22 @@ class UxbusCmd(object):
         data[1:ret_fp_num+1] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
         return data
 
-    def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime, only_check_type=0, ik=0):
+    def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime, only_check_type=0, motion_type=0):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime]
-        if only_check_type <= 0 and ik == 0:
+        if only_check_type <= 0 and motion_type == 0:
             return self.set_nfp32(XCONF.UxbusReg.MOVE_LINE_TOOL, txdata, 9)
         else:
-            byte_data = bytes([only_check_type]) if ik == 0 else bytes([only_check_type, int(ik)])
+            byte_data = bytes([only_check_type]) if motion_type == 0 else bytes([only_check_type, int(motion_type)])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINE_TOOL, txdata, 9, byte_data, 3, timeout=10)
 
-    def move_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii, only_check_type=0):
+    def move_lineb(self, mvpose, mvvelo, mvacc, mvtime, mvradii, only_check_type=0, motion_type=0):
         txdata = [mvpose[i] for i in range(6)]
         txdata += [mvvelo, mvacc, mvtime, mvradii]
-        if only_check_type <= 0:
+        if only_check_type <= 0 and motion_type == 0:
             return self.set_nfp32(XCONF.UxbusReg.MOVE_LINEB, txdata, 10)
         else:
-            byte_data = bytes([only_check_type])
+            byte_data = bytes([only_check_type]) if motion_type == 0 else bytes([only_check_type, int(motion_type)])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_LINEB, txdata, 10, byte_data, 3, timeout=10)
 
     def move_joint(self, mvjoint, mvvelo, mvacc, mvtime, only_check_type=0):

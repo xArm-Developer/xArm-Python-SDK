@@ -796,11 +796,17 @@ class XArmAPI(object):
         :param wait: whether to wait for the arm to complete, default is False
         :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True
         :param kwargs: extra parameters
-            :param ik: whether to convert to joint planning through IK
+            :param motion_type: motion planning type, default is 0
+                motion_type == 0: default, linear planning
+                motion_type == 1: prioritize linear planning, and turn to IK for joint planning when linear planning is not possible
+                motion_type == 2: direct transfer to IK using joint planning
                 Note: 
                     1. only available if firmware_version >= 1.11.100
-                    2. the specified radius is not supported, that is, the radius can only be -1 
-                    3. if there is no suitable IK, a C40 error will be triggered
+                    2. when motion_type is 1 or 2, linear motion cannot be guaranteed
+                    3. once IK is transferred to joint planning, the given Cartesian velocity and acceleration are converted into joint velocity and acceleration according to the percentage
+                        speed = speed / max_tcp_speed * max_joint_speed
+                        mvacc = mvacc / max_tcp_acc * max_joint_acc
+                    4. if there is no suitable IK, a C40 error will be triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
                 code < 0: the last_used_position/last_used_tcp_speed/last_used_tcp_acc will not be modified
@@ -841,11 +847,17 @@ class XArmAPI(object):
                 ex: code = arm.set_tool_position(..., radius=0)
                 Note: Need to set radius>=0
         :param kwargs: extra parameters
-            :param ik: whether to convert to joint planning through IK
+            :param motion_type: motion planning type, default is 0
+                motion_type == 0: default, linear planning
+                motion_type == 1: prioritize linear planning, and turn to IK for joint planning when linear planning is not possible
+                motion_type == 2: direct transfer to IK using joint planning
                 Note: 
                     1. only available if firmware_version >= 1.11.100
-                    2. the specified radius is not supported, that is, the radius can only be -1 
-                    3. if there is no suitable IK, a C40 error will be triggered
+                    2. when motion_type is 1 or 2, linear motion cannot be guaranteed
+                    3. once IK is transferred to joint planning, the given Cartesian velocity and acceleration are converted into joint velocity and acceleration according to the percentage
+                        speed = speed / max_tcp_speed * max_joint_speed
+                        mvacc = mvacc / max_tcp_acc * max_joint_acc
+                    4. if there is no suitable IK, a C40 error will be triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
                 code < 0: the last_used_tcp_speed/last_used_tcp_acc will not be modified
@@ -2446,11 +2458,17 @@ class XArmAPI(object):
                 ex: code = arm.set_position_aa(..., radius=0)
                 Note: Need to set radius>=0
         :param kwargs: extra parameters
-            :param ik: whether to convert to joint planning through IK
+            :param motion_type: motion planning type, default is 0
+                motion_type == 0: default, linear planning
+                motion_type == 1: prioritize linear planning, and turn to IK for joint planning when linear planning is not possible
+                motion_type == 2: direct transfer to IK using joint planning
                 Note: 
                     1. only available if firmware_version >= 1.11.100
-                    2. the specified radius is not supported, that is, the radius can only be -1 
-                    3. if there is no suitable IK, a C40 error will be triggered
+                    2. when motion_type is 1 or 2, linear motion cannot be guaranteed
+                    3. once IK is transferred to joint planning, the given Cartesian velocity and acceleration are converted into joint velocity and acceleration according to the percentage
+                        speed = speed / max_tcp_speed * max_joint_speed
+                        mvacc = mvacc / max_tcp_acc * max_joint_acc
+                    4. if there is no suitable IK, a C40 error will be triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """

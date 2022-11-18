@@ -125,7 +125,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             self._last_position[4] if pitch is None else to_radian(pitch, is_radian),
             self._last_position[5] if yaw is None else to_radian(yaw, is_radian),
         ]
-        ik = kwargs.get('ik', False)
+        motion_type = kwargs.get('motion_type', False)
         for i in range(3):
             if self._is_out_of_tcp_range(tcp_pos[i+3], i + 3):
                 return APIState.OUT_OF_RANGE
@@ -136,12 +136,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         self._has_motion_cmd = True
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
-            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=0, is_axis_angle=False, only_check_type=only_check_type, ik=ik)
+            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=0, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type)
         else:
             if radius is not None and radius >= 0:
-                ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius, only_check_type)
+                ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius, only_check_type, motion_type=motion_type)
             else:
-                ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt, only_check_type, ik=ik)
+                ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, radius, spd, acc), code=ret[0])
@@ -163,7 +163,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                                speed=None, mvacc=None, mvtime=None, is_radian=None, wait=False, timeout=None, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
-        ik = kwargs.get('ik', False)
+        motion_type = kwargs.get('motion_type', False)
         if self.version_is_ge(1, 8, 100):
             # use relative api
             tcp_pos = [
@@ -177,7 +177,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             self._has_motion_cmd = True
             spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
             radius = radius if radius is not None else -1
-            ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False, only_check_type, ik=ik)
+            ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False, only_check_type, motion_type=motion_type)
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
             self.log_api_info('API -> set_relative_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
                 ret[0], tcp_pos, radius, spd, acc), code=ret[0])
@@ -246,11 +246,11 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         ]
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
-        ik = kwargs.get('ik', False)
+        motion_type = kwargs.get('motion_type', False)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
-            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, ik=ik)
+            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type)
         else:
-            ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt, only_check_type, ik=ik)
+            ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
@@ -282,14 +282,14 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
         self._has_motion_cmd = True
-        ik = kwargs.get('ik', False)
+        motion_type = kwargs.get('motion_type', False)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             if relative:
-                ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type, ik=ik)
+                ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type, motion_type=motion_type)
             else:
-                ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1 if is_tool_coord else 0, is_axis_angle=True, only_check_type=only_check_type, ik=ik)
+                ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1 if is_tool_coord else 0, is_axis_angle=True, only_check_type=only_check_type, motion_type=motion_type)
         else:
-            ret = self.arm_cmd.move_line_aa(tcp_pos, spd, acc, mvt, mvcoord, int(relative), only_check_type, ik=ik)
+            ret = self.arm_cmd.move_line_aa(tcp_pos, spd, acc, mvt, mvcoord, int(relative), only_check_type, motion_type=motion_type)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])

@@ -1,0 +1,42 @@
+{
+    "micropipette" : "eppendorf",
+    "cycles" : 50,
+    "job_id" : "d55a0165-66c4-4071-ba5b-405dcf6bfb93",
+    "reactants" : [
+        {
+            "name" : "Buffer",
+            "quantity" : "7.0 ul"
+        },
+        {
+            "name" : "dNTPs",
+            "quantity" : "1.0 ul"
+        },
+        {
+            "name" : "Template",
+            "quantity" : "1.0 ul"
+        },
+        {
+            "name" : "Primers",
+            "quantity" : "1.0 ul"
+        },
+        {
+            "name" : "DNA Polymerase",
+            "quantity" : "0.5 ul",
+            "type" : "TAQ"
+        }
+    ],
+    "times" : [
+        {
+            "time" : "30 s",
+            "temperature" : "95 C"
+        },
+        {
+            "time" : "30 s",
+            "temperature" : "58 C"
+        },
+        {
+            "time" : "60 s",
+            "temperature" : "68 C"
+        }
+    ]
+}

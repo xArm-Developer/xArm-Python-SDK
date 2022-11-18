@@ -14,7 +14,7 @@ Install is not necessary, you can run examples without installation.Only Python3
 - download
 
   ```bash
-  git clone https://github.com/xArm-Developer/xArm-Python-SDK.git
+  git clone git@github.com:ECLAIR-Robotics/xArm-Python-SDK.git
   ```
 
 - install

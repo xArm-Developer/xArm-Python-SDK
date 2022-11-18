@@ -1,0 +1,3 @@
+certifi @ file:///C:/b/abs_ac29jvt43w/croot/certifi_1665076682579/work/certifi
+typing_extensions==4.4.0
+wincertstore==0.2

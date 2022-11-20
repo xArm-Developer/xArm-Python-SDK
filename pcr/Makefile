@@ -1,11 +1,11 @@
 run-prod:
-	python3 main.py
+	python main.py
 
 run-unittests:
-	python3 test.py UnitTests -f
+	python test.py UnitTests -f
 
 run-systemtests:
-	python3 test.py SystemTests -f
+	python test.py SystemTests -f
 
 run-mypy:
 	mypy *

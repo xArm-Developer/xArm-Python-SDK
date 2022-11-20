@@ -1,7 +1,9 @@
 {
-    "micropipette" : "eppendorf",
-    "cycles" : 50,
     "job_id" : "d55a0165-66c4-4071-ba5b-405dcf6bfb93",
+    "version" : "0.0.1",
+    "micropipette" : "eppendorf",
+    "thermal_cycler" : "Thermo Fischer Scientific",
+    "cycles" : 50,
     "reactants" : [
         {
             "name" : "Buffer",

@@ -135,10 +135,11 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 return APIState.TCP_LIMIT
         self._has_motion_cmd = True
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
+        radius = radius if radius is not None else -1
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=0, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type)
         else:
-            if radius is not None and radius >= 0:
+            if radius >= 0:
                 ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius, only_check_type, motion_type=motion_type)
             else:
                 ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
@@ -247,6 +248,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
         motion_type = kwargs.get('motion_type', False)
+        radius = radius if radius is not None else -1
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type)
         else:
@@ -283,6 +285,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
         self._has_motion_cmd = True
         motion_type = kwargs.get('motion_type', False)
+        radius = radius if radius is not None else -1
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             if relative:
                 ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type, motion_type=motion_type)

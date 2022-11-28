@@ -5,6 +5,7 @@ class ReactantDict(TypedDict, total=False):
     name : str
     quantity : str
     type : str
+    location : str
 
 class TimeDict(TypedDict):
     time : str

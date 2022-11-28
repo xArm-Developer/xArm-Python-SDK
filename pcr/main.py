@@ -4,14 +4,17 @@ import sys
 import time
 import json
 import argparse
+from mypy_types import RequestDict
+import logging
+from pcr.gizzmos import AtalantaModule
 
 from xarm.wrapper import XArmAPI
 from gizzmos import CustomGripper, PressureSensor
-from mypy_types import RequestDict
 
 class RunJob():
     SPEED = 50
-    ZERO_POS   = [0, 9.9, 31.8, 0, -70, 0]
+    ZERO_POS   = [0, 0, 0, 0, 0, 0]
+    GIZMO_POS  = [0, 9.9, 31.8, 0, -70, 0]
     INTIAL_POS = [0, 9.9, 31.8, 0, -70, 0]
 
     def __init__(self, arm: XArmAPI, data: RequestDict) -> None:
@@ -23,31 +26,78 @@ class RunJob():
         self.reactants     = data['reactants']
         self.thermal_times = data['times']
 
+        self.gripper  = CustomGripper(arm)
+        self.atalanta = AtalantaModule()
+
     def verify_inputs(self, data: RequestDict) -> None:
         # Check if the brand of thermal cycler and micropipette is currently supported
         if data['micropipette'] != 'eppendorf' or data['thermal_cycler'] != 'Thermo Fischer Scientific':
-            raise Exception('JSON data is invalid')
+            msg = 'JSON data is invalid'
+            logging.error(msg)
+            raise Exception(msg)
 
     def run(self) -> None:
         # Run a new PCR job
         self.arm.set_servo_angle(angle=self.INTIAL_POS, speed=self.SPEED, wait=True)
-        self.grabTestTube()
-        self.placeTestTubeInRack()
-        self.grabPipette()
-        self.attachPipetteTip()
+        self.grab_test_tube()
+        self.place_tube_in_rack()
+        self.grab_pipette()
+
+        # Acquire the different reactants and their respective volumes
+        for reactant in self.reactants:
+            name   = reactant['name']
+            volume = reactant['quantity']
+
+            amt, units = volume.split(' ')
+
+            if units == 'ul':
+                amt = int(amt)
+            elif units == 'ml':
+                amt = int(amt)
+                amt *= 100
+            else:
+                msg = f'Could not interpret volume of {volume}'
+                logging.error(msg)
+                raise Exception(msg)
+
+            logging.info(f'Attempting to acquire {volume} of {name}')
+            self.adjust_volume(amt)
+
+            # Get the tip, obtain the right volume, go to test tube, deposit the
+            # reactant, and drop the pipette tip
+            self.attach_pipette_tip()
+            self.move_to_reactant(reactant['location'])
+            self.gripper.fill_pipette()
+            self.move_to_test_tube()
+            self.gripper.remove_pipette_tip()
+
         self.arm.set_servo_angle(angle=self.ZERO_POS, speed=self.SPEED, wait=True)
 
-    def grabTestTube(self) -> None:
+    def grab_test_tube(self) -> None:
         time.sleep(5)
         pass
 
-    def placeTestTubeInRack(self) -> None:
+    def move_to_test_tube(self) -> None:
         pass
 
-    def grabPipette(self) -> None:
+    def place_tube_in_rack(self) -> None:
+        self.move_to_test_tube()
         pass
 
-    def attachPipetteTip(self) -> None:
+    def grab_pipette(self) -> None:
+        pass
+
+    def adjust_volume(self, volume: int) -> None:
+        err = self.atalanta.adjust_volume(volume)
+
+        if err is not None:
+            logging.error(err)
+            raise Exception(err)
+
+    def attach_pipette_tip(self) -> None:
+        pass
+
+    def move_to_reactant(reactant_idx: int) -> None:
         pass
 
 

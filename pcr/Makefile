@@ -1,10 +1,13 @@
 run-prod:
 	python main.py
 
-run-unittests:
+run-unit-tests:
 	python test.py UnitTests -f
 
-run-systemtests:
+run-system-tests:
+	python test.py SystemTests -f
+	
+run-integration-tests:
 	python test.py SystemTests -f
 
 run-mypy:

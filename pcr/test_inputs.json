@@ -7,24 +7,29 @@
     "reactants" : [
         {
             "name" : "Buffer",
-            "quantity" : "7.0 ul"
+            "quantity" : "7.0 ul",
+            "location" : 0
         },
         {
             "name" : "dNTPs",
-            "quantity" : "1.0 ul"
+            "quantity" : "1.0 ul",
+            "location" : 0
         },
         {
             "name" : "Template",
-            "quantity" : "1.0 ul"
+            "quantity" : "1.0 ul",
+            "location" : 0
         },
         {
             "name" : "Primers",
-            "quantity" : "1.0 ul"
+            "quantity" : "1.0 ul",
+            "location" : 0
         },
         {
             "name" : "DNA Polymerase",
             "quantity" : "0.5 ul",
-            "type" : "TAQ"
+            "type" : "TAQ",
+            "location" : 0
         }
     ],
     "times" : [

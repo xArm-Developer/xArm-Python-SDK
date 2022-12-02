@@ -10,3 +10,5 @@ example/wrapper/bak/
 example/wrapper/robot.conf
 bak-xarm/
 .vscode/
+pcr/__pycache__/
+pcr/yolov5/

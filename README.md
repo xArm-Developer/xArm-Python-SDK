@@ -29,6 +29,9 @@ Install is not necessary, you can run examples without installation.Only Python3
 - #### [API Code Document](doc/api/xarm_api_code.md)
 
 ## Update Summary
+- > ### 1.11.6
+  - Correct the ambiguity that the `set_position_aa` interface is true when both relative and is_tool_coord are true. After the correction, when is_tool_coord is true, relative is invalid (previously is_tool_coord was invalid when relative was true)
+
 - > ### 1.11.5
   - Optimization pause time is too long (wait=true)
   - Add common motion api (Enabled after firmware version 1.11.100)

@@ -216,7 +216,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                      wait=False, timeout=None, **kwargs):
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
-            self.wait_move(timeout=timeout)
+            code = self.wait_move(timeout=timeout)
+            if code != 0:
+                return code
         code = self.__wait_sync()
         if code != 0:
             return code
@@ -238,7 +240,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
-            self.wait_move(timeout=timeout)
+            code = self.wait_move(timeout=timeout)
+            if code != 0:
+                return code
         tcp_pos = [
             x, y, z,
             to_radian(roll, is_radian),
@@ -279,7 +283,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
-            self.wait_move(timeout=timeout)
+            code = self.wait_move(timeout=timeout)
+            if code != 0:
+                return code
         tcp_pos = [to_radian(mvpose[i], is_radian or i <= 2) for i in range(6)]
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         mvcoord = kwargs.get('mvcoord', int(is_tool_coord))
@@ -287,7 +293,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         motion_type = kwargs.get('motion_type', False)
         radius = radius if radius is not None else -1
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
-            if relative:
+            if not is_tool_coord and relative:
                 ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type, motion_type=motion_type)
             else:
                 ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1 if is_tool_coord else 0, is_axis_angle=True, only_check_type=only_check_type, motion_type=motion_type)
@@ -429,7 +435,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             angles = angle
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
-            self.wait_move(timeout=timeout)
+            code = self.wait_move(timeout=timeout)
+            if code != 0:
+                return code
         code = self.__wait_sync()
         if code != 0:
             return code
@@ -486,7 +494,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
-            self.wait_move(timeout=timeout)
+            code = self.wait_move(timeout=timeout)
+            if code != 0:
+                return code
         pose_1 = []
         pose_2 = []
         for i in range(6):
@@ -522,7 +532,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         if only_check_type > 0 and wait:
-            self.wait_move(timeout=timeout)
+            code = self.wait_move(timeout=timeout)
+            if code != 0:
+                return code
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
         ret = self.arm_cmd.move_gohome(spd, acc, mvt, only_check_type)

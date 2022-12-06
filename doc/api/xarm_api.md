@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (1.11.6): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -2759,7 +2759,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :param mvacc: move acceleration (mm/s^2, rad/s^2), default is self.last_used_tcp_acc  
 > :param mvtime: 0, reserved   
 > :param is_radian: the rx/ry/rz of axis_angle_pose in radians or not, default is self.default_is_radian  
-> :param is_tool_coord: is tool coordinate or not  
+> :param is_tool_coord: is tool coordinate or not, if it is True, the relative parameter is no longer valid  
 > :param relative: relative move or not  
 > :param wait: whether to wait for the arm to complete, default is False  
 > :param timeout: maximum waiting time(unit: second), default is None(no timeout), only valid if wait is True  

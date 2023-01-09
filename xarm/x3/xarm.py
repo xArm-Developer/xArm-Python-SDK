@@ -98,8 +98,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
 
     def __get_tcp_motion_params(self, speed=None, mvacc=None, mvtime=None, **kwargs):
         speed = speed if speed is not None else kwargs.get('mvvelo', self._last_tcp_speed)
-        spd = self._last_tcp_speed if speed is None else min(max(float(speed), self._min_tcp_speed), self._max_tcp_speed)
-        acc = self._last_tcp_acc if mvacc is None else min(max(float(mvacc), self._min_tcp_acc), self._max_tcp_acc)
+        # spd = self._last_tcp_speed if speed is None else min(max(float(speed), self._min_tcp_speed), self._max_tcp_speed)
+        # acc = self._last_tcp_acc if mvacc is None else min(max(float(mvacc), self._min_tcp_acc), self._max_tcp_acc)
+        spd = self._last_tcp_speed if speed is None else min(max(float(speed), self._min_tcp_speed), 1000)
+        acc = self._last_tcp_acc if mvacc is None else min(max(float(mvacc), self._min_tcp_acc), 50000)
         mvt = self._mvtime if mvtime is None else mvtime
         return spd, acc, mvt
 
@@ -108,8 +110,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
         speed = speed if speed is not None else kwargs.get('mvvelo', None)
         speed = self._last_joint_speed if speed is None else to_radian(speed, is_radian)
         mvacc = self._last_joint_acc if mvacc is None else to_radian(mvacc, is_radian)
-        spd = min(max(float(speed), self._min_joint_speed), self._max_joint_speed)
-        acc = min(max(float(mvacc), self._min_joint_acc), self._max_joint_acc)
+        # spd = min(max(float(speed), self._min_joint_speed), self._max_joint_speed)
+        # acc = min(max(float(mvacc), self._min_joint_acc), self._max_joint_acc)
+        spd = min(max(float(speed), self._min_joint_speed), math.pi)
+        acc = min(max(float(mvacc), self._min_joint_acc), 20)
         mvt = self._mvtime if mvtime is None else mvtime
         return spd, acc, mvt
 

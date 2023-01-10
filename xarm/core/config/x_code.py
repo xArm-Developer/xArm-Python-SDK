@@ -577,11 +577,11 @@ ControllerErrorCodeMap = {
     23: {
         'en': {
             'title': 'Joints Angle Exceed Limit',
-            'desc': 'Please click the "ZERO" button to return to the zero pozition.'
+            'desc': 'Please go to the "Live Control" page and press the "INITIAL POSITION" button to let the robot go to the initial position.'
         },
         'cn': {
             'title': '关节角度超出限制',
-            'desc': '请点击”零点“按钮回到关节零点。'
+            'desc': '请到”实时控制“界面按住”初始点“按钮让机械臂回到初始点。'
         }
     },
     24: {
@@ -736,12 +736,12 @@ ControllerErrorCodeMap = {
     },
     40: {
         'en': {
-            'title': 'No IK available',
-            'desc': ''
+            'title': 'Solution failure of error-free joint trajectory',
+            'desc': 'Please adjust the position.'
         },
         'cn': {
-            'title': '没有可用的IK',
-            'desc': ''
+            'title': '无报错的关节轨迹求解失败',
+            'desc': '请调整点位。'
         }
     },
     50: {

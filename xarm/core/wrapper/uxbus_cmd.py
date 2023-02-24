@@ -1024,7 +1024,7 @@ class UxbusCmd(object):
         return self.set_nu8(XCONF.UxbusReg.SET_SIMULATION_ROBOT, txdata, 1)
 
     def get_power_board_version(self):
-        return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 3)
+        return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 6)
 
     def vc_set_jointv(self, jnt_v, jnt_sync, duration=-1):
         additional_bytes = bytes([jnt_sync])

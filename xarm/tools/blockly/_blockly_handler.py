@@ -400,6 +400,15 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('self._arm.arm.get_cgpio_li_state({},timeout={},is_ci=False)'.format(values, timeout),
                                indent + 2)
 
+    def _handle_gpio_get_tgpio_li(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        values = []
+        for field in fields[:-1]:
+            values.append(int(field.text))
+        timeout = float(fields[-1].text)
+        self._append_main_code('self._arm.arm.get_tgpio_li_state({},timeout={})'.format(values, timeout),
+                               indent + 2)
+
     def _handle_gpio_get_controller_analog(self, block, indent=0, arg_map=None):
         io = self._get_node('field', block).text
         self._append_main_code('self._arm.get_cgpio_analog({})'.format(io), indent + 2)
@@ -630,28 +639,28 @@ class _BlocklyHandler(_BlocklyBase):
             trigger = fields[1].text
 
             num = 1
-            indent = 0
+
             self._is_main_run_code = False
             if gpio_type == 'tgpio_digital':
                 num = len(self._tgpio_digital_callbacks) + 1
                 name = 'tool_gpio_{}_digital_is_changed_callback_{}'.format(io, num)
-                self._append_main_code('# Define Tool GPIO-{} DIGITAL is {} callback'.format(io, trigger), indent=indent+1)
+                self._append_main_code('# Define Tool GPIO-{} DIGITAL is {} callback'.format(io, trigger), indent=1)
             elif gpio_type == 'tgpio_analog':
                 num = len(self._tgpio_analog_callbacks) + 1
                 name = 'tool_gpio_{}_analog_is_changed_callback_{}'.format(io, num)
-                self._append_main_code('# Define Tool GPIO-{} ANALOG is changed callback'.format(io), indent=indent+1)
+                self._append_main_code('# Define Tool GPIO-{} ANALOG is changed callback'.format(io), indent=1)
             elif gpio_type == 'cgpio_digital':
                 num = len(self._cgpio_digital_callbacks) + 1
                 name = 'controller_gpio_{}_digital_is_changed_callback_{}'.format(io, num)
-                self._append_main_code('# Define Contoller GPIO-{} DIGITAL is {} callback'.format(io, trigger), indent=indent+1)
+                self._append_main_code('# Define Contoller GPIO-{} DIGITAL is {} callback'.format(io, trigger), indent=1)
             elif gpio_type == 'cgpio_analog':
                 num = len(self._cgpio_analog_callbacks) + 1
                 name = 'controller_gpio_{}_analog_is_changed_callback_{}'.format(io, num)
-                self._append_main_code('# Define Contoller GPIO-{} ANALOG is changed callback'.format(io), indent=indent+1)
+                self._append_main_code('# Define Contoller GPIO-{} ANALOG is changed callback'.format(io), indent=1)
             else:
                 self._is_main_run_code = True
                 return
-            self._append_main_code('def {}(self):'.format(name), indent=indent+1)
+            self._append_main_code('def {}(self):'.format(name), indent=1)
             statement = self._get_node('statement', root=block)
             if statement:
                 self._parse_block(statement, indent, arg_map=arg_map)

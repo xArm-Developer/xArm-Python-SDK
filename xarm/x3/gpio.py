@@ -286,6 +286,28 @@ class GPIO(Base):
             time.sleep(0.1)
         return False
 
+    @xarm_is_connected(_type='get')
+    def get_tgpio_li_state(self, Ti_Li, timeout=3):
+        start_time = time.monotonic()
+        is_first = True
+        while is_first or time.monotonic() - start_time < timeout:
+            code = 0
+            is_first = False
+            if not self.connected or self.state == 4:
+                return False
+            codes, ret = self.get_tgpio_digital()
+            if codes == XCONF.UxbusState.ERR_CODE:
+                return False
+            if codes == 0:
+                for TI_num, TI in enumerate(Ti_Li):
+                    if int(TI) != ret[TI_num]:
+                        code = -1
+                        break
+                if code == 0:
+                    return True
+            time.sleep(0.1)
+        return False
+
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')

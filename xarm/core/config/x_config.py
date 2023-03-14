@@ -271,6 +271,8 @@ class XCONF(object):
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
         ALLOW_APPROX_MOTION = 66
+        GET_DH = 67
+        SET_DH = 68
 
         REPORT_TAU_OR_I = 70
         SET_TIMER = 71

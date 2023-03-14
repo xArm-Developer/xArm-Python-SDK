@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (1.11.6): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -950,6 +950,21 @@ xArm-Python-SDK API Documentation (1.11.6): class XArmAPI in module xarm.wrapper
 > Get the cmd count in cache  
 > :return: tuple((code, cmd_num)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __get_dh_params__(self):
+
+> Get the DH parameters  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.0.0  
+>   
+> :return: tuple((code, dh_params)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;dh_params: DH parameters  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;dh_params[0:4]: DH parameters of Joint-1  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;dh_params[4:8]: DH parameters of Joint-2  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;...  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;dh_params[24:28]: DH parameters of Joint-7
 
 
 #### def __get_err_warn_code__(self, show=False, lang='en'):
@@ -2353,6 +2368,24 @@ xArm-Python-SDK API Documentation (1.11.6): class XArmAPI in module xarm.wrapper
 
 > Reset counter value  
 >   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_dh_params__(self, dh_params, flag=0):
+
+> Set the DH parameters  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.0.0  
+> &ensp;&ensp;&ensp;&ensp;2. this interface is only provided for users who need to use external DH parameters, ordinary users should not try to modify DH parameters.  
+>   
+> :param dh_params: DH parameters  
+> :param flag:   
+> &ensp;&ensp;&ensp;&ensp;0: Use the set DH parameters, but do not write to the configuration file  
+> &ensp;&ensp;&ensp;&ensp;1: Use the set DH parameters and write to the configuration file  
+> &ensp;&ensp;&ensp;&ensp;2: Use the set DH parameters and delete the DH parameters of the configuration file  
+> &ensp;&ensp;&ensp;&ensp;3: Use the default DH parameters, but will not delete the DH parameters of the configuration file  
+> &ensp;&ensp;&ensp;&ensp;4: Use the default DH parameters and delete the DH parameters of the configuration file  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

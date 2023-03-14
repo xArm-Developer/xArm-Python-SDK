@@ -570,7 +570,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                 logger.error('quit, api failed, code={}'.format(_))
                 return
             _, angles = self.get_servo_angle(is_radian=True)
-        self.set_pause_time(first_pause_time)
+        if first_pause_time > 0:
+            self.set_pause_time(first_pause_time)
         last_used_joint_speed = self._last_joint_speed
 
         def _move():
@@ -603,7 +604,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                     elif _ == -2:
                         break
                     count += 1
-                    self.set_pause_time(repeat_pause_time)
+                    if repeat_pause_time > 0:
+                        self.set_pause_time(repeat_pause_time)
                 if api_failed:
                     logger.error('quit, api error')
                 elif self._error_code != 0:
@@ -621,7 +623,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
                     elif _ == -2:
                         break
                     count += 1
-                    self.set_pause_time(repeat_pause_time)
+                    if repeat_pause_time > 0:
+                        self.set_pause_time(repeat_pause_time)
                 if api_failed:
                     logger.error('quit, api error')
                 elif self._error_code != 0:

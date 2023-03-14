@@ -1251,3 +1251,12 @@ class UxbusCmd(object):
 
         ret = self.send_pend(XCONF.UxbusReg.SERVO_ERROR, 4, self._GET_TIMEOUT)
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
+
+    def get_dh_params(self):
+        return self.get_nfp32(XCONF.UxbusReg.GET_DH, 28)
+    
+    def set_dh_params(self, dh_params, flag=0):
+        if len(dh_params) < 28:
+            dh_params.extend([0] * 28 - len(dh_params))
+        byte_data = bytes([flag])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.SET_DH, dh_params, 28, byte_data, 1, timeout=10)

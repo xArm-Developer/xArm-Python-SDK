@@ -2453,7 +2453,7 @@ class Base(BaseObject, Events):
     
     def set_dh_params(self, dh_params, flag=0):
         if len(dh_params) < 28:
-            dh_params.extend([0] * 28 - len(dh_params))
+            dh_params.extend([0] * (28 - len(dh_params)))
         ret = self.arm_cmd.set_dh_params(dh_params, flag)
         ret[0] = self._check_code(ret[0])
         return ret[0]

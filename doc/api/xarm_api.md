@@ -1753,6 +1753,30 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > :return: True/False
 
 
+#### def __register_feedback_callback__(self, callback=None):
+
+> Register the callback of feedback  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.1.0  
+>   
+> :param callback:  
+> &ensp;&ensp;&ensp;&ensp;callback data: bytes data  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[0:2]: cmdid, (Big-endian conversion to unsigned 16-bit integer data), command ID corresponding to the feedback, consistent with issued instructions  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this can be used to distinguish which instruction the feedback belongs to  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[4:6]: feedback_length, feedback_length == len(data) - 6, (Big-endian conversion to unsigned 16-bit integer data)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[8]: feedback type  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: the motion task starts executing  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2: the motion task execution ends  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;4: the motion tasks are discarded (usually when the distance is too close to be planned)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;8: the non-motion task is triggered  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[9]: feedback funcode, command code corresponding to feedback, consistent with issued instructions  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this can be used to distinguish what instruction the feedback belongs to  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[10:12]: feedback taskid, (Big-endian conversion to unsigned 16-bit integer data)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[12:20]: feedback us, (Big-endian conversion to unsigned 65-bit integer data), time when feedback triggers (microseconds)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this time is the corresponding controller system time when the feedback is triggered  
+> :return: True/False
+
+
 #### def __register_iden_progress_changed_callback__(self, callback=None):
 
 > Register the Identification progress value changed callback, only available if enable_report is True  
@@ -1883,6 +1907,16 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 #### def __release_error_warn_changed_callback__(self, callback=None):
 
 > Release the error warn changed callback  
+>   
+> :param callback:  
+> :return: True/False
+
+
+#### def __release_feedback_callback__(self, callback=None):
+
+> Release the callback of feedback  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.1.0  
 >   
 > :param callback:  
 > :return: True/False
@@ -2386,6 +2420,25 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;2: Use the set DH parameters and delete the DH parameters of the configuration file  
 > &ensp;&ensp;&ensp;&ensp;3: Use the default DH parameters, but will not delete the DH parameters of the configuration file  
 > &ensp;&ensp;&ensp;&ensp;4: Use the default DH parameters and delete the DH parameters of the configuration file  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_feedback_type__(self, feedback_type):
+
+> Set the feedback type  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.1.0  
+> &ensp;&ensp;&ensp;&ensp;2. only works in position mode  
+> &ensp;&ensp;&ensp;&ensp;3. only affects the feedback type of commands following this one  
+> &ensp;&ensp;&ensp;&ensp;4. only valid for the current connection  
+>   
+> :param feedback_type:  
+> &ensp;&ensp;&ensp;&ensp;0: disable feedback  
+> &ensp;&ensp;&ensp;&ensp;1: feedback when the motion task starts executing  
+> &ensp;&ensp;&ensp;&ensp;2: feedback when the motion task execution ends  
+> &ensp;&ensp;&ensp;&ensp;4: feedback when the motion tasks are discarded (usually when the distance is too close to be planned)  
+> &ensp;&ensp;&ensp;&ensp;8: feedback when the non-motion task is triggered  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

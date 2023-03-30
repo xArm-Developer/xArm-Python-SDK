@@ -1260,3 +1260,7 @@ class UxbusCmd(object):
             dh_params.extend([0] * 28 - len(dh_params))
         byte_data = bytes([flag])
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.SET_DH, dh_params, 28, byte_data, 1, timeout=10)
+
+    def set_feedback_type(self, feedback_type):
+        txdata = [feedback_type]
+        return self.set_nu8(XCONF.UxbusReg.SET_FEEDBACK_TYPE, txdata, 1)

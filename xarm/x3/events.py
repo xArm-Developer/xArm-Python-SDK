@@ -17,6 +17,7 @@ REPORT_CMDNUM_CHANGED_ID = 'REPORT_CMDNUM_CHANGED'
 REPORT_TEMPERATURE_CHANGED_ID = 'REPORT_TEMPERATURE_CHANGED'
 REPORT_COUNT_CHANGED_ID = 'REPORT_COUNT_CHANGED'
 REPORT_IDEN_PROGRESS_CHANGED_ID = 'REPORT_IDEN_PROGRESS_CHANGED_ID'
+FEEDBACK_ID = 'FEEDBACK_ID'
 
 
 class Events(object):
@@ -31,6 +32,7 @@ class Events(object):
     REPORT_TEMPERATURE_CHANGED_ID = REPORT_TEMPERATURE_CHANGED_ID
     REPORT_COUNT_CHANGED_ID = REPORT_COUNT_CHANGED_ID
     REPORT_IDEN_PROGRESS_CHANGED_ID = REPORT_IDEN_PROGRESS_CHANGED_ID
+    FEEDBACK_ID = FEEDBACK_ID
 
     def __init__(self):
         self._report_callbacks = {
@@ -43,7 +45,8 @@ class Events(object):
             REPORT_MTABLE_MTBRAKE_CHANGED_ID: [],
             REPORT_CMDNUM_CHANGED_ID: [],
             REPORT_COUNT_CHANGED_ID: [],
-            REPORT_IDEN_PROGRESS_CHANGED_ID: []
+            REPORT_IDEN_PROGRESS_CHANGED_ID: [],
+            FEEDBACK_ID: []
         }
 
     def _register_report_callback(self, report_id, callback):
@@ -122,6 +125,9 @@ class Events(object):
 
     def register_iden_progress_changed_callback(self, callback=None):
         return self._register_report_callback(REPORT_IDEN_PROGRESS_CHANGED_ID, callback)
+    
+    def register_feedback_callback(self, callback=None):
+        return self._register_report_callback(FEEDBACK_ID, callback)
 
     def release_report_callback(self, callback=None):
         return self._release_report_callback(REPORT_ID, callback)
@@ -155,3 +161,6 @@ class Events(object):
 
     def release_iden_progress_changed_callback(self, callback=None):
         return self._release_report_callback(REPORT_IDEN_PROGRESS_CHANGED_ID, callback)
+    
+    def release_feedback_callback(self, callback=None):
+        return self._release_report_callback(FEEDBACK_ID, callback)

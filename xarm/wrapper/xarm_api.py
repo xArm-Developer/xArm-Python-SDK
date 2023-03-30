@@ -3721,3 +3721,59 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.set_dh_params(dh_params, flag)
+
+    def set_feedback_type(self, feedback_type):
+        """
+        Set the feedback type
+        Note:
+            1. only available if firmware_version >= 2.1.0
+            2. only works in position mode
+            3. only affects the feedback type of commands following this one
+            4. only valid for the current connection
+        
+        :param feedback_type:
+            0: disable feedback
+            1: feedback when the motion task starts executing
+            2: feedback when the motion task execution ends
+            4: feedback when the motion tasks are discarded (usually when the distance is too close to be planned)
+            8: feedback when the non-motion task is triggered
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_feedback_type(feedback_type)
+
+    def register_feedback_callback(self, callback=None):
+        """
+        Register the callback of feedback
+        Note:
+            1. only available if firmware_version >= 2.1.0
+
+        :param callback:
+            callback data: bytes data
+                data[0:2]: cmdid, (Big-endian conversion to unsigned 16-bit integer data), command ID corresponding to the feedback, consistent with issued instructions
+                    Note: this can be used to distinguish which instruction the feedback belongs to
+                data[4:6]: feedback_length, feedback_length == len(data) - 6, (Big-endian conversion to unsigned 16-bit integer data)
+                data[8]: feedback type
+                    1: the motion task starts executing
+                    2: the motion task execution ends
+                    4: the motion tasks are discarded (usually when the distance is too close to be planned)
+                    8: the non-motion task is triggered
+                data[9]: feedback funcode, command code corresponding to feedback, consistent with issued instructions
+                    Note: this can be used to distinguish what instruction the feedback belongs to
+                data[10:12]: feedback taskid, (Big-endian conversion to unsigned 16-bit integer data)
+                data[12:20]: feedback us, (Big-endian conversion to unsigned 65-bit integer data), time when feedback triggers (microseconds)
+                    Note: this time is the corresponding controller system time when the feedback is triggered
+        :return: True/False
+        """
+        return self._arm.register_feedback_callback(callback=callback)
+
+    def release_feedback_callback(self, callback=None):
+        """
+        Release the callback of feedback
+        Note:
+            1. only available if firmware_version >= 2.1.0
+
+        :param callback:
+        :return: True/False
+        """
+        return self._arm.release_feedback_callback(callback=callback)

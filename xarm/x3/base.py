@@ -10,6 +10,7 @@ import re
 import sys
 import time
 import math
+import queue
 import threading
 try:
     from multiprocessing.pool import ThreadPool
@@ -226,6 +227,9 @@ class Base(BaseObject, Events):
 
             self._has_motion_cmd = False
             self._need_sync = False
+
+            self._feedback_que = queue.Queue()
+            self._feedback_thread = None
 
             if not do_not_open:
                 self.connect()
@@ -816,11 +820,13 @@ class Base(BaseObject, Events):
                     self._port):
                 self._stream = SocketPort(self._port, XCONF.SocketConf.TCP_CONTROL_PORT,
                                           heartbeat=self._enable_heartbeat,
-                                          buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=self._forbid_uds)
+                                          buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=self._forbid_uds, fb_que=self._feedback_que)
                 if not self.connected:
                     raise Exception('connect socket failed')
 
                 self._report_error_warn_changed_callback()
+                self._feedback_thread = threading.Thread(target=self._feedback_thread_handle, daemon=True)
+                self._feedback_thread.start()
 
                 self.arm_cmd = UxbusCmdTcp(self._stream)
                 self.arm_cmd.set_prot_flag(2)
@@ -2455,5 +2461,21 @@ class Base(BaseObject, Events):
         if len(dh_params) < 28:
             dh_params.extend([0] * (28 - len(dh_params)))
         ret = self.arm_cmd.set_dh_params(dh_params, flag)
+        ret[0] = self._check_code(ret[0])
+        return ret[0]
+    
+    def _feedback_thread_handle(self):
+        while self.connected:
+            try:
+                data = self._feedback_que.get(timeout=1)
+            except:
+                continue
+            self._feedback_callback(data)
+    
+    def _feedback_callback(self, data):
+        self.__report_callback(self.FEEDBACK_ID, data, name='feedback')
+    
+    def set_feedback_type(self, feedback_type):
+        ret = self.arm_cmd.set_feedback_type(feedback_type)
         ret[0] = self._check_code(ret[0])
         return ret[0]

@@ -357,6 +357,8 @@ class XCONF(object):
         TGPIO_COM_TIOUT = 240
         TGPIO_COM_DATA = 241
 
+        SET_FEEDBACK_TYPE = 254
+
     class UxbusConf:
         SET_TIMEOUT = 2000  # ms
         GET_TIMEOUT = 2000  # ms

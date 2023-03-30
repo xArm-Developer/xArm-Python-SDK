@@ -16,25 +16,32 @@ from ..utils import convert
 
 
 class RxParse(object):
-    def __init__(self, rx_que):
+    def __init__(self, rx_que, fb_que=None):
         self.rx_que = rx_que
+        self.fb_que = fb_que
 
     def flush(self, fromid=-1, toid=-1):
         pass
 
-    def put(self, data):
-        self.rx_que.put(data)
+    def put(self, data, is_report=False):
+        if not is_report and data[6] == 0xFF:
+            if not self.fb_que:
+                return
+            self.fb_que.put(data)
+        else:
+            self.rx_que.put(data)
 
 
 class Port(threading.Thread):
-    def __init__(self, rxque_max):
+    def __init__(self, rxque_max, fb_que=None):
         super(Port, self).__init__()
         self.daemon = True
         self.rx_que = queue.Queue(rxque_max)
+        self.fb_que = fb_que
         self.write_lock = threading.Lock()
         self._connected = False
         self.com = None
-        self.rx_parse = RxParse(self.rx_que)
+        self.rx_parse = RxParse(self.rx_que, self.fb_que)
         self.com_read = None
         self.com_write = None
         self.port_type = ''
@@ -229,7 +236,7 @@ class Port(threading.Thread):
 
                         if self.rx_que.qsize() > 1:
                             self.rx_que.get()
-                        self.rx_parse.put(buffer)
+                        self.rx_parse.put(buffer, True)
                         buffer = b''
                         data_num = 0
 
@@ -246,11 +253,13 @@ class Port(threading.Thread):
     def recv_proc(self):
         self.alive = True
         logger.debug('[{}] recv thread start'.format(self.port_type))
+        is_main_tcp = self.port_type == 'main-socket'
+        is_main_serial = self.port_type == 'main-serial'
         try:
             failed_read_count = 0
-            timeout_count = 0
+            buffer = b''
             while self.connected and self.alive:
-                if self.port_type == 'main-socket':
+                if is_main_tcp:
                     try:
                         rx_data = self.com_read(self.buffer_size)
                     except socket.timeout:
@@ -263,31 +272,22 @@ class Port(threading.Thread):
                             break
                         time.sleep(0.1)
                         continue
-                elif self.port_type == 'report-socket':
-                    try:
-                        rx_data = self.com_read(self.buffer_size)
-                    except socket.timeout:
-                        timeout_count += 1
-                        if timeout_count > 3:
-                            self._connected = False
-                            logger.error('[{}] socket read timeout'.format(self.port_type))
+                    buffer += rx_data
+                    while True:
+                        if len(buffer) < 6:
                             break
-                        continue
-                    if len(rx_data) == 0:
-                        failed_read_count += 1
-                        if failed_read_count > 5:
-                            self._connected = False
-                            logger.error('[{}] socket read failed, len=0'.format(self.port_type))
+                        length = convert.bytes_to_u16(buffer[4:6]) + 6
+                        if len(buffer) < length:
                             break
-                        time.sleep(0.1)
-                        continue
-                elif self.port_type == 'main-serial':
+                        rx_data = buffer[:length]
+                        buffer = buffer[length:]
+                        self.rx_parse.put(rx_data)
+                elif is_main_serial:
                     rx_data = self.com_read(self.com.in_waiting or self.buffer_size)
+                    self.rx_parse.put(rx_data)
                 else:
                     break
-                timeout_count = 0
                 failed_read_count = 0
-                self.rx_parse.put(rx_data)
         except Exception as e:
             if self.alive:
                 logger.error('[{}] recv error: {}'.format(self.port_type, e))

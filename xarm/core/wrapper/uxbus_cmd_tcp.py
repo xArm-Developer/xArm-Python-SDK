@@ -17,7 +17,7 @@ from ..config.x_config import XCONF
 TX2_PROT_CON = 2  # tcp cmd prot
 TX2_PROT_HEAT = 1  # tcp heat prot
 TX2_BUS_FLAG_MIN = 1  # cmd序号 起始值
-TX2_BUS_FLAG_MAX = 5000  # cmd序号 最大值
+TX2_BUS_FLAG_MAX = 65535  # cmd序号 最大值
 
 
 def debug_log_datas(datas, label=''):

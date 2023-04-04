@@ -28,7 +28,15 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 - #### [API Code Document](doc/api/xarm_api_code.md)
 
+- #### [UFACTORY ModbusTCP Manual](doc/UF_ModbusTCP_Manual.md)
+
 ## Update Summary
+- > ### 1.13.0
+  - Compatible with the standard Modbus TCP protocol, providing part of the standard Modbus TCP protocol interface
+
+- > ### 1.12.2
+  - Support partial Task feedback (requires firmware version greater than or equal to v2.1.0)
+
 - > ### 1.11.6
   - Correct the ambiguity that the `set_position_aa` interface is true when both relative and is_tool_coord are true. After the correction, when is_tool_coord is true, relative is invalid (previously is_tool_coord was invalid when relative was true)
 
@@ -42,37 +50,6 @@ Install is not necessary, you can run examples without installation.Only Python3
     - 240: `set_tgpio_modbus_timeout(..., is_transparent_transmission=True)`
     - 241: `getset_tgpio_modbus_data(..., is_transparent_transmission=True)`
   - Modified the centroid unit of the `ft_sensor_iden_load` and `ft_sensor_cali_load` interfaces to millimeters (originally meters)
-
-- > ### 1.10.0
-  - Use monotonic time
-  - Fix several bugs
-  
-- > ### 1.9.10
-  - Support Lite6 Model
-  - Fix several bugs
-
-- > ### 1.9.0
-  - Support friction parameter identification interface
-  - Support relative motion
-  - Support xarm6-type11 firmware
-  - Repair time-consuming interface (identification) failure due to heartbeat mechanism
-  - Fix several bugs
-
-- > ### 1.8.4
-  - Support the Six-axis Force Torque Sensor (not a third party)
-  - Add threads to handle callbacks
-  - Modify the reporting processing logic and optimize the processing of sticky packets
-  - Fixed frequent switching of the pause state causing the program to hang
-  - Fix the program hangs when setting the mechanical claw position in speed mode
-  - Fix relative movement in unsynchronized position
-
-- > ### 1.8.0
-
-  - Support for blocky code conversion and operation of xArmStudio-1.8.0
-  - The Velocity interface supports the duration parameter (requires firmware 1.8.0 or higher)
-  - Added identification interface (current identification and torque identification) (requires firmware 1.8.0 or higher)
-  - Support linear track interface (requires firmware 1.8.0 or higher)
-  - Support calling some studio APIs
 
 
 - >### [More](ReleaseNotes.md)
@@ -131,6 +108,12 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - ##### [3002-record_trajectory](example/wrapper/common/3002-record_trajectory.py)
 
 - ##### [3003-playback_trajectory](example/wrapper/common/3003-playback_trajectory.py)
+  
+- ##### [3004-get_report_data](example/wrapper/common/3004-get_report_data.py)
+  
+- ##### [3005-task_feedback](example/wrapper/common/3005-task_feedback.py)
+
+- ##### [3006-standard_modbus_tcp](example/wrapper/common/3006-standard_modbus_tcp.py)
 
 - ##### [5000-set_tgpio_modbus](example/wrapper/common/5000-set_tgpio_modbus.py)
 

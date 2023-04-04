@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -261,6 +261,8 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;3: cartesian teaching mode (invalid)  
 > &ensp;&ensp;&ensp;&ensp;4: joint velocity control mode  
 > &ensp;&ensp;&ensp;&ensp;5: cartesian velocity control mode  
+> &ensp;&ensp;&ensp;&ensp;6: joint online trajectory planning mode   
+> &ensp;&ensp;&ensp;&ensp;7: cartesian online trajectory planning mode  
 
 
 #### __motor_brake_states__
@@ -1584,6 +1586,17 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __mask_write_holding_register__(self, addr, and_mask, or_mask):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Mask Write Holding Register (0x16)  
+>   
+> :param addr: register address  
+> :param and_mask: mask to be AND with  
+> :param or_mask: mask to be OR with  
+> :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
 #### def __motion_enable__(self, enable=True, servo_id=None):
 
 > Motion enable  
@@ -1703,6 +1716,52 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __read_coil_bits__(self, addr, quantity):
+
+> () Read Coils (0x01)  
+>   
+> :param addr: the starting address of the register to be read  
+> :param quantity: number of registers  
+> :return: tuple((code, bits)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __read_holding_registers__(self, addr, quantity, is_signed=False):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Read Holding Registers (0x03)  
+>   
+> :param addr: the starting address of the register to be read  
+> :param quantity: number of registers  
+> :param is_signed: whether to convert the read register value into a signed form  
+> :return: tuple((code, bits)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __read_input_bits__(self, addr, quantity):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Read Discrete Inputs (0x02)  
+>   
+> :param addr: the starting address of the register to be read  
+> :param quantity: number of registers  
+> :return: tuple((code, bits)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __read_input_registers__(self, addr, quantity, is_signed=False):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Read Input Registers (0x04)  
+>   
+> :param addr: the starting address of the register to be read  
+> :param quantity: number of registers  
+> :param is_signed: whether to convert the read register value into a signed form  
+> :return: tuple((code, bits)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
 #### def __register_cmdnum_changed_callback__(self, callback=None):
 
 > Register the cmdnum changed callback, only available if enable_report is True  
@@ -1761,7 +1820,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 >   
 > :param callback:  
 > &ensp;&ensp;&ensp;&ensp;callback data: bytes data  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[0:2]: cmdid, (Big-endian conversion to unsigned 16-bit integer data), command ID corresponding to the feedback, consistent with issued instructions  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[0:2]: transaction id, (Big-endian conversion to unsigned 16-bit integer data), command ID corresponding to the feedback, consistent with issued instructions  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this can be used to distinguish which instruction the feedback belongs to  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[4:6]: feedback_length, feedback_length == len(data) - 6, (Big-endian conversion to unsigned 16-bit integer data)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[8]: feedback type  
@@ -2430,7 +2489,7 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.1.0  
 > &ensp;&ensp;&ensp;&ensp;2. only works in position mode  
-> &ensp;&ensp;&ensp;&ensp;3. only affects the feedback type of commands following this one  
+> &ensp;&ensp;&ensp;&ensp;3. the setting will only affect subsequent tasks and will not affect previously cached tasks  
 > &ensp;&ensp;&ensp;&ensp;4. only valid for the current connection  
 >   
 > :param feedback_type:  
@@ -3390,3 +3449,57 @@ xArm-Python-SDK API Documentation: class XArmAPI in module xarm.wrapper.xarm_api
 > &ensp;&ensp;&ensp;&ensp;duration < 0: default value, only used to be compatible with the old protocol, equivalent to 0  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __write_and_read_holding_registers__(self, r_addr, r_quantity, w_addr, w_regs, is_signed=False):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write and Read Holding Registers (0x17)  
+>   
+> :param r_addr: the starting address of the register to be read  
+> :param r_quantity: number of registers to read  
+> :param w_addr: the starting address of the register to be written  
+> :param w_regs: number of registers to write  
+> :param is_signed: whether to convert the read register value into a signed form  
+> :return: tuple((code, regs)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __write_multiple_coil_bits__(self, addr, bits):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write Multiple Coils (0x0F)  
+>   
+> :param addr: the starting address of the register to be written  
+> :param bits: array of values to write  
+> :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __write_multiple_holding_registers__(self, addr, regs):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write Multiple Holding Registers (0x10)  
+>   
+> :param addr: the starting address of the register to be written  
+> :param regs: array of values to write  
+> :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __write_single_coil_bit__(self, addr, bit_val):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write Single Coil (0x05)  
+>   
+> :param addr: register address  
+> :param bit_val: the value to write (0/1)  
+> :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __write_single_holding_register__(self, addr, reg_val):
+
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write Single Holding Register (0x06)  
+>   
+> :param addr: register address  
+> :param bit_val: the value to write  
+> :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)

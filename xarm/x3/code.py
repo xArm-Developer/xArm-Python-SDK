@@ -57,3 +57,5 @@ class APIState(object):
     END_EFFECTOR_HAS_FAULT = 102  # 末端配件有错误
     END_EFFECTOR_NOT_ENABLED = 103  # 末端配件未使能
 
+    # 129 ~ 144: 标准modbus tcp的异常码，实际异常码(api_code - 0x80)
+

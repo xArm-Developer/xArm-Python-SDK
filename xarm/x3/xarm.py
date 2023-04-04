@@ -21,6 +21,7 @@ from .servo import Servo
 from .record import Record
 from .robotiq import RobotIQ
 from .ft_sensor import FtSensor
+from .modbus_tcp import ModbusTcp
 from .parse import GcodeParser
 from .code import APIState
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_wait_until_not_pause, xarm_wait_until_cmdnum_lt_max
@@ -35,7 +36,7 @@ except:
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
+class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTcp):
 
     def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
@@ -1688,13 +1689,13 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
 
     @xarm_is_connected(_type='get')
     def iden_tcp_load(self, estimated_mass=0):
-        prot_flag = self.arm_cmd.get_prot_flag()
-        self.arm_cmd.set_prot_flag(2)
+        protocol_identifier = self.arm_cmd.get_protocol_identifier()
+        self.arm_cmd.set_protocol_identifier(2)
         self._keep_heart = False
         if self.version_is_ge(1, 9, 100) and estimated_mass <= 0:
             estimated_mass = 0.5
         ret = self.arm_cmd.iden_tcp_load(estimated_mass)
-        self.arm_cmd.set_prot_flag(prot_flag)
+        self.arm_cmd.set_protocol_identifier(protocol_identifier)
         self._keep_heart = True
         self.log_api_info('API -> iden_tcp_load -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0]), ret[1:5]
@@ -1729,11 +1730,11 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor):
             self.log_api_info('iden_joint_friction, sn is not correct, axis={}, type={}, sn={}'.format(self.axis, self.device_type, sn), code=APIState.API_EXCEPTION)
             return APIState.API_EXCEPTION, -1
 
-        prot_flag = self.arm_cmd.get_prot_flag()
-        self.arm_cmd.set_prot_flag(2)
+        protocol_identifier = self.arm_cmd.get_protocol_identifier()
+        self.arm_cmd.set_protocol_identifier(2)
         self._keep_heart = False
         ret = self.arm_cmd.iden_joint_friction(sn)
-        self.arm_cmd.set_prot_flag(prot_flag)
+        self.arm_cmd.set_protocol_identifier(protocol_identifier)
         self._keep_heart = True
         self.log_api_info('API -> iden_joint_friction -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0]), 0 if int(ret[1]) == 0 else -1

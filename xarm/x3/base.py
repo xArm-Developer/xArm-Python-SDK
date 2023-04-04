@@ -829,7 +829,7 @@ class Base(BaseObject, Events):
                 self._feedback_thread.start()
 
                 self.arm_cmd = UxbusCmdTcp(self._stream)
-                self.arm_cmd.set_prot_flag(2)
+                self.arm_cmd.set_protocol_identifier(2)
                 self._stream_type = 'socket'
 
                 try:
@@ -1128,7 +1128,7 @@ class Base(BaseObject, Events):
     def _report_thread_handle(self):
         main_socket_connected = self.connected
         report_socket_connected = self.reported
-        prot_flag = 2
+        protocol_identifier = 2
         last_send_time = 0
         max_reconnect_cnts = 10
         connect_failed_cnt = 0
@@ -1137,9 +1137,9 @@ class Base(BaseObject, Events):
             try:
                 curr_time = time.monotonic()
                 if self._keep_heart:
-                    if prot_flag != 3 and self.version_is_ge(1, 8, 6) and self.arm_cmd.set_prot_flag(3) == 0:
-                        prot_flag = 3
-                    if prot_flag == 3 and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > 30:
+                    if protocol_identifier != 3 and self.version_is_ge(1, 8, 6) and self.arm_cmd.set_protocol_identifier(3) == 0:
+                        protocol_identifier = 3
+                    if protocol_identifier == 3 and curr_time - last_send_time > 10 and curr_time - self.arm_cmd.last_comm_time > 30:
                         code, _ = self.get_state()
                         # print('send heartbeat, code={}'.format(code))
                         if code >= 0:
@@ -1155,9 +1155,9 @@ class Base(BaseObject, Events):
                     self._connect_report()
                     if not self.reported:
                         connect_failed_cnt += 1
-                        if self.connected and (connect_failed_cnt <= max_reconnect_cnts or prot_flag == 3):
+                        if self.connected and (connect_failed_cnt <= max_reconnect_cnts or protocol_identifier == 3):
                             time.sleep(2)
-                        elif not self.connected or prot_flag == 2:
+                        elif not self.connected or protocol_identifier == 2:
                             logger.error('report thread is break, connected={}, failed_cnts={}'.format(self.connected, connect_failed_cnt))
                             break
                         continue

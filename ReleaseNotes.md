@@ -2,6 +2,12 @@
 
 ## Update Summary
 
+- > ### 1.13.0
+  - Compatible with the standard Modbus TCP protocol, providing part of the standard Modbus TCP protocol interface
+
+- > ### 1.12.2
+  - Support partial Task feedback (requires firmware version greater than or equal to v2.1.0)
+
 - > ### 1.11.6
   - Correct the ambiguity that the `set_position_aa` interface is true when both relative and is_tool_coord are true. After the correction, when is_tool_coord is true, relative is invalid (previously is_tool_coord was invalid when relative was true)
 

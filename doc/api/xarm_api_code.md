@@ -1,6 +1,7 @@
 # xArmSDK API code description
 <!-- TOC --> 
 [Contents](#xarmsdk-api-code-description)
+- [xArmSDK API code description](#xarmsdk-api-code-description)
   - [API Code](#api-code)
   - [Controller Warn Code](#controller-warn-code)
   - [Controller Error Code](#controller-error-code)
@@ -51,6 +52,9 @@
 - 101: too many consecutive failed tests
 - 102: end effector has error
 - 103: end effector is not enabled
+- 129: (standard modbus tcp)illegal/unsupported function code
+- 120: (standard modbus tcp)illegal target address
+- 131: (standard modbus tcp)exection of requested data
 
 ## Controller Warn Code
 - 11: uxbux que is full

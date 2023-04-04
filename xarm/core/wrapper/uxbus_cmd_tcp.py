@@ -9,15 +9,14 @@
 
 
 import time
+import struct
 from ..utils import convert
 from .uxbus_cmd import UxbusCmd, lock_require
 from ..config.x_config import XCONF
 
-
-TX2_PROT_CON = 2  # tcp cmd prot
-TX2_PROT_HEAT = 1  # tcp heat prot
-TX2_BUS_FLAG_MIN = 1  # cmd序号 起始值
-TX2_BUS_FLAG_MAX = 65535  # cmd序号 最大值
+STANDARD_MODBUS_TCP_PROTOCOL = 0x00
+PRIVATE_MODBUS_TCP_PROTOCOL = 0x02
+TRANSACTION_ID_MAX = 65535    # cmd序号 最大值
 
 
 def debug_log_datas(datas, label=''):
@@ -33,11 +32,10 @@ class UxbusCmdTcp(UxbusCmd):
     def __init__(self, arm_port):
         super(UxbusCmdTcp, self).__init__()
         self.arm_port = arm_port
-        self.bus_flag = TX2_BUS_FLAG_MIN
-        self.prot_flag = TX2_PROT_CON
-        self.TX2_PROT_CON = TX2_PROT_CON
         self._has_err_warn = False
         self._last_comm_time = time.monotonic()
+        self._transaction_id = 1
+        self._protocol_identifier = PRIVATE_MODBUS_TCP_PROTOCOL
 
     @property
     def has_err_warn(self):
@@ -48,34 +46,32 @@ class UxbusCmdTcp(UxbusCmd):
         self._has_err_warn = value
 
     @lock_require
-    def set_prot_flag(self, prot_flag):
-        if self.prot_flag != prot_flag or self.TX2_PROT_CON != prot_flag:
-            self.prot_flag = prot_flag
-            self.TX2_PROT_CON = prot_flag
-            print('change prot_flag to {}'.format(self.prot_flag))
+    def set_protocol_identifier(self, protocol_identifier):
+        if self._protocol_identifier != protocol_identifier:
+            self._protocol_identifier = protocol_identifier
+            print('change protocol identifier to {}'.format(self._protocol_identifier))
         return 0
     
-    def get_prot_flag(self):
-        return self.prot_flag
+    def get_protocol_identifier(self):
+        return self._protocol_identifier
 
-    def check_xbus_prot(self, data, funcode):
-        num = convert.bytes_to_u16(data[0:2])
-        prot = convert.bytes_to_u16(data[2:4])
-        length = convert.bytes_to_u16(data[4:6])
-        fun = data[6]
-        state = data[7]
-
-        bus_flag = self.bus_flag
-        if bus_flag == TX2_BUS_FLAG_MIN:
-            bus_flag = TX2_BUS_FLAG_MAX
-        else:
-            bus_flag -= 1
-        if num != bus_flag:
+    def check_protocol_header(self, data, t_trans_id, t_prot_id, t_unit_id):
+        trans_id = convert.bytes_to_u16(data[0:2])
+        prot_id = convert.bytes_to_u16(data[2:4])
+        # length = convert.bytes_to_u16(data[4:6])
+        unit_id = data[6]  # standard(unit_id), private(funcode)
+        if trans_id != t_trans_id:
             return XCONF.UxbusState.ERR_NUM
-        if prot != self.TX2_PROT_CON:
+        if prot_id != t_prot_id:
             return XCONF.UxbusState.ERR_PROT
-        if fun != funcode:
+        if unit_id != t_unit_id:
             return XCONF.UxbusState.ERR_FUN
+        # if len(data) != length + 6:
+        #     return XCONF.UxbusState.ERR_LENG
+        return 0
+    
+    def check_private_protocol(self, data):
+        state = data[7]
         self._state_is_ready = not (state & 0x10)
         if state & 0x08:
             return XCONF.UxbusState.INVALID
@@ -86,59 +82,179 @@ class UxbusCmdTcp(UxbusCmd):
             self._has_err_warn = True
             return XCONF.UxbusState.WAR_CODE
         self._has_err_warn = False
-        if len(data) != length + 6:
-            return XCONF.UxbusState.ERR_LENG
-        # if state & 0x10:
-        #     return XCONF.UxbusState.STATE_NOT_READY
         return 0
-
-    def send_pend(self, funcode, num, timeout):
+    
+    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1):
+        trans_id = self._transaction_id
+        prot_id = self._protocol_identifier if prot_id < 0 else prot_id
+        send_data = convert.u16_to_bytes(trans_id)
+        send_data += convert.u16_to_bytes(prot_id)
+        send_data += convert.u16_to_bytes(pdu_len + 1)
+        send_data += bytes([unit_id])
+        for i in range(pdu_len):
+            send_data += bytes([pdu_data[i]])
+        self.arm_port.flush()
+        if self._debug:
+            debug_log_datas(send_data, label='send({})'.format(unit_id))
+        ret = self.arm_port.write(send_data)
+        if ret != 0:
+            return -1
+        self._transaction_id = self._transaction_id % TRANSACTION_ID_MAX + 1
+        return trans_id
+    
+    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1):
+        prot_id = self._protocol_identifier if t_prot_id < 0 else t_prot_id
         ret = [0] * 320 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
         expired = time.monotonic() + timeout
         while time.monotonic() < expired:
             remaining = expired - time.monotonic()
             rx_data = self.arm_port.read(remaining)
-            if rx_data != -1 and len(rx_data) > 7:
-                self._last_comm_time = time.monotonic()
-                if self._debug:
-                    debug_log_datas(rx_data, label='recv({})'.format(funcode))
-                code = self.check_xbus_prot(rx_data, funcode)
-                if code in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE, XCONF.UxbusState.STATE_NOT_READY]:
-                    ret[0] = code
-                    num = (convert.bytes_to_u16(rx_data[4:6]) - 2) if num == -1 else num
-                    ret = ret[:num + 1] if len(ret) <= num + 1 else [ret[0]] * (num + 1)
-                    length = len(rx_data) - 8
-                    for i in range(num):
-                        if i >= length:
-                            break
-                        ret[i + 1] = rx_data[i + 8]
-                    return ret
-                elif code != XCONF.UxbusState.ERR_NUM:
-                    ret[0] = code
-                    return ret
-            else:
+            if rx_data == -1:
                 time.sleep(0.001)
-            # time.sleep(0.0005)
+                continue
+            self._last_comm_time = time.monotonic()
+            if self._debug:
+                debug_log_datas(rx_data, label='recv({})'.format(t_unit_id))
+            code = self.check_protocol_header(rx_data, t_trans_id, prot_id, t_unit_id)
+            if code != 0:
+                if code != XCONF.UxbusState.ERR_NUM:
+                    ret[0] = code
+                    return ret
+                else:
+                    continue
+            ret[0] = code
+            if prot_id != STANDARD_MODBUS_TCP_PROTOCOL:
+                # Private Modbus TCP Protocol
+                ret[0] = self.check_private_protocol(rx_data)
+                num = convert.bytes_to_u16(rx_data[4:6]) - 2
+                ret = ret[:num + 1] if len(ret) >= num + 1 else [ret[0]] * (num + 1)
+                length = len(rx_data) - 8
+                for i in range(num):
+                    if i >= length:
+                        break
+                    ret[i + 1] = rx_data[i + 8]       
+            else:
+                # Standard Modbus TCP Protocol
+                num = convert.bytes_to_u16(rx_data[4:6]) + 6
+                ret = ret[:num + 1] if len(ret) >= num + 1 else [ret[0]] * (num + 1)
+                length = len(rx_data)
+                for i in range(num):
+                    if i >= length:
+                        break
+                    ret[i + 1] = rx_data[i]
+            return ret
         return ret
 
-    def send_xbus(self, funcode, datas, num):
-        send_data = convert.u16_to_bytes(self.bus_flag)
-        send_data += convert.u16_to_bytes(self.prot_flag)
-        send_data += convert.u16_to_bytes(num + 1)
-        send_data += bytes([funcode])
-        if type(datas) == str:
-            send_data += datas.encode()
+    ####################### Standard Modbus TCP API ########################
+    @lock_require
+    def __standard_modbus_tcp_request(self, pdu, unit_id=0x01):
+        ret = self.send_modbus_request(unit_id, pdu, len(pdu), prot_id=STANDARD_MODBUS_TCP_PROTOCOL)
+        if ret == -1:
+            return XCONF.UxbusState.ERR_NOTTCP, b''
+        ret = self.recv_modbus_response(unit_id, ret, -1, 10000, t_prot_id=STANDARD_MODBUS_TCP_PROTOCOL)
+        code, recv_data = ret[0], bytes(ret[1:])
+        if code == 0 and recv_data[7] == pdu[0] + 0x80:  # len(recv_data) == 9
+            # print('request exception, exp={}, res={}'.format(recv_data[8], recv_data))
+            return recv_data[8] + 0x80, recv_data
+        # elif code != 0:
+        #     print('recv timeout, len={}, res={}'.format(len(recv_data), recv_data))
+        return code, recv_data
+    
+    def __read_bits(self, addr, quantity, func_code=0x01):
+        assert func_code == 0x01 or func_code == 0x02
+        pdu = struct.pack('>BHH', func_code, addr, quantity)
+        code, res_data = self.__standard_modbus_tcp_request(pdu)
+        if code == 0 and len(res_data) == 9 + (quantity + 7) // 8:
+            return code, [(res_data[9 + i // 8] >> (i % 8) & 0x01) for i in range(quantity)]
         else:
-            for i in range(num):
-                send_data += bytes([datas[i]])
-        self.arm_port.flush()
-        if self._debug:
-            debug_log_datas(send_data, label='send({})'.format(funcode))
-        ret = self.arm_port.write(send_data)
-        if ret != 0:
-            return -1
-        self.bus_flag += 1
-        if self.bus_flag > TX2_BUS_FLAG_MAX:
-            self.bus_flag = TX2_BUS_FLAG_MIN
-        return 0
+            return code, res_data
+
+    def __read_registers(self, addr, quantity, func_code=0x03, is_signed=False):
+        assert func_code == 0x03 or func_code == 0x04
+        pdu = struct.pack('>BHH', func_code, addr, quantity)
+        code, res_data = self.__standard_modbus_tcp_request(pdu)
+        if code == 0 and len(res_data) == 9 + quantity * 2:
+            return 0, list(struct.unpack('>{}{}'.format(quantity, 'h' if is_signed else 'H'), res_data[9:]))
+        else:
+            return code, res_data
+    
+    def read_coil_bits(self, addr, quantity):
+        """
+        func_code: 0x01
+        """
+        return self.__read_bits(addr, quantity, func_code=0x01)
+
+    def read_input_bits(self, addr, quantity):
+        """
+        func_code: 0x02
+        """
+        return self.__read_bits(addr, quantity, func_code=0x02)
+    
+    def read_holding_registers(self, addr, quantity, is_signed=False):
+        """
+        func_code: 0x03
+        """
+        return self.__read_registers(addr, quantity, func_code=0x03, is_signed=is_signed)
+
+    def read_input_registers(self, addr, quantity, is_signed=False):
+        """
+        func_code: 0x04
+        """
+        return self.__read_registers(addr, quantity, func_code=0x04, is_signed=is_signed)
+    
+    def write_single_coil_bit(self, addr, bit_val):
+        """
+        func_code: 0x05
+        """
+        pdu = struct.pack('>BHH', 0x05, addr, 0xFF00 if bit_val else 0x0000)
+        return self.__standard_modbus_tcp_request(pdu)[0]
+
+    def write_single_holding_register(self, addr, reg_val):
+        """
+        func_code: 0x06
+        """
+        # pdu = struct.pack('>BHH', 0x06, addr, reg_val)
+        pdu = struct.pack('>BH', 0x06, addr)
+        pdu += convert.u16_to_bytes(reg_val)
+        return self.__standard_modbus_tcp_request(pdu)[0]
+
+    def write_multiple_coil_bits(self, addr, bits):
+        """
+        func_code: 0x0F
+        """
+        datas = [0] * ((len(bits) + 7) // 8)
+        for i in range(len(bits)):
+            if bits[i]:
+                datas[i // 8] |= (1 << (i % 8))
+        pdu = struct.pack('>BHHB{}B'.format(len(datas)), 0x0F, addr, len(bits), len(datas), *datas)
+        return self.__standard_modbus_tcp_request(pdu)[0]
+
+    def write_multiple_holding_registers(self, addr, regs):
+        """
+        func_code: 0x10
+        """
+        # pdu = struct.pack('>BHHB{}H'.format(len(regs)), 0x10, addr, len(regs), len(regs) * 2, *regs)
+        pdu = struct.pack('>BHHB', 0x10, addr, len(regs), len(regs) * 2)
+        pdu += convert.u16s_to_bytes(regs, len(regs))
+        return self.__standard_modbus_tcp_request(pdu)[0]
+    
+    def mask_write_holding_register(self, addr, and_mask, or_mask):
+        """
+        func_code: 0x16
+        """
+        pdu = struct.pack('>BHHH', 0x16, addr, and_mask, or_mask)
+        return self.__standard_modbus_tcp_request(pdu)[0]
+
+    def write_and_read_holding_registers(self, r_addr, r_quantity, w_addr, w_regs, is_signed=False):
+        """
+        func_code: 0x17
+        """
+        # pdu = struct.pack('>BHHHHB{}{}'.format(len(w_regs), 'h' if w_signed else 'H'), 0x17, r_addr, r_quantity, w_addr, len(w_regs), len(w_regs) * 2, *w_regs)
+        pdu = struct.pack('>BHHHHB', 0x17, r_addr, r_quantity, w_addr, len(w_regs), len(w_regs) * 2)
+        pdu += convert.u16s_to_bytes(w_regs, len(w_regs))
+        code, res_data = self.__standard_modbus_tcp_request(pdu)
+        if code == 0 and len(res_data) == 9 + r_quantity * 2:
+            return 0, struct.unpack('>{}{}'.format(r_quantity, 'h' if is_signed else 'H'), res_data[9:])
+        else:
+            return code, res_data

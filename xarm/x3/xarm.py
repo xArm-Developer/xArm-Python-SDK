@@ -801,11 +801,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         self.move_gohome(speed=speed, mvacc=mvacc, mvtime=mvtime, is_radian=is_radian, wait=wait, timeout=timeout)
         logger.info('reset--end')
 
-    @xarm_is_ready(_type='set')
-    def set_joints_torque(self, joints_torque):
-        ret = self.arm_cmd.set_servot(joints_torque)
-        self.log_api_info('API -> set_joints_torque -> code={}, joints_torque={}'.format(ret[0], joints_torque), code=ret[0])
-        return ret[0]
+    # # This interface is no longer supported
+    # @xarm_is_ready(_type='set')
+    # def set_joints_torque(self, joints_torque):
+    #     ret = self.arm_cmd.set_servot(joints_torque)
+    #     self.log_api_info('API -> set_joints_torque -> code={}, joints_torque={}'.format(ret[0], joints_torque), code=ret[0])
+    #     return ret[0]
 
     @xarm_is_connected(_type='get')
     def get_joints_torque(self, servo_id=None):

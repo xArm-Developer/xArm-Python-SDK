@@ -256,7 +256,7 @@ class XCONF(object):
         SET_LIMIT_XYZ = 52
         GET_REDUCED_STATE = 53
 
-        SET_SERVOT = 54
+        SET_SERVOT = 54  # no longer supported
         GET_JOINT_TAU = 55
         SET_SAFE_LEVEL = 56
         GET_SAFE_LEVEL = 57

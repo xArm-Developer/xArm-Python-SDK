@@ -2344,7 +2344,7 @@ class XArmAPI(object):
 
     def get_harmonic_type(self, servo_id=1):
         """
-        Get harmonic type, only for debu
+        Get harmonic type, only for debug
 
         :return: (code, type)
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2533,16 +2533,17 @@ class XArmAPI(object):
         """
         return self._arm.get_joints_torque()
 
-    def set_joints_torque(self, joints_torque):
-        """
-        Set joints torque,
-            Warning: If necessary, please do not set it randomly, it may damage the robot arm
+    # This interface is no longer supported
+    # def set_joints_torque(self, joints_torque):
+    #     """
+    #     Set joints torque,
+    #         Warning: If necessary, please do not set it randomly, it may damage the robot arm
 
-        :param joints_torque: 
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.set_joints_torque(joints_torque)
+    #     :param joints_torque: 
+    #     :return: code
+    #         code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+    #     """
+    #     return self._arm.set_joints_torque(joints_torque)
 
     def get_safe_level(self):
         """
@@ -3763,7 +3764,7 @@ class XArmAPI(object):
                 data[9]: feedback funcode, command code corresponding to feedback, consistent with issued instructions
                     Note: this can be used to distinguish what instruction the feedback belongs to
                 data[10:12]: feedback taskid, (Big-endian conversion to unsigned 16-bit integer data)
-                data[12:20]: feedback us, (Big-endian conversion to unsigned 65-bit integer data), time when feedback triggers (microseconds)
+                data[12:20]: feedback us, (Big-endian conversion to unsigned 64-bit integer data), time when feedback triggers (microseconds)
                     Note: this time is the corresponding controller system time when the feedback is triggered
         :return: True/False
         """
@@ -3782,7 +3783,7 @@ class XArmAPI(object):
     
     def read_coil_bits(self, addr, quantity):
         """
-        () Read Coils (0x01)
+        ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Read Coils (0x01)
         
         :param addr: the starting address of the register to be read
         :param quantity: number of registers

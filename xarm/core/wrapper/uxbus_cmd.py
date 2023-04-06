@@ -477,9 +477,10 @@ class UxbusCmd(object):
         txdata += [mvvelo, mvacc, mvtime]
         return self.set_nfp32(XCONF.UxbusReg.MOVE_SERVO_CART, txdata, 9)
 
-    def set_servot(self, jnt_taus):
-        txdata = [jnt_taus[i] for i in range(7)]
-        return self.set_nfp32(XCONF.UxbusReg.SET_SERVOT, txdata, 7)
+    # # This interface is no longer supported
+    # def set_servot(self, jnt_taus):
+    #     txdata = [jnt_taus[i] for i in range(7)]
+    #     return self.set_nfp32(XCONF.UxbusReg.SET_SERVOT, txdata, 7)
 
     def get_joint_tau(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_JOINT_TAU, 7)

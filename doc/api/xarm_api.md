@@ -1087,7 +1087,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 
 #### def __get_harmonic_type__(self, servo_id=1):
 
-> Get harmonic type, only for debu  
+> Get harmonic type, only for debug  
 >   
 > :return: (code, type)  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -1718,7 +1718,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 
 #### def __read_coil_bits__(self, addr, quantity):
 
-> () Read Coils (0x01)  
+> ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Read Coils (0x01)  
 >   
 > :param addr: the starting address of the register to be read  
 > :param quantity: number of registers  
@@ -1831,7 +1831,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[9]: feedback funcode, command code corresponding to feedback, consistent with issued instructions  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this can be used to distinguish what instruction the feedback belongs to  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[10:12]: feedback taskid, (Big-endian conversion to unsigned 16-bit integer data)  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[12:20]: feedback us, (Big-endian conversion to unsigned 65-bit integer data), time when feedback triggers (microseconds)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[12:20]: feedback us, (Big-endian conversion to unsigned 64-bit integer data), time when feedback triggers (microseconds)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this time is the corresponding controller system time when the feedback is triggered  
 > :return: True/False
 
@@ -2668,16 +2668,6 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 >   
 > :param acc: max acceleration (°/s^2 or rad/s^2)  
 > :param is_radian: the jerk in radians or not, default is self.default_is_radian  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __set_joints_torque__(self, joints_torque):
-
-> Set joints torque,  
-> &ensp;&ensp;&ensp;&ensp;Warning: If necessary, please do not set it randomly, it may damage the robot arm  
->   
-> :param joints_torque:   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

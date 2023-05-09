@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.1): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -3355,15 +3355,6 @@ xArm-Python-SDK API Documentation (V1.13.1): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __shutdown_system__(self, value=1):
-
-> Shutdown the xArm controller system  
->   
-> :param value: 1: remote shutdown  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
 #### def __start_record_trajectory__(self):
 
 > Start trajectory recording, only in teach mode, so you need to set joint teaching mode before.  
@@ -3400,6 +3391,15 @@ xArm-Python-SDK API Documentation (V1.13.1): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;3. If the filename is None, just stop recording, do not save, you need to manually call `save_record_trajectory` save before changing the mode. otherwise it will be lost  
 > &ensp;&ensp;&ensp;&ensp;4. This action will overwrite the trajectory with the same name  
 > &ensp;&ensp;&ensp;&ensp;5. Empty the trajectory in memory after saving  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __system_control__(self, value=1):
+
+> Control the xArm controller system  
+>   
+> :param value: 1: shutdown, 2: reboot  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

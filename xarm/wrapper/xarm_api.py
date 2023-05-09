@@ -100,6 +100,7 @@ class XArmAPI(object):
             'get_suction_cup': self.get_vacuum_gripper,
             'set_suction_cup': self.set_vacuum_gripper,
             'get_ft_senfor_config': self.get_ft_sensor_config,
+            'shutdown_system': self.system_control,
         }
 
     def __getattr__(self, item):
@@ -1103,15 +1104,15 @@ class XArmAPI(object):
         """
         return self._arm.check_verification()
 
-    def shutdown_system(self, value=1):
+    def system_control(self, value=1):
         """
-        Shutdown the xArm controller system
+        Control the xArm controller system
 
-        :param value: 1: remote shutdown
+        :param value: 1: shutdown, 2: reboot
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.shutdown_system(value=value)
+        return self._arm.system_control(value=value)
 
     def get_trajectories(self):
         """

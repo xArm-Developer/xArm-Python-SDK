@@ -208,7 +208,7 @@ class XCONF(object):
         GET_REPORT_TAU_OR_I = 5
         GET_TCP_ROTATION_RADIUS = 6
 
-        SHUTDOWN_SYSTEM = 10
+        SYSTEM_CONTROL = 10
         MOTION_EN = 11
         SET_STATE = 12
         GET_STATE = 13

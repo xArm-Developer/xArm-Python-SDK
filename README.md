@@ -345,7 +345,7 @@ __Note: Before running the example, please modify the ip value in the [robot.con
 - #### Other
   ```python
   arm.set_pause_time(...)
-  arm.shutdown_system(...)
+  arm.system_control(...)
   arm.clean_error()
   arm.clean_warn()
   arm.set_counter_reset()

@@ -680,9 +680,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def shutdown_system(self, value=1):
-        ret = self.arm_cmd.shutdown_system(value)
-        self.log_api_info('API -> shutdown_system -> code={}'.format(ret[0]), code=ret[0])
+    def system_control(self, value=1):
+        ret = self.arm_cmd.system_control(value)
+        self.log_api_info('API -> system_control({}) -> code={}'.format(value, ret[0]), code=ret[0])
         return ret[0]
 
     @xarm_is_connected(_type='set')
@@ -1124,9 +1124,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         def __handle_gcode_h(num):
             if num == 1:  # H1 get_version, ex: H1
                 ret = self.get_version()
-            elif num == 10:  # H10 shutdown_system, ex: H10 V{}
+            elif num == 10:  # H10 system_control, ex: H10 V{}
                 value = gcode_p.get_int_value(command, default=0)
-                ret = self.shutdown_system(value)
+                ret = self.system_control(value)
             elif num == 11:  # H11 motion_enable, ex: H11 I{id} V{enable}
                 value = gcode_p.get_int_value(command)
                 servo_id = gcode_p.get_id_num(command, default=0)

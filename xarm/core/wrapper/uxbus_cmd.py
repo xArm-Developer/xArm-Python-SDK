@@ -236,9 +236,9 @@ class UxbusCmd(object):
         # txdata = signature, 175: signature length if use 14-character SN for plain text, do not miss '\n's
         return self.get_nu8(XCONF.UxbusReg.CHECK_VERIFY, 1)
 
-    def shutdown_system(self, value):
+    def system_control(self, value):
         txdata = [value]
-        return self.set_nu8(XCONF.UxbusReg.SHUTDOWN_SYSTEM, txdata, 1)
+        return self.set_nu8(XCONF.UxbusReg.SYSTEM_CONTROL, txdata, 1)
 
     def set_record_traj(self, value):
         txdata = [value]

@@ -55,19 +55,31 @@ def feedback_callback(data):
     feedback_type = data[8]
     feedback_funcode = data[9]
     feedback_taskid = convert.bytes_to_u16(data[10:12])
-    feedback_us = convert.bytes_to_u64(data[12:20])
+    feedback_code = data[12]
+    feedback_us = convert.bytes_to_u64(data[13:21])
     if feedback_type == 1:
-        # start
+        # motion start
         print('[FB] motion task {} starts executing, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))
     elif feedback_type == 2:
-        # finish
-        print('[FB] motion task {} execution completed, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))
+        if feedback_code == 0:
+            # motion finish
+            print('[FB] motion task {} execution completed, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))
+        elif feedback_code == 2:
+            # motion discard
+            print('[FB] motion task {} is discarded, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))        
     elif feedback_type == 4:
-        # discard
-        print('[FB] motion task {} is discarded, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))
-    elif feedback_type == 8:
         # trigger
-        print('[FB] non-motion task {} is triggered, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))
+        print('[FB] task {} is triggered, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))
+    elif feedback_type == 32:
+        # other cmd start
+        print('[FB] other cmd {} starts executing, funcode={}, us={}, {}'.format(cmd_id, feedback_funcode, feedback_us, datetime.datetime.now()))
+    elif feedback_type == 64:
+        if feedback_code == 0:
+            # other cmd success
+            print('[FB] other cmd {} execution success, funcode={}, us={}, {}'.format(cmd_id, feedback_funcode, feedback_us, datetime.datetime.now()))
+        elif feedback_code == 1:
+            # other cmd failure
+            print('[FB] other cmd {} execution failure, funcode={}, us={}, {}'.format(cmd_id, feedback_funcode, feedback_us, datetime.datetime.now())) 
 
 arm.register_feedback_callback(feedback_callback)
 arm.set_feedback_type(14)

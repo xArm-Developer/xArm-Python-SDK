@@ -9,6 +9,7 @@
 import os
 import math
 import time
+import uuid
 import warnings
 from collections.abc import Iterable
 from ..core.config.x_config import XCONF
@@ -141,13 +142,15 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         self._has_motion_cmd = True
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         radius = radius if radius is not None else -1
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
-            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=0, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type)
+            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=0, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type, feedback_key=feedback_key)
         else:
             if radius >= 0:
                 ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius, only_check_type, motion_type=motion_type)
             else:
                 ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, radius, spd, acc), code=ret[0])
@@ -157,7 +160,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._only_check_result = ret[3]
             return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
-            code = self.wait_move(timeout)
+            code = self.wait_move(timeout, trans_id=trans_id)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
@@ -183,7 +186,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._has_motion_cmd = True
             spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
             radius = radius if radius is not None else -1
-            ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False, only_check_type, motion_type=motion_type)
+            feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+            ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False, only_check_type, motion_type=motion_type, feedback_key=feedback_key)
+            trans_id = self._get_feedback_transid(feedback_key, studio_wait)
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
             self.log_api_info('API -> set_relative_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
                 ret[0], tcp_pos, radius, spd, acc), code=ret[0])
@@ -193,7 +198,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 self._only_check_result = ret[3]
                 return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
             if only_check_type <= 0 and wait and ret[0] == 0:
-                code = self.wait_move(timeout)
+                code = self.wait_move(timeout, trans_id=trans_id)
                 self.__update_tcp_motion_params(spd, acc, mvt)
                 self._sync()
                 return code
@@ -258,10 +263,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         self._has_motion_cmd = True
         motion_type = kwargs.get('motion_type', False)
         radius = radius if radius is not None else -1
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
-            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type)
+            ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type, feedback_key=feedback_key)
         else:
             ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
@@ -271,7 +278,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._only_check_result = ret[3]
             return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
-            code = self.wait_move(timeout)
+            code = self.wait_move(timeout, trans_id=trans_id)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
@@ -297,13 +304,15 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         self._has_motion_cmd = True
         motion_type = kwargs.get('motion_type', False)
         radius = radius if radius is not None else -1
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             if not is_tool_coord and relative:
-                ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type, motion_type=motion_type)
+                ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, True, only_check_type, motion_type=motion_type, feedback_key=feedback_key)
             else:
-                ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1 if is_tool_coord else 0, is_axis_angle=True, only_check_type=only_check_type, motion_type=motion_type)
+                ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1 if is_tool_coord else 0, is_axis_angle=True, only_check_type=only_check_type, motion_type=motion_type, feedback_key=feedback_key)
         else:
             ret = self.arm_cmd.move_line_aa(tcp_pos, spd, acc, mvt, mvcoord, int(relative), only_check_type, motion_type=motion_type)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position_aa -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
@@ -313,7 +322,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._only_check_result = ret[3]
             return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
-            code = self.wait_move(timeout)
+            code = self.wait_move(timeout, trans_id=trans_id)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
@@ -357,10 +366,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 return APIState.JOINT_LIMIT
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
         if self.version_is_ge(1, 5, 20) and radius is not None and radius >= 0:
-            ret = self.arm_cmd.move_jointb(joints, spd, acc, radius, only_check_type)
+            ret = self.arm_cmd.move_jointb(joints, spd, acc, radius, only_check_type, feedback_key=feedback_key)
         else:
-            ret = self.arm_cmd.move_joint(joints, spd, acc, mvt, only_check_type)
+            ret = self.arm_cmd.move_joint(joints, spd, acc, mvt, only_check_type, feedback_key=feedback_key)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
             ret[0], joints, spd, acc, radius
@@ -371,7 +382,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._only_check_result = ret[3]
             return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
-            code = self.wait_move(timeout)
+            code = self.wait_move(timeout, trans_id=trans_id)
             self.__update_joint_motion_params(spd, acc, mvt)
             self._sync()
             return code
@@ -393,7 +404,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._has_motion_cmd = True
             spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
             radius = radius if radius is not None else -1
-            ret = self.arm_cmd.move_relative(joints, spd, acc, mvt, radius, True, False, only_check_type)
+            feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+            ret = self.arm_cmd.move_relative(joints, spd, acc, mvt, radius, True, False, only_check_type, feedback_key=feedback_key)
+            trans_id = self._get_feedback_transid(feedback_key, studio_wait)
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
             self.log_api_info('API -> set_relative_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
                 ret[0], joints, spd, acc, radius
@@ -404,7 +417,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 self._only_check_result = ret[3]
                 return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
             if only_check_type <= 0 and wait and ret[0] == 0:
-                code = self.wait_move(timeout)
+                code = self.wait_move(timeout, trans_id=trans_id)
                 self.__update_joint_motion_params(spd, acc, mvt)
                 self._sync()
                 return code
@@ -509,10 +522,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             pose_2.append(to_radian(pose2[i], is_radian or i <= 2))
         spd, acc, mvt = self.__get_tcp_motion_params(speed, mvacc, mvtime, **kwargs)
         self._has_motion_cmd = True
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
-            ret = self.arm_cmd.move_circle_common(pose_1, pose_2, spd, acc, mvt, percent, coord=1 if is_tool_coord else 0, is_axis_angle=is_axis_angle, only_check_type=only_check_type)
+            ret = self.arm_cmd.move_circle_common(pose_1, pose_2, spd, acc, mvt, percent, coord=1 if is_tool_coord else 0, is_axis_angle=is_axis_angle, only_check_type=only_check_type, feedback_key=feedback_key)
         else:
             ret = self.arm_cmd.move_circle(pose_1, pose_2, spd, acc, mvt, percent, only_check_type)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, spd, acc), code=ret[0])
@@ -522,7 +537,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._only_check_result = ret[3]
             return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
-            code = self.wait_move(timeout)
+            code = self.wait_move(timeout, trans_id=trans_id)
             self.__update_tcp_motion_params(spd, acc, mvt)
             self._sync()
             return code
@@ -542,7 +557,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 return code
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
-        ret = self.arm_cmd.move_gohome(spd, acc, mvt, only_check_type)
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+        ret = self.arm_cmd.move_gohome(spd, acc, mvt, only_check_type, feedback_key=feedback_key)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> move_gohome -> code={}, velo={}, acc={}'.format(
             ret[0], spd, acc
@@ -553,7 +570,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             self._only_check_result = ret[3]
             return APIState.HAS_ERROR if ret[3] != 0 else ret[0]
         if only_check_type <= 0 and wait and ret[0] == 0:
-            code = self.wait_move(timeout)
+            code = self.wait_move(timeout, trans_id=trans_id)
             self._sync()
             return code
         return ret[0]

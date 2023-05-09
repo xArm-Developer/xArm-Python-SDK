@@ -1143,7 +1143,7 @@ class XArmAPI(object):
         """
         return self._arm.start_record_trajectory()
 
-    def stop_record_trajectory(self, filename=None):
+    def stop_record_trajectory(self, filename=None, **kwargs):
         """
         Stop trajectory recording
 
@@ -1159,9 +1159,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.stop_record_trajectory(filename=filename)
+        return self._arm.stop_record_trajectory(filename=filename, **kwargs)
 
-    def save_record_trajectory(self, filename, wait=True, timeout=2):
+    def save_record_trajectory(self, filename, wait=True, timeout=5, **kwargs):
         """
         Save the trajectory you just recorded
 
@@ -1178,9 +1178,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.save_record_trajectory(filename, wait=wait, timeout=timeout)
+        return self._arm.save_record_trajectory(filename, wait=wait, timeout=timeout, **kwargs)
 
-    def load_trajectory(self, filename, wait=True, timeout=10):
+    def load_trajectory(self, filename, wait=True, timeout=None, **kwargs):
         """
         Load the trajectory
 
@@ -1193,9 +1193,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.load_trajectory(filename, wait=wait, timeout=timeout)
+        return self._arm.load_trajectory(filename, wait=wait, timeout=timeout, **kwargs)
 
-    def playback_trajectory(self, times=1, filename=None, wait=True, double_speed=1):
+    def playback_trajectory(self, times=1, filename=None, wait=True, double_speed=1, **kwargs):
         """
         Playback trajectory
 
@@ -1211,7 +1211,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.playback_trajectory(times=times, filename=filename, wait=wait, double_speed=double_speed)
+        return self._arm.playback_trajectory(times=times, filename=filename, wait=wait, double_speed=double_speed, **kwargs)
 
     def get_trajectory_rw_status(self):
         """
@@ -3737,9 +3737,8 @@ class XArmAPI(object):
         :param feedback_type:
             0: disable feedback
             1: feedback when the motion task starts executing
-            2: feedback when the motion task execution ends
-            4: feedback when the motion tasks are discarded (usually when the distance is too close to be planned)
-            8: feedback when the non-motion task is triggered
+            2: feedback when the motion task execution ends or motion task is discarded(usually when the distance is too close to be planned)
+            4: feedback when the non-motion task is triggered
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -3758,13 +3757,13 @@ class XArmAPI(object):
                 data[4:6]: feedback_length, feedback_length == len(data) - 6, (Big-endian conversion to unsigned 16-bit integer data)
                 data[8]: feedback type
                     1: the motion task starts executing
-                    2: the motion task execution ends
-                    4: the motion tasks are discarded (usually when the distance is too close to be planned)
-                    8: the non-motion task is triggered
+                    2: the motion task execution ends or motion task is discarded(usually when the distance is too close to be planned)
+                    4: the non-motion task is triggered
                 data[9]: feedback funcode, command code corresponding to feedback, consistent with issued instructions
                     Note: this can be used to distinguish what instruction the feedback belongs to
                 data[10:12]: feedback taskid, (Big-endian conversion to unsigned 16-bit integer data)
-                data[12:20]: feedback us, (Big-endian conversion to unsigned 64-bit integer data), time when feedback triggers (microseconds)
+                data[12]: feedback code, execution status code, generally only meaningful when the feedback type is end, normally 0, 2 means discarded
+                data[13:21]: feedback us, (Big-endian conversion to unsigned 64-bit integer data), time when feedback triggers (microseconds)
                     Note: this time is the corresponding controller system time when the feedback is triggered
         :return: True/False
         """

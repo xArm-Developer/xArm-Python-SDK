@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.1): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -1572,7 +1572,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;limit: True/False/None, limit or not, or failed
 
 
-#### def __load_trajectory__(self, filename, wait=True, timeout=10):
+#### def __load_trajectory__(self, filename, wait=True, timeout=None, **kwargs):
 
 > Load the trajectory  
 >   
@@ -1699,7 +1699,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __playback_trajectory__(self, times=1, filename=None, wait=True, double_speed=1):
+#### def __playback_trajectory__(self, times=1, filename=None, wait=True, double_speed=1, **kwargs):
 
 > Playback trajectory  
 >   
@@ -1825,13 +1825,13 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[4:6]: feedback_length, feedback_length == len(data) - 6, (Big-endian conversion to unsigned 16-bit integer data)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[8]: feedback type  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: the motion task starts executing  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2: the motion task execution ends  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;4: the motion tasks are discarded (usually when the distance is too close to be planned)  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;8: the non-motion task is triggered  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2: the motion task execution ends or motion task is discarded(usually when the distance is too close to be planned)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;4: the non-motion task is triggered  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[9]: feedback funcode, command code corresponding to feedback, consistent with issued instructions  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this can be used to distinguish what instruction the feedback belongs to  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[10:12]: feedback taskid, (Big-endian conversion to unsigned 16-bit integer data)  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[12:20]: feedback us, (Big-endian conversion to unsigned 64-bit integer data), time when feedback triggers (microseconds)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[12]: feedback code, execution status code, generally only meaningful when the feedback type is end, normally 0, 2 means discarded  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;data[13:21]: feedback us, (Big-endian conversion to unsigned 64-bit integer data), time when feedback triggers (microseconds)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: this time is the corresponding controller system time when the feedback is triggered  
 > :return: True/False
 
@@ -2159,7 +2159,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __save_record_trajectory__(self, filename, wait=True, timeout=2):
+#### def __save_record_trajectory__(self, filename, wait=True, timeout=5, **kwargs):
 
 > Save the trajectory you just recorded  
 >   
@@ -2495,9 +2495,8 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > :param feedback_type:  
 > &ensp;&ensp;&ensp;&ensp;0: disable feedback  
 > &ensp;&ensp;&ensp;&ensp;1: feedback when the motion task starts executing  
-> &ensp;&ensp;&ensp;&ensp;2: feedback when the motion task execution ends  
-> &ensp;&ensp;&ensp;&ensp;4: feedback when the motion tasks are discarded (usually when the distance is too close to be planned)  
-> &ensp;&ensp;&ensp;&ensp;8: feedback when the non-motion task is triggered  
+> &ensp;&ensp;&ensp;&ensp;2: feedback when the motion task execution ends or motion task is discarded(usually when the distance is too close to be planned)  
+> &ensp;&ensp;&ensp;&ensp;4: feedback when the non-motion task is triggered  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3388,7 +3387,7 @@ xArm-Python-SDK API Documentation (V1.13.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __stop_record_trajectory__(self, filename=None):
+#### def __stop_record_trajectory__(self, filename=None, **kwargs):
 
 > Stop trajectory recording  
 >   

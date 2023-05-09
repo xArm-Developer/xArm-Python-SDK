@@ -467,6 +467,18 @@ class XCONF(object):
         USE_PRIMITIVES = 20  # just for judgement, threshold.
         CYLINDER = 21  # radius, height
         BOX = 22  # x, y, z in tool coordinate direction
+    
+    class FeedbackType:
+        MOTION_START = 1
+        MOTION_FINISH = 2
+        TRIGGER = 4
+        OTHER_START = 32
+        OTHER_FINISH = 64
+
+    class FeedbackCode:
+        SUCCESS = 0
+        FAILURE = 1
+        DISCARD = 2
 
 
 

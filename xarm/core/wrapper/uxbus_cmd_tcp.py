@@ -29,8 +29,8 @@ def debug_log_datas(datas, label=''):
 
 
 class UxbusCmdTcp(UxbusCmd):
-    def __init__(self, arm_port):
-        super(UxbusCmdTcp, self).__init__()
+    def __init__(self, arm_port, set_feedback_key_tranid=None):
+        super(UxbusCmdTcp, self).__init__(set_feedback_key_tranid=set_feedback_key_tranid)
         self.arm_port = arm_port
         self._has_err_warn = False
         self._last_comm_time = time.monotonic()
@@ -54,6 +54,9 @@ class UxbusCmdTcp(UxbusCmd):
     
     def get_protocol_identifier(self):
         return self._protocol_identifier
+    
+    def _get_trans_id(self):
+        return self._transaction_id
 
     def check_protocol_header(self, data, t_trans_id, t_prot_id, t_unit_id):
         trans_id = convert.bytes_to_u16(data[0:2])

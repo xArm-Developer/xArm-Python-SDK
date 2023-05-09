@@ -10,6 +10,7 @@ import re
 import sys
 import time
 import math
+import uuid
 import queue
 import threading
 try:
@@ -228,8 +229,12 @@ class Base(BaseObject, Events):
             self._has_motion_cmd = False
             self._need_sync = False
 
+            self._support_feedback = False
             self._feedback_que = queue.Queue()
             self._feedback_thread = None
+            self._fb_key_transid_map = {}
+            self._fb_transid_type_map = {}
+            self._fb_transid_result_map = {}
 
             if not do_not_open:
                 self.connect()
@@ -715,6 +720,10 @@ class Base(BaseObject, Events):
     @property
     def ft_raw_force(self):
         return self._ft_raw_force
+    
+    @property
+    def support_feedback(self):
+        return self._support_feedback
 
     def version_is_ge(self, major, minor=0, revision=0):
         if self._version is None:
@@ -787,7 +796,7 @@ class Base(BaseObject, Events):
             heartbeat=self._enable_heartbeat, buffer_size=XCONF.SocketConf.TCP_CONTROL_BUF_SIZE, forbid_uds=self._forbid_uds)
         if not self.connected_503:
             return -1
-        self.arm_cmd_503 = UxbusCmdTcp(self._stream_503)
+        self.arm_cmd_503 = UxbusCmdTcp(self._stream_503, set_feedback_key_tranid=self._set_feedback_key_tranid)
         self.arm_cmd_503.set_debug(self._debug)
         return 0
 
@@ -828,7 +837,7 @@ class Base(BaseObject, Events):
                 self._feedback_thread = threading.Thread(target=self._feedback_thread_handle, daemon=True)
                 self._feedback_thread.start()
 
-                self.arm_cmd = UxbusCmdTcp(self._stream)
+                self.arm_cmd = UxbusCmdTcp(self._stream, set_feedback_key_tranid=self._set_feedback_key_tranid)
                 self.arm_cmd.set_protocol_identifier(2)
                 self._stream_type = 'socket'
 
@@ -849,6 +858,7 @@ class Base(BaseObject, Events):
                 if self._check_version(is_first=True) < 0:
                     self.disconnect()
                     raise Exception('failed to check version, close')
+                self._support_feedback = self.version_is_ge(2, 0, 102)
                 self.arm_cmd.set_debug(self._debug)
 
                 if self._max_callback_thread_count < 0 and asyncio is not None:
@@ -2201,14 +2211,59 @@ class Base(BaseObject, Events):
         self.log_api_info('API -> motion_enable -> code={}'.format(ret[0]), code=ret[0])
         return ret[0]
     
-    def wait_move(self, timeout=None):
+    def _gen_feedback_key(self, wait, **kwargs):
+        feedback_key = kwargs.get('feedback_key', '') if self._support_feedback and not wait else ''
+        studio_wait = bool(feedback_key)
+        feedback_key = str(uuid.uuid1()) if wait and self._support_feedback else feedback_key
+        # feedback_key = str(uuid.uuid1()) if wait and self._support_feedback else ''
+        self._fb_key_transid_map[feedback_key if feedback_key else 'no_use'] = -1
+        return feedback_key, studio_wait
+    
+    def _get_feedback_transid(self, feedback_key, studio_wait=False):
+        return self._fb_key_transid_map.pop(feedback_key, -1) if not studio_wait else -1
+    
+    def _set_feedback_key_tranid(self, feedback_key, trans_id, feedback_type=0):
+        self._fb_key_transid_map[feedback_key] = trans_id
+        self._fb_transid_type_map[trans_id] = feedback_type
+        self._fb_transid_result_map.pop(trans_id, -1)
+    
+    def wait_feedback(self, timeout=None, trans_id=-1):
+        if timeout is not None:
+            expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
+        else:
+            expired = 0
+        while timeout is None or time.monotonic() < expired:
+            if not self.connected:
+                self._fb_transid_result_map.clear()
+                self.log_api_info('wait_feedback, xarm is disconnect', code=APIState.NOT_CONNECTED)
+                return APIState.NOT_CONNECTED, -1
+            if self.error_code != 0:
+                self._fb_transid_result_map.clear()
+                self.log_api_info('wait_feedback, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
+                return APIState.HAS_ERROR, -1
+            code, state = self.get_state()
+            if code != 0:
+                return code, -1
+            if state in [4, 6]:
+                self._sleep_finish_time = 0
+                self._fb_transid_result_map.clear()
+                self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
+                return APIState.EMERGENCY_STOP, -1
+            if trans_id in self._fb_transid_result_map:
+                return 0, self._fb_transid_result_map.pop(trans_id, -1)
+            time.sleep(0.05)
+        return APIState.WAIT_FINISH_TIMEOUT, -1
+    
+    def wait_move(self, timeout=None, trans_id=-1):
+        if self._support_feedback and trans_id > 0:
+            return self.wait_feedback(timeout, trans_id)[0]
         if timeout is not None:
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
             expired = 0
         _, state = self.get_state()
         cnt = 0
-        max_cnt = 1 if _ == 0 and state == 1 else 10
+        max_cnt = 2 if _ == 0 and state == 1 else 10
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
                 self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
@@ -2221,7 +2276,7 @@ class Base(BaseObject, Events):
             code, state = self.get_state()
             if code != 0:
                 return code
-            if state >= 4:
+            if state in [4, 6]:
                 self._sleep_finish_time = 0
                 self.log_api_info('wait_move, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
                 return APIState.EMERGENCY_STOP
@@ -2241,57 +2296,6 @@ class Base(BaseObject, Events):
                     return 0
                 time.sleep(0.05)
         return APIState.WAIT_FINISH_TIMEOUT
-
-    # def wait_move(self, timeout=None):
-    #     if timeout is not None:
-    #         expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
-    #     else:
-    #         expired = 0
-    #     count = 0
-    #     _, state = self.get_state()
-    #     max_cnt = 4 if _ == 0 and state == 1 else 10
-    #     while timeout is None or time.monotonic() < expired:
-    #         if not self.connected:
-    #             self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
-    #             return APIState.NOT_CONNECTED
-    #         if not self._enable_report or (time.monotonic() - self._last_report_time > 0.4):
-    #             self.get_state()
-    #             self.get_err_warn_code()
-    #         if self.error_code != 0:
-    #             self.log_api_info('wait_move, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
-    #             return APIState.HAS_ERROR
-    #         # only wait in position mode
-    #         if self.mode != 0:
-    #             return 0
-    #         if self.is_stop:
-    #             _, state = self.get_state()
-    #             if _ != 0 or state not in [4, 5]:
-    #                 time.sleep(0.02)
-    #                 continue
-    #             self._sleep_finish_time = 0
-    #             self.log_api_info('wait_move, xarm is stop, state={}'.format(self.state), code=APIState.EMERGENCY_STOP)
-    #             return APIState.EMERGENCY_STOP
-    #         if time.monotonic() < self._sleep_finish_time or self.state == 3:
-    #             time.sleep(0.02)
-    #             count = 0
-    #             continue
-    #         if self.state != 1:
-    #             count += 1
-    #             if count >= max_cnt:
-    #                 _, state = self.get_state()
-    #                 self.get_err_warn_code()
-    #                 if _ == 0 and state != 1:
-    #                     return 0
-    #                 else:
-    #                     count = 0
-    #             #     return 0
-    #             # if count % 4 == 0:
-    #             #     self.get_state()
-    #             #     self.get_err_warn_code()
-    #         else:
-    #             count = 0
-    #         time.sleep(0.05)
-    #     return APIState.WAIT_FINISH_TIMEOUT
 
     @xarm_is_connected(_type='set')
     def _check_modbus_code(self, ret, length=2, only_check_code=False, host_id=XCONF.TGPIO_HOST_ID):
@@ -2473,9 +2477,17 @@ class Base(BaseObject, Events):
             self._feedback_callback(data)
     
     def _feedback_callback(self, data):
+        trans_id = convert.bytes_to_u16(data[0:2])
+        feedback_type = self._fb_transid_type_map.pop(trans_id, -1)
+        if feedback_type != -1:
+            self._fb_transid_result_map[trans_id] = data[12]  # feedback_code
+        if feedback_type & data[8] == 0:
+            return
         self.__report_callback(self.FEEDBACK_ID, data, name='feedback')
     
     def set_feedback_type(self, feedback_type):
+        if not self._support_feedback:
+            return APIState.CMD_NOT_EXIST
         ret = self.arm_cmd.set_feedback_type(feedback_type)
         ret[0] = self._check_code(ret[0])
         return ret[0]

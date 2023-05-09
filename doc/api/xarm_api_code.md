@@ -44,6 +44,7 @@
 - 31: trajectory read/write failed
 - 32: trajectory read/write timeout
 - 33: playback trajectory timeout
+- 34: playback trajectory failed
 - 41: wait to set suction cup timeout
 - 80: linear track has error
 - 81: linear track sci is low

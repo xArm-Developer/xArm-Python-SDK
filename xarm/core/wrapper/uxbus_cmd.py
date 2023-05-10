@@ -35,8 +35,8 @@ class UxbusCmd(object):
         self._cmd_num = 0
         self._debug = False
         self.lock = threading.Lock()
-        self._GET_TIMEOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
-        self._SET_TIMEOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
+        self._G_TOUT = XCONF.UxbusConf.GET_TIMEOUT / 1000
+        self._S_TOUT = XCONF.UxbusConf.SET_TIMEOUT / 1000
         self._last_comm_time = time.monotonic()
         self._last_modbus_comm_time = time.monotonic()
         self._feedback_type = 0
@@ -57,17 +57,17 @@ class UxbusCmd(object):
         try:
             if isinstance(timeout, (tuple, list)):
                 if len(timeout) >= 2:
-                    self._SET_TIMEOUT = timeout[0] if timeout[0] > 0 else self._SET_TIMEOUT
-                    self._GET_TIMEOUT = timeout[1] if timeout[1] > 0 else self._GET_TIMEOUT
+                    self._S_TOUT = timeout[0] if timeout[0] > 0 else self._S_TOUT
+                    self._G_TOUT = timeout[1] if timeout[1] > 0 else self._G_TOUT
                 elif len(timeout) == 1:
-                    self._SET_TIMEOUT = timeout[0] if timeout[0] > 0 else self._SET_TIMEOUT
-                    self._GET_TIMEOUT = timeout[0] if timeout[0] > 0 else self._GET_TIMEOUT
+                    self._S_TOUT = timeout[0] if timeout[0] > 0 else self._S_TOUT
+                    self._G_TOUT = timeout[0] if timeout[0] > 0 else self._G_TOUT
             elif isinstance(timeout, (int, float)):
-                self._SET_TIMEOUT = timeout if timeout > 0 else self._SET_TIMEOUT
-                self._GET_TIMEOUT = timeout if timeout > 0 else self._GET_TIMEOUT
+                self._S_TOUT = timeout if timeout > 0 else self._S_TOUT
+                self._G_TOUT = timeout if timeout > 0 else self._G_TOUT
         except:
             pass
-        return [self._SET_TIMEOUT, self._GET_TIMEOUT] if self._SET_TIMEOUT != self._GET_TIMEOUT else self._SET_TIMEOUT
+        return [self._S_TOUT, self._G_TOUT] if self._S_TOUT != self._G_TOUT else self._S_TOUT
 
     def set_debug(self, debug):
         self._debug = debug
@@ -90,7 +90,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, datas, num)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.recv_modbus_response(funcode, ret, 0, self._SET_TIMEOUT if timeout is None else timeout)        
+        ret = self.recv_modbus_response(funcode, ret, 0, self._S_TOUT if timeout is None else timeout)
         if feedback_key and need_set_fb:
             self._set_feedback_type_no_lock(self._feedback_type)
         return ret
@@ -100,14 +100,14 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, datas, num_send)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(funcode, ret, num_get, self._SET_TIMEOUT)
+        return self.recv_modbus_response(funcode, ret, num_get, self._S_TOUT)
 
     @lock_require
     def get_nu8(self, funcode, num):
         ret = self.send_modbus_request(funcode, 0, 0)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (num + 1)
-        return self.recv_modbus_response(funcode, ret, num, self._GET_TIMEOUT)
+        return self.recv_modbus_response(funcode, ret, num, self._G_TOUT)
 
     @lock_require
     def set_nu16(self, funcode, datas, num):
@@ -115,7 +115,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, hexdata, num * 2)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.recv_modbus_response(funcode, ret, 0, self._SET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, 0, self._S_TOUT)
         return ret
 
     @lock_require
@@ -123,7 +123,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, 0, 0)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (num * 2 + 1)
-        ret = self.recv_modbus_response(funcode, ret, num * 2, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, num * 2, self._G_TOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
         data[1:num] = convert.bytes_to_u16s(ret[1:num * 2 + 1], num)
@@ -142,7 +142,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, hexdata, num * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.recv_modbus_response(funcode, ret, 0, self._SET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, 0, self._S_TOUT)
         if feedback_key and need_set_fb:
             self._set_feedback_type_no_lock(self._feedback_type)
         return ret
@@ -161,7 +161,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, hexdata, num * 4 + len(additional_bytes))
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.recv_modbus_response(funcode, ret, rx_len, self._SET_TIMEOUT if timeout is None else timeout)
+        ret = self.recv_modbus_response(funcode, ret, rx_len, self._S_TOUT if timeout is None else timeout)
         if feedback_key and need_set_fb:
             self._set_feedback_type_no_lock(self._feedback_type)
         return ret
@@ -179,7 +179,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, hexdata, num * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.recv_modbus_response(funcode, ret, 0, self._SET_TIMEOUT)        
+        ret = self.recv_modbus_response(funcode, ret, 0, self._S_TOUT)
         if feedback_key and need_set_fb:
             self._set_feedback_type_no_lock(self._feedback_type)
         return ret
@@ -189,7 +189,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, 0, 0)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (num * 4 + 1)
-        ret = self.recv_modbus_response(funcode, ret, num * 4, timeout if timeout is not None else self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, num * 4, timeout if timeout is not None else self._G_TOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
         data[1:num+1] = convert.bytes_to_fp32s(ret[1:num * 4 + 1], num)
@@ -200,7 +200,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, datas, num_send)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.recv_modbus_response(funcode, ret, num_get * 4, timeout if timeout is not None else self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, num_get * 4, timeout if timeout is not None else self._G_TOUT)
         data = [0] * (1 + num_get)
         data[0] = ret[0]
         data[1:num_get + 1] = convert.bytes_to_fp32s(ret[1:num_get * 4 + 1], num_get)
@@ -212,7 +212,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, hexdata, txn * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (rxn + 1)
-        ret = self.recv_modbus_response(funcode, ret, rxn * 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, rxn * 4, self._G_TOUT)
         data = [0] * (1 + rxn)
         data[0] = ret[0]
         data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
@@ -224,7 +224,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(funcode, hexdata, txn * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * 2
-        return self.recv_modbus_response(funcode, ret, 1, self._GET_TIMEOUT)
+        return self.recv_modbus_response(funcode, ret, 1, self._G_TOUT)
 
     def get_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_VERSION, 40)
@@ -342,7 +342,7 @@ class UxbusCmd(object):
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
-        return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2, timeout=self._SET_TIMEOUT if self._SET_TIMEOUT >= 2 else 2)
+        return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2, timeout=self._S_TOUT if self._S_TOUT >= 2 else 2)
 
     def set_state(self, value):
         txdata = [value]
@@ -463,7 +463,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (ret_fp_num * 4 + 1)
 
-        ret = self.recv_modbus_response(funcode, ret, ret_fp_num * 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(funcode, ret, ret_fp_num * 4, self._G_TOUT)
         data = [0] * (1 + ret_fp_num)
         data[0] = ret[0]
         data[1:ret_fp_num+1] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
@@ -684,7 +684,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_W16B, ret, 0, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_W16B, ret, 0, self._G_TOUT)
         return ret
 
     @lock_require
@@ -695,7 +695,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_R16B, ret, 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_R16B, ret, 4, self._G_TOUT)
         return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     @lock_require
@@ -707,7 +707,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_W32B, ret, 0, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_W32B, ret, 0, self._G_TOUT)
         return ret
 
     @lock_require
@@ -718,7 +718,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_R32B, ret, 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_R32B, ret, 4, self._G_TOUT)
         return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     def tgpio_get_digital(self):
@@ -787,7 +787,7 @@ class UxbusCmd(object):
             self._last_modbus_comm_time = time.monotonic()
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_COM_DATA if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MODBUS, ret, -1, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_COM_DATA if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MODBUS, ret, -1, self._G_TOUT)
         self._last_modbus_comm_time = time.monotonic()
         return ret
 
@@ -798,7 +798,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.DELAYED_TGPIO_SET, txdata, 6)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.DELAYED_TGPIO_SET, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.DELAYED_TGPIO_SET, ret, 0, self._S_TOUT)
 
     @lock_require
     def cgpio_delay_set_digital(self, ionum, on_off, delay_sec):
@@ -807,7 +807,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.DELAYED_CGPIO_SET, txdata, 6)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.DELAYED_CGPIO_SET, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.DELAYED_CGPIO_SET, ret, 0, self._S_TOUT)
 
     @lock_require
     def cgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
@@ -817,7 +817,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.POSITION_CGPIO_SET, txdata, 18)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.POSITION_CGPIO_SET, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.POSITION_CGPIO_SET, ret, 0, self._S_TOUT)
 
     @lock_require
     def tgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
@@ -827,7 +827,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.POSITION_TGPIO_SET, txdata, 18)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.POSITION_TGPIO_SET, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.POSITION_TGPIO_SET, ret, 0, self._S_TOUT)
 
     @lock_require
     def cgpio_position_set_analog(self, ionum, value, xyz, tol_r):
@@ -838,7 +838,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, txdata, 19)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, ret, 0, self._S_TOUT)
 
     # io_type: 0 for CGPIO, 1 for TGPIO
     def config_io_stop_reset(self, io_type, on_off):
@@ -934,7 +934,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_W16B, ret, 0, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_W16B, ret, 0, self._G_TOUT)
         return ret
 
     @lock_require
@@ -945,7 +945,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R16B, ret, 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R16B, ret, 4, self._G_TOUT)
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
         # return [ret[0], convert.bytes_to_long_big(ret[1:5])[0]]
 
@@ -958,7 +958,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_W32B, ret, 0, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_W32B, ret, 0, self._G_TOUT)
         return ret
 
     @lock_require
@@ -969,7 +969,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R32B, ret, 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R32B, ret, 4, self._G_TOUT)
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
         # return [ret[0], convert.bytes_to_long_big(ret[1:5])[0]]
 
@@ -1102,7 +1102,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.IMPEDANCE_CONFIG, txdata, 79)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.IMPEDANCE_CONFIG, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.IMPEDANCE_CONFIG, ret, 0, self._S_TOUT)
 
     @lock_require
     def set_impedance_mbk(self, M, K, B):
@@ -1112,7 +1112,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.IMPEDANCE_CTRL_MBK, txdata, 72)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.IMPEDANCE_CTRL_MBK, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.IMPEDANCE_CTRL_MBK, ret, 0, self._S_TOUT)
 
     @lock_require
     def set_impedance_config(self, coord, c_axis):
@@ -1121,7 +1121,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, txdata, 7)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.IMPEDANCE_CTRL_CONFIG, ret, 0, self._S_TOUT)
 
     @lock_require
     def config_force_control(self, coord, c_axis, f_ref, limits):
@@ -1132,7 +1132,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.FORCE_CTRL_CONFIG, txdata, 55)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.FORCE_CTRL_CONFIG, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.FORCE_CTRL_CONFIG, ret, 0, self._S_TOUT)
 
     @lock_require
     def set_force_control_pid(self, kp, ki, kd, xe_limit):
@@ -1143,7 +1143,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.FORCE_CTRL_PID, txdata, 96)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.FORCE_CTRL_PID, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.FORCE_CTRL_PID, ret, 0, self._S_TOUT)
 
     def ft_sensor_set_zero(self):
         return self.set_nu8(XCONF.UxbusReg.FTSENSOR_SET_ZERO, 0, 0)
@@ -1293,7 +1293,7 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_ERROR, ret, 4, self._GET_TIMEOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_ERROR, ret, 4, self._G_TOUT)
         return [ret[0], convert.bytes_to_long_big(ret[1:5])]
 
     def get_dh_params(self):
@@ -1309,7 +1309,7 @@ class UxbusCmd(object):
         ret = self.send_modbus_request(XCONF.UxbusReg.SET_FEEDBACK_TYPE, [feedback_type], 1)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
-        return self.recv_modbus_response(XCONF.UxbusReg.SET_FEEDBACK_TYPE, ret, 0, self._SET_TIMEOUT)
+        return self.recv_modbus_response(XCONF.UxbusReg.SET_FEEDBACK_TYPE, ret, 0, self._S_TOUT)
 
     @lock_require
     def set_feedback_type(self, feedback_type):

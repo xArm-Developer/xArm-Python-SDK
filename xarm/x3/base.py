@@ -2232,6 +2232,7 @@ class Base(BaseObject, Events):
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
             expired = 0
+        state5_cnt = 0
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
                 self._fb_transid_result_map.clear()
@@ -2244,11 +2245,16 @@ class Base(BaseObject, Events):
             code, state = self.get_state()
             if code != 0:
                 return code, -1
-            if state in [4, 6]:
+            if state >= 4:
                 self._sleep_finish_time = 0
-                self._fb_transid_result_map.clear()
-                self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
-                return APIState.EMERGENCY_STOP, -1
+                if state == 5:
+                    state5_cnt += 1
+                if state != 5 or state5_cnt >= 20:
+                    self._fb_transid_result_map.clear()
+                    self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
+                    return APIState.EMERGENCY_STOP, -1
+            else:
+                state5_cnt = 0
             if trans_id in self._fb_transid_result_map:
                 return 0, self._fb_transid_result_map.pop(trans_id, -1)
             time.sleep(0.05)
@@ -2263,6 +2269,7 @@ class Base(BaseObject, Events):
             expired = 0
         _, state = self.get_state()
         cnt = 0
+        state5_cnt = 0
         max_cnt = 2 if _ == 0 and state == 1 else 10
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
@@ -2276,10 +2283,15 @@ class Base(BaseObject, Events):
             code, state = self.get_state()
             if code != 0:
                 return code
-            if state in [4, 6]:
+            if state >= 4:
                 self._sleep_finish_time = 0
-                self.log_api_info('wait_move, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
-                return APIState.EMERGENCY_STOP
+                if state == 5:
+                    state5_cnt += 1
+                if state != 5 or state5_cnt >= 20:
+                    self.log_api_info('wait_move, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
+                    return APIState.EMERGENCY_STOP
+            else:
+                state5_cnt = 0
             if time.monotonic() < self._sleep_finish_time or state == 3:
                 cnt = 0
                 max_cnt = 2 if state == 3 else max_cnt

@@ -2227,7 +2227,7 @@ class Base(BaseObject, Events):
         self._fb_transid_type_map[trans_id] = feedback_type
         self._fb_transid_result_map.pop(trans_id, -1)
     
-    def wait_feedback(self, timeout=None, trans_id=-1):
+    def _wait_feedback(self, timeout=None, trans_id=-1):
         if timeout is not None:
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
@@ -2262,7 +2262,7 @@ class Base(BaseObject, Events):
     
     def wait_move(self, timeout=None, trans_id=-1):
         if self._support_feedback and trans_id > 0:
-            return self.wait_feedback(timeout, trans_id)[0]
+            return self._wait_feedback(timeout, trans_id)[0]
         if timeout is not None:
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:

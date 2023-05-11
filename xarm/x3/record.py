@@ -92,7 +92,7 @@ class Record(Base):
     
     def __wait_traj_op(self, timeout, trans_id, filename='unknown', op='Load'):
         if self._support_feedback and trans_id > 0:
-            code, feedback_code = self.wait_feedback(timeout, trans_id)
+            code, feedback_code = self._wait_feedback(timeout, trans_id)
             _, status = self.get_trajectory_rw_status()
             if code == 0:
                 success_status = XCONF.TrajState.LOAD_SUCCESS if op == 'Load' else XCONF.TrajState.SAVE_SUCCESS
@@ -126,7 +126,7 @@ class Record(Base):
     
     def __wait_play_traj(self, timeout, trans_id, times=1):
         if self._support_feedback and trans_id > 0:
-            code, feedback_code = self.wait_feedback(timeout, trans_id)
+            code, feedback_code = self._wait_feedback(timeout, trans_id)
             if feedback_code == XCONF.FeedbackCode.FAILURE:
                 code = APIState.TRAJ_PLAYBACK_FAILED
         else:

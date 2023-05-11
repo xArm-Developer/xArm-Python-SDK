@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -2407,7 +2407,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_collision_sensitivity__(self, value):
+#### def __set_collision_sensitivity__(self, value, wait=True):
 
 > Set the sensitivity of collision  
 >   
@@ -2418,6 +2418,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;4. The clean_conf interface can restore system default settings  
 >   
 > :param value: sensitivity value, 0~5  
+> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2528,7 +2529,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_gravity_direction__(self, direction):
+#### def __set_gravity_direction__(self, direction, wait=True):
 
 > Set the direction of gravity  
 >   
@@ -2539,6 +2540,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;4. The clean_conf interface can restore system default settings  
 >   
 > :param direction: direction of gravity, such as [x(mm), y(mm), z(mm)]  
+> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3199,7 +3201,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_tcp_offset__(self, offset, is_radian=None, **kwargs):
+#### def __set_tcp_offset__(self, offset, is_radian=None, wait=True, **kwargs):
 
 > Set the tool coordinate system offset at the end  
 > Note:  
@@ -3211,11 +3213,12 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 >   
 > :param offset: [x, y, z, roll, pitch, yaw]  
 > :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian  
+> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_teach_sensitivity__(self, value):
+#### def __set_teach_sensitivity__(self, value, wait=True):
 
 > Set the sensitivity of drag and teach  
 >   
@@ -3226,6 +3229,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;4. The clean_conf interface can restore system default settings  
 >   
 > :param value: sensitivity value, 1~5  
+> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3342,7 +3346,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_world_offset__(self, offset, is_radian=None):
+#### def __set_world_offset__(self, offset, is_radian=None, wait=True):
 
 > Set the base coordinate offset  
 >   
@@ -3351,6 +3355,7 @@ xArm-Python-SDK API Documentation (V1.13.2): class XArmAPI in module xarm.wrappe
 >   
 > :param offset: [x, y, z, roll, pitch, yaw]  
 > :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian  
+> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

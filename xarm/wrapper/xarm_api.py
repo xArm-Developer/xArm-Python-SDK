@@ -1372,7 +1372,7 @@ class XArmAPI(object):
         """
         return self._arm.set_collision_rebound(on)
 
-    def set_world_offset(self, offset, is_radian=None):
+    def set_world_offset(self, offset, is_radian=None, wait=True):
         """
         Set the base coordinate offset
 
@@ -1381,10 +1381,11 @@ class XArmAPI(object):
 
         :param offset: [x, y, z, roll, pitch, yaw]
         :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
+        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_world_offset(offset, is_radian=is_radian)
+        return self._arm.set_world_offset(offset, is_radian=is_radian, wait=wait)
 
     def get_is_moving(self):
         """
@@ -1526,7 +1527,7 @@ class XArmAPI(object):
         """
         return self._arm.set_pause_time(sltime, wait=wait)
 
-    def set_tcp_offset(self, offset, is_radian=None, **kwargs):
+    def set_tcp_offset(self, offset, is_radian=None, wait=True, **kwargs):
         """
         Set the tool coordinate system offset at the end
         Note:
@@ -1538,10 +1539,11 @@ class XArmAPI(object):
 
         :param offset: [x, y, z, roll, pitch, yaw]
         :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian
+        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_tcp_offset(offset, is_radian=is_radian, **kwargs)
+        return self._arm.set_tcp_offset(offset, is_radian=is_radian, wait=wait, **kwargs)
 
     def set_tcp_jerk(self, jerk):
         """
@@ -1623,7 +1625,7 @@ class XArmAPI(object):
         """
         return self._arm.set_tcp_load(weight, center_of_gravity)
 
-    def set_collision_sensitivity(self, value):
+    def set_collision_sensitivity(self, value, wait=True):
         """
         Set the sensitivity of collision
 
@@ -1634,12 +1636,13 @@ class XArmAPI(object):
             4. The clean_conf interface can restore system default settings
 
         :param value: sensitivity value, 0~5
+        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_collision_sensitivity(value)
+        return self._arm.set_collision_sensitivity(value, wait=wait)
 
-    def set_teach_sensitivity(self, value):
+    def set_teach_sensitivity(self, value, wait=True):
         """
         Set the sensitivity of drag and teach
 
@@ -1650,12 +1653,13 @@ class XArmAPI(object):
             4. The clean_conf interface can restore system default settings
 
         :param value: sensitivity value, 1~5
+        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_teach_sensitivity(value)
+        return self._arm.set_teach_sensitivity(value, wait=wait)
 
-    def set_gravity_direction(self, direction):
+    def set_gravity_direction(self, direction, wait=True):
         """
         Set the direction of gravity
 
@@ -1666,10 +1670,11 @@ class XArmAPI(object):
             4. The clean_conf interface can restore system default settings
 
         :param direction: direction of gravity, such as [x(mm), y(mm), z(mm)]
+        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_gravity_direction(direction=direction)
+        return self._arm.set_gravity_direction(direction=direction, wait=wait)
 
     def set_mount_direction(self, base_tilt_deg, rotation_deg, is_radian=None):
         """

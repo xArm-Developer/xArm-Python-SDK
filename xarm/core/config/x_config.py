@@ -357,6 +357,7 @@ class XCONF(object):
         TGPIO_COM_TIOUT = 240
         TGPIO_COM_DATA = 241
 
+        FEEDBACK_CHECK = 253
         SET_FEEDBACK_TYPE = 254
 
     class UxbusConf:

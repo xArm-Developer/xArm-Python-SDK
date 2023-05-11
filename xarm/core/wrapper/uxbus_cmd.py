@@ -1317,3 +1317,7 @@ class UxbusCmd(object):
         if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
             self._feedback_type = feedback_type
         return ret
+    
+    def check_feedback(self, feedback_key=None):
+        ret = self.set_nu8(XCONF.UxbusReg.FEEDBACK_CHECK, [], 0, feedback_key=feedback_key, feedback_type=XCONF.FeedbackType.MOTION_FINISH)
+        return ret

@@ -2227,7 +2227,7 @@ class Base(BaseObject, Events):
         self._fb_transid_type_map[trans_id] = feedback_type
         self._fb_transid_result_map.pop(trans_id, -1)
     
-    def _wait_feedback(self, timeout=None, trans_id=-1):
+    def _wait_feedback(self, timeout=None, trans_id=-1, ignore_log=False):
         if timeout is not None:
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
@@ -2236,11 +2236,13 @@ class Base(BaseObject, Events):
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
                 self._fb_transid_result_map.clear()
-                self.log_api_info('wait_feedback, xarm is disconnect', code=APIState.NOT_CONNECTED)
+                if not ignore_log:
+                    self.log_api_info('wait_feedback, xarm is disconnect', code=APIState.NOT_CONNECTED)
                 return APIState.NOT_CONNECTED, -1
             if self.error_code != 0:
                 self._fb_transid_result_map.clear()
-                self.log_api_info('wait_feedback, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
+                if not ignore_log:
+                    self.log_api_info('wait_feedback, xarm has error, error={}'.format(self.error_code), code=APIState.HAS_ERROR)
                 return APIState.HAS_ERROR, -1
             code, state = self.get_state()
             if code != 0:
@@ -2251,7 +2253,8 @@ class Base(BaseObject, Events):
                     state5_cnt += 1
                 if state != 5 or state5_cnt >= 20:
                     self._fb_transid_result_map.clear()
-                    self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
+                    if not ignore_log:
+                        self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
                     return APIState.EMERGENCY_STOP, -1
             else:
                 state5_cnt = 0

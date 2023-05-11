@@ -790,12 +790,17 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_world_offset(self, offset, is_radian=None):
+    def set_world_offset(self, offset, is_radian=None, wait=True):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         assert isinstance(offset, Iterable) and len(offset) >= 6
         world_offset = [0] * 6
         for i in range(min(len(offset), 6)):
             world_offset[i] = to_radian(offset[i], is_radian or i <= 2)
+        if wait:
+            if self._support_feedback:
+                self.wait_all_task_finish()
+            else:
+                self.wait_move()
         ret = self.arm_cmd.set_world_offset(world_offset)
         self.log_api_info('API -> set_world_offset -> code={}, offset={}'.format(ret[0], world_offset), code=ret[0])
         return ret[0]
@@ -868,14 +873,17 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_tcp_offset(self, offset, is_radian=None, **kwargs):
+    def set_tcp_offset(self, offset, is_radian=None, wait=True, **kwargs):
         is_radian = self._default_is_radian if is_radian is None else is_radian
         assert isinstance(offset, Iterable) and len(offset) >= 6
         tcp_offset = [0] * 6
         for i in range(min(len(offset), 6)):
             tcp_offset[i] = to_radian(offset[i], is_radian or i <= 2)
-        if kwargs.get('wait', False):
-            self.wait_move()
+        if wait:
+            if self._support_feedback:
+                self.wait_all_task_finish()
+            else:
+                self.wait_move()
         ret = self.arm_cmd.set_tcp_offset(tcp_offset)
         self.log_api_info('API -> set_tcp_offset -> code={}, offset={}'.format(ret[0], tcp_offset), code=ret[0])
         return ret[0]
@@ -918,23 +926,38 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_collision_sensitivity(self, value):
+    def set_collision_sensitivity(self, value, wait=True):
         assert isinstance(value, int) and 0 <= value <= 5
+        if wait:
+            if self._support_feedback:
+                self.wait_all_task_finish()
+            else:
+                self.wait_move()
         ret = self.arm_cmd.set_collis_sens(value)
         self.log_api_info('API -> set_collision_sensitivity -> code={}, sensitivity={}'.format(ret[0], value), code=ret[0])
         return ret[0]
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_teach_sensitivity(self, value):
+    def set_teach_sensitivity(self, value, wait=True):
         assert isinstance(value, int) and 1 <= value <= 5
+        if wait:
+            if self._support_feedback:
+                self.wait_all_task_finish()
+            else:
+                self.wait_move()
         ret = self.arm_cmd.set_teach_sens(value)
         self.log_api_info('API -> set_teach_sensitivity -> code={}, sensitivity={}'.format(ret[0], value), code=ret[0])
         return ret[0]
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_gravity_direction(self, direction):
+    def set_gravity_direction(self, direction, wait=True):
+        if wait:
+            if self._support_feedback:
+                self.wait_all_task_finish()
+            else:
+                self.wait_move()
         ret = self.arm_cmd.set_gravity_dir(direction[:3])
         self.log_api_info('API -> set_gravity_direction -> code={}, direction={}'.format(ret[0], direction), code=ret[0])
         return ret[0]
@@ -1756,3 +1779,18 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         self._keep_heart = True
         self.log_api_info('API -> iden_joint_friction -> code={}'.format(ret[0]), code=ret[0])
         return self._check_code(ret[0]), 0 if int(ret[1]) == 0 else -1
+
+    @xarm_wait_until_not_pause
+    @xarm_wait_until_cmdnum_lt_max
+    @xarm_is_ready(_type='set')
+    def wait_all_task_finish(self, timeout=None, **kwargs):
+        if not self._support_feedback:
+            return APIState.CMD_NOT_EXIST
+        wait = kwargs.pop('wait', True)
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+        ret = self.arm_cmd.check_feedback(feedback_key=feedback_key)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+        ret[0] = self._check_code(ret[0])
+        if wait and ret[0] == 0:
+            return self._wait_feedback(timeout, trans_id=trans_id, ignore_log=True)[0]
+        return ret[0]

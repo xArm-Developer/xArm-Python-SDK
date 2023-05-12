@@ -3171,7 +3171,7 @@ xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_tcp_load__(self, weight, center_of_gravity):
+#### def __set_tcp_load__(self, weight, center_of_gravity, wait=False, **kwargs):
 
 > Set the end load of xArm  
 >   
@@ -3183,6 +3183,7 @@ xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrappe
 >   
 > :param weight: load weight (unit: kg)  
 > :param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]  
+> :param wait: whether to wait for the command to be executed or the the robotic arm to stop  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

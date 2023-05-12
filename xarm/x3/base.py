@@ -2459,13 +2459,18 @@ class Base(BaseObject, Events):
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
-    def set_tcp_load(self, weight, center_of_gravity):
+    def set_tcp_load(self, weight, center_of_gravity, wait=False, **kwargs):
         if compare_version(self.version_number, (0, 2, 0)):
             _center_of_gravity = center_of_gravity
         else:
             _center_of_gravity = [item / 1000.0 for item in center_of_gravity]
-        ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity)
+        feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+        ret = self.arm_cmd.set_tcp_load(weight, _center_of_gravity, feedback_key=feedback_key)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+        ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_tcp_load -> code={}, weight={}, center={}'.format(ret[0], weight, _center_of_gravity), code=ret[0])
+        if wait and ret[0] == 0:
+            return self.wait_move(None, trans_id=trans_id)
         return ret[0]
 
     def set_only_check_type(self, only_check_type):

@@ -1608,7 +1608,7 @@ class XArmAPI(object):
         """
         return self._arm.set_joint_maxacc(acc, is_radian=is_radian)
 
-    def set_tcp_load(self, weight, center_of_gravity):
+    def set_tcp_load(self, weight, center_of_gravity, wait=False, **kwargs):
         """
         Set the end load of xArm
 
@@ -1620,10 +1620,11 @@ class XArmAPI(object):
 
         :param weight: load weight (unit: kg)
         :param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]
+        :param wait: whether to wait for the command to be executed or the the robotic arm to stop
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_tcp_load(weight, center_of_gravity)
+        return self._arm.set_tcp_load(weight, center_of_gravity, wait=wait, **kwargs)
 
     def set_collision_sensitivity(self, value, wait=True):
         """

@@ -149,6 +149,47 @@ class UxbusCmdTcp(UxbusCmd):
             return ret
         return ret
 
+    def send_hex_request(self, send_data):
+        trans_id = int('0x' + str(send_data[0]) + str(send_data[1]), 16)
+        data_str = b''
+        for data in send_data:
+            data_str += bytes.fromhex(data)
+        send_data = data_str
+        self.arm_port.flush()
+        if self._debug:
+            debug_log_datas(send_data, label='send')
+        ret = self.arm_port.write(send_data)
+        if ret != 0:
+            return -1
+        return trans_id
+
+    def recv_hex_request(self, t_trans_id, timeout, t_prot_id=-1):
+        prot_id = 2
+        expired = time.monotonic() + timeout
+        while time.monotonic() < expired:
+            remaining = expired - time.monotonic()
+            rx_data = self.arm_port.read(remaining)
+            if rx_data == -1:
+                time.sleep(0.001)
+                continue
+            self._last_comm_time = time.monotonic()
+            if self._debug:
+                debug_log_datas(rx_data, label='recv')
+            code = self.check_protocol_header(rx_data, t_trans_id, prot_id, rx_data[6])
+            if code != 0:
+                if code != XCONF.UxbusState.ERR_NUM:
+                    return code
+                else:
+                    continue
+            break
+        if rx_data != -1 and len(rx_data) > 0:
+            recv_datas = []
+            for i in range(len(rx_data)):
+                recv_datas.append('{:x}'.format(rx_data[i]).zfill(2))
+            return recv_datas
+        else:
+            return rx_data if rx_data else 3
+
     ####################### Standard Modbus TCP API ########################
     @lock_require
     def __standard_modbus_tcp_request(self, pdu, unit_id=0x01):

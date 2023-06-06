@@ -58,7 +58,8 @@ HIGHLIGHT_BLOCKS = [
     'set_world_offset',
     'set_counter_reset',
     'set_counter_increase',
-
+    'set_collision_sensitivity',
+    
     'set_bio_gripper_init',
     'set_bio_gripper',
     'check_bio_gripper_is_catch',

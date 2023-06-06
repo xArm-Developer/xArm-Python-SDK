@@ -1626,7 +1626,7 @@ class XArmAPI(object):
         """
         return self._arm.set_tcp_load(weight, center_of_gravity, wait=wait, **kwargs)
 
-    def set_collision_sensitivity(self, value, wait=True):
+    def set_collision_sensitivity(self, value):
         """
         Set the sensitivity of collision
 
@@ -1641,7 +1641,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_collision_sensitivity(value, wait=wait)
+        return self._arm.set_collision_sensitivity(value)
 
     def set_teach_sensitivity(self, value, wait=True):
         """
@@ -3583,6 +3583,17 @@ class XArmAPI(object):
         """
         return self._arm.set_allow_approx_motion(on_off)
 
+    def get_allow_approx_motion(self):
+        """
+        Obtain whether to enable approximate solutions to avoid certain singularities
+        Note:
+            1. only available if firmware_version >= 1.9.0
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.get_allow_approx_motion()
+
     def get_joint_states(self, is_radian=None, num=3):
         """
         Get the joint states
@@ -3907,3 +3918,15 @@ class XArmAPI(object):
                 Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
         """
         return self._arm.mask_write_holding_register(r_addr, r_quantity, w_addr, w_regs, is_signed)
+
+    def send_hex_cmd(self, datas, **kwargs):
+        """
+        Hexadecimal communication protocol instruction
+
+        :param datas: Hexadecimal data_list
+        :param timeout: timeout: wait timeout, seconds, default is 10s.
+        :return : Hexadecimal data_list or code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+                Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+        """
+        return self._arm.send_hex_cmd(datas, **kwargs)

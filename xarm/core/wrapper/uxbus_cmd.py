@@ -394,7 +394,10 @@ class UxbusCmd(object):
 
     def set_allow_approx_motion(self, on_off):
         txdata = [int(on_off)]
-        return self.set_nu8(XCONF.UxbusReg.ALLOW_APPROX_MOTION, txdata, 1)
+        return self.set_nu8(XCONF.UxbusReg.SET_ALLOW_APPROX_MOTION, txdata, 1)
+
+    def get_allow_approx_motion(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_ALLOW_APPROX_MOTION, 1)
 
     def move_line(self, mvpose, mvvelo, mvacc, mvtime, only_check_type=0, motion_type=0):
         txdata = [mvpose[i] for i in range(6)]
@@ -1069,7 +1072,10 @@ class UxbusCmd(object):
 
     def get_power_board_version(self):
         return self.get_nu8(XCONF.UxbusReg.GET_PWR_VERSION, 6)
-
+    
+    def get_movement(self):
+        return self.get_nu8(XCONF.UxbusReg.GET_MOVEMENT, 1)
+    
     def vc_set_jointv(self, jnt_v, jnt_sync, duration=-1):
         additional_bytes = bytes([jnt_sync])
         if duration >= 0:

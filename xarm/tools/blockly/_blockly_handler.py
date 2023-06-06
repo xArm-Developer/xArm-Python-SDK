@@ -479,8 +479,9 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('    return', indent + 2)
 
     def _handle_set_collision_sensitivity(self, block, indent=0, arg_map=None):
-        value = self._get_node('value', root=block)
-        value = self._get_nodes('field', root=value, descendant=True)[0].text
+        # value = self._get_node('value', root=block)
+        # value = self._get_nodes('field', root=value, descendant=True)[0].text
+        value = self._get_field_value(block)[0]
         self._append_main_code('code = self._arm.set_collision_sensitivity({})'.format(value), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_collision_sensitivity\'):', indent + 2)
         self._append_main_code('    return', indent + 2)

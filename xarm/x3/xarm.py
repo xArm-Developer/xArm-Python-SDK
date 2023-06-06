@@ -926,14 +926,14 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_collision_sensitivity(self, value, wait=True):
+    def set_collision_sensitivity(self, value):
         assert isinstance(value, int) and 0 <= value <= 5
-        if wait:
-            if self._support_feedback:
-                self.wait_all_task_finish()
-            else:
-                self.wait_move()
+        if self._support_feedback:
+            self.wait_all_task_finish()
+        else:
+            self.wait_move()
         ret = self.arm_cmd.set_collis_sens(value)
+        self.set_state(0)
         self.log_api_info('API -> set_collision_sensitivity -> code={}, sensitivity={}'.format(ret[0], value), code=ret[0])
         return ret[0]
 
@@ -1635,6 +1635,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1:]
 
+    @xarm_is_connected(_type='get')
+    def get_movement(self):
+        ret = self.arm_cmd.get_movement()
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1]
+    
     @xarm_is_connected(_type='set')
     def vc_set_joint_velocity(self, speeds, is_radian=None, is_sync=True, check_mode=True, duration=-1):
         # if check_mode and not self._check_mode_is_correct(4):
@@ -1756,6 +1762,13 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         return ret[0]
 
     @xarm_is_connected(_type='get')
+    def get_allow_approx_motion(self):
+        ret = self.arm_cmd.get_allow_approx_motion()
+        ret[0] = self._check_code(ret[0])
+        self.log_api_info('API -> get_allow_approx_motion() -> code={}'.format(ret[0]), code=ret[0])
+        return ret[0], ret[-1]
+    
+    @xarm_is_connected(_type='get')
     def iden_joint_friction(self, sn=None):
         if sn is None:
             code, sn = self.get_robot_sn()
@@ -1794,3 +1807,13 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         if wait and ret[0] == 0:
             return self._wait_feedback(timeout, trans_id=trans_id, ignore_log=True)[0]
         return ret[0]
+
+    @xarm_wait_until_not_pause
+    @xarm_wait_until_cmdnum_lt_max
+    @xarm_is_ready(_type='set')
+    def send_hex_cmd(self, datas, timeout=10):
+        ret = self.arm_cmd.send_hex_request(datas)
+        if ret == -1:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        ret = self.arm_cmd.recv_hex_request(ret, timeout)
+        return ret

@@ -39,6 +39,7 @@ class XCONF(object):
             XARM6_X8 = 8
             XARM6_X9 = 9
             XARM6_X11 = 11
+            XARM6_X12 = 12
 
         JOINT_LIMITS = {
             Axis.XARM5: {
@@ -81,6 +82,14 @@ class XCONF(object):
                     (-2 * math.pi, 2 * math.pi),
                     (-2 * math.pi, 2 * math.pi),
                     (-1.692969, math.pi),
+                    (-2 * math.pi, 2 * math.pi),
+                ],
+                Type.XARM6_X12: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.6179938779914944, 2.6179938779914944),
+                    (-5.235987755982989, 0.061086523819801536),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.1642082724729685, 2.1642082724729685),
                     (-2 * math.pi, 2 * math.pi),
                 ],
 
@@ -158,6 +167,14 @@ class XCONF(object):
                     (-math.pi, math.pi),
                     (-math.pi, math.pi)
                 ],
+                Type.XARM6_X12: [
+                    (-1000, 1000),
+                    (-1000, 1000),
+                    (-400, 1300),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ],
             },
             Axis.XARM7: {
                 Type.XARM7_X3: [
@@ -207,6 +224,7 @@ class XCONF(object):
         RELOAD_DYNAMICS = 4
         GET_REPORT_TAU_OR_I = 5
         GET_TCP_ROTATION_RADIUS = 6
+        GET_ALLOW_APPROX_MOTION = 7
 
         SYSTEM_CONTROL = 10
         MOTION_EN = 11
@@ -270,9 +288,10 @@ class XCONF(object):
         LOAD_TRAJ = 63
         PLAY_TRAJ = 64
         GET_TRAJ_RW_STATUS = 65
-        ALLOW_APPROX_MOTION = 66
+        SET_ALLOW_APPROX_MOTION = 66
         GET_DH = 67
         SET_DH = 68
+        GET_MOVEMENT = 69
 
         REPORT_TAU_OR_I = 70
         SET_TIMER = 71

@@ -2255,6 +2255,15 @@ xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __get_allow_approx_motion__(self, on_off):
+
+> Obtain whether to enable approximate solutions to avoid certain singularities  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.9.0  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
 #### def __set_baud_checkset_enable__(self, enable):
 
 > Enable auto checkset the baudrate of the end IO board or not  
@@ -2407,7 +2416,7 @@ xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_collision_sensitivity__(self, value, wait=True):
+#### def __set_collision_sensitivity__(self, value):
 
 > Set the sensitivity of collision  
 >   
@@ -2417,8 +2426,7 @@ xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;3. The save_conf interface can record the current settings and will not be lost after the restart.  
 > &ensp;&ensp;&ensp;&ensp;4. The clean_conf interface can restore system default settings  
 >   
-> :param value: sensitivity value, 0~5  
-> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
+> :param value: sensitivity value, 0~5   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3498,3 +3506,13 @@ xArm-Python-SDK API Documentation (V1.13.3): class XArmAPI in module xarm.wrappe
 > :param bit_val: the value to write  
 > :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
+
+
+#### def __send_hex_cmd__(self, offset, is_radian=None, wait=True):
+
+> Set the base coordinate offset  
+>   
+> :param datas: Hexadecimal data_list  
+> :param timeout: wait timeout, seconds, default is 10s  
+> :return: Hexadecimal data_list or code 
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.

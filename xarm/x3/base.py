@@ -484,6 +484,10 @@ class Base(BaseObject, Events):
     @property
     def is_lite6(self):
         return self.axis == 6 and self.device_type == 9
+        
+    @property
+    def is_850(self):
+        return self.axis == 6 and self.device_type == 12
 
     @property
     def version(self):

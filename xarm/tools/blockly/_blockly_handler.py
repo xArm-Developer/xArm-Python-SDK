@@ -127,7 +127,25 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code = self._arm.set_position({}={}, radius={}, speed=self._tcp_speed, mvacc=self._tcp_acc, relative=True, wait={})'.format(param, value, radius, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
-
+    
+    def _handle_move_variable(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        orientation = fields[0].text
+        wait = fields[1].text == 'TRUE'
+        value = self._get_node('value', root=block)
+        value = self._get_block_val(value, arg_map=arg_map)
+        value = value if orientation == 'forward' or orientation == 'left' or orientation == 'up' else '-{}'.format(
+            value)
+        param = 'x' if orientation == 'forward' or orientation == 'backward' else 'y' if orientation == 'left' or orientation == 'right' else 'z' if orientation == 'up' or orientation == 'down' else None
+        if param is None:
+            return
+        radius = -1 if wait else 0
+        self._append_main_code(
+            'code = self._arm.set_position({}={}, radius={}, speed=self._tcp_speed, mvacc=self._tcp_acc, relative=True, wait={})'.format(
+                param, value, radius, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+    
     def _handle_move_arc_to(self, block, indent=0, arg_map=None):
         value = self._get_node('value', root=block)
         p_block = self._get_node('block', root=value)

@@ -272,9 +272,10 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('self._arm.emergency_stop()', indent + 2)
 
     def _handle_studio_run_traj(self, block, indent=0, arg_map=None):
-        filename = self._get_node('field', root=block).text
-        value = self._get_node('value', root=block)
-        times = self._get_nodes('field', root=value, descendant=True)[0].text
+        fields = self._get_nodes('field', root=block)
+        filename = fields[0].text
+        speed = fields[1].text
+        times = fields[2].text
         self._append_main_code('code = self._arm.playback_trajectory(times={}, filename=\'{}\', wait=True)'.format(times, filename), indent + 2)
         self._append_main_code('if not self._check_code(code, \'playback_trajectory\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
@@ -283,7 +284,8 @@ class _BlocklyHandler(_BlocklyBase):
         fields = self._get_nodes('field', root=block)
         filename = fields[0].text
         speed = fields[1].text
-        times = fields[2].text
+        value = self._get_node('value', root=block)
+        times = self._get_nodes('field', root=value, descendant=True)[0].text
         self._append_main_code('code = self._arm.playback_trajectory(times={}, filename=\'{}\', wait=True, double_speed={})'.format(times, filename, speed), indent + 2)
         self._append_main_code('if not self._check_code(code, \'playback_trajectory\'):', indent + 2)
         self._append_main_code('    return', indent + 2)

@@ -342,7 +342,7 @@ class UxbusCmd(object):
 
     def motion_en(self, axis_id, enable):
         txdata = [axis_id, int(enable)]
-        return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2, timeout=self._S_TOUT if self._S_TOUT >= 2 else 2)
+        return self.set_nu8(XCONF.UxbusReg.MOTION_EN, txdata, 2, timeout=self._S_TOUT if self._S_TOUT >= 5 else 5)
 
     def set_state(self, value):
         txdata = [value]

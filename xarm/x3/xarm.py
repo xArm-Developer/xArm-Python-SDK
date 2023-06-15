@@ -926,7 +926,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
 
     @xarm_wait_until_not_pause
     @xarm_is_connected(_type='set')
-    def set_collision_sensitivity(self, value):
+    def set_collision_sensitivity(self, value, wait=True):
         assert isinstance(value, int) and 0 <= value <= 5
         if self._support_feedback:
             self.wait_all_task_finish()

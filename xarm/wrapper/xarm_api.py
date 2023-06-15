@@ -1626,7 +1626,7 @@ class XArmAPI(object):
         """
         return self._arm.set_tcp_load(weight, center_of_gravity, wait=wait, **kwargs)
 
-    def set_collision_sensitivity(self, value):
+    def set_collision_sensitivity(self, value, wait=True):
         """
         Set the sensitivity of collision
 
@@ -1637,11 +1637,11 @@ class XArmAPI(object):
             4. The clean_conf interface can restore system default settings
 
         :param value: sensitivity value, 0~5
-        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
+        :param wait: reversed
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_collision_sensitivity(value)
+        return self._arm.set_collision_sensitivity(value, wait=wait)
 
     def set_teach_sensitivity(self, value, wait=True):
         """

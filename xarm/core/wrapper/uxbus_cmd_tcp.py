@@ -87,8 +87,8 @@ class UxbusCmdTcp(UxbusCmd):
         self._has_err_warn = False
         return 0
     
-    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1):
-        trans_id = self._transaction_id
+    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None):
+        trans_id = self._transaction_id if t_id is None else t_id
         prot_id = self._protocol_identifier if prot_id < 0 else prot_id
         send_data = convert.u16_to_bytes(trans_id)
         send_data += convert.u16_to_bytes(prot_id)
@@ -102,10 +102,11 @@ class UxbusCmdTcp(UxbusCmd):
         ret = self.arm_port.write(send_data)
         if ret != 0:
             return -1
-        self._transaction_id = self._transaction_id % TRANSACTION_ID_MAX + 1
+        if t_id is None:
+            self._transaction_id = self._transaction_id % TRANSACTION_ID_MAX + 1
         return trans_id
     
-    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1):
+    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False):
         prot_id = self._protocol_identifier if t_prot_id < 0 else t_prot_id
         ret = [0] * 320 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
@@ -126,8 +127,7 @@ class UxbusCmdTcp(UxbusCmd):
                     return ret
                 else:
                     continue
-            ret[0] = code
-            if prot_id != STANDARD_MODBUS_TCP_PROTOCOL:
+            if prot_id != STANDARD_MODBUS_TCP_PROTOCOL and not ret_raw:
                 # Private Modbus TCP Protocol
                 ret[0] = self.check_private_protocol(rx_data)
                 num = convert.bytes_to_u16(rx_data[4:6]) - 2
@@ -149,46 +149,46 @@ class UxbusCmdTcp(UxbusCmd):
             return ret
         return ret
 
-    def send_hex_request(self, send_data):
-        trans_id = int('0x' + str(send_data[0]) + str(send_data[1]), 16)
-        data_str = b''
-        for data in send_data:
-            data_str += bytes.fromhex(data)
-        send_data = data_str
-        self.arm_port.flush()
-        if self._debug:
-            debug_log_datas(send_data, label='send')
-        ret = self.arm_port.write(send_data)
-        if ret != 0:
-            return -1
-        return trans_id
+    # def send_hex_request(self, send_data):
+    #     trans_id = int('0x' + str(send_data[0]) + str(send_data[1]), 16)
+    #     data_str = b''
+    #     for data in send_data:
+    #         data_str += bytes.fromhex(data)
+    #     send_data = data_str
+    #     self.arm_port.flush()
+    #     if self._debug:
+    #         debug_log_datas(send_data, label='send')
+    #     ret = self.arm_port.write(send_data)
+    #     if ret != 0:
+    #         return -1
+    #     return trans_id
 
-    def recv_hex_request(self, t_trans_id, timeout, t_prot_id=-1):
-        prot_id = 2
-        expired = time.monotonic() + timeout
-        while time.monotonic() < expired:
-            remaining = expired - time.monotonic()
-            rx_data = self.arm_port.read(remaining)
-            if rx_data == -1:
-                time.sleep(0.001)
-                continue
-            self._last_comm_time = time.monotonic()
-            if self._debug:
-                debug_log_datas(rx_data, label='recv')
-            code = self.check_protocol_header(rx_data, t_trans_id, prot_id, rx_data[6])
-            if code != 0:
-                if code != XCONF.UxbusState.ERR_NUM:
-                    return code
-                else:
-                    continue
-            break
-        if rx_data != -1 and len(rx_data) > 0:
-            recv_datas = []
-            for i in range(len(rx_data)):
-                recv_datas.append('{:x}'.format(rx_data[i]).zfill(2))
-            return recv_datas
-        else:
-            return rx_data if rx_data else 3
+    # def recv_hex_request(self, t_trans_id, timeout, t_prot_id=-1):
+    #     prot_id = 2
+    #     expired = time.monotonic() + timeout
+    #     while time.monotonic() < expired:
+    #         remaining = expired - time.monotonic()
+    #         rx_data = self.arm_port.read(remaining)
+    #         if rx_data == -1:
+    #             time.sleep(0.001)
+    #             continue
+    #         self._last_comm_time = time.monotonic()
+    #         if self._debug:
+    #             debug_log_datas(rx_data, label='recv')
+    #         code = self.check_protocol_header(rx_data, t_trans_id, prot_id, rx_data[6])
+    #         if code != 0:
+    #             if code != XCONF.UxbusState.ERR_NUM:
+    #                 return code
+    #             else:
+    #                 continue
+    #         break
+    #     if rx_data != -1 and len(rx_data) > 0:
+    #         recv_datas = []
+    #         for i in range(len(rx_data)):
+    #             recv_datas.append('{:x}'.format(rx_data[i]).zfill(2))
+    #         return recv_datas
+    #     else:
+    #         return rx_data if rx_data else 3
 
     ####################### Standard Modbus TCP API ########################
     @lock_require

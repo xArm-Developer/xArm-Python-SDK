@@ -1815,8 +1815,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     def send_hex_cmd(self, datas, timeout=10):
-        ret = self.arm_cmd.send_hex_request(datas)
-        if ret == -1:
-            return [XCONF.UxbusState.ERR_NOTTCP]
-        ret = self.arm_cmd.recv_hex_request(ret, timeout)
-        return ret
+        ret = self.arm_cmd.send_hex_cmd(datas, timeout)
+        return ret[1:]
+        # ret = self.arm_cmd.send_hex_request(datas)
+        # if ret == -1:
+        #     return [XCONF.UxbusState.ERR_NOTTCP]
+        # ret = self.arm_cmd.recv_hex_request(ret, timeout)
+        # return ret

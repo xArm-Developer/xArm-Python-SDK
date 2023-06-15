@@ -72,10 +72,10 @@ class UxbusCmd(object):
     def set_debug(self, debug):
         self._debug = debug
     
-    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1):
+    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None):
         raise NotImplementedError
     
-    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1):
+    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False):
         raise NotImplementedError
 
     @lock_require
@@ -1327,3 +1327,27 @@ class UxbusCmd(object):
     def check_feedback(self, feedback_key=None):
         ret = self.set_nu8(XCONF.UxbusReg.FEEDBACK_CHECK, [], 0, feedback_key=feedback_key, feedback_type=XCONF.FeedbackType.MOTION_FINISH)
         return ret
+    
+    @lock_require
+    def send_hex_cmd(self, datas, timeout=10):
+        if len(datas) < 7:
+            # datas length error
+            return [-2]
+        trans_id = int('{}{}'.format(datas[0], datas[1]), base=16)
+        prot_id = int('{}{}'.format(datas[2], datas[3]), base=16)
+        if prot_id not in [0, 2, 3]:
+            # protocol_identifier error, only support 0/2/3, 
+            #   0: standard modbus protocol
+            #   2: private modbus protocol
+            #   3: private modbus protocol (with heart beat)
+            return [-3]
+        length = int('{}{}'.format(datas[4], datas[5]), base=16)
+        if length != len(datas) - 6:
+            # protocol length data error
+            return [-4]
+        unit_id = int('{}'.format(datas[6]), base=16)
+        pdu_data = bytes.fromhex('{}'.format(''.join(map(str, datas[7:]))))
+        ret = self.send_modbus_request(unit_id, pdu_data, len(pdu_data), prot_id=prot_id, t_id=trans_id)
+        if ret == -1:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.recv_modbus_response(unit_id, ret, -1, timeout, t_prot_id=prot_id, ret_raw=True)

@@ -62,7 +62,7 @@ class UxbusCmdSer(UxbusCmd):
             self._has_err_warn = False
             return 0
     
-    def send_modbus_request(self, reg, txdata, num, prot_id=-1):
+    def send_modbus_request(self, reg, txdata, num, prot_id=-1, t_id=None):
         send_data = bytes([self.fromid, self.toid, num + 1, reg])
         for i in range(num):
             send_data += bytes([txdata[i]])
@@ -72,7 +72,7 @@ class UxbusCmdSer(UxbusCmd):
             debug_log_datas(send_data, label='send')
         return self.arm_port.write(send_data)
     
-    def recv_modbus_response(self, t_funcode, t_trans_id, num, timeout, t_prot_id=-1):
+    def recv_modbus_response(self, t_funcode, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False):
         ret = [0] * 254 if num == -1 else [0] * (num + 1)
         expired = time.monotonic() + timeout
         ret[0] = XCONF.UxbusState.ERR_TOUT

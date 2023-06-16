@@ -276,7 +276,7 @@ class _BlocklyHandler(_BlocklyBase):
         filename = fields[0].text
         speed = fields[1].text
         times = fields[2].text
-        self._append_main_code('code = self._arm.playback_trajectory(times={}, filename=\'{}\', wait=True)'.format(times, filename), indent + 2)
+        self._append_main_code('code = self._arm.playback_trajectory(times={}, filename=\'{}\', wait=True, double_speed={})'.format(times, filename, speed), indent + 2)
         self._append_main_code('if not self._check_code(code, \'playback_trajectory\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 

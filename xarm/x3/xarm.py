@@ -1728,6 +1728,13 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
 
     @xarm_is_connected(_type='set')
     def get_max_joint_velocity(self, eveloc, joint_pos, is_radian=None):
+        """
+        Obtain maximum joint angular velocity
+        :param eveloc: Maximum TCP speed
+        :param joint_pos: joint angle list (unit: rad if is_radian is True else °), angle should be a list of values
+            whose length is the number of joints like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
+        :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
+        """
         is_radian = self._default_is_radian if is_radian is None else is_radian
         joints = [0] * 7
         for i in range(min(len(joint_pos), 7)):

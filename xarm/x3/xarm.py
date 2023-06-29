@@ -1815,7 +1815,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         trans_id = self._get_feedback_transid(feedback_key, studio_wait)
         ret[0] = self._check_code(ret[0])
         if wait and ret[0] == 0:
-            return self._wait_feedback(timeout, trans_id=trans_id, ignore_log=True)[0]
+            ret[0] = self._wait_feedback(timeout, trans_id=trans_id, ignore_log=True)[0]
+            if ret[0] == 0:
+                time.sleep(0.5)
         return ret[0]
 
     @xarm_wait_until_not_pause

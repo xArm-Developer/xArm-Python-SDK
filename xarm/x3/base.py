@@ -30,7 +30,11 @@ if not hasattr(math, 'inf'):
     setattr(math, 'inf', float('inf'))
 from .events import Events
 from ..core.config.x_config import XCONF
-from ..core.comm import SerialPort, SocketPort
+from ..core.comm import SocketPort
+try:
+    from ..core.comm import SerialPort
+except:
+    SerialPort = None 
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, pretty_print
 from ..core.utils import convert

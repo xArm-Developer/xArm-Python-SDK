@@ -4,13 +4,12 @@
 xArm Python SDK
 
 ## Caution
-- During use, people should stay away from the robot arm to avoid accidental injury or damage to other items by the robot arm.
-- Protect the arm before use.
-- Before you exercise, please make sure you don't encounter obstacles.
-- Protect the arm before unlocking the motor.
+- Please keep away from the robot arm to avoid personal injury or equipment damage.
+- Make sure to do a safety assessment before moving to prevent collisions.
+- Protect the arm before unlocking the joint.
 
 ## Installation
-Install is not necessary, you can run examples without installation.Only Python3 is supported.
+&ensp;&ensp;you can run examples without installation.Only Python3 is supported.
 - download
 
   ```bash
@@ -57,7 +56,7 @@ Install is not necessary, you can run examples without installation.Only Python3
 
 ## [Example](example/wrapper/)
 
-__Note: Before running the example, please modify the ip value in the [robot.conf](example/wrapper/robot.conf) file to the robot arm you want to control.__
+&ensp;&ensp; __Before running the example, please modify the IP in [robot.conf](example/wrapper/robot.conf) to corresponding IP you want to control.__
 
 - #### [0000-template](example/wrapper/common/0000-template.py)
 

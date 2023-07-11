@@ -726,10 +726,12 @@ class UxbusCmd(object):
 
     def tgpio_get_digital(self):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
-        value = [0] * 3
+        value = [0] * 5
         value[0] = ret[0]
         value[1] = ret[1] & 0x0001
         value[2] = (ret[1] & 0x0002) >> 1
+        value[3] = (ret[1] & 0x0004) >> 2
+        value[4] = (ret[1] & 0x0008) >> 3
         return value
 
     def tgpio_set_digital(self, ionum, value):
@@ -742,6 +744,14 @@ class UxbusCmd(object):
             tmp = tmp | 0x0200
             if value:
                 tmp = tmp | 0x0002
+        elif ionum == 4:
+            tmp = tmp | 0x0400
+            if value:
+                tmp = tmp | 0x0004
+        elif ionum == 5:
+            tmp = tmp | 0x0800
+            if value:
+                tmp = tmp | 0x0008
         else:
             return [-1, -1]
         return self.tgpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp)

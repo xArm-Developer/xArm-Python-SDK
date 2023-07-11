@@ -79,7 +79,7 @@ class GPIO(Base):
 
     @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
-        assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2, 'The value of parameter ionum can only be 0 or 1 or None.'
+        assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
         if self.check_is_simulation_robot():
             return 0, [0, 0] if ionum is None else 0
         if ionum == 2:
@@ -90,16 +90,16 @@ class GPIO(Base):
             ret = self.arm_cmd.tgpio_get_digital()
             if ret[0] == 0:
                 self.tgpio_state['digital'] = ret[1:]
-            return ret[0], ret[1:] if ionum is None else ret[ionum+1]
+            return ret[0], ret[1:] if ionum is None else ret[ionum+1 if ionum < 3 else ionum]
 
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     def set_tgpio_digital(self, ionum, value, delay_sec=0):
-        assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
+        assert ionum == 0 or ionum == 1 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1.'
         if delay_sec is not None and delay_sec > 0:
-            ret = self.arm_cmd.tgpio_delay_set_digital(ionum, value, delay_sec)
+            ret = self.arm_cmd.tgpio_delay_set_digital(ionum if ionum < 2 else ionum-1, value, delay_sec)
             self.log_api_info('API -> set_tgpio_digital(ionum={}, value={}, delay_sec={}) -> code={}'.format(ionum, value, delay_sec, ret[0]), code=ret[0])
         else:
             ret = self.arm_cmd.tgpio_set_digital(ionum+1, value)

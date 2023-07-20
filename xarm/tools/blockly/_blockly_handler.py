@@ -118,8 +118,8 @@ class _BlocklyHandler(_BlocklyBase):
     def _handle_move(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
         orientation = fields[0].text
-        wait = fields[1].text == 'TRUE'
-        value = fields[2].text if orientation == 'forward' or orientation == 'left' or orientation == 'up' else '-{}'.format(fields[2].text)
+        value = fields[1].text if orientation == 'forward' or orientation == 'left' or orientation == 'up' else '-{}'.format(fields[1].text)
+        wait = fields[2].text == 'TRUE'
         param = 'x' if orientation == 'forward' or orientation == 'backward' else 'y' if orientation == 'left' or orientation == 'right' else 'z' if orientation == 'up' or orientation == 'down' else None
         if param is None:
             return

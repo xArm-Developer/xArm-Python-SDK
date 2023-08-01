@@ -217,7 +217,7 @@ class Base(BaseObject, Events):
 
             self._is_reduced_mode = 0
             self._is_fence_mode = 0
-            self._is_report_current_ = 0  # 针对get_report_tau_or_i的结果
+            self._is_report_current = 0  # 针对get_report_tau_or_i的结果
             self._is_approx_motion = 0
             self._is_cart_continuous = 0
 
@@ -342,7 +342,7 @@ class Base(BaseObject, Events):
 
         self._is_reduced_mode = 0
         self._is_fence_mode = 0
-        self._is_report_current_ = 0  # 针对get_report_tau_or_i的结果
+        self._is_report_current = 0  # 针对get_report_tau_or_i的结果
         self._is_approx_motion = 0
         self._is_cart_continuous = 0
 
@@ -743,7 +743,7 @@ class Base(BaseObject, Events):
     
     @property
     def is_report_current(self):
-        return self._is_report_current_ != 0  # 针对get_report_tau_or_i的结果
+        return self._is_report_current != 0  # 针对get_report_tau_or_i的结果
     
     @property
     def is_approx_motion(self):
@@ -1786,7 +1786,7 @@ class Base(BaseObject, Events):
             if length >= 495:
                 self._is_reduced_mode = rx_data[494] & 0x01
                 self._is_fence_mode = (rx_data[494] >> 1) & 0x01
-                self._is_report_current_ = (rx_data[494] >> 2) & 0x01  # 针对get_report_tau_or_i的结果
+                self._is_report_current = (rx_data[494] >> 2) & 0x01  # 针对get_report_tau_or_i的结果
                 self._is_approx_motion = (rx_data[494] >> 3) & 0x01
                 self._is_cart_continuous = (rx_data[494] >> 4) & 0x01
 

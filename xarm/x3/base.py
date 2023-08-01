@@ -215,6 +215,12 @@ class Base(BaseObject, Events):
             self._collision_tool_params = [0, 0, 0, 0, 0, 0]
             self._is_simulation_robot = False
 
+            self._is_reduced_mode = 0
+            self._is_fence_mode = 0
+            self._is_report_current_ = 0  # 针对get_report_tau_or_i的结果
+            self._is_approx_motion = 0
+            self._is_cart_continuous = 0
+
             self._last_update_err_time = 0
             self._last_update_state_time = 0
             self._last_update_cmdnum_time = 0
@@ -333,6 +339,12 @@ class Base(BaseObject, Events):
         self._collision_tool_type = 0
         self._collision_tool_params = [0, 0, 0, 0, 0, 0]
         self._is_simulation_robot = False
+
+        self._is_reduced_mode = 0
+        self._is_fence_mode = 0
+        self._is_report_current_ = 0  # 针对get_report_tau_or_i的结果
+        self._is_approx_motion = 0
+        self._is_cart_continuous = 0
 
         self._last_update_err_time = 0
         self._last_update_state_time = 0
@@ -720,6 +732,26 @@ class Base(BaseObject, Events):
     @property
     def self_collision_params(self):
         return [self._is_collision_detection, self._collision_tool_type, self._collision_tool_params]
+
+    @property
+    def is_reduced_mode(self):
+        return self._is_reduced_mode != 0
+    
+    @property
+    def is_fence_mode(self):
+        return self._is_fence_mode != 0
+    
+    @property
+    def is_report_current(self):
+        return self._is_report_current_ != 0  # 针对get_report_tau_or_i的结果
+    
+    @property
+    def is_approx_motion(self):
+        return self._is_approx_motion != 0
+
+    @property
+    def is_cart_continuous(self):
+        return self._is_cart_continuous != 0
 
     @property
     def ft_ext_force(self):
@@ -1751,6 +1783,12 @@ class Base(BaseObject, Events):
                 for i in range(len(pose_aa)):
                     pose_aa[i] = filter_invaild_number(pose_aa[i], 6, default=self._pose_aa[i])
                 self._pose_aa = self._position[:3] + pose_aa
+            if length >= 495:
+                self._is_reduced_mode = rx_data[494] & 0x01
+                self._is_fence_mode = (rx_data[494] >> 1) & 0x01
+                self._is_report_current_ = (rx_data[494] >> 2) & 0x01  # 针对get_report_tau_or_i的结果
+                self._is_approx_motion = (rx_data[494] >> 3) & 0x01
+                self._is_cart_continuous = (rx_data[494] >> 4) & 0x01
 
         try:
             if self._report_type == 'real':

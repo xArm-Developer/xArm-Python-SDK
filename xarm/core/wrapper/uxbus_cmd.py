@@ -744,6 +744,10 @@ class UxbusCmd(object):
             tmp = tmp | 0x0200
             if value:
                 tmp = tmp | 0x0002
+        elif ionum == 3:
+            tmp = tmp | 0x1000
+            if value:
+                tmp = tmp | 0x0010
         elif ionum == 4:
             tmp = tmp | 0x0400
             if value:

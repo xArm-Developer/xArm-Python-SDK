@@ -140,3 +140,59 @@ class BaseBoard(Base):
                     return code, None
             conf.append(vl)
         return code, conf
+        
+    @xarm_is_connected(_type='set')
+    def write_poe_to_end(self, datas, servo_id=9):
+        cmds1 = [0x0E00, 0x0E0C, 0x0E18, 0x0E24, 0x0E30, 0x0E3C, 0x0E48]
+        cmds2 = 0x0F00
+        code = 0
+        if datas:
+            joints, homes = datas
+            for i, data in enumerate(joints):
+                for j, d in enumerate(data):
+                    ret = self.arm_cmd.tgpio_addr_w32(addr=(cmds1[i] + (2 * j)) | 0x1000, value=d, bid=servo_id)
+                    time.sleep(0.1)
+                    code = ret[0]
+                    if code != 0:
+                        return code
+            for i, data in enumerate(homes):
+                for j, d in enumerate(data):
+                    ret = self.arm_cmd.tgpio_addr_w32(addr=(cmds2 + (2 * (i * len(data) + j))) | 0x1000, value=d, bid=servo_id)
+                    time.sleep(0.1)
+                    code = ret[0]
+                    if code != 0:
+                        return code
+            return code
+        else:
+            return 1
+
+    @xarm_is_connected(_type='get')
+    def read_poe_from_end(self, servo_id=9):
+        cmds = [0x0E00, 0x0E0C, 0x0E18, 0x0E24, 0x0E30, 0x0E3C, 0x0E48]
+        cmds2 = 0x0F00
+        code = 0
+        conf = []
+        joints_conf = []
+        homes_conf = []
+        for i in range(7):
+            vl = []
+            for j in range(6):
+                ret = self.arm_cmd.tgpio_addr_r32(cmds[i] + (2 * j), servo_id, fmt='>f')
+                time.sleep(0.01)
+                vl.append(ret[1])
+                code = ret[0]
+                if code != 0:
+                    return code, None
+            joints_conf.append(vl)
+        for i in range(4):
+            vl = []
+            for j in range(4):
+                ret = self.arm_cmd.tgpio_addr_r32(cmds2 + 2 * (i * 4 + j), servo_id, fmt='>f')
+                time.sleep(0.01)
+                vl.append(ret[1])
+                code = ret[0]
+                if code != 0:
+                    return code, None
+            homes_conf.append(vl)
+        conf = [joints_conf, homes_conf]
+        return code, conf

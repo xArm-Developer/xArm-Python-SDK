@@ -25,6 +25,11 @@ class BlocklyTool(_BlocklyHandler):
             self._is_exec = kwargs.get('is_exec', False)
             # highlight_callback: only use pack to run blockly in studio
             self._highlight_callback = kwargs.get('highlight_callback', None)
+            # axis_type: Obtain the type of mechanical arm axis for end leveling use
+            if 'axis_type' in kwargs:
+                self.axis_type = kwargs.get('axis_type', [])
+            else:
+                self.axis_type = []
             # loop_max_frequency: limit frequency in loop, only use pack to run blockly in studio
             if 'loop_max_frequency' in kwargs:
                 loop_max_freq = kwargs.get('loop_max_frequency', -1)

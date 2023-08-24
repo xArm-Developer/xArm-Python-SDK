@@ -76,7 +76,7 @@ class GPIO(Base):
         #             versions = [ret1[1], ret2[1], ret3[1]]
 
         return code, '.'.join(map(str, versions))
-
+    
     @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
@@ -91,7 +91,21 @@ class GPIO(Base):
             if ret[0] == 0:
                 self.tgpio_state['digital'] = ret[1:]
             return ret[0], ret[1:] if ionum is None else ret[ionum+1 if ionum < 3 else ionum]
-
+    
+    @xarm_is_connected(_type='get')
+    def get_tgpio_output_digital(self, ionum=None):
+        ret_li = [0, 0, 0, 0, 0]
+        assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
+        if self.check_is_simulation_robot():
+            return 0, [0, 0] if ionum is None else 0
+        code, ret = self.arm_cmd.tgpio_addr_r16(0x0A18)
+        ret_li[0] = ret & 0b01
+        ret_li[1] = ret >> 1 & 0b01
+        ret_li[2] = ret >> 4 & 0b01
+        ret_li[3] = ret >> 2 & 0b01
+        ret_li[4] = ret >> 3 & 0b01
+        return code, ret_li if ionum is None else ret_li[ionum]
+    
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')

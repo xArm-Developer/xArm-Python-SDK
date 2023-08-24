@@ -592,6 +592,16 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('if not self._check_code(code, \'set_gripper_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
         
+    def _handle_gripper_set_variable(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        wait = fields[0].text == 'TRUE'
+        values = self._get_nodes('value', root=block)
+        pos = self._get_block_val(values[0], arg_map)
+        speed = self._get_block_val(values[1], arg_map)
+        self._append_main_code('code = self._arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True)'.format(pos, wait, speed), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_gripper_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+        
     def _handle_gripper_set_status(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block, name='status')
         status = True if fields[0].text == 'TRUE' else False
@@ -966,7 +976,6 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('if not self._check_code(code, \'set_linear_track_back_origin\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
-
     def _handle_python_code(self, block, indent=0, arg_map=None, **kwargs):
         self._append_main_code('##### Python code #####', indent + 2)
         text = self._get_field_value(block)
@@ -986,3 +995,23 @@ class _BlocklyHandler(_BlocklyBase):
                 self._append_main_code(code_indent + 'return', indent + 3)
             self._append_main_code(code, indent + 2)
         self._append_main_code('#######################', indent + 2)
+        
+    def _handle_set_end_level(self, block, indent=0, arg_map=None, **kwargs):
+        if not self.axis_type:
+            return 
+        self._append_main_code('current_angle = self._arm.angles', indent + 2)
+        if self.axis_type[0] == 5:
+            self._append_main_code('angle = -(current_angle[1] + current_angle[2])', indent + 2)
+            self._append_main_code('code = self._arm.set_servo_angle(servo_id=4, angle=angle)', indent + 2,)
+        elif self.axis_type[0] == 6:
+            self._append_main_code('angle_5 = {}'.format('-(current_angle[1] - current_angle[2])' if self.axis_type[1]==9 or self.axis_type[1]==12 else
+                                                       '-(current_angle[1] + current_angle[2])'), indent + 2)
+            self._append_main_code('angles = [*current_angle[:3],0,angle_5,current_angle[5]]', indent + 2)
+            self._append_main_code('code = self._arm.set_servo_angle(angle=angles)', indent + 2)
+        elif self.axis_type[0] == 7:
+            self._append_main_code('code, ret = self._arm.get_inverse_kinematics(pose=[*current_angle[:3], 180, 0, current_angle[5]])', indent + 2)
+            self._append_main_code('if not self._check_code(code, \'set_end_level\'):', indent + 2)
+            self._append_main_code('    return', indent + 2)
+            self._append_main_code('code = self._arm.set_servo_angle(angle=ret)', indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_end_level\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)

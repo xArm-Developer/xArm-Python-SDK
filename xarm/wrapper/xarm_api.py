@@ -1852,7 +1852,17 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.clean_gripper_error(**kwargs)
+    
+    def get_tgpio_output_digital(self, ionum=None):
+        """
+        Get the digital value of the specified Tool GPIO output
 
+        :param ionum: 0 or 1 or 2 or 3 or 4 or None(both 0 and 1 and 2 and 3 and 4), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.get_tgpio_output_digital(ionum)
+    
     def get_tgpio_digital(self, ionum=None):
         """
         Get the digital value of the specified Tool GPIO

@@ -1,0 +1,32 @@
+ctrs, hier = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+# cnts = grab_contours(cnts)
+# digitCnts = []
+# # loop over the digit area candidates
+# for c in cnts:
+# 	# compute the bounding box of the contour
+# 	(x, y, w, h) = cv2.boundingRect(c)
+# 	# if the contour is sufficiently large, it must be a digit
+# 	if w >= 15 and (h >= 30 and h <= 40):
+# 		digitCnts.append(c)
+
+# sort contours
+sorted_ctrs = sorted(ctrs, key=lambda ctr: cv2.boundingRect(ctr)[0])
+
+for i, ctr in enumerate(sorted_ctrs):
+    # Get bounding box
+    x, y, w, h = cv2.boundingRect(ctr)
+
+    # Getting ROI
+    roi = thresh[y:y + h, x:x + w]
+
+    # show ROI
+    # cv2.imshow('segment no:'+str(i),roi)
+    cv2.rectangle(thresh, (x, y), (x + w, y + h), (255, 255, 255), 1)
+    # cv2.waitKey(0)
+
+    # save only the ROI's which contain a valid information
+    if w >= 15 and (h >= 30 and h <= 40): # how do i know this?
+        cv2.imwrite('roi{}.png'.format(i), roi)
+
+cv2.imshow('marked areas', thresh)
+# save images

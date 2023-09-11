@@ -744,6 +744,26 @@ ControllerErrorCodeMap = {
             'desc': '请调整点位。'
         }
     },
+    41: {
+        'en': {
+            'title': 'The content of the friction file is invalid.',
+            'desc': 'Please restart the robot with the Emergency Stop Button on the Control Box. If multiple reboots do not work, please contact technical support.'
+        },
+        'cn': {
+            'title': '摩擦力文件内容无效。',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持'
+        }
+    },
+    42: {
+        'en': {
+            'title': 'The content of the calibration file is invalid.',
+            'desc': 'Please restart the robot with the Emergency Stop Button on the Control Box. If multiple reboots do not work, please contact technical support.'
+        },
+        'cn': {
+            'title': '校准文件内容无效。',
+            'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持'
+        }
+    },
     50: {
         'en': {
             'title': 'Six-axis Force Torque Sensor read error',

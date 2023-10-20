@@ -139,6 +139,7 @@ class UxbusCmdTcp(UxbusCmd):
                     ret[i + 1] = rx_data[i + 8]       
             else:
                 # Standard Modbus TCP Protocol
+                ret[0] = 0
                 num = convert.bytes_to_u16(rx_data[4:6]) + 6
                 ret = ret[:num + 1] if len(ret) >= num + 1 else [ret[0]] * (num + 1)
                 length = len(rx_data)

@@ -12,6 +12,7 @@ import time
 import math
 import uuid
 import queue
+import struct
 import threading
 try:
     from multiprocessing.pool import ThreadPool
@@ -1720,7 +1721,8 @@ class Base(BaseObject, Events):
             # length = convert.bytes_to_u32(rx_data[0:4])
             length = len(rx_data)
             if length >= 252:
-                temperatures = list(map(int, rx_data[245:252]))
+                temperatures = list(struct.unpack('>7b', struct.pack('>7B', *rx_data[245:252])))
+                # temperatures = list(map(int, rx_data[245:252]))
                 if temperatures != self.temperatures:
                     self._temperatures = temperatures
                     self._report_temperature_changed_callback()

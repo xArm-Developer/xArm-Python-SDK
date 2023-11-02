@@ -156,7 +156,7 @@
     | 32 | 0x20 | Robot Mode |
     | 33 | 0x21 | Robot State |
     | 34 ~ 47 | 0x22 ~ 0x2F | Reserved |
-    | 38 ~ 63 | 0x30 ~ 0x3F | Offline (Blockly) Task (__only effective by writing multiple (max 16) holding registers to address 0x30 via function code 0x10, each register value correspond to one Blockly project with specific naming convention, for example: value 1 for project '00001', 12 for project '00012', projects will be executed automatically in order__) |
+    | 48 ~ 63 | 0x30 ~ 0x3F | Offline (Blockly) Task (__only effective by writing multiple (max 16) holding registers to address 0x30 via function code 0x10, each register value correspond to one Blockly project with specific naming convention, for example: value 1 for project '00001', 12 for project '00012', projects will be executed automatically in order__) |
     | 64 ~ 255 | 0x40 ~ 0xFF | Reserved |
     | 256 ~ 511 | 0x100 ~ 0x1FF | General purpose, user defined |
 

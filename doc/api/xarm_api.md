@@ -563,7 +563,7 @@ __get_checkset_default_baud__ = <function XArmAPI.get_checkset_default_baud>
 __get_cmd_mat_history_num__ = <function XArmAPI.get_cmd_mat_history_num>
 > Get cmd mat history num  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :return: tuple((code, num)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -585,7 +585,7 @@ __get_cmdnum__ = <function XArmAPI.get_cmdnum>
 __get_collision_error_info__ = <function XArmAPI.get_collision_error_info>
 > Get collision error info  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -629,7 +629,7 @@ __get_err_warn_code__ = <function XArmAPI.get_err_warn_code>
 __get_fdb_mat_history_num__ = <function XArmAPI.get_fdb_mat_history_num>
 > Get fdb mat history num  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :return: tuple((code, num)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -842,7 +842,7 @@ __get_joints_torque__ = <function XArmAPI.get_joints_torque>
 __get_linear_spd_limit_factor__ = <function XArmAPI.get_linear_spd_limit_factor>
 > Get linear speed limit factor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :return: tuple((code, factor)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -985,7 +985,7 @@ __get_mount_direction__ = <function XArmAPI.get_mount_direction>
 __get_payload_error_info__ = <function XArmAPI.get_payload_error_info>
 > Get payload error info  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -998,7 +998,7 @@ __get_payload_error_info__ = <function XArmAPI.get_payload_error_info>
 __get_poe_status__ = <function XArmAPI.get_poe_status>
 > Get poe status  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :return: tuple((code, status)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -1220,7 +1220,7 @@ __get_tgpio_modbus_baudrate__ = <function XArmAPI.get_tgpio_modbus_baudrate>
 __get_tgpio_modbus_timeout__ = <function XArmAPI.get_tgpio_modbus_timeout>
 > Get tgpio modbus timeout  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
 > :param is_transparent_transmission: is transparent transmission or not  
 > :return: tuple((code, timeout)), only when code is 0, the returned result is correct.  
@@ -2351,8 +2351,9 @@ __set_checkset_default_baud__ = <function XArmAPI.set_checkset_default_baud>
 __set_cmd_mat_history_num__ = <function XArmAPI.set_cmd_mat_history_num>
 > Set cmd mat history num  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
+> :param num: history num  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 
@@ -2464,8 +2465,9 @@ __set_dh_params__ = <function XArmAPI.set_dh_params>
 __set_fdb_mat_history_num__ = <function XArmAPI.set_fdb_mat_history_num>
 > Set fdb mat history num  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
 >   
+> :param num: history num  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 
@@ -2693,9 +2695,10 @@ __set_joint_maxacc__ = <function XArmAPI.set_joint_maxacc>
 __set_linear_spd_limit_factor__ = <function XArmAPI.set_linear_spd_limit_factor>
 > Set linear speed limit factor (default is 1.2)  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version > 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.3.0  
 > &ensp;&ensp;&ensp;&ensp;2. only available in mode 1  
 >   
+> :param factor: speed limit factor  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 

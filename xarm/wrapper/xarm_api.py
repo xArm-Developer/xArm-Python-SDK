@@ -3947,9 +3947,10 @@ class XArmAPI(object):
         """
         Set linear speed limit factor (default is 1.2)
         Note:
-            1. only available if firmware_version > 2.3.0
+            1. only available if firmware_version >= 2.3.0
             2. only available in mode 1
 
+        :param factor: speed limit factor
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -3959,8 +3960,9 @@ class XArmAPI(object):
         """
         Set cmd mat history num
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
+        :param num: history num
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -3970,8 +3972,9 @@ class XArmAPI(object):
         """
         Set fdb mat history num
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
+        :param num: history num
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -3981,7 +3984,7 @@ class XArmAPI(object):
         """
         Get linear speed limit factor
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :return: tuple((code, factor)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -3993,7 +3996,7 @@ class XArmAPI(object):
         """
         Get cmd mat history num
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :return: tuple((code, num)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4005,7 +4008,7 @@ class XArmAPI(object):
         """
         Get fdb mat history num
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :return: tuple((code, num)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4017,7 +4020,7 @@ class XArmAPI(object):
         """
         Get tgpio modbus timeout
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :param is_transparent_transmission: is transparent transmission or not
         :return: tuple((code, timeout)), only when code is 0, the returned result is correct.
@@ -4033,7 +4036,7 @@ class XArmAPI(object):
         """
         Get poe status
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :return: tuple((code, status)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4045,7 +4048,7 @@ class XArmAPI(object):
         """
         Get collision error info
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4057,7 +4060,7 @@ class XArmAPI(object):
         """
         Get payload error info
         Note:
-            Only available if firmware_version > 2.3.0
+            Only available if firmware_version >= 2.3.0
 
         :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.

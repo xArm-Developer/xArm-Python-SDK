@@ -77,10 +77,18 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         while not self._is_sync or self._need_sync:
             if not self.connected:
                 return APIState.NOT_CONNECTED
-            elif self.has_error:
-                return APIState.HAS_ERROR
-            elif self.is_stop:
-                return APIState.NOT_READY
+            # elif self.has_error:
+            #     return APIState.HAS_ERROR
+            # elif self.is_stop:
+            #     return APIState.NOT_READY
+            if self.has_error:
+                _, err_warn = self.get_err_warn_code()
+                if err_warn[0] != 0:
+                    return APIState.HAS_ERROR
+            if self.is_stop:
+                _, state = self.get_state()
+                if state >= 4:
+                    return APIState.NOT_READY
             time.sleep(0.05)
         return 0
 
@@ -364,6 +372,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             _, limit = self.is_joint_limit(joints, True)
             if _ == 0 and limit is True:
                 return APIState.JOINT_LIMIT
+        joints[5] = 0 if self.axis <= 5 else joints[5]
+        joints[6] = 0 if self.axis <= 6 else joints[6]
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
         feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
@@ -405,6 +415,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
             radius = radius if radius is not None else -1
             feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+            joints[5] = 0 if self.axis <= 5 else joints[5]
+            joints[6] = 0 if self.axis <= 6 else joints[6]
             ret = self.arm_cmd.move_relative(joints, spd, acc, mvt, radius, True, False, only_check_type, feedback_key=feedback_key)
             trans_id = self._get_feedback_transid(feedback_key, studio_wait)
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
@@ -477,6 +489,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 return APIState.OUT_OF_RANGE
         while len(angs) < 7:
             angs.append(0)
+        angs[5] = 0 if self.axis <= 5 else angs[5]
+        angs[6] = 0 if self.axis <= 6 else angs[6]
         spd, acc, mvt = self.__get_joint_motion_params(speed, mvacc, mvtime, is_radian=is_radian, **kwargs)
         self._has_motion_cmd = True
         ret = self.arm_cmd.move_servoj(angs, spd, acc, mvt)

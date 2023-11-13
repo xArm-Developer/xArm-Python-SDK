@@ -6,6 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import math
 from ..x3 import XArm, Studio
 
 
@@ -80,6 +81,7 @@ class XArmAPI(object):
             check_is_ready: check if the arm is ready to move or not, default is True
                 Note: only available if firmware_version < 1.5.20
         """
+        self._is_radian = is_radian
         self._arm = XArm(port=port,
                          is_radian=is_radian,
                          do_not_open=do_not_open,
@@ -3940,3 +3942,130 @@ class XArmAPI(object):
                 Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
         """
         return self._arm.send_hex_cmd(datas, **kwargs)
+    
+    def set_linear_spd_limit_factor(self, factor):
+        """
+        Set linear speed limit factor (default is 1.2)
+        Note:
+            1. only available if firmware_version > 2.3.0
+            2. only available in mode 1
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_common_param(1, factor)
+
+    def set_cmd_mat_history_num(self, num):
+        """
+        Set cmd mat history num
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_common_param(2, num)
+
+    def set_fdb_mat_history_num(self, num):
+        """
+        Set fdb mat history num
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_common_param(3, num)
+
+    def get_linear_spd_limit_factor(self):
+        """
+        Get linear speed limit factor
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: tuple((code, factor)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            factor: linear speed limit factor
+        """
+        return self._arm.get_common_param(1)
+
+    def get_cmd_mat_history_num(self):
+        """
+        Get cmd mat history num
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: tuple((code, num)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            num: cmd mat history num
+        """
+        return self._arm.get_common_param(2)
+
+    def get_fdb_mat_history_num(self):
+        """
+        Get fdb mat history num
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: tuple((code, num)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            num: fdb mat history num
+        """
+        return self._arm.get_common_param(3)
+
+    def get_tgpio_modbus_timeout(self, is_transparent_transmission=False):
+        """
+        Get tgpio modbus timeout
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :param is_transparent_transmission: is transparent transmission or not
+        :return: tuple((code, timeout)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            timeout: timeout of the tgpio modbus, milliseconds
+        """
+        if is_transparent_transmission:
+            return self._arm.get_common_param(5)
+        else:
+            return self._arm.get_common_param(4)
+
+    def get_poe_status(self):
+        """
+        Get poe status
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: tuple((code, status)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            status: 1 means poe is valid, 0 means poe is invalid
+        """
+        return self._arm.get_common_info(1)
+    
+    def get_collision_error_info(self):
+        """
+        Get collision error info
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [servo_id, theoratival tau, actual tau]
+        """
+        return self._arm.get_common_info(101, return_val=False)
+
+    def get_payload_error_info(self, is_radian=None):
+        """
+        Get payload error info
+        Note:
+            Only available if firmware_version > 2.3.0
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [servo_id, angle]
+        """
+        ret = self._arm.get_common_info(102, return_val=False)
+        if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
+            is_rad = self._is_radian if is_radian is None else is_radian
+            if not is_rad:
+                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+        return ret

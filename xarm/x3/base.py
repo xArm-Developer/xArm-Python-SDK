@@ -2559,3 +2559,18 @@ class Base(BaseObject, Events):
         ret = self.arm_cmd.set_feedback_type(feedback_type)
         ret[0] = self._check_code(ret[0])
         return ret[0]
+    
+    def set_common_param(self, param_type, param_val):
+        ret = self.arm_cmd.set_common_param(param_type, param_val)
+        ret[0] = self._check_code(ret[0])
+        return ret[0]
+    
+    def get_common_param(self, param_type, return_val=True):
+        ret = self.arm_cmd.get_common_param(param_type) 
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1] if return_val else ret[1:]
+    
+    def get_common_info(self, param_type, return_val=True):
+        ret = self.arm_cmd.get_common_info(param_type) 
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1] if return_val else ret[1:]

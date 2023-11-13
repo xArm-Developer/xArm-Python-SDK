@@ -372,6 +372,9 @@ class XCONF(object):
         FTSENSOR_GET_CONFIG = 212
 
         GET_MAX_JOINT_VELOCITY = 231
+        SET_COMMON_PARAM = 232
+        GET_COMMON_PARAM = 233
+        GET_COMMON_INFO = 234
 
         TGPIO_COM_TIOUT = 240
         TGPIO_COM_DATA = 241

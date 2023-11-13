@@ -1365,3 +1365,42 @@ class UxbusCmd(object):
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
         return self.recv_modbus_response(unit_id, ret, -1, timeout, t_prot_id=prot_id, ret_raw=True)
+
+    def set_common_param(self, param_type, param_val):
+        txdata = bytes([param_type])
+        if param_type == 1:
+            txdata += convert.fp32_to_bytes(param_val)
+        else:
+            txdata += convert.int32_to_bytes(param_val)
+        return self.set_nu8(XCONF.UxbusReg.SET_COMMON_PARAM, txdata, 5)
+    
+    def get_common_param(self, param_type):
+        txdata = bytes([param_type])
+        ret = self.getset_nu8(XCONF.UxbusReg.GET_COMMON_PARAM, txdata, 1, -1)
+        data = [0] * 2
+        data[0] = ret[0]
+        if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
+            if param_type == 1:
+                data[1] = convert.bytes_to_fp32(ret[1:])
+            else:
+                data[1] = convert.bytes_to_u32(ret[1:])
+        return data
+
+    def get_common_info(self, param_type):
+        txdata = bytes([param_type])
+        ret = self.getset_nu8(XCONF.UxbusReg.GET_COMMON_INFO, txdata, 1, -1)
+        data = [0] * 2
+        data[0] = ret[0]
+        if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
+            if param_type == 1:
+                data[1] = ret[1]
+            elif param_type == 101:
+                data[1] = ret[1]
+                data.append(convert.bytes_to_fp32(ret[2:6]))
+                data.append(convert.bytes_to_fp32(ret[6:10]))
+            elif param_type == 102:
+                data[1] = ret[1]
+                data.append(convert.bytes_to_fp32(ret[2:]))
+            else:
+                data[0] = XCONF.UxbusState.ERR_PARAM
+        return data

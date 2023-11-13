@@ -158,7 +158,7 @@ class FtSensor(Base):
         self.log_api_info('API -> ft_sensor_cali_load -> code={}, iden_result_list={}'.format(ret[0], iden_result_list), code=ret[0])
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and association_setting_tcp_load:
-            m = kwargs.get('m', 0.325)
+            m = kwargs.get('m', 0.270)  # 0.325
             x = kwargs.get('x', -17)
             y = kwargs.get('y', 9)
             z = kwargs.get('z', 11.8)

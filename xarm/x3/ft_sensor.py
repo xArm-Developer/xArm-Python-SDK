@@ -168,6 +168,7 @@ class FtSensor(Base):
                 (m * y + params[0] * params[2]) / weight,
                 (m * z + params[0] * (32 + params[3])) / weight
             ]
+            self.set_state(0)
             return self.set_tcp_load(weight, center_of_gravity)
         return ret[0]
 

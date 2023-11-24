@@ -1398,9 +1398,12 @@ class UxbusCmd(object):
                 data[1] = ret[1]
                 data.append(convert.bytes_to_fp32(ret[2:6]))
                 data.append(convert.bytes_to_fp32(ret[6:10]))
-            elif param_type == 102:
+            elif param_type == 102 or param_type == 103 or param_type == 104:
                 data[1] = ret[1]
                 data.append(convert.bytes_to_fp32(ret[2:]))
+            elif param_type == 105:
+                data[1] = convert.bytes_to_fp32(ret[1:])
+                data.append(convert.bytes_to_fp32(ret[5:]))
             else:
                 data[0] = XCONF.UxbusState.ERR_PARAM
         return data

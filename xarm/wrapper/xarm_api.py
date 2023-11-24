@@ -408,7 +408,7 @@ class XArmAPI(object):
     @property
     def mode(self):
         """
-        xArm mode，only available in socket way and  enable_report is True
+        xArm mode, only available in socket way and  enable_report is True
 
         :return:
             0: position control mode
@@ -622,11 +622,11 @@ class XArmAPI(object):
         :return: states
             states[0]: contorller gpio module state
                 states[0] == 0: normal
-                states[0] == 1：wrong
-                states[0] == 6：communication failure
+                states[0] == 1: wrong
+                states[0] == 6: communication failure
             states[1]: controller gpio module error code
                 states[1] == 0: normal
-                states[1] != 0：error code
+                states[1] != 0: error code
             states[2]: digital input functional gpio state
                 Note: digital-i-input functional gpio state = states[2] >> i & 0x01
             states[3]: digital input configuring gpio state
@@ -1030,8 +1030,8 @@ class XArmAPI(object):
             4. The last_used_angles/last_used_joint_speed/last_used_joint_acc will not be modified.
 
         :param paths: cartesian path list
-            1. Specify arc radius： [[x, y, z, roll, pitch, yaw, radius], ....]
-            2. Do not specify arc radius (radius=0)： [[x, y, z, roll, pitch, yaw], ....]
+            1. Specify arc radius: [[x, y, z, roll, pitch, yaw, radius], ....]
+            2. Do not specify arc radius (radius=0): [[x, y, z, roll, pitch, yaw], ....]
             3. If you want to plan the continuous motion,set radius>0.
 
         :param is_radian: roll/pitch/yaw of paths are in radians or not, default is self.default_is_radian
@@ -2011,11 +2011,11 @@ class XArmAPI(object):
             states: [...]
                 states[0]: contorller gpio module state
                     states[0] == 0: normal
-                    states[0] == 1：wrong
-                    states[0] == 6：communication failure
+                    states[0] == 1: wrong
+                    states[0] == 6: communication failure
                 states[1]: controller gpio module error code
                     states[1] == 0: normal
-                    states[1] != 0：error code
+                    states[1] != 0: error code
                 states[2]: digital input functional gpio state
                     Note: digital-i-input functional gpio state = states[2] >> i & 0x0001
                 states[3]: digital input configuring gpio state
@@ -3276,8 +3276,8 @@ class XArmAPI(object):
                 [4] ft_freq: ft sensor frequency
                 [5] ft_mass: load mass
                 [6] ft_dir_bias: reversed
-                [7] ft_centroid: [x_centroid，y_centroid，z_centroid]
-                [8] ft_zero: [Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]
+                [7] ft_centroid: [x_centroid, y_centroid, z_centroid]
+                [8] ft_zero: [Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
                 [9] imp_coord: task frame of impendance control mode.
                     0: base frame.
                     1: tool frame.
@@ -3321,7 +3321,7 @@ class XArmAPI(object):
             Note: this parameter is only available on the lite6 model manipulator, and this parameter must be specified for the lite6 model manipulator
         :return: tuple((code, load)) only when code is 0, the returned result is correct.
             code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            load:  [mass，x_centroid，y_centroid，z_centroid]
+            load:  [mass, x_centroid, y_centroid, z_centroid]
         """
         return self._arm.iden_tcp_load(estimated_mass)
 
@@ -4044,9 +4044,9 @@ class XArmAPI(object):
         """
         return self._arm.get_common_info(1)
     
-    def get_collision_error_info(self):
+    def get_c31_error_info(self):
         """
-        Get collision error info
+        Get collision error (C31) info
         Note:
             Only available if firmware_version >= 2.3.0
 
@@ -4056,9 +4056,9 @@ class XArmAPI(object):
         """
         return self._arm.get_common_info(101, return_val=False)
 
-    def get_payload_error_info(self, is_radian=None):
+    def get_c37_error_info(self, is_radian=None):
         """
-        Get payload error info
+        Get payload error (C37) info
         Note:
             Only available if firmware_version >= 2.3.0
 
@@ -4072,3 +4072,50 @@ class XArmAPI(object):
             if not is_rad:
                 ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret
+
+    def get_c23_error_info(self, is_radian=None):
+        """
+        Get joint angle limit error (C23) info
+        Note:
+            Only available if firmware_version >= 2.3.0
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [servo_id, angle]
+        """
+        ret = self._arm.get_common_info(103, return_val=False)
+        if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
+            is_rad = self._is_radian if is_radian is None else is_radian
+            if not is_rad:
+                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+        return ret
+    
+    def get_c24_error_info(self, is_radian=None):
+        """
+        Get joint speed limit error (C24) info
+        Note:
+            Only available if firmware_version >= 2.3.0
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [servo_id, speed]
+        """
+        ret = self._arm.get_common_info(104, return_val=False)
+        if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
+            is_rad = self._is_radian if is_radian is None else is_radian
+            if not is_rad:
+                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+        return ret
+    
+    def get_c60_error_info(self):
+        """
+        Get linear speed limit error (C60) info
+        Note:
+            1. Only available if firmware_version >= 2.3.0
+            2. Only available in mode 1
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [max_linear_speed, curr_linear_speed]
+        """
+        return self._arm.get_common_info(105, return_val=False)

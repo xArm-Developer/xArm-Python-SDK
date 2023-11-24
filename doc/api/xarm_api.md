@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.16): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.17): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -491,6 +491,72 @@ __get_bio_gripper_status__ = <function XArmAPI.get_bio_gripper_status>
 
 
 
+#### get_c23_error_info
+__get_c23_error_info__ = <function XArmAPI.get_c23_error_info>
+> Get joint angle limit error (C23) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]  
+
+
+
+
+#### get_c24_error_info
+__get_c24_error_info__ = <function XArmAPI.get_c24_error_info>
+> Get joint speed limit error (C24) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, speed]  
+
+
+
+
+#### get_c31_error_info
+__get_c31_error_info__ = <function XArmAPI.get_c31_error_info>
+> Get collision error (C31) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, theoratival tau, actual tau]  
+
+
+
+
+#### get_c37_error_info
+__get_c37_error_info__ = <function XArmAPI.get_c37_error_info>
+> Get payload error (C37) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]  
+
+
+
+
+#### get_c60_error_info
+__get_c60_error_info__ = <function XArmAPI.get_c60_error_info>
+> Get linear speed limit error (C60) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. Only available if firmware_version >= 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;2. Only available in mode 1  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [max_linear_speed, curr_linear_speed]  
+
+
+
+
 #### get_cgpio_analog
 __get_cgpio_analog__ = <function XArmAPI.get_cgpio_analog>
 > Get the analog value of the specified Controller GPIO  
@@ -520,11 +586,11 @@ __get_cgpio_state__ = <function XArmAPI.get_cgpio_state>
 > &ensp;&ensp;&ensp;&ensp;states: [...]  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0]: contorller gpio module state  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 0: normal  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 1：wrong  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 6：communication failure  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 1: wrong  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 6: communication failure  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1]: controller gpio module error code  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] == 0: normal  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] != 0：error code  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] != 0: error code  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[2]: digital input functional gpio state  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input functional gpio state = states[2] >> i & 0x0001  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[3]: digital input configuring gpio state  
@@ -577,19 +643,6 @@ __get_cmdnum__ = <function XArmAPI.get_cmdnum>
 > Get the cmd count in cache  
 > :return: tuple((code, cmd_num)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-
-
-
-
-#### get_collision_error_info
-__get_collision_error_info__ = <function XArmAPI.get_collision_error_info>
-> Get collision error info  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
->   
-> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, theoratival tau, actual tau]  
 
 
 
@@ -673,8 +726,8 @@ __get_ft_sensor_config__ = <function XArmAPI.get_ft_sensor_config>
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[4] ft_freq: ft sensor frequency  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[5] ft_mass: load mass  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[6] ft_dir_bias: reversed  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[7] ft_centroid: [x_centroid，y_centroid，z_centroid]  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[8] ft_zero: [Fx_offset，Fy_offset，Fz_offset，Tx_offset，Ty_offset，Tz_ffset]  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[7] ft_centroid: [x_centroid, y_centroid, z_centroid]  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[8] ft_zero: [Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[9] imp_coord: task frame of impendance control mode.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: base frame.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: tool frame.  
@@ -977,19 +1030,6 @@ __get_mount_direction__ = <function XArmAPI.get_mount_direction>
 > :return: tuple((code, degrees)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;degrees: mount degrees, [tilt angle, rotate angle]  
-
-
-
-
-#### get_payload_error_info
-__get_payload_error_info__ = <function XArmAPI.get_payload_error_info>
-> Get payload error info  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
->   
-> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]  
 
 
 
@@ -1358,7 +1398,7 @@ __iden_tcp_load__ = <function XArmAPI.iden_tcp_load>
 > &ensp;&ensp;&ensp;&ensp;Note: this parameter is only available on the lite6 model manipulator, and this parameter must be specified for the lite6 model manipulator  
 > :return: tuple((code, load)) only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;load:  [mass，x_centroid，y_centroid，z_centroid]  
+> &ensp;&ensp;&ensp;&ensp;load:  [mass, x_centroid, y_centroid, z_centroid]  
 
 
 
@@ -1440,8 +1480,8 @@ __move_arc_lines__ = <function XArmAPI.move_arc_lines>
 > &ensp;&ensp;&ensp;&ensp;4. The last_used_angles/last_used_joint_speed/last_used_joint_acc will not be modified.  
 >   
 > :param paths: cartesian path list  
-> &ensp;&ensp;&ensp;&ensp;1. Specify arc radius： [[x, y, z, roll, pitch, yaw, radius], ....]  
-> &ensp;&ensp;&ensp;&ensp;2. Do not specify arc radius (radius=0)： [[x, y, z, roll, pitch, yaw], ....]  
+> &ensp;&ensp;&ensp;&ensp;1. Specify arc radius: [[x, y, z, roll, pitch, yaw, radius], ....]  
+> &ensp;&ensp;&ensp;&ensp;2. Do not specify arc radius (radius=0): [[x, y, z, roll, pitch, yaw], ....]  
 > &ensp;&ensp;&ensp;&ensp;3. If you want to plan the continuous motion,set radius>0.  
 >   
 > :param is_radian: roll/pitch/yaw of paths are in radians or not, default is self.default_is_radian  

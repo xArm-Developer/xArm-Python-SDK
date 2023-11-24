@@ -90,28 +90,37 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_code('        try:', indent=-1)
     
     def _finish_robot_main_run_codes(self, error_exit=True, stop_exit=True):
+        if self._listen_tgpio_digital or self._listen_tgpio_analog or self._listen_cgpio_state \
+            or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
+            self._append_main_code('            # Event Loop', indent=-1)
+            self._append_main_code('            while self.is_alive:', indent=-1)
+            self._append_main_code('                time.sleep(0.5)', indent=-1)
         # catch exception and release callback
         self._append_main_code('        except Exception as e:', indent=-1)
         self._append_main_code('            self.pprint(\'MainException: {}\'.format(e))', indent=-1)
-        # if stop_exit or error_exit:
-        #     self._append_main_code('        finally:', indent=-1)
-        #     if error_exit:
-        #         self._append_main_code('            self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
-        #     if stop_exit:
-        #         self._append_main_code('            self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
-        if self._listen_tgpio_digital or self._listen_tgpio_analog or self._listen_cgpio_state \
-            or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
-            self._append_main_code('        # Event Loop', indent=-1)
-            self._append_main_code('        while self.is_alive:', indent=-1)
-            self._append_main_code('            time.sleep(0.5)', indent=-1)
-        self._append_main_code('        self.alive = False', indent=-1)
+        self._append_main_code('        finally:', indent=-1)
+        self._append_main_code('            self.alive = False', indent=-1)
         if stop_exit or error_exit:
             if error_exit:
-                self._append_main_code('        self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
+                self._append_main_code('            self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
             if stop_exit:
-                self._append_main_code('        self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
-        self._append_main_code('        if hasattr(self._arm, \'release_count_changed_callback\'):', indent=-1)
-        self._append_main_code('            self._arm.release_count_changed_callback(self._count_changed_callback)', indent=-1)
+                self._append_main_code('            self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
+        self._append_main_code('            if hasattr(self._arm, \'release_count_changed_callback\'):', indent=-1)
+        self._append_main_code('                self._arm.release_count_changed_callback(self._count_changed_callback)', indent=-1)
+
+        # if self._listen_tgpio_digital or self._listen_tgpio_analog or self._listen_cgpio_state \
+        #     or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
+        #     self._append_main_code('        # Event Loop', indent=-1)
+        #     self._append_main_code('        while self.is_alive:', indent=-1)
+        #     self._append_main_code('            time.sleep(0.5)', indent=-1)
+        # self._append_main_code('        self.alive = False', indent=-1)
+        # if stop_exit or error_exit:
+        #     if error_exit:
+        #         self._append_main_code('        self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
+        #     if stop_exit:
+        #         self._append_main_code('        self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
+        # self._append_main_code('        if hasattr(self._arm, \'release_count_changed_callback\'):', indent=-1)
+        # self._append_main_code('            self._arm.release_count_changed_callback(self._count_changed_callback)', indent=-1)
 
     def _init_robot_main_class_codes(self, init=True, wait_seconds=1, mode=0, state=0, error_exit=True, stop_exit=True):
         self._append_main_init_code('class RobotMain(object):')
@@ -119,6 +128,7 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('    def __init__(self, robot, **kwargs):')
         self._append_main_init_code('        self.alive = True')
         self._append_main_init_code('        self._arm = robot')
+        self._append_main_init_code('        self._ignore_exit_state = False')
         self._append_main_init_code('        self._tcp_speed = 100')
         self._append_main_init_code('        self._tcp_acc = 2000')
         self._append_main_init_code('        self._angle_speed = 20')
@@ -319,7 +329,7 @@ class BlocklyTool(_BlocklyHandler):
         if stop_exit:
             self._append_main_init_code('    # Register state changed callback')
             self._append_main_init_code('    def _state_changed_callback(self, data):')
-            self._append_main_init_code('        if data and data[\'state\'] == 4:')
+            self._append_main_init_code('        if not self._ignore_exit_state and data and data[\'state\'] == 4:')
             self._append_main_init_code('            self.alive = False')
             self._append_main_init_code('            self.pprint(\'state=4, quit\')')
             self._append_main_init_code('            self._arm.release_state_changed_callback(self._state_changed_callback)\n')
@@ -346,6 +356,8 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('    @property')
         self._append_main_init_code('    def is_alive(self):')
         self._append_main_init_code('        if self.alive and self._arm.connected and self._arm.error_code == 0:')
+        self._append_main_init_code('            if self._ignore_exit_state:')
+        self._append_main_init_code('                return True')
         self._append_main_init_code('            if self._arm.state == 5:')
         self._append_main_init_code('                cnt = 0')
         self._append_main_init_code('                while self._arm.state == 5 and cnt < 5:')

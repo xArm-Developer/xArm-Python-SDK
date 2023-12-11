@@ -3921,13 +3921,13 @@ class XArmAPI(object):
         :param r_addr: the starting address of the register to be read
         :param r_quantity: number of registers to read
         :param w_addr: the starting address of the register to be written
-        :param w_regs: number of registers to write
+        :param w_regs: array of values to write
         :param is_signed: whether to convert the read register value into a signed form
         :return: tuple((code, regs)) only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
                 Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
         """
-        return self._arm.mask_write_holding_register(r_addr, r_quantity, w_addr, w_regs, is_signed)
+        return self._arm.write_and_read_holding_registers(r_addr, r_quantity, w_addr, w_regs, is_signed)
 
     def send_hex_cmd(self, datas, **kwargs):
         """

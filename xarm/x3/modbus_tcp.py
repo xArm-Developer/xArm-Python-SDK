@@ -78,4 +78,7 @@ class ModbusTcp(Base):
 
     @xarm_is_connected(_type='get')
     def write_and_read_holding_registers(self, r_addr, r_quantity, w_addr, w_regs, is_signed=False):
-        return self.arm_cmd.mask_write_holding_register(r_addr, r_quantity, w_addr, w_regs, is_signed)
+        """
+        func_code: 0x17
+        """
+        return self.arm_cmd.write_and_read_holding_registers(r_addr, r_quantity, w_addr, w_regs, is_signed)

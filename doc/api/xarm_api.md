@@ -3617,7 +3617,7 @@ __write_and_read_holding_registers__ = <function XArmAPI.write_and_read_holding_
 > :param r_addr: the starting address of the register to be read  
 > :param r_quantity: number of registers to read  
 > :param w_addr: the starting address of the register to be written  
-> :param w_regs: number of registers to write  
+> :param w_regs: array of values to write  
 > :param is_signed: whether to convert the read register value into a signed form  
 > :return: tuple((code, regs)) only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  

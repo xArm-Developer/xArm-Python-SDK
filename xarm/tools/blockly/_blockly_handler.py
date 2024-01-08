@@ -633,10 +633,10 @@ class _BlocklyHandler(_BlocklyBase):
             self._append_main_code('    return', indent + 2)
 
     def _handle_set_robotiq_init(self, block, indent=0, arg_map=None):
-        self._append_main_code('code = self._arm.robotiq_reset()', indent + 2)
+        self._append_main_code('code, ret = self._arm.robotiq_reset()', indent + 2)
         self._append_main_code('if not self._check_code(code, \'robotiq_reset\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
-        self._append_main_code('code = self._arm.robotiq_set_activate(wait=True)', indent + 2)
+        self._append_main_code('code, ret = self._arm.robotiq_set_activate(wait=True)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'robotiq_set_activate\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
@@ -649,7 +649,7 @@ class _BlocklyHandler(_BlocklyBase):
         force = int(fields[0].text) if fields and len(fields) > 0 else 0xFF
         fields = self._get_nodes('field', root=block, name='wait')
         wait = fields[0].text == 'TRUE' if fields and len(fields) > 0 else False
-        self._append_main_code('code = self._arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
+        self._append_main_code('code, ret = self._arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'robotiq_set_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 

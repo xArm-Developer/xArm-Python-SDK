@@ -804,6 +804,16 @@ ControllerErrorCodeMap = {
             'desc': ''
         }
     },
+    60: {
+        'en': {
+            'title': 'Linear speed exceeded limit in servo_j mode.',
+            'desc': 'Linear speed limit is {} mm/s, current linear speed {} mm/s.'
+        },
+        'cn': {
+            'title': '关节伺服模式线速度超过限制',
+            'desc': '线速度限制值{}mm/s,当前线速度{}mm/s'
+        }
+    },
     110: {
         'en': {
             'title': 'Robot Arm Base Board Communication Error',

@@ -1,0 +1,113 @@
+from cgitb import reset
+import os
+import sys
+import time
+import math
+from tracemalloc import stop
+import keyboard
+import tkinter as tk  
+
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+
+from xarm.wrapper import XArmAPI
+
+#Figure out how to stop it from asking for IP later
+#####################################################################################
+
+if len(sys.argv) >= 2:
+    ip = sys.argv[1]
+else:
+    try:
+        from configparser import ConfigParser
+        parser = ConfigParser()
+        parser.read('../robot.conf')
+        ip = parser.get('xArm', 'ip')
+    except:
+        # ip = input('Please input the xArm ip address:')
+        ip = "192.168.1.200"
+        if not ip:
+            print('input error, exit')
+            sys.exit(1)
+
+#####################################################################################
+counter = 0
+speed = 50
+arm = XArmAPI(ip)
+arm.motion_enable(enable=True)
+arm.set_mode(0)
+arm.set_state(state=0)
+#Reset Variables:
+Rx = 40.9
+Ry = -350.6
+Rz = 279.3
+Rr = -173.9
+Rp = 1.5
+RYaw = -89.4
+
+
+
+
+
+
+def increment_position():
+    global counter
+    counter += 1 
+    print(counter)
+    #while True:
+    if counter == 1 :
+            arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
+            time.sleep(1)
+            arm.set_position(x=91.2, y=-291.4, z=214.1, roll=-176.5, pitch=-23.2, yaw=-79.4, speed=80, wait=True)
+    elif  counter == 2:
+            arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
+            time.sleep(1)
+            arm.set_position(x=89.6, y=-395.6, z=217.7, roll=-177.4, pitch=20, yaw=-79.6, speed=80, wait=True)
+    elif  counter == 3:   
+            arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
+            time.sleep(1)  
+            arm.set_position(x=21.2, y=-263.6, z=185.2, roll=-150.5, pitch=20.3, yaw=-168.1, speed=80, wait=True)          
+    elif  counter == 4:
+            arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
+            time.sleep(1)
+            arm.set_position(x=6.7, y=-413.5, z=182.5, roll=-165.7, pitch=27.8, yaw=-102.6, speed=80, wait=True)           
+    elif  counter == 5:
+            arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
+            time.sleep(1)
+            arm.set_position(x=-41.1, y=-277.1, z=145.3, roll=-153.7, pitch=37.6, yaw=-164, speed=80, wait=True)   
+    enable() 
+
+def enable():
+    register_button.config(state=tk.NORMAL, text="Register Subject") #Enable the button and set its text
+
+def reset_position():
+    global counter
+    counter = 0 
+    arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
+
+def quit():
+      exit() 
+
+def getPosition(): 
+      print('* position:', arm.position)
+
+      display_position = tk.Label(window, text=str(arm.position), font=("Helvetica", 16)) 
+      display_position.pack(pady=5)
+
+      
+
+window = tk.Tk()
+window.title("Subject Registration")
+register_button = tk.Button(window, text="Register Subject",command = increment_position) 
+register_button.pack(pady=20) 
+
+reset_button = tk.Button(window, text="Reset XArm",command=reset_position) 
+reset_button.pack(pady=40)
+
+quit_button = tk.Button(window, text="Quit Program",command=quit) 
+quit_button.pack(pady=50)
+
+test_button = tk.Button(window, text="position",command=getPosition) 
+test_button.pack(pady=70)
+
+window.mainloop()

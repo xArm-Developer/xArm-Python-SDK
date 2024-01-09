@@ -7,7 +7,6 @@ from tracemalloc import stop
 import keyboard
 import tkinter as tk  
 
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 
 from xarm.wrapper import XArmAPI
@@ -58,7 +57,7 @@ def increment_position():
     if counter == 1 :
             arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
             time.sleep(1)
-            arm.set_position(x=91.2, y=-291.4, z=214.1, roll=-176.5, pitch=-23.2, yaw=-79.4, speed=80, wait=True)
+            arm.set_position(x1=91.2, y1=-291.4, z1=214.1, roll_1=-176.5, pitch_1=-23.2, yaw_1=-79.4, speed=80, wait=True)
     elif  counter == 2:
             arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
             time.sleep(1)

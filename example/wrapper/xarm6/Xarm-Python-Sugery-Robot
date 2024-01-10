@@ -1,4 +1,5 @@
 from cgitb import reset
+from logging import root
 import os
 import sys
 import time
@@ -44,10 +45,14 @@ Rr = -173.9
 Rp = 1.5
 RYaw = -89.4
 
+#Equation Variables
+Pr = 0
+R = 0
+Pxyz = 0 
+d = 0 
+xyz_list = [arm.position]
 
-
-
-
+#print(xyz_list)
 
 def increment_position():
     global counter
@@ -58,6 +63,8 @@ def increment_position():
             arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
             time.sleep(1)
             arm.set_position(x=91.2, y=-291.4, z=214.1, roll=-176.5, pitch=-23.2, yaw=-79.4, speed=80, wait=True)
+            find_position = tk.Label(window, text=str("Go to the UFACTORY Studio and go into live control and turn the robot into manual mode and move it to the exact point of the feducial"), font=("Helvetica", 16)) 
+            find_position.pack(pady=5)
     elif  counter == 2:
             arm.set_position(Rx, Ry, Rz, Rr, Rp, RYaw, speed=80, wait=True)
             time.sleep(1)
@@ -88,12 +95,12 @@ def quit():
       exit() 
 
 def getPosition(): 
-      print('* position:', arm.position)
-
-      display_position = tk.Label(window, text=str(arm.position), font=("Helvetica", 16)) 
+      display_position = tk.Label(position_window, text=str(arm.position), font=("Helvetica", 16)) 
       display_position.pack(pady=5)
 
-      
+def calculate_pr(R, Pxyz, d):
+    Pr = R * Pxyz + d
+    return Pr   
 
 window = tk.Tk()
 window.title("Subject Registration")
@@ -105,6 +112,9 @@ reset_button.pack(pady=40)
 
 quit_button = tk.Button(window, text="Quit Program",command=quit) 
 quit_button.pack(pady=50)
+
+position_window = tk.Toplevel(window)
+position_window.title("List of positions")
 
 test_button = tk.Button(window, text="position",command=getPosition) 
 test_button.pack(pady=70)

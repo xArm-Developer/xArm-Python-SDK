@@ -40,6 +40,7 @@ class XCONF(object):
             XARM6_X9 = 9
             XARM6_X11 = 11
             XARM6_X12 = 12
+            XARM7_X13 = 13
 
         JOINT_LIMITS = {
             Axis.XARM5: {

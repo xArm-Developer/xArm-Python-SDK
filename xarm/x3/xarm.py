@@ -1803,8 +1803,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         axis_map = {5: 'F', 6: 'I', 7: 'S'}
         valid_850 = self.is_850 and sn[0] == 'F' and sn[1] == 'X'
         valid_lite = self.is_lite6 and sn[0] == 'L' and sn[1] == 'I'
+        valid_xarm7t = not self.is_850 and not self.is_lite6 and sn[0] == 'C' and sn[1] == 'S'
         valid_xarm = not self.is_850 and not self.is_lite6 and sn[0] == 'X' and sn[1] == axis_map.get(self.axis, '')
-        if not (valid_850 or valid_lite or valid_xarm):
+        if not (valid_850 or valid_lite or valid_xarm or valid_xarm7t):
             self.log_api_info('iden_joint_friction, sn is not correct, axis={}, type={}, sn={}'.format(self.axis, self.device_type, sn), code=APIState.API_EXCEPTION)
             return APIState.API_EXCEPTION, -1
 

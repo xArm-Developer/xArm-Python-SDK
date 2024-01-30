@@ -40,6 +40,7 @@ class XCONF(object):
             XARM6_X9 = 9
             XARM6_X11 = 11
             XARM6_X12 = 12
+            XARM7_X13 = 13
 
         JOINT_LIMITS = {
             Axis.XARM5: {
@@ -113,6 +114,15 @@ class XCONF(object):
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
                 ],
+                Type.XARM7_X13: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.094395, 2.059488),  # (-2.18, 2.18),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-3.92699, 0.191986),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-math.pi, 1.692969), 
+                    (-2 * math.pi, 2 * math.pi)
+                ]
             }
         }
         TCP_LIMITS = {
@@ -193,6 +203,14 @@ class XCONF(object):
                     (-math.pi, math.pi),
                     (-math.pi, math.pi)
                 ],
+                Type.XARM7_X13: [
+                    (-750, 750),
+                    (-750, 750),
+                    (-400, 1000),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi),
+                    (-math.pi, math.pi)
+                ]
             }
         }
 

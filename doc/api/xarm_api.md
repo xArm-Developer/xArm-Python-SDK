@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.17): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.21): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -941,6 +941,17 @@ xArm-Python-SDK API Documentation (V1.13.17): class XArmAPI in module xarm.wrapp
 > &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]
 
 
+#### def __get_c38_error_info__(self, is_radian=None):
+
+> Get joint hard angle limit error (C38) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.4.0  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]
+
+
 #### def __get_c60_error_info__(self):
 
 > Get linear speed limit error (C60) info  
@@ -1408,6 +1419,18 @@ xArm-Python-SDK API Documentation (V1.13.17): class XArmAPI in module xarm.wrapp
 > :param is_radian: the returned value (only rx/ry/rz) is in radians or not, default is self.default_is_radian  
 > :return: tuple((code, [x, y, z, rx, ry, rz])), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __get_record_seconds__(self):
+
+> Get record seconds  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. Only available if firmware_version >= 2.4.0  
+> &ensp;&ensp;&ensp;&ensp;2. Only valid during recording or after recording but before saving  
+>   
+> :return: tuple((code, seconds)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;seconds: The actual duration of the recorded track
 
 
 #### def __get_reduced_mode__(self):

@@ -1163,6 +1163,20 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.stop_record_trajectory(filename=filename, **kwargs)
+    
+    def get_record_seconds(self):
+        """
+        Get record seconds
+        Note:
+            1. Only available if firmware_version >= 2.4.0
+            2. Only valid during recording or after recording but before saving
+
+        :return: tuple((code, seconds)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            seconds: The actual duration of the recorded track
+        """
+        ret = self._arm.get_common_info(50, return_val=True)
+        return ret
 
     def save_record_trajectory(self, filename, wait=True, timeout=5, **kwargs):
         """
@@ -4119,3 +4133,20 @@ class XArmAPI(object):
             err_info: [max_linear_speed, curr_linear_speed]
         """
         return self._arm.get_common_info(105, return_val=False)
+    
+    def get_c38_error_info(self, is_radian=None):
+        """
+        Get joint hard angle limit error (C38) info
+        Note:
+            Only available if firmware_version >= 2.4.0
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [servo_id, angle]
+        """
+        ret = self._arm.get_common_info(106, return_val=False)
+        if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
+            is_rad = self._is_radian if is_radian is None else is_radian
+            if not is_rad:
+                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+        return ret

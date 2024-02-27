@@ -1394,11 +1394,13 @@ class UxbusCmd(object):
         if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
             if param_type == 1:
                 data[1] = ret[1]
+            elif param_type == 50:
+                data[1] = convert.bytes_to_fp32(ret[1:])
             elif param_type == 101:
                 data[1] = ret[1]
                 data.append(convert.bytes_to_fp32(ret[2:6]))
                 data.append(convert.bytes_to_fp32(ret[6:10]))
-            elif param_type == 102 or param_type == 103 or param_type == 104:
+            elif param_type in [102, 103, 104, 106]:
                 data[1] = ret[1]
                 data.append(convert.bytes_to_fp32(ret[2:]))
             elif param_type == 105:

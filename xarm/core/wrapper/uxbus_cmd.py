@@ -503,7 +503,7 @@ class UxbusCmd(object):
         txdata = [mvjoint[i] for i in range(7)]
         txdata += [mvvelo, mvacc, mvradii]
         if only_check_type <= 0:
-            return self.set_nfp32(XCONF.UxbusReg.MOVE_JOINTB, txdata, 10)
+            return self.set_nfp32(XCONF.UxbusReg.MOVE_JOINTB, txdata, 10, feedback_key=feedback_key)
         else:
             byte_data = bytes([only_check_type])
             return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_JOINTB, txdata, 10, byte_data, 3, timeout=10, feedback_key=feedback_key)

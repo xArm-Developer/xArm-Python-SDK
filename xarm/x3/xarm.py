@@ -158,7 +158,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 ret = self.arm_cmd.move_lineb(tcp_pos, spd, acc, mvt, radius, only_check_type, motion_type=motion_type)
             else:
                 ret = self.arm_cmd.move_line(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
-        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait, kwargs.get('is_pop', True))
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, radius, spd, acc), code=ret[0])
@@ -196,7 +196,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             radius = radius if radius is not None else -1
             feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
             ret = self.arm_cmd.move_relative(tcp_pos, spd, acc, mvt, radius, False, False, only_check_type, motion_type=motion_type, feedback_key=feedback_key)
-            trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+            trans_id = self._get_feedback_transid(feedback_key, studio_wait, kwargs.get('is_pop', True))
             ret[0] = self._check_code(ret[0], is_move_cmd=True)
             self.log_api_info('API -> set_relative_position -> code={}, pos={}, radius={}, velo={}, acc={}'.format(
                 ret[0], tcp_pos, radius, spd, acc), code=ret[0])
@@ -381,7 +381,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             ret = self.arm_cmd.move_jointb(joints, spd, acc, radius, only_check_type, feedback_key=feedback_key)
         else:
             ret = self.arm_cmd.move_joint(joints, spd, acc, mvt, only_check_type, feedback_key=feedback_key)
-        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait, kwargs.get('is_pop', True))
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_servo_angle -> code={}, angles={}, velo={}, acc={}, radius={}'.format(
             ret[0], joints, spd, acc, radius

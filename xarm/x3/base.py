@@ -2267,8 +2267,8 @@ class Base(BaseObject, Events):
         self._fb_key_transid_map[feedback_key if feedback_key else 'no_use'] = -1
         return feedback_key, studio_wait
     
-    def _get_feedback_transid(self, feedback_key, studio_wait=False):
-        return self._fb_key_transid_map.pop(feedback_key, -1) if not studio_wait else -1
+    def _get_feedback_transid(self, feedback_key, studio_wait=False, is_pop=True):
+        return (self._fb_key_transid_map.pop(feedback_key, -1) if is_pop else self._fb_key_transid_map.get(feedback_key, -1)) if not studio_wait else -1
     
     def _set_feedback_key_tranid(self, feedback_key, trans_id, feedback_type=0):
         self._fb_key_transid_map[feedback_key] = trans_id

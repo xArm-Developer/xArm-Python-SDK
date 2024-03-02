@@ -20,9 +20,10 @@ import cv2
 import pytesseract
 from pytesseract import image_to_string
 
-#importing image to extract numbers from
-img = cv2.imread("C:\\Users\\adity\\OneDrive\\Documents\\PCR\\PCR_Automation\\computer_vision\\number_detection\\14-5.jpg")
+#adding a comment to show git stuff
 
+#importing image to extract numbers from
+img = cv2.imread("/Users/snaehashriram/Coding/PCR_Automation/computer_vision/number_detection/14-5.jpg")
 #converting to grayscale
 gry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 cv2.imshow("test", gry)
@@ -35,7 +36,7 @@ cv2.imshow("test", thr)
 cv2.waitKey(0)
 
 #to use pytesseract
-pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
 
 #extracting text from the image as a single line
 txt = image_to_string(thr, config='--psm 10  --oem 3 -c tessedit_char_whitelist=0123456789')

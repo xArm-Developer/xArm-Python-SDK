@@ -1447,12 +1447,13 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         :param path: app path
         """
         try:
+            dir_name = 'lite6' if self.axis == 6 and self.device_type == 9 else '850' if self.axis == 6 and self.device_type == 12 else 'xarm7T' if self.axis == 7 and self.device_type == 13 else 'xarm{}'.format(self.axis)
             if not os.path.exists(path):
-                path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', 'xarm{}'.format(self.axis), 'app', 'myapp', path)
+                path = os.path.join('/home/uf/.UFACTORY', 'projects', 'test', dir_name, 'app', 'myapp', path)
             if os.path.isdir(path):
                 path = os.path.join(path, 'app.xml')
             if not os.path.exists(path):
-                raise FileNotFoundError
+                raise FileNotFoundError('{} is not found'.format(path))
             blockly_tool = BlocklyTool(path)
             succeed = blockly_tool.to_python(arm=self._api_instance, is_exec=True, **kwargs)
             if succeed:

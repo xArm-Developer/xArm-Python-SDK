@@ -276,7 +276,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type, feedback_key=feedback_key)
         else:
             ret = self.arm_cmd.move_line_tool(tcp_pos, spd, acc, mvt, only_check_type, motion_type=motion_type)
-        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait, kwargs.get('is_pop', True))
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> set_tool_position -> code={}, pos={}, velo={}, acc={}'.format(
             ret[0], tcp_pos, spd, acc), code=ret[0])
@@ -541,7 +541,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             ret = self.arm_cmd.move_circle_common(pose_1, pose_2, spd, acc, mvt, percent, coord=1 if is_tool_coord else 0, is_axis_angle=is_axis_angle, only_check_type=only_check_type, feedback_key=feedback_key)
         else:
             ret = self.arm_cmd.move_circle(pose_1, pose_2, spd, acc, mvt, percent, only_check_type)
-        trans_id = self._get_feedback_transid(feedback_key, studio_wait)
+        trans_id = self._get_feedback_transid(feedback_key, studio_wait, kwargs.get('is_pop', True))
         ret[0] = self._check_code(ret[0], is_move_cmd=True)
         self.log_api_info('API -> move_circle -> code={}, pos1={}, pos2={}, percent={}%, velo={}, acc={}'.format(
             ret[0], pose_1, pose_2, percent, spd, acc), code=ret[0])

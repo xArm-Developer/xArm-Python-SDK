@@ -272,6 +272,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         motion_type = kwargs.get('motion_type', False)
         radius = radius if radius is not None else -1
         feedback_key, studio_wait = self._gen_feedback_key(wait, **kwargs)
+
         if self.version_is_ge(1, 11, 100) or kwargs.get('debug', False):
             ret = self.arm_cmd.move_line_common(tcp_pos, spd, acc, mvt, radius, coord=1, is_axis_angle=False, only_check_type=only_check_type, motion_type=motion_type, feedback_key=feedback_key)
         else:
@@ -1447,9 +1448,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         :param path: app path
         """
         try:
-            dir_name = 'lite6' if self.axis == 6 and self.device_type == 9 else '850' if self.axis == 6 and self.device_type == 12 else 'xarm7T' if self.axis == 7 and self.device_type == 13 else 'xarm{}'.format(self.axis)
             if not os.path.exists(path):
-                path = os.path.join('/home/uf/.UFACTORY', 'projects', 'test', dir_name, 'app', 'myapp', path)
+                dir_name = 'lite6' if self.axis == 6 and self.device_type == 9 else '850' if self.axis == 6 and self.device_type == 12 else 'xarm7T' if self.axis == 7 and self.device_type == 13 else 'xarm{}'.format(self.axis)
+                path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', dir_name, 'app', 'myapp', path) # home/uf
             if os.path.isdir(path):
                 path = os.path.join(path, 'app.xml')
             if not os.path.exists(path):
@@ -1460,6 +1461,8 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 times = kwargs.get('times', 1)
                 highlight_callback = kwargs.get('highlight_callback', None)
                 blockly_print = kwargs.get('blockly_print', print)
+                blockly_exec = kwargs.get('blockly_exec', None)
+                blockly_run_gcode = kwargs.get('blockly_run_gcode', None)
                 connect_changed_callbacks = self._report_callbacks[self.REPORT_CONNECT_CHANGED_ID].copy()
                 state_changed_callbacks = self._report_callbacks[self.REPORT_STATE_CHANGED_ID].copy()
                 error_warn_changed_callbacks = self._report_callbacks[self.REPORT_ERROR_WARN_CHANGED_ID].copy()
@@ -1467,7 +1470,9 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 code = APIState.NORMAL
                 try:
                     for _ in range(times):
-                        exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback, 'print': blockly_print})
+                        exec(blockly_tool.codes, {'arm': self._api_instance, 'highlight_callback': highlight_callback,
+                                                  'print': blockly_print, 'run_blockly': blockly_exec, 
+                                                  'start_run_blockly': blockly_exec, 'start_run_gcode':blockly_run_gcode})
                 except Exception as e:
                     code = APIState.RUN_BLOCKLY_EXCEPTION
                     blockly_print('run blockly app error: {}'.format(e))
@@ -1847,3 +1852,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         #     return [XCONF.UxbusState.ERR_NOTTCP]
         # ret = self.arm_cmd.recv_hex_request(ret, timeout)
         # return ret
+
+    @xarm_is_connected(_type='get')
+    def get_trans_id(self):
+        return self.arm_cmd.get_trans_id()

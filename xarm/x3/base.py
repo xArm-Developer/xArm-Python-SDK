@@ -222,6 +222,9 @@ class Base(BaseObject, Events):
             self._is_approx_motion = 0
             self._is_cart_continuous = 0
 
+            self._reduced_mode_is_on = 0
+            self._reduced_tcp_boundary = [9999, -9999, 9999, -9999, 9999, -9999]
+
             self._last_update_err_time = 0
             self._last_update_state_time = 0
             self._last_update_cmdnum_time = 0
@@ -347,6 +350,9 @@ class Base(BaseObject, Events):
         self._is_approx_motion = 0
         self._is_cart_continuous = 0
 
+        self._reduced_mode_is_on = 0
+        self._reduced_tcp_boundary = [9999, -9999, 9999, -9999, 9999, -9999]
+        
         self._last_update_err_time = 0
         self._last_update_state_time = 0
         self._last_update_cmdnum_time = 0
@@ -753,7 +759,15 @@ class Base(BaseObject, Events):
     @property
     def is_cart_continuous(self):
         return self._is_cart_continuous != 0
-
+    
+    @property
+    def reduced_mode_is_on(self):
+        return self._reduced_mode_is_on != 0
+    
+    @property
+    def reduced_tcp_boundary(self):
+        return self._reduced_tcp_boundary
+    
     @property
     def ft_ext_force(self):
         return self._ft_ext_force
@@ -1791,6 +1805,9 @@ class Base(BaseObject, Events):
                 self._is_report_current = (rx_data[494] >> 2) & 0x01  # 针对get_report_tau_or_i的结果
                 self._is_approx_motion = (rx_data[494] >> 3) & 0x01
                 self._is_cart_continuous = (rx_data[494] >> 4) & 0x01
+            if length >= 496:
+                self._reduced_mode_is_on = rx_data[495]
+                self._reduced_tcp_boundary = convert.bytes_to_16s(rx_data[496:508], 6)
 
         try:
             if self._report_type == 'real':

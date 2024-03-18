@@ -28,10 +28,12 @@ class _BlocklyHandler(_BlocklyBase):
         self._listen_tgpio_digital = False
         self._listen_tgpio_analog = False
         self._listen_cgpio_state = False
+        self._listen_count = False
         self._tgpio_digital_callbacks = []
         self._tgpio_analog_callbacks = []
         self._cgpio_digital_callbacks = []
         self._cgpio_analog_callbacks = []
+        self._count_callbacks= []
     
     def _append_init_code(self, code):
         self._init_code_list.append(code)
@@ -260,6 +262,36 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code = self._arm.set_position(*{}, speed=self._tcp_speed, mvacc=self._tcp_acc, radius={}, wait={})'.format(values, radius, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
+
+    def _handle_move_axis_angle(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        values = []
+        for field in fields[:-2]:
+            values.append(float(field.text))
+        radius = float(fields[-2].text)
+        wait = fields[-1].text == 'TRUE'
+        self._append_main_code(
+            'code = self._arm.set_position_aa({}, speed=self._tcp_speed, mvacc=self._tcp_acc, radius={}, wait={})'.format(
+                values, radius, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_position_aa\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_move_axis_angle_variable(self, block, indent=0, arg_map=None):
+        field = self._get_node('field', root=block)
+        wait = field.text == 'TRUE'
+        value_nodes = self._get_nodes('value', root=block)
+        values = []
+        for val_node in value_nodes:
+            val = self._get_condition_expression(val_node, arg_map=arg_map)
+            values.append(val)
+        radius = values.pop()
+        values = '[{}]'.format(','.join(values))
+        self._append_main_code(
+            'code = self._arm.set_position_aa({}, speed=self._tcp_speed, mvacc=self._tcp_acc, radius={}, wait={})'.format(
+                values, radius, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_position_aa\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
 
     def _handle_motion_set_state(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
@@ -716,6 +748,35 @@ class _BlocklyHandler(_BlocklyBase):
                 self._cgpio_analog_callbacks.append(name)
                 self._append_main_code('self._cgpio_analog_callbacks.append({{\'io\': {}, \'trigger\': {}, \'op\': \'{}\', \'callback\': self.{}}})'.format(io, trigger, op, name), indent=indent+2)
 
+    def __handle_count_event(self, count_type, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        op = fields[0].text
+        trigger = fields[1].text
+
+        num = 1
+
+        self._is_main_run_code = False
+        num = len(self._count_callbacks) + 1
+        name = 'count_is_changed_callback_{}'.format(num)
+        self._append_main_code('# Define Counter Value is {} {} callback'.format('greater than' if op == '>' else 'less than' if op == '<' else '', trigger), indent=1)
+
+        self._append_main_code('def {}(self):'.format(name), indent=1)
+        statement = self._get_node('statement', root=block)
+        if statement:
+            self._parse_block(statement, indent, arg_map=arg_map)
+        else:
+            self._append_main_code('pass', indent=indent + 3)
+        self._append_main_code('')
+
+        self._is_main_run_code = True
+        self._count_callbacks.append(name)
+        self._append_main_code(
+            'self._count_callbacks.append({{\'trigger\': {}, \'op\': \'{}\', \'callback\': self.{}}})'.format(
+                 trigger, op, name), indent=indent + 2)
+
+    def _handle_event_get_counter_condition(self, block, indent=0, arg_map=None):
+        self.__handle_count_event('get_counter', block, indent, arg_map=arg_map)
+
     def _handle_event_gpio_digital(self, block, indent=0, arg_map=None):
         self.__handle_gpio_event('tgpio_digital', block, indent, arg_map=arg_map)
 
@@ -1015,3 +1076,68 @@ class _BlocklyHandler(_BlocklyBase):
             self._append_main_code('code = self._arm.set_servo_angle(angle=ret)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_end_level\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
+
+    def _handle_set_modbus_rtu(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        host_id = fields[0].text
+        cmd = fields[1].text
+        cmd_li = re.sub(',', ' ', cmd)
+        is_run_cmd = ''.join(cmd_li.split()).isalnum()
+        if not is_run_cmd:
+            self._append_main_code('if not self._check_code(-1, \'set_tgpio_modbus\'):', indent + 2)
+            self._append_main_code('    return', indent + 2)
+            return
+        cmd_li = re.sub(' +', ' ', cmd_li)
+        cmd_li = re.sub('\xa0', ' ', cmd_li)
+        cmd_li = re.sub('\s+', ' ', cmd_li)
+        cmd_li = cmd_li.strip().split(' ')
+        int_li = [int(da, 16) for da in cmd_li]
+        self._append_main_code('code, ret = self._arm.getset_tgpio_modbus_data({}, host_id={})'.format(int_li, host_id), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_tgpio_modbus\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_set_ft_sensor(self, block, indent=0, arg_map=None):
+        force_axis_list = ['fx', 'fy', 'fz', 'tx', 'ty', 'tz']
+        force_axis_value = [0, 0, 0, 0, 0, 0]
+        force_ref_value = [0, 0, 0, 0, 0, 0]
+        fields = self._get_nodes('field', root=block)
+        ref_frame = fields[0].text
+        force_axis = fields[1].text
+        force_ref = fields[2].text
+        wait_time = fields[3].text
+        for index, axis in enumerate(force_axis_list):
+            if axis == force_axis:
+                force_axis_value[index] = 1
+                force_ref_value[index] = int(force_ref)
+        self._append_main_code('code = self._arm.config_force_control({}, {}, {}, [0] * 6)'.format(ref_frame, force_axis_value,
+                               force_ref_value), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_tgpio_modbus\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+        self._append_main_code('code = self._arm.ft_sensor_enable(1)', indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_tgpio_modbus\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+        self._append_main_code('time.sleep(0.2)', indent + 2)
+        self._append_main_code('self._arm.ft_sensor_app_set(2)', indent + 2)
+        self._append_main_code('self._arm.set_state(0)', indent + 2)
+        self._append_main_code('start_time = time.time()', indent + 2)
+        self._append_main_code('while time.time() - start_time > {}:'.format(wait_time), indent + 2)
+        self._append_main_code('if self._arm.error_code != 0:', indent + 3)
+        self._append_main_code('    return', indent + 4)
+        self._append_main_code('self._arm.ft_sensor_app_set(0)', indent + 2)
+
+    def _handle_studio_run_blockly(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        projectName = fields[0].text
+        fileName = fields[1].text
+        times = fields[2].text
+        self._append_main_code('start_run_blockly(fileName="{}", times={})'.format(fileName, times), indent + 2)
+    
+    def _handle_studio_run_gcode(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        projectName = fields[0].text
+        fileName = fields[1].text
+        times = fields[2].text
+        self._append_main_code('start_run_gcode(projectName="{}", fileName="{}", times={})'.format(projectName, fileName, times), indent + 2)
+
+
+

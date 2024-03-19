@@ -4083,8 +4083,7 @@ class XArmAPI(object):
         ret = self._arm.get_common_info(102, return_val=False)
         if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
             is_rad = self._is_radian if is_radian is None else is_radian
-            if not is_rad:
-                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+            ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret
 
     def get_c23_error_info(self, is_radian=None):
@@ -4095,13 +4094,18 @@ class XArmAPI(object):
 
         :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            err_info: [servo_id, angle]
+            err_info: [(servo_id, angle), ...]
         """
         ret = self._arm.get_common_info(103, return_val=False)
         if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
             is_rad = self._is_radian if is_radian is None else is_radian
-            if not is_rad:
-                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+            err_info = []
+            bits = ret[1][0]
+            for i in range(self.axis):
+                if (bits >> i) & 0x01:
+                    err_info.append((i + 1, ret[1][i+1] if is_rad else math.degrees(ret[1][i+1])))
+            return 0, err_info
+            # ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret
     
     def get_c24_error_info(self, is_radian=None):
@@ -4117,8 +4121,7 @@ class XArmAPI(object):
         ret = self._arm.get_common_info(104, return_val=False)
         if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
             is_rad = self._is_radian if is_radian is None else is_radian
-            if not is_rad:
-                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+            ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret
     
     def get_c60_error_info(self):
@@ -4142,11 +4145,16 @@ class XArmAPI(object):
 
         :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            err_info: [servo_id, angle]
+            err_info: [(servo_id, angle), ...]
         """
         ret = self._arm.get_common_info(106, return_val=False)
         if ret[0] == 0 and len(ret) > 1 and len(ret[1]) > 1:
             is_rad = self._is_radian if is_radian is None else is_radian
-            if not is_rad:
-                ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
+            err_info = []
+            bits = ret[1][0]
+            for i in range(self.axis):
+                if (bits >> i) & 0x01:
+                    err_info.append((i + 1, ret[1][i+1] if is_rad else math.degrees(ret[1][i+1])))
+            return 0, err_info
+            # ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret

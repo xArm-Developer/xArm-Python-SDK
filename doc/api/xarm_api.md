@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.21): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.26): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -905,7 +905,7 @@ xArm-Python-SDK API Documentation (V1.13.21): class XArmAPI in module xarm.wrapp
 >   
 > :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]
+> &ensp;&ensp;&ensp;&ensp;err_info: [(servo_id, angle), ...]
 
 
 #### def __get_c24_error_info__(self, is_radian=None):
@@ -949,7 +949,7 @@ xArm-Python-SDK API Documentation (V1.13.21): class XArmAPI in module xarm.wrapp
 >   
 > :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, angle]
+> &ensp;&ensp;&ensp;&ensp;err_info: [(servo_id, angle), ...]
 
 
 #### def __get_c60_error_info__(self):

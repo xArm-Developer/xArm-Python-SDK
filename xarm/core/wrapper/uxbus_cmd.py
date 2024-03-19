@@ -1400,12 +1400,15 @@ class UxbusCmd(object):
                 data[1] = ret[1]
                 data.append(convert.bytes_to_fp32(ret[2:6]))
                 data.append(convert.bytes_to_fp32(ret[6:10]))
-            elif param_type in [102, 103, 104, 106]:
+            elif param_type in [102, 104]:
                 data[1] = ret[1]
                 data.append(convert.bytes_to_fp32(ret[2:]))
             elif param_type == 105:
                 data[1] = convert.bytes_to_fp32(ret[1:])
                 data.append(convert.bytes_to_fp32(ret[5:]))
+            elif param_type in [103, 106]:
+                data[1] = ret[1]
+                data.extend(convert.bytes_to_fp32s(ret[2:], 7))
             else:
                 data[0] = XCONF.UxbusState.ERR_PARAM
         return data

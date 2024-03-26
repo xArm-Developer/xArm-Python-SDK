@@ -202,18 +202,19 @@ class _BlocklyBase(_BlocklyNode):
             cmd_li = re.sub('\s+', ' ', cmd_li)
             cmd_li = cmd_li.strip().split(' ')
             int_li = [int(da, 16) for da in cmd_li]
-            return 'self._arm.getset_tgpio_modbus_data({}, host_id={})'.format(int_li, host_id)
+            return '[data if isinstance(data, int) else [hex(da).split("0x")[1].upper().zfill(2) for da in data] for ' \
+                   'data in self._arm.getset_tgpio_modbus_data({}, host_id={})]'.format(int_li, host_id)
         elif block.attrib['type'] == 'get_gripper_status':
             fields = self._get_nodes('field', root=block)
             timeout = fields[0].text
-            return '0 == self._arm.arm.check_gripper_status()[1]'
+            return '0 == self._arm.arm.check_gripper_status()'
         elif block.attrib['type'] == 'get_ft_sensor':
             direction_li = ['Fx', 'Fy', 'Fz', 'Tx', 'Ty', 'Tz']
             fields = self._get_nodes('field', root=block)
             direction = fields[0].text
             return 'self._arm.get_joints_torque()[1][{}]'.format(direction_li.index(direction))
         elif block.attrib['type'] == 'get_counter':
-            return 'self._arm.count()'
+            return 'str(self._arm.count)'
 
 
     def __get_logic_compare(self, block, arg_map=None):

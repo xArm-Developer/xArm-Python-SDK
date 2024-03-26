@@ -34,6 +34,8 @@ class _BlocklyHandler(_BlocklyBase):
         self._cgpio_digital_callbacks = []
         self._cgpio_analog_callbacks = []
         self._count_callbacks= []
+
+        self.is_run_linear_track = False
     
     def _append_init_code(self, code):
         self._init_code_list.append(code)
@@ -261,6 +263,33 @@ class _BlocklyHandler(_BlocklyBase):
         values = '[{}]'.format(','.join(values))
         self._append_main_code('code = self._arm.set_position(*{}, speed=self._tcp_speed, mvacc=self._tcp_acc, radius={}, wait={})'.format(values, radius, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_move_circle_var(self, block, indent=0, arg_map=None):
+        values = self._get_nodes('value', root=block)
+        percent = self._get_block_val(values[2], arg_map=arg_map)
+        wait = self._get_block_val(values[3], arg_map=arg_map)
+        if wait == 'TRUE' or wait == 'FALSE':
+            wait = wait == 'TRUE'
+        
+        pose1_block= self._get_node('block', root=values[0])
+        pose1_nodes = self._get_nodes('value', root=pose1_block)
+        pose1 = []
+        for val_node in pose1_nodes:
+            val = self._get_condition_expression(val_node, arg_map=arg_map)
+            pose1.append(val)
+
+        pose2_block = self._get_node('block', root=values[1])
+        pose2_nodes = self._get_nodes('value', root=pose2_block)
+        pose2 = []
+        for val_node in pose2_nodes:
+            val = self._get_condition_expression(val_node, arg_map=arg_map)
+            pose2.append(val)
+
+        pose1 = '[{}]'.format(', '.join(pose1))
+        pose2 = '[{}]'.format(', '.join(pose2))
+        self._append_main_code('code = self._arm.move_circle({}, {}, float({}) / 360 * 100, speed=self._tcp_speed, mvacc=self._tcp_acc, wait={})'.format(pose1, pose2, percent, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'move_circle\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
     def _handle_move_axis_angle(self, block, indent=0, arg_map=None):
@@ -772,7 +801,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._count_callbacks.append(name)
         self._append_main_code(
             'self._count_callbacks.append({{\'trigger\': {}, \'op\': \'{}\', \'callback\': self.{}}})'.format(
-                 trigger, op, name), indent=indent + 2)
+                 trigger, '==' if op == '=' else op, name), indent=indent + 2)
 
     def _handle_event_get_counter_condition(self, block, indent=0, arg_map=None):
         self.__handle_count_event('get_counter', block, indent, arg_map=arg_map)
@@ -1018,6 +1047,7 @@ class _BlocklyHandler(_BlocklyBase):
                 break
     
     def _handle_set_line_track(self, block, indent=0, arg_map=None):
+        self.is_run_linear_track = True
         fields = self._get_nodes('field', root=block)
         if fields is None:
             values = self._get_nodes('value', root=block)

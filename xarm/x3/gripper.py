@@ -425,7 +425,7 @@ class Gripper(GPIO):
             time.sleep(0.2)
         return code
 
-    def __check_gripper_status(self, timeout=None):
+    def check_gripper_status(self, timeout=None):
         start_move = False
         not_start_move_cnt = 0
         failed_cnt = 0
@@ -486,7 +486,7 @@ class Gripper(GPIO):
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
         if wait and ret[0] == 0:
             if self.gripper_is_support_status:
-                return self.__check_gripper_status(timeout=timeout)
+                return self.check_gripper_status(timeout=timeout)
             else:
                 return self.__check_gripper_position(pos, timeout=timeout)
         return ret[0]

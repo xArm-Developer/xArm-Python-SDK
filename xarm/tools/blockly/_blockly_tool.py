@@ -312,17 +312,17 @@ class BlocklyTool(_BlocklyHandler):
         if self._listen_count or len(self._count_callbacks):
             self._append_main_init_code('    def _listen_count_thread(self):')
             if self._listen_count or len(self._count_callbacks):
-                self._append_main_init_code('        values = self._arm.count()')
+                self._append_main_init_code('        values = self._arm.count')
 
             self._append_main_init_code('        while self.alive:')
 
-            self._append_main_init_code('            values = self._arm.count()')
+            self._append_main_init_code('            values = self._arm.count')
             self._append_main_init_code(
                 '            if self._counter_val is not None and self._counter_val != values:')
             if self._listen_count or len(self._count_callbacks):
                 self._append_main_init_code('                for item in self._count_callbacks:')
                 self._append_main_init_code(
-                    '                        if eval(\'{} {} {}\'.format(values, item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self._counter_val, item[\'op\'], item[\'trigger\'])):')
+                    '                    if eval(\'{} {} {}\'.format(values, item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(self._counter_val, item[\'op\'], item[\'trigger\'])):')
                 self._append_main_init_code('                            self._callback_que.put(item[\'callback\'])')
             self._append_main_init_code('            self._counter_val = values')
             self._append_main_init_code('            time.sleep(0.01)\n')
@@ -356,6 +356,8 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('        if data and data[\'error_code\'] != 0:')
             self._append_main_init_code('            self.alive = False')
             self._append_main_init_code('            self.pprint(\'err={}, quit\'.format(data[\'error_code\']))')
+            if self.is_run_linear_track:
+                self._append_main_init_code('            self._arm.set_linear_track_stop()')
             self._append_main_init_code('            self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)\n')
     
     def __define_state_changed_callback_func(self, stop_exit=True):

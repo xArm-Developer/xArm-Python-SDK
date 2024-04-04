@@ -36,7 +36,7 @@ class GcodeParser:
 
     @staticmethod
     def __get_value(string, ch, return_type, default=None):
-        pattern = '{}(\-?\d+\.?\d*)'.format(ch)
+        pattern = r'{}(\-?\d+\.?\d*)'.format(ch)
         data = re.findall(pattern, string)
         if len(data) > 0:
             return return_type(data[0])
@@ -44,7 +44,7 @@ class GcodeParser:
 
     @staticmethod
     def __get_hex_value(string, ch, default=None):
-        pattern = '{}(-?\w{{3,4}})'.format(ch)
+        pattern = r'{}(-?\w{{3,4}})'.format(ch)
         data = re.findall(pattern, string)
         if len(data) > 0:
             return int(data[0], base=16)

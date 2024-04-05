@@ -2,55 +2,72 @@ import cv2
 import numpy as np
 
 # Create a VideoCapture object to capture video from a file or camera.
-cap = cv2.VideoCapture(1,cv2.CAP_DSHOW)  # Replace 'your_video.mp4' with the video file name or 0 for the default camera.
+cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)  # Replace 'your_video.mp4' with the video file name or 0 for the default camera.
 
-while True:
-    ret, frame = cap.read()
-    
-    if not ret:
-        break
+def findBeaker():
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-    # Convert the frame to grayscale for edge detection.
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Convert the frame to grayscale for edge detection.
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    # Apply Gaussian blur to reduce noise and improve edge detection.
-    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+        # Apply Gaussian blur to reduce noise and improve edge detection.
+        blurred = cv2.GaussianBlur(gray, (9, 9), 2)
 
-    # Detect edges using Canny edge detector.
-    edges = cv2.Canny(blurred, 50, 150)
+        # Detect edges using Canny edge detector.
+        edges = cv2.Canny(blurred, 50, 150)
 
-    adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+        adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
 
-    # Apply Hough Circle Transform to find circles in the frame.
-    circles = cv2.HoughCircles(
-        adjusted_frame,
-        cv2.HOUGH_GRADIENT,
-        1,
-        30,
-        param1 = 50,
-        param2 = 30,
-        minRadius= 20,
-        maxRadius=100
-    )
+        # Apply Hough Circle Transform to find circles in the frame.
+        circles = cv2.HoughCircles(
+            adjusted_frame,
+            cv2.HOUGH_GRADIENT,
+            1,
+            30,
+            param1 = 50,
+            param2 = 30,
+            minRadius= 20,
+            maxRadius=100
+        )
 
-    if circles is not None:
-        # Convert the (x, y) coordinates and radius of the circles to integers.
-        circles = np.round(circles[0, :]).astype("int")
+        if circles is not None:
+            # Convert the (x, y) coordinates and radius of the circles to integers.
+            circles = np.round(circles[0, :]).astype("int")
 
-        # Draw circles on the frame.
-        for (x, y, r) in circles:
-            cv2.circle(frame, (x, y), r, (0, 255, 0), 4)
-            cv2.rectangle(frame, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+            # Draw circles on the frame.
+            x_pixels = None
+            y_pixels = None
+            for (x, y, r) in circles:
+                x_pixels = x
+                y_pixels = y
+                cv2.circle(frame, (x, y), r, (0, 255, 0), 4)
+                cv2.rectangle(frame, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+                if x_pixels and y_pixels:
+                    print((x_pixels, y_pixels))
+                    #return [x_pixels, y_pixels]
+                
+            if x_pixels and y_pixels:
+                print((x_pixels,y_pixels))
+                #return(x_pixels,y_pixels)
 
-    # Display the resulting frame with detected circles.
-    cv2.imshow('Circles Detection', frame)
+        # Display the resulting frame with detected circles.
+        cv2.imshow('Circles Detection', frame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        #print("Looking for beaker...")
+
 
 # Release the VideoCapture and close all OpenCV windows.
-cap.release()
-cv2.destroyAllWindows()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+findBeaker()
 
 # cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
 

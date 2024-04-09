@@ -214,7 +214,7 @@ class _BlocklyBase(_BlocklyNode):
             direction = fields[0].text
             return 'self._arm.get_joints_torque()[1][{}]'.format(direction_li.index(direction))
         elif block.attrib['type'] == 'get_counter':
-            return 'str(self._arm.count)'
+            return 'self._arm.count'
 
 
     def __get_logic_compare(self, block, arg_map=None):

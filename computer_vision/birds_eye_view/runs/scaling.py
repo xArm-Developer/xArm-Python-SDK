@@ -14,9 +14,9 @@ class AprilTags:
 WIDTH = 640 #Width of image from camera
 HEIGHT = 480 #Height of image from camera
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 tag = robotpy_apriltag.AprilTagDetector()
-tag.addFamily("tag25h9", 3)
+tag.addFamily("tag36h11", 3)
 
 def getScalar():
     while True:
@@ -38,8 +38,8 @@ def getScalar():
                 for j in range(4):
                     points[j] = (int(i.getCorner(j).x), int(i.getCorner(j).y))   
                 
-                for j in range(4):
-                    cv2.circle(frame, points[j], 2, (50, 0, 0), thickness=j)
+                # for j in range(4):
+                #     cv2.circle(frame, points[j], 2, (50, 0, 0), thickness=j)
                 """"
                 A3 ----------- B2
                 |             |
@@ -62,7 +62,7 @@ def getScalar():
                             [width - 1, 0]])
                 M = cv2.getPerspectiveTransform(input_pts, output_pts)
                 #print("M: ", M)
-                print(height, width)
+                #print(height, width)
                 warped_img = cv2.warpPerspective(frame, M, (int(width), int(height)), flags=cv2.INTER_LINEAR)
                 
                 cv2.line(frame, (x, 0), (x, HEIGHT), (0, 255, 0), thickness=2)
@@ -70,7 +70,10 @@ def getScalar():
                 
                 tag_side_mm = 100
                 scalar =  tag_side_mm / width
-                return scalar
+                #print(scalar)
+                cv2.imshow("Camera Feed", frame)
+                cv2.imshow("Flat image", warped_img)
+                return (scalar, x, y)
 
         # Display the frame
         cv2.imshow("Camera Feed", frame)
@@ -85,3 +88,5 @@ def getScalar():
     # Release the capture object and close the window
     cap.release()
     cv2.destroyAllWindows()
+
+getScalar()

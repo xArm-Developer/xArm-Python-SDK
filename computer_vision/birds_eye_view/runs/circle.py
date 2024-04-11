@@ -2,13 +2,17 @@ import cv2
 import numpy as np
 
 # Create a VideoCapture object to capture video from a file or camera.
-cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)  # Replace 'your_video.mp4' with the video file name or 0 for the default camera.
+  # Replace 'your_video.mp4' with the video file name or 0 for the default camera.
 
 def findBeaker():
+    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
     while True:
         ret, frame = cap.read()
-        if not ret:
-            break
+        while ret == False:
+            print("Can't receive frame. Retrying ...")
+            cap.release()
+            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)                                                                              
+            ret, frame = cap.read()
 
         # Convert the frame to grayscale for edge detection.
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -46,12 +50,16 @@ def findBeaker():
                 cv2.circle(frame, (x, y), r, (0, 255, 0), 4)
                 cv2.rectangle(frame, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
                 if x_pixels and y_pixels:
-                    print((x_pixels, y_pixels))
-                    #return [x_pixels, y_pixels]
+                    #print((x_pixels, y_pixels))
+                    cap.release()
+                    cv2.destroyAllWindows()
+                    return [x_pixels, y_pixels]
                 
             if x_pixels and y_pixels:
-                print((x_pixels,y_pixels))
-                #return(x_pixels,y_pixels)
+                #print((x_pixels,y_pixels))
+                cap.release()
+                cv2.destroyAllWindows()
+                return(x_pixels,y_pixels)
 
         # Display the resulting frame with detected circles.
         cv2.imshow('Circles Detection', frame)

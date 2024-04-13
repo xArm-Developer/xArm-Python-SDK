@@ -69,7 +69,7 @@ def detect_circles(image):
     # Detect edges using Canny edge detector.
     edges = cv2.Canny(blurred, 50, 150)
 
-    adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+    # adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
 
     # Apply Hough Circle Transform to find circles in the frame.
     circles = cv2.HoughCircles(
@@ -97,6 +97,28 @@ def detect_circles(image):
             cv2.rectangle(image, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
             
     return image
+
+def detect_ellipse(image):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Apply Gaussian blur to reduce noise and improve edge detection.
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+
+    # Detect edges using Canny edge detector.
+    edges = cv2.Canny(blurred, 50, 150)
+
+    # adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+
+    # Apply Hough Circle Transform to find circles in the frame.
+    contours, _ = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        if len(contour) >= 5:
+            ellipse = cv2.fitEllipse(contour)
+            cv2.ellipse(image, ellipse, (0, 255, 0), 2)
+            
+    return image
+
             
 
 
@@ -164,13 +186,13 @@ def main():
         mat_height = 11.69  # A4 paper height in inches
         output_width = int(mat_width * 100) + 2 * margin
         output_height = int(mat_height * 100) + 2 * margin
-        #result_frame = cv2.warpPerspective(frame, warp_matrix, (output_width, output_height))
-        result_frame = detect_circles(frame)
+        result_frame = cv2.warpPerspective(frame, warp_matrix, (output_width, output_height))
+        result_frame = detect_ellipse(result_frame)
         
 
         # Display the result frame
         if result_frame is not None:
-            cv2.imshow("Circle Detection", frame)
+            cv2.imshow("Circle Detection", result_frame)
 
         # Exit on 'q' press
         if cv2.waitKey(1) & 0xFF == ord('q'):

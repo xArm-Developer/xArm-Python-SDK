@@ -5,7 +5,7 @@ import numpy as np
   # Replace 'your_video.mp4' with the video file name or 0 for the default camera.
 
 def findBeaker():
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     while True:
         ret, frame = cap.read()
         while ret == False:

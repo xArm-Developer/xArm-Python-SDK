@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from getMatrix import getMatrix
 import time
+import apriltag
 
 def detect_paper(frame):
         
@@ -130,14 +131,36 @@ def detect_ellipse(image):
             cv2.ellipse(image, ellipse, (0, 255, 0), 2)
             cv2.rectangle(image, top_left, bottom_right, (255, 0, 0), 2)  # Green square with a thickness of 2
             
-    return image
+    return cx, cy, image
 
             
-
-
-
-
-
+def detect_apriltag(frame):
+    # Convert frame to grayscale
+    img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    # Create an AprilTag detector
+    detector = apriltag.Detector()
+    
+    # Detect AprilTags in the frame
+    detections = detector.detect(img_gray)
+    
+    if len(detections) > 0:
+        # Get the first detected tag
+        tag = detections[0]
+        
+        # Get the x and y position of the tag
+        x = int(tag.center[0])
+        y = int(tag.center[1])
+        
+        # Highlight the tag in the frame
+        for pt in tag.corners:
+            pt = (int(pt[0]), int(pt[1]))
+            cv2.circle(frame, pt, 5, (0, 255, 0), -1)
+        print("AprilTag detected at position (x={}, y={})".format(x, y))
+        return x, y, frame
+    else:
+        print("Looking for arm...")
+        return None, None, None
 
 
 
@@ -200,12 +223,13 @@ def main():
         output_width = int(mat_width * 100) + 2 * margin
         output_height = int(mat_height * 100) + 2 * margin
         result_frame = cv2.warpPerspective(frame, warp_matrix, (output_width, output_height))
-        result_frame = detect_ellipse(result_frame)
+        beaker_x, beaker_y, result_frame = detect_ellipse(result_frame)
+        arm_x, arm_y, tag_frame = detect_apriltag(result_frame)
         
 
         # Display the result frame
         if result_frame is not None:
-            cv2.imshow("Circle Detection", result_frame)
+            cv2.imshow("Circle Detection", tag_frame)
 
         # Exit on 'q' press
         if cv2.waitKey(1) & 0xFF == ord('q'):

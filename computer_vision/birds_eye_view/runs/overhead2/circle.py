@@ -134,34 +134,54 @@ def detect_ellipse(image):
     return cx, cy, image
 
             
-def detect_apriltag(frame):
+def detect_apriltag(frame, tag_size_mm):
     # Convert frame to grayscale
     img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
-    # Create an AprilTag detector
-    detector = apriltag.Detector()
+    # Threshold the image to create a binary mask
+    _, thresholded = cv2.threshold(img_gray, 127, 255, cv2.THRESH_BINARY_INV)
     
-    # Detect AprilTags in the frame
-    detections = detector.detect(img_gray)
+    # Find contours in the thresholded image
+    contours, _ = cv2.findContours(thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
-    if len(detections) > 0:
-        # Get the first detected tag
-        tag = detections[0]
+    # Iterate through contours to find AprilTag-like shapes
+    for contour in contours:
+        # Approximate the contour to a polygon
+        epsilon = 0.03 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
         
-        # Get the x and y position of the tag
-        x = int(tag.center[0])
-        y = int(tag.center[1])
-        
-        # Highlight the tag in the frame
-        for pt in tag.corners:
-            pt = (int(pt[0]), int(pt[1]))
-            cv2.circle(frame, pt, 5, (0, 255, 0), -1)
-        print("AprilTag detected at position (x={}, y={})".format(x, y))
-        return x, y, frame
-    else:
-        print("Looking for arm...")
-        return None, None, None
-
+        # Check if the polygon has 4 vertices (approximate rectangle)
+        if len(approx) == 4:
+            # Calculate the area of the polygon
+            area = cv2.contourArea(approx)
+            
+            # Calculate the perimeter of the polygon
+            perimeter = cv2.arcLength(approx, True)
+            
+            # Calculate the circularity of the polygon
+            circularity = 4 * np.pi * area / (perimeter ** 2)
+            
+            # Check if the shape is approximately square and has high circularity
+            if 0.9 < circularity < 1.1:
+                # Get the bounding rectangle of the contour
+                x, y, w, h = cv2.boundingRect(contour)
+                
+                # Calculate the center of the rectangle
+                center_x = x + w // 2
+                center_y = y + h // 2
+                
+                # Calculate scale factor
+                tag_size_pixels = max(w, h)
+                scale_factor = tag_size_mm / tag_size_pixels
+                
+                # Highlight the tag in the frame
+                cv2.drawContours(frame, [approx], -1, (0, 255, 0), 2)
+                print(f'Arm Location: ({x}, {y})')
+                return center_x, center_y, scale_factor, frame
+                
+    # Return None if no AprilTag-like shape is found
+    print("Looking for arm....")
+    return None, None, None, None
 
 
 

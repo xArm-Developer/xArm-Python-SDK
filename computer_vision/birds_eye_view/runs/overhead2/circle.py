@@ -115,7 +115,20 @@ def detect_ellipse(image):
     for contour in contours:
         if len(contour) >= 5:
             ellipse = cv2.fitEllipse(contour)
+
+            (center, axes, angle) = ellipse
+
+            # Center of the ellipse
+            cx, cy = int(center[0]), int(center[1])
+
+            # Side length of the square
+            s = 50
+
+            # Calculate top-left and bottom-right coordinates of the square
+            top_left = (cx - s // 2, cy - s // 2)
+            bottom_right = (cx + s // 2, cy + s // 2)
             cv2.ellipse(image, ellipse, (0, 255, 0), 2)
+            cv2.rectangle(image, top_left, bottom_right, (255, 0, 0), 2)  # Green square with a thickness of 2
             
     return image
 

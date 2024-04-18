@@ -1392,7 +1392,7 @@ class UxbusCmd(object):
         data = [0] * 2
         data[0] = ret[0]
         if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
-            if param_type == 1:
+            if param_type == 1 or param_type == 2:
                 data[1] = ret[1]
             elif param_type == 50:
                 data[1] = convert.bytes_to_fp32(ret[1:])

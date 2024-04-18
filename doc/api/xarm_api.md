@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.26): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.13.28): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -1198,6 +1198,17 @@ xArm-Python-SDK API Documentation (V1.13.26): class XArmAPI in module xarm.wrapp
 >   
 > :return: (code, types)  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __get_iden_status__(self):
+
+> Get iden status  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
+>   
+> :return: tuple((code, status)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;status: 1 means in identifying, 0 means not in identifying
 
 
 #### def __get_initial_point__(self):

@@ -4057,6 +4057,18 @@ class XArmAPI(object):
             status: 1 means poe is valid, 0 means poe is invalid
         """
         return self._arm.get_common_info(1)
+
+    def get_iden_status(self):
+        """
+        Get iden status
+        Note:
+            Only available if firmware_version >= 2.3.0
+
+        :return: tuple((code, status)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            status: 1 means in identifying, 0 means not in identifying
+        """
+        return self._arm.get_common_info(2)
     
     def get_c31_error_info(self):
         """

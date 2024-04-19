@@ -36,6 +36,8 @@ class _BlocklyHandler(_BlocklyBase):
         self._count_callbacks= []
 
         self.is_run_linear_track = False
+        self._is_run_blockly = False
+        self._listen_counter = False
     
     def _append_init_code(self, code):
         self._init_code_list.append(code)
@@ -100,11 +102,13 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('self._angle_acc = {}'.format(self._get_field_value(block)), indent + 2)
 
     def _handle_set_counter_increase(self, block, indent=0, arg_map=None):
+        self._listen_counter = True
         self._append_main_code('code = self._arm.set_counter_increase()', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_counter_increase\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
     def _handle_set_counter_reset(self, block, indent=0, arg_map=None):
+        self._listen_counter = True
         self._append_main_code('code = self._arm.set_counter_reset()', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_counter_reset\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
@@ -337,9 +341,12 @@ class _BlocklyHandler(_BlocklyBase):
         filename = fields[0].text
         speed = fields[1].text
         times = fields[2].text
-        self._append_main_code('code = self._arm.playback_trajectory(times={}, filename=\'{}\', wait=True, double_speed={})'.format(times, filename, speed), indent + 2)
-        self._append_main_code('if not self._check_code(code, \'playback_trajectory\'):', indent + 2)
-        self._append_main_code('    return', indent + 2)
+        if filename:
+            self._append_main_code('code = self._arm.playback_trajectory(times={}, filename=\'{}\', wait=True, double_speed={})'.format(times, filename, speed), indent + 2)
+            self._append_main_code('if not self._check_code(code, \'playback_trajectory\'):', indent + 2)
+            self._append_main_code('    return', indent + 2)
+        else:
+            self._append_main_code('pass', indent + 2)
 
     def _handle_app_studio_traj(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
@@ -1089,11 +1096,12 @@ class _BlocklyHandler(_BlocklyBase):
         
     def _handle_set_end_level(self, block, indent=0, arg_map=None, **kwargs):
         if not self.axis_type:
-            return 
+            return
+        self._append_main_code('self._arm.arm.wait_move()', indent + 2)
         self._append_main_code('current_angle = self._arm.angles', indent + 2)
         if self.axis_type[0] == 5:
             self._append_main_code('angle = -(current_angle[1] + current_angle[2])', indent + 2)
-            self._append_main_code('code = self._arm.set_servo_angle(servo_id=4, angle=angle)', indent + 2,)
+            self._append_main_code('code = self._arm.set_servo_angle(angle=[*current_angle[:3], angle, current_angle[4]])', indent + 2,)
         elif self.axis_type[0] == 6:
             self._append_main_code('angle_5 = {}'.format('-(current_angle[1] - current_angle[2])' if self.axis_type[1]==9 or self.axis_type[1]==12 else
                                                        '-(current_angle[1] + current_angle[2])'), indent + 2)
@@ -1138,7 +1146,7 @@ class _BlocklyHandler(_BlocklyBase):
         for index, axis in enumerate(force_axis_list):
             if axis == force_axis:
                 force_axis_value[index] = 1
-                force_ref_value[index] = int(force_ref)
+                force_ref_value[index] = float(force_ref)
         self._append_main_code('code = self._arm.config_force_control({}, {}, {}, [0] * 6)'.format(ref_frame, force_axis_value,
                                force_ref_value), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_tgpio_modbus\'):', indent + 2)
@@ -1150,7 +1158,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('self._arm.ft_sensor_app_set(2)', indent + 2)
         self._append_main_code('self._arm.set_state(0)', indent + 2)
         self._append_main_code('start_time = time.time()', indent + 2)
-        self._append_main_code('while time.time() - start_time > {}:'.format(wait_time), indent + 2)
+        self._append_main_code('while time.time() - start_time < {}:'.format(wait_time), indent + 2)
         self._append_main_code('if self._arm.error_code != 0:', indent + 3)
         self._append_main_code('    return', indent + 4)
         self._append_main_code('self._arm.ft_sensor_app_set(0)', indent + 2)
@@ -1160,7 +1168,11 @@ class _BlocklyHandler(_BlocklyBase):
         projectName = fields[0].text
         fileName = fields[1].text
         times = fields[2].text
-        self._append_main_code('start_run_blockly(fileName="{}", times={})'.format(fileName, times), indent + 2)
+        if not self._is_exec:
+            self._append_main_code('self._start_run_blockly(fileName="{}", times={})'.format(fileName.lstrip('/'), times), indent + 2)
+        else:
+            self._append_main_code('start_run_blockly(fileName="{}", times={})'.format(fileName, times), indent + 2)
+        self._is_run_blockly = True
     
     def _handle_studio_run_gcode(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
@@ -1168,6 +1180,4 @@ class _BlocklyHandler(_BlocklyBase):
         fileName = fields[1].text
         times = fields[2].text
         self._append_main_code('start_run_gcode(projectName="{}", fileName="{}", times={})'.format(projectName, fileName, times), indent + 2)
-
-
 

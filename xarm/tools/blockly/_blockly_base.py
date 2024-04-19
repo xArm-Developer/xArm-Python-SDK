@@ -202,17 +202,19 @@ class _BlocklyBase(_BlocklyNode):
             cmd_li = re.sub('\s+', ' ', cmd_li)
             cmd_li = cmd_li.strip().split(' ')
             int_li = [int(da, 16) for da in cmd_li]
-            return '[data if isinstance(data, int) else [hex(da).split("0x")[1].upper().zfill(2) for da in data] for ' \
-                   'data in self._arm.getset_tgpio_modbus_data({}, host_id={})]'.format(int_li, host_id)
+            return '[" ".join([hex(da).split("0x")[1].upper().zfill(2) for da in data]) if isinstance(data, list) else data for ' \
+                   'data in self._arm.getset_tgpio_modbus_data({}, host_id={})][-1]'.format(int_li, host_id)
         elif block.attrib['type'] == 'get_gripper_status':
             fields = self._get_nodes('field', root=block)
             timeout = fields[0].text
-            return '0 == self._arm.arm.check_gripper_status()'
+            return '0 == self._arm.arm.check_catch_gripper_status({})'.format(timeout)
         elif block.attrib['type'] == 'get_ft_sensor':
             direction_li = ['Fx', 'Fy', 'Fz', 'Tx', 'Ty', 'Tz']
             fields = self._get_nodes('field', root=block)
             direction = fields[0].text
-            return 'self._arm.get_joints_torque()[1][{}]'.format(direction_li.index(direction))
+            return '[self._arm.ft_sensor_enable(1), self._arm.set_state(0), self._arm.get_ft_sensor_data()[1][{}]][2] if' \
+                   ' self._arm.get_ft_sensor_config()[1][1] == 0 else self._arm.get_ft_sensor_data()[1][{}]'.\
+                format(direction_li.index(direction), direction_li.index(direction))
         elif block.attrib['type'] == 'get_counter':
             return 'self._arm.count'
 

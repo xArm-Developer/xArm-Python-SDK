@@ -425,7 +425,7 @@ class Gripper(GPIO):
             time.sleep(0.2)
         return code
 
-    def check_gripper_status(self, timeout=None):
+    def __check_gripper_status(self, timeout=None):
         start_move = False
         not_start_move_cnt = 0
         failed_cnt = 0
@@ -443,6 +443,34 @@ class Gripper(GPIO):
                     else:
                         not_start_move_cnt += 1
                         if not_start_move_cnt > 20:
+                            return 0
+                elif not start_move:
+                    not_start_move_cnt = 0
+                    start_move = True
+            else:
+                if failed_cnt > 10:
+                    return APIState.CHECK_FAILED
+            time.sleep(0.1)
+        return code
+
+    def check_catch_gripper_status(self, timeout=None):
+        start_move = False
+        not_start_move_cnt = 0
+        failed_cnt = 0
+        if not timeout or not isinstance(timeout, (int, float)) or timeout <= 0:
+            timeout = 10
+        expired = time.monotonic() + timeout
+        code = APIState.WAIT_FINISH_TIMEOUT
+        while self.connected and time.monotonic() < expired:
+            _, status = self.get_gripper_status()
+            failed_cnt = 0 if _ == 0 else failed_cnt + 1
+            if _ == 0:
+                if status & 0x03 == 2:
+                    if start_move:
+                        return 0
+                    else:
+                        not_start_move_cnt += 1
+                        if not_start_move_cnt > 2:
                             return 0
                 elif not start_move:
                     not_start_move_cnt = 0
@@ -486,7 +514,7 @@ class Gripper(GPIO):
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
         if wait and ret[0] == 0:
             if self.gripper_is_support_status:
-                return self.check_gripper_status(timeout=timeout)
+                return self.__check_gripper_status(timeout=timeout)
             else:
                 return self.__check_gripper_position(pos, timeout=timeout)
         return ret[0]

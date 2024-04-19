@@ -105,8 +105,9 @@ class BlocklyTool(_BlocklyHandler):
                 self._append_main_code('            self._arm.release_error_warn_changed_callback(self._error_warn_changed_callback)', indent=-1)
             if stop_exit:
                 self._append_main_code('            self._arm.release_state_changed_callback(self._state_changed_callback)', indent=-1)
-        self._append_main_code('            if hasattr(self._arm, \'release_count_changed_callback\'):', indent=-1)
-        self._append_main_code('                self._arm.release_count_changed_callback(self._count_changed_callback)', indent=-1)
+        if self._listen_counter:
+            self._append_main_code('            if hasattr(self._arm, \'release_count_changed_callback\'):', indent=-1)
+            self._append_main_code('                self._arm.release_count_changed_callback(self._count_changed_callback)', indent=-1)
 
         # if self._listen_tgpio_digital or self._listen_tgpio_analog or self._listen_cgpio_state \
         #     or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
@@ -183,6 +184,7 @@ class BlocklyTool(_BlocklyHandler):
         self.__define_callback_thread_func()
         self.__define_listen_gpio_thread_func()
         self.__define_listen_count_thread_func()
+        self.__define_run_blockly_func()
         self.__define_robot_init_func(init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
         self.__define_error_warn_changed_callback_func(error_exit=error_exit)
         self.__define_state_changed_callback_func(stop_exit=stop_exit)
@@ -327,6 +329,12 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('            self._counter_val = values')
             self._append_main_init_code('            time.sleep(0.01)\n')
 
+    def __define_run_blockly_func(self):
+        if self._is_run_blockly and not self._is_exec:
+            self._append_main_init_code('    def _start_run_blockly(self, fileName, times):')
+            self._append_main_init_code('       for i in range(times):')
+            self._append_main_init_code('           self._arm.run_blockly_app(fileName, init=False, axis_type=[self._arm.axis, self._arm.device_type])\n')
+
     def __define_robot_init_func(self, init=True, wait_seconds=1, mode=0, state=0, error_exit=True, stop_exit=True):
         # Define XArm Init Function:
         self._append_main_init_code('    # Robot init')
@@ -343,9 +351,9 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('        self._arm.register_error_warn_changed_callback(self._error_warn_changed_callback)')
         if stop_exit:
             self._append_main_init_code('        self._arm.register_state_changed_callback(self._state_changed_callback)')
-        
-        self._append_main_init_code('        if hasattr(self._arm, \'register_count_changed_callback\'):')
-        self._append_main_init_code('            self._arm.register_count_changed_callback(self._count_changed_callback)')
+        if self._listen_counter:
+            self._append_main_init_code('        if hasattr(self._arm, \'register_count_changed_callback\'):')
+            self._append_main_init_code('            self._arm.register_count_changed_callback(self._count_changed_callback)')
         self._append_main_init_code('')
 
     def __define_error_warn_changed_callback_func(self, error_exit=True):
@@ -372,10 +380,11 @@ class BlocklyTool(_BlocklyHandler):
 
     def __define_count_changed_callback_func(self):
         # Define count changed callback
-        self._append_main_init_code('    # Register count changed callback')
-        self._append_main_init_code('    def _count_changed_callback(self, data):')
-        self._append_main_init_code('        if self.is_alive:')
-        self._append_main_init_code('            self.pprint(\'counter val: {}\'.format(data[\'count\']))\n')
+        if self._listen_counter:
+            self._append_main_init_code('    # Register count changed callback')
+            self._append_main_init_code('    def _count_changed_callback(self, data):')
+            self._append_main_init_code('        if self.is_alive:')
+            self._append_main_init_code('            self.pprint(\'counter val: {}\'.format(data[\'count\']))\n')
 
     def __define_pprint_func(self):
         self._append_main_init_code('    @staticmethod')

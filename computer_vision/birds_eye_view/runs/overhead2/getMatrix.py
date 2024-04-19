@@ -45,22 +45,42 @@ def getMatrix():
             # Check if the contour has 4 points
             if len(approx) == 4:
                 paper_contour = approx.reshape(4, 2)
-                paper_width = 8.27  # A4 paper width in inches
-                paper_height = 11.69  # A4 paper height in inches
                 
                 # Define dimensions of the output image with margin
                 margin = 200  # Adjust this value as needed
-                output_width = int(paper_width * 100) + 2 * margin
-                output_height = int(paper_height * 100) + 2 * margin
+                paper_width_px = 210
+                paper_height_px = 297
+
+                new_width = paper_width_px + 2 * margin
+                new_height = paper_height_px + 2 * margin
+
+                dst_points = np.array([
+                    [margin, margin],  # Top-left point shifted by margin
+                    [margin + paper_width_px, margin],  # Top-right point
+                    [margin + paper_width_px, margin + paper_height_px],  # Bottom-right point
+                    [margin, margin + paper_height_px]  # Bottom-left point
+                ], dtype="float32")
                 
                 # Define desired dimensions of the paper in the output image
-                desired_dimensions = np.array([[margin, margin], [output_width - margin, margin],
-                                                [output_width - margin, output_height - margin], [margin, output_height - margin]], dtype=np.float32)
-                matrix = cv2.getPerspectiveTransform(paper_contour.astype(np.float32), desired_dimensions)
+                # desired_dimensions = np.array([[margin, margin], [output_width - margin, margin],
+                #                                 [output_width - margin, output_height - margin], [margin, output_height - margin]], dtype=np.float32)
+                matrix = cv2.getPerspectiveTransform(paper_contour.astype(np.float32), dst_points)
                 
                 # Apply the perspective transformation to the image
-                warped = cv2.warpPerspective(image, matrix, (output_width, output_height))
+                warped = cv2.warpPerspective(image, matrix, (new_width, new_height))
+
+                dst_points = np.array([
+                    [0, 0],
+                    [paper_width_px - 1, 0],
+                    [paper_width_px - 1, paper_height_px - 1],
+                    [0, paper_height_px - 1]
+                ], dtype="float32")
+
+                m2 = cv2.getPerspectiveTransform(paper_contour.astype(np.float32), dst_points)
+                warped2 = cv2.warpPerspective(image, m2, (paper_width_px, paper_height_px))
+
                 cv2.imshow('Warped Image', warped)
+                cv2.imshow('W2', warped2)
 
                 pressed = cv2.waitKey(0)
                 if pressed == ord('a'):

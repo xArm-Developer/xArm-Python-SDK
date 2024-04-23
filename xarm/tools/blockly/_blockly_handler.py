@@ -1159,7 +1159,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('self._arm.set_state(0)', indent + 2)
         self._append_main_code('start_time = time.time()', indent + 2)
         self._append_main_code('while time.time() - start_time < {}:'.format(wait_time), indent + 2)
-        self._append_main_code('if self._arm.error_code != 0:', indent + 3)
+        self._append_main_code('if self._arm.state == 4:', indent + 3)
         self._append_main_code('    return', indent + 4)
         self._append_main_code('self._arm.ft_sensor_app_set(0)', indent + 2)
 

@@ -2880,6 +2880,17 @@ class XArmAPI(object):
             baudrate: the modbus baudrate of the tool gpio
         """
         return self._arm.get_tgpio_modbus_baudrate()
+        
+    def set_control_modbus_baudrate(self, baud):
+        """
+        Set the modbus baudrate of the control box
+
+        :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_control_modbus_baudrate(baud)
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
         """

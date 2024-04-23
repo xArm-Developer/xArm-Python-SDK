@@ -2495,7 +2495,13 @@ class Base(BaseObject, Events):
         # if code == 0 and baud_inx < len(self.arm_cmd.BAUDRATES):
         #     self.modbus_baud = self.arm_cmd.BAUDRATES[baud_inx]
         return code, self.modbus_baud
-
+    
+    @xarm_is_connected(_type='set')
+    def set_control_modbus_baudrate(self, baud):
+        code = self.checkset_modbus_baud(baud, check=False, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        self.log_api_info('API -> set_control_modbus_baudrate -> code={}'.format(code), code=code)
+        return code
+    
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False, host_id=XCONF.TGPIO_HOST_ID, is_transparent_transmission=False, use_503_port=False, **kwargs):
         if not self.connected:
             return APIState.NOT_CONNECTED, []

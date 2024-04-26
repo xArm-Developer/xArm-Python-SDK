@@ -12,3 +12,4 @@ bak-xarm/
 .vscode/
 pcr/__pycache__/
 pcr/yolov5/
+venv/Lib/site-packages

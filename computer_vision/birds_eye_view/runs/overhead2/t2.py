@@ -16,10 +16,81 @@ def find_beaker_center(image):
         if M["m00"] != 0:
             cx = int(M["m10"] / M["m00"])
             cy = int(M["m01"] / M["m00"])
+            cv2.drawMarker(image, (cx,cy), (0, 255, 0), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=2)
             return (cx, cy)
+            
+
     return None
 
-def detect_apriltag_and_beaker(frame, warped, matrix):
+def find_beaker(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+    edges = cv2.Canny(blurred, 50, 150)
+    adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+    circles = cv2.HoughCircles(
+            adjusted_frame,
+            cv2.HOUGH_GRADIENT,
+            1,
+            30,
+            param1=50,
+            param2=30,
+            minRadius=20,
+            maxRadius=100
+        )
+    x = None
+    y = None
+    if circles is not None:
+            # Convert the (x, y) coordinates and radius of the circles to integers.
+            circles = np.round(circles[0, :]).astype("int")
+
+            # Draw circles on the frame.
+            for (x, y, r) in circles:
+                cv2.circle(frame, (x, y), r, (0, 255, 0), 4)
+                cv2.rectangle(frame, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+            
+            return (x,y), frame
+    
+    return None, frame
+    
+def find_beaker_warp(frame, warped, matrix):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (9, 9), 2)
+    edges = cv2.Canny(blurred, 50, 150)
+    adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+    circles = cv2.HoughCircles(
+            adjusted_frame,
+            cv2.HOUGH_GRADIENT,
+            1,
+            30,
+            param1=50,
+            param2=30,
+            minRadius=20,
+            maxRadius=100
+        )
+    x = None
+    y = None
+    if circles is not None:
+            # Convert the (x, y) coordinates and radius of the circles to integers.
+            circles = np.round(circles[0, :]).astype("int")
+
+            # Draw circles on the frame.
+            for (x, y, r) in circles:
+                point = np.array([x, y, 1])
+                warped_point_homogeneous = np.dot(matrix, point)
+                warped_point = warped_point_homogeneous[:2] / warped_point_homogeneous[2]
+
+                x = int(warped_point[0])
+                y = int(warped_point[1])
+
+                cv2.circle(warped, (x, y), r, (0, 255, 0), 4)
+                cv2.rectangle(warped, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
+            
+            return (x,y), warped
+    
+    return None, warped
+     
+
+def detect_apriltag(frame, warped, matrix):
     # Initialize the AprilTag detector
 
     # Convert frame to grayscale (required for detection)
@@ -27,7 +98,6 @@ def detect_apriltag_and_beaker(frame, warped, matrix):
 
     # Detect AprilTags in the image
     tag_center = None
-    beaker_center = None  # Assuming there's another function or method to find this
     tag = robotpy_apriltag.AprilTagDetector()
     tag.addFamily("tag25h9", 3)
 
@@ -47,10 +117,7 @@ def detect_apriltag_and_beaker(frame, warped, matrix):
             x = int(warped_point[0])
             y = int(warped_point[1])
             
-            half_side = 10 // 2
-            top_left = (x - half_side, y - half_side)
-            bottom_right = (x + half_side, y + half_side)
-
+            tag_center = (x, y)
             cv2.drawMarker(warped, (x,y), (0, 255, 0), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=2)
 
     # Process each detected AprilTag
@@ -61,7 +128,29 @@ def detect_apriltag_and_beaker(frame, warped, matrix):
     #     cv2.circle(frame, tag_center, 5, (0, 0, 255), -1)
     #     cv2.polylines(frame, [corners], True, (0, 255, 0), 2)
 
-    return tag_center, beaker_center, warped
+    return tag_center, warped
+
+def calculate_distance(point1, point2):
+    """Calculate Euclidean distance between two points."""
+    print(point1, point2)
+    if point1 and point2:
+        return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+    
+    return None
+
+def draw_line_and_label(image, point1, point2, distance):
+    """Draw a line between two points and label them on the image."""
+    # Draw the line
+    cv2.line(image, point1, point2, (255, 0, 0), thickness=2)
+
+    # Label each point with its coordinates and distance
+    cv2.putText(image, f"{point1}", point1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+    cv2.putText(image, f"{point2}", point2, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+
+    # Optionally, put the distance near the midpoint of the line
+    midpoint = ((point1[0] + point2[0]) // 2, (point1[1] + point2[1]) // 2)
+    cv2.putText(image, f"Dist: {distance:.2f}", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+    return image
 
 def main():
     # cap = cv2.VideoCapture(1)  # Use 0 for webcam
@@ -98,9 +187,15 @@ def main():
         warped = cv2.warpPerspective(frame, warp_matrix, (new_width, new_height))
         #margin = add_margin(warped)
 
-        tag_center, beaker_center, final_frame = detect_apriltag_and_beaker(frame, warped, warp_matrix)
+        tag_center, tag_frame = detect_apriltag(frame, warped, warp_matrix)
+        beaker_center, beaker_frame = find_beaker(tag_frame)
 
-        cv2.imshow('Final', final_frame)
+        distance = calculate_distance(tag_center, beaker_center)
+
+        if distance:
+            beaker_frame = draw_line_and_label(beaker_frame, tag_center, beaker_center, distance)
+
+        cv2.imshow('Final', beaker_frame)
         
 
         if cv2.waitKey(1) & 0xFF == ord('q'):

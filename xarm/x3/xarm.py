@@ -1259,6 +1259,10 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
                 ret = self.set_servo_zero(servo_id=servo_id)
             elif num == 106:  # H106 get_servo_debug_msg, ex: H106
                 ret = self.get_servo_debug_msg()
+            elif num == 114:  # H114 servo_error_addr_r32, ex H114 I{id} D{addr}
+                servo_id = gcode_p.get_id_num(command, default=0)
+                addr = gcode_p.get_addr(command)
+                ret = self.arm_cmd.servo_error_addr_r32(axis=servo_id, addr=addr)
             else:
                 logger.debug('command {} is not exist'.format(command))
                 ret = APIState.CMD_NOT_EXIST, 'command {} is not exist'.format(command)

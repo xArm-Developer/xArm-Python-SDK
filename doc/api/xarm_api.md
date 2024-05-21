@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.13.30): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -2636,6 +2636,16 @@ xArm-Python-SDK API Documentation (V1.13.30): class XArmAPI in module xarm.wrapp
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_control_modbus_baudrate__(self, baud):
+
+> Set the modbus baudrate of the control box  
+>   
+> :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __set_counter_increase__(self, val=1):
 
 > Set counter plus value, only support plus 1  
@@ -3485,15 +3495,6 @@ xArm-Python-SDK API Documentation (V1.13.30): class XArmAPI in module xarm.wrapp
 > :param timeout: timeout, milliseconds  
 > :param is_transparent_transmission: whether the set timeout is the timeout of transparent transmission  
 > &ensp;&ensp;&ensp;&ensp;Note: only available if firmware_version >= 1.11.0  
->   
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-#### def __set_control_modbus_baudrate__(self, baud):
-
-> Set the modbus baudrate of the control box 
->   
-> :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.

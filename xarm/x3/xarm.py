@@ -46,7 +46,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         Base.__init__(self, port, is_radian, do_not_open, **kwargs)
 
     def _is_out_of_tcp_range(self, value, i):
-        if not self._check_tcp_limit or self._stream_type != 'socket' or not self._enable_report:
+        if not self._check_tcp_limit or self._stream_type != 'socket' or not self._enable_report or value == math.inf:
             return False
         tcp_range = XCONF.Robot.TCP_LIMITS.get(self.axis).get(self.device_type, [])
         if 2 < i < len(tcp_range):  # only limit rotate
@@ -63,7 +63,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         return False
 
     def _is_out_of_joint_range(self, angle, i):
-        if not self._check_joint_limit or self._stream_type != 'socket' or not self._enable_report:
+        if not self._check_joint_limit or self._stream_type != 'socket' or not self._enable_report or angle == math.inf:
             return False
         joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(self.device_type, [])
         if i < len(joint_limit):
@@ -132,12 +132,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         tcp_pos = [
-            self._last_position[0] if x is None else float(x),
-            self._last_position[1] if y is None else float(y),
-            self._last_position[2] if z is None else float(z),
-            self._last_position[3] if roll is None else to_radian(roll, is_radian),
-            self._last_position[4] if pitch is None else to_radian(pitch, is_radian),
-            self._last_position[5] if yaw is None else to_radian(yaw, is_radian),
+            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[0]) if x is None else float(x),
+            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[1]) if y is None else float(y),
+            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[2]) if z is None else float(z),
+            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[3]) if roll is None else to_radian(roll, is_radian),
+            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[4]) if pitch is None else to_radian(pitch, is_radian),
+            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[5]) if yaw is None else to_radian(yaw, is_radian),
         ]
         motion_type = kwargs.get('motion_type', False)
         for i in range(3):
@@ -460,7 +460,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         if servo_id is not None and servo_id != 8:
             if servo_id > self.axis or servo_id <= 0:
                 return APIState.SERVO_NOT_EXIST
-            angles = [None] * 7
+            angles = [math.inf if self.version_is_ge(2, 4, 100) else None] * 7
             angles[servo_id - 1] = angle
         else:
             angles = angle

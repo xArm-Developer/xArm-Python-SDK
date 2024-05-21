@@ -164,7 +164,7 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('        self._holding_dict = {}')
         
         if len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks)\
-                or len(self._count_callbacks):
+                or len(self._count_callbacks) or len(self._holding_callbacks):
             self._append_main_init_code('        self._callback_in_thread = kwargs.get(\'callback_in_thread\', True)')
             self._append_main_init_code('        self._callback_que = queue.Queue()')
 
@@ -193,6 +193,7 @@ class BlocklyTool(_BlocklyHandler):
         self.__define_callback_thread_func()
         self.__define_listen_gpio_thread_func()
         self.__define_listen_count_thread_func()
+        self.__define_listen_holding_registers_thread_func()
         self.__define_run_blockly_func()
         self.__define_robot_init_func(init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
         self.__define_error_warn_changed_callback_func(error_exit=error_exit)

@@ -30,6 +30,16 @@ xArm Python SDK
 - #### [UFACTORY ModbusTCP Manual](doc/UF_ModbusTCP_Manual.md)
 
 ## Update Summary
+- > ### 1.13.30
+  - Supports obtaining unsaved track recording duration
+  - Fix the abnormal path of running blockly program in some cases
+  - Fix the return format of getting C23 and C38 errors
+  - Supports obtaining identification status
+
+- > ### 1.13.19
+  - Friction identification supports xarm7_mirror model
+  - Fix the abnormal return value of blockly conversion robotiq related interface
+  
 - > ### 1.13.0
   - Compatible with the standard Modbus TCP protocol, providing part of the standard Modbus TCP protocol interface
 
@@ -43,13 +53,6 @@ xArm Python SDK
   - Optimization pause time is too long (wait=true)
   - Add common motion api (Enabled after firmware version 1.11.100)
   - The Cartesian motion-related interface adds the motion_type parameter to determine the planning method (Enabled after firmware version 1.11.100)
-
-- > ### 1.11.0
-  - Support transparent transmission
-    - 240: `set_tgpio_modbus_timeout(..., is_transparent_transmission=True)`
-    - 241: `getset_tgpio_modbus_data(..., is_transparent_transmission=True)`
-  - Modified the centroid unit of the `ft_sensor_iden_load` and `ft_sensor_cali_load` interfaces to millimeters (originally meters)
-
 
 - >### [More](ReleaseNotes.md)
 

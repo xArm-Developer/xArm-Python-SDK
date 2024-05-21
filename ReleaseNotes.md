@@ -2,6 +2,16 @@
 
 ## Update Summary
 
+- > ### 1.13.30
+  - Supports obtaining unsaved track recording duration
+  - Fix the abnormal path of running blockly program in some cases
+  - Fix the return format of getting C23 and C38 errors
+  - Supports obtaining identification status
+
+- > ### 1.13.19
+  - Friction identification supports xarm7_mirror model
+  - Fix the abnormal return value of blockly conversion robotiq related interface
+
 - > ### 1.13.0
   - Compatible with the standard Modbus TCP protocol, providing part of the standard Modbus TCP protocol interface
 

@@ -29,11 +29,13 @@ class _BlocklyHandler(_BlocklyBase):
         self._listen_tgpio_analog = False
         self._listen_cgpio_state = False
         self._listen_count = False
+        self._listen_holding = False
         self._tgpio_digital_callbacks = []
         self._tgpio_analog_callbacks = []
         self._cgpio_digital_callbacks = []
         self._cgpio_analog_callbacks = []
         self._count_callbacks= []
+        self._holding_callbacks= []
 
         self.is_run_linear_track = False
         self._is_run_blockly = False
@@ -783,7 +785,34 @@ class _BlocklyHandler(_BlocklyBase):
                 trigger = fields[2].text
                 self._cgpio_analog_callbacks.append(name)
                 self._append_main_code('self._cgpio_analog_callbacks.append({{\'io\': {}, \'trigger\': {}, \'op\': \'{}\', \'callback\': self.{}}})'.format(io, trigger, op, name), indent=indent+2)
+    
+    def _handle_event_get_holding_condition(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        addr = int(fields[0].text.replace(' ', '').replace('0x','').replace(',','').replace('\xa0', ''), 16)
+        trigger = int(fields[1].text.replace(' ', '').replace('0x','').replace(',','').replace('\xa0', ''), 16)
 
+        num = 1
+
+        self._is_main_run_code = False
+        num = len(self._holding_callbacks) + 1
+        name = 'holding_is_changed_callback_{}'.format(num)
+        self._append_main_code('# Define Holding Registers {} Value is {} callback'.format(
+            addr, trigger), indent=1)
+
+        self._append_main_code('def {}(self):'.format(name), indent=1)
+        statement = self._get_node('statement', root=block)
+        if statement:
+            self._parse_block(statement, indent, arg_map=arg_map)
+        else:
+            self._append_main_code('pass', indent=indent + 3)
+        self._append_main_code('')
+
+        self._is_main_run_code = True
+        self._holding_callbacks.append(name)
+        self._append_main_code(
+            'self._holding_callbacks.append({{\'trigger\': \'{}\', \'addr\': \'{}\', \'callback\': self.{}}})'.format(
+                trigger, addr, name), indent=indent + 2)
+    
     def __handle_count_event(self, count_type, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
         op = fields[0].text

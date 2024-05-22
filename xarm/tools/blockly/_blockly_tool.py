@@ -91,7 +91,7 @@ class BlocklyTool(_BlocklyHandler):
     
     def _finish_robot_main_run_codes(self, error_exit=True, stop_exit=True):
         if self._listen_tgpio_digital or self._listen_tgpio_analog or self._listen_cgpio_state \
-            or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
+            or len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks) or len(self._count_callbacks) or len(self._holding_callbacks):
             self._append_main_code('            # Event Loop', indent=-1)
             self._append_main_code('            while self.is_alive:', indent=-1)
             self._append_main_code('                time.sleep(0.5)', indent=-1)
@@ -153,14 +153,18 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('        self._cgpio_analog_callbacks = []')
         if len(self._count_callbacks):
             self._append_main_init_code('        self._count_callbacks = []')
+        if len(self._holding_callbacks):
+            self._append_main_init_code('        self._holding_callbacks = []')
         if self._listen_cgpio_state or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks):
             self._append_main_init_code('        self._cgpio_state = None')
 
         if self._listen_count or len(self._count_callbacks):
             self._append_main_init_code('        self._counter_val = None')
-
+        if self._listen_holding or len(self._holding_callbacks):
+            self._append_main_init_code('        self._holding_dict = {}')
+        
         if len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks)\
-                or len(self._count_callbacks):
+                or len(self._count_callbacks) or len(self._holding_callbacks):
             self._append_main_init_code('        self._callback_in_thread = kwargs.get(\'callback_in_thread\', True)')
             self._append_main_init_code('        self._callback_que = queue.Queue()')
 
@@ -170,7 +174,7 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code('        gpio_t.start()')
 
         if len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks)\
-                or len(self._count_callbacks):
+                or len(self._count_callbacks) or len(self._holding_callbacks):
             self._append_main_init_code('        callback_t = threading.Thread(target=self._event_callback_handle_thread, daemon=True)')
             self._append_main_init_code('        callback_t.start()')
         
@@ -178,12 +182,18 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_init_code(
                 '        count_t = threading.Thread(target=self._listen_count_thread, daemon=True)')
             self._append_main_init_code('        count_t.start()')
-
+        
+        if self._holding_callbacks or len(self._holding_callbacks):
+            self._append_main_init_code(
+                '        holding_t = threading.Thread(target=self._listen_holding_thread, daemon=True)')
+            self._append_main_init_code('        holding_t.start()')
+        
         self._append_main_init_code('')
 
         self.__define_callback_thread_func()
         self.__define_listen_gpio_thread_func()
         self.__define_listen_count_thread_func()
+        self.__define_listen_holding_registers_thread_func()
         self.__define_run_blockly_func()
         self.__define_robot_init_func(init=init, wait_seconds=wait_seconds, mode=mode, state=state, error_exit=error_exit, stop_exit=stop_exit)
         self.__define_error_warn_changed_callback_func(error_exit=error_exit)
@@ -238,7 +248,7 @@ class BlocklyTool(_BlocklyHandler):
 
     def __define_callback_thread_func(self):
         # Define callback thread function
-        if  len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks) or len(self._count_callbacks):
+        if  len(self._tgpio_digital_callbacks) or len(self._tgpio_analog_callbacks) or len(self._cgpio_digital_callbacks) or len(self._cgpio_analog_callbacks) or len(self._count_callbacks) or len(self._holding_callbacks):
             self._append_main_init_code('    def _event_callback_handle_thread(self):')
             self._append_main_init_code('        while self.alive:')
             self._append_main_init_code('            try:')
@@ -328,6 +338,23 @@ class BlocklyTool(_BlocklyHandler):
                 self._append_main_init_code('                            self._callback_que.put(item[\'callback\'])')
             self._append_main_init_code('            self._counter_val = values')
             self._append_main_init_code('            time.sleep(0.01)\n')
+    
+    def __define_listen_holding_registers_thread_func(self):
+        # Define listen holding registers value thread function
+        if self._listen_holding or len(self._holding_callbacks):
+            self._append_main_init_code('    def _listen_holding_thread(self):')
+
+            self._append_main_init_code('        while self.alive:')
+            self._append_main_init_code('            for index, item in enumerate(self._holding_callbacks):')
+            self._append_main_init_code('                for i in range(2):')
+            self._append_main_init_code('                    _, values = self._arm.read_holding_registers(int(item[\'addr\']), 1)')
+            self._append_main_init_code(
+                '                    if _ == 0 and self._holding_dict.get(index, None) is not None:')
+            self._append_main_init_code(
+                '                        if eval(\'{} == {}\'.format(values[0], item[\'trigger\'])) and not eval(\'{} == {}\'.format(self._holding_dict[index], item[\'trigger\'])):')
+            self._append_main_init_code('                            self._callback_que.put(item[\'callback\'])')
+            self._append_main_init_code('                    self._holding_dict[index] = values[0] if _ == 0 else self._holding_dict.get(index, None)')
+            self._append_main_init_code('                    time.sleep(0.01)\n')
 
     def __define_run_blockly_func(self):
         if self._is_run_blockly and not self._is_exec:

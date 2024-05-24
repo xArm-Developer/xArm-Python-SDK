@@ -363,7 +363,7 @@ class _BlocklyHandler(_BlocklyBase):
     def _handle_tool_message(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', block)
         color = json.dumps(fields[0].text, ensure_ascii=False) if len(fields) > 1 else 'white'
-        msg = json.dumps(fields[1].text if fields[-1].text is not None else '', ensure_ascii=False)
+        msg = json.dumps(fields[2].text if fields[-1].text is not None else '', ensure_ascii=False)
         if self._highlight_callback is not None:
             self._append_main_code('print({}, color={})'.format(msg, color), indent + 2)
         else:

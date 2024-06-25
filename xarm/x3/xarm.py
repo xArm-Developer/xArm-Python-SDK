@@ -8,6 +8,7 @@
 
 import os
 import math
+import sys
 import time
 import uuid
 import warnings
@@ -1454,7 +1455,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         try:
             if not os.path.exists(path):
                 dir_name = 'lite6' if self.axis == 6 and self.device_type == 9 else '850' if self.axis == 6 and self.device_type == 12 else 'xarm7T' if self.axis == 7 and self.device_type == 13 else 'xarm{}'.format(self.axis)
-                path = os.path.join(os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', dir_name, 'app', 'myapp', path) # home/uf
+                path = os.path.join('/home/uf' if sys.platform.startswith('linux') else os.path.expanduser('~'), '.UFACTORY', 'projects', 'test', dir_name, 'app', 'myapp', path)
             if os.path.isdir(path):
                 path = os.path.join(path, 'app.xml')
             if not os.path.exists(path):

@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -686,13 +686,15 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __close_lite6_gripper__(self):
+#### def __close_lite6_gripper__(self, sync=True):
 
 > Close the gripper of Lite6 series robotic arms  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
 > &ensp;&ensp;&ensp;&ensp;2. this API can only be used on Lite6 series robotic arms  
 >   
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -1853,13 +1855,15 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __open_lite6_gripper__(self):
+#### def __open_lite6_gripper__(self, sync=True):
 
 > Open the gripper of Lite6 series robotic arms  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
 > &ensp;&ensp;&ensp;&ensp;2. this API can only be used on Lite6 series robotic arms  
 >   
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2476,12 +2480,14 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_cgpio_analog__(self, ionum, value):
+#### def __set_cgpio_analog__(self, ionum, value, sync=True):
 
 > Set the analog value of the specified Controller GPIO  
 >   
 > :param ionum: 0 or 1  
 > :param value: value  
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2498,13 +2504,16 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_cgpio_digital__(self, ionum, value, delay_sec=None):
+#### def __set_cgpio_digital__(self, ionum, value, delay_sec=None, sync=True):
 
 > Set the digital value of the specified Controller GPIO  
 >   
 > :param ionum: 0~15  
 > :param value: value  
 > :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)  
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
+> &ensp;&ensp;&ensp;&ensp;2. only available if delay_sec <= 0  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2758,7 +2767,7 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > Set the gripper enable  
 >   
 > :param enable: enable or not  
-> &ensp;Note： such as code = arm.set_gripper_enable(True)  #turn on the Gripper  
+> &ensp;&ensp;&ensp;&ensp;Note: such as code = arm.set_gripper_enable(True)  #turn on the Gripper  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2768,7 +2777,7 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > Set the gripper mode  
 >   
 > :param mode: 0: location mode  
-> &ensp;Note： such as code = arm.set_gripper_mode(0)  
+> &ensp;&ensp;&ensp;&ensp;Note: such as code = arm.set_gripper_mode(0)  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3455,13 +3464,16 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_tgpio_digital__(self, ionum, value, delay_sec=None):
+#### def __set_tgpio_digital__(self, ionum, value, delay_sec=None, sync=True):
 
 > Set the digital value of the specified Tool GPIO  
 >   
 > :param ionum: 0 or 1  
 > :param value: value  
 > :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)  
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
+> &ensp;&ensp;&ensp;&ensp;2. only available if delay_sec <= 0  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3553,7 +3565,7 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
 
 
-#### def __set_vacuum_gripper__(self, on, wait=False, timeout=3, delay_sec=None):
+#### def __set_vacuum_gripper__(self, on, wait=False, timeout=3, delay_sec=None, sync=True):
 
 > Set vacuum gripper state  
 >   
@@ -3563,6 +3575,9 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > :param wait: wait or not, default is False  
 > :param timeout: wait time, unit:second, default is 3s  
 > :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)  
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
+> &ensp;&ensp;&ensp;&ensp;2. only available if delay_sec <= 0  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3593,13 +3608,15 @@ xArm-Python-SDK API Documentation (V1.14.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __stop_lite6_gripper__(self):
+#### def __stop_lite6_gripper__(self, sync=True):
 
 > Stop the gripper of Lite6 series robotic arms  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.10.0  
 > &ensp;&ensp;&ensp;&ensp;2. this API can only be used on Lite6 series robotic arms  
 >   
+> :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

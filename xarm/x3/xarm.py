@@ -132,12 +132,12 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         is_radian = self._default_is_radian if is_radian is None else is_radian
         only_check_type = kwargs.get('only_check_type', self._only_check_type)
         tcp_pos = [
-            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[0]) if x is None else float(x),
-            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[1]) if y is None else float(y),
-            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[2]) if z is None else float(z),
-            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[3]) if roll is None else to_radian(roll, is_radian),
-            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[4]) if pitch is None else to_radian(pitch, is_radian),
-            (math.inf if self.version_is_ge(2, 4, 100) else self._last_position[5]) if yaw is None else to_radian(yaw, is_radian),
+            (math.inf if self.version_is_ge(2, 4, 101) else self._last_position[0]) if x is None else float(x),
+            (math.inf if self.version_is_ge(2, 4, 101) else self._last_position[1]) if y is None else float(y),
+            (math.inf if self.version_is_ge(2, 4, 101) else self._last_position[2]) if z is None else float(z),
+            (math.inf if self.version_is_ge(2, 4, 101) else self._last_position[3]) if roll is None else to_radian(roll, is_radian),
+            (math.inf if self.version_is_ge(2, 4, 101) else self._last_position[4]) if pitch is None else to_radian(pitch, is_radian),
+            (math.inf if self.version_is_ge(2, 4, 101) else self._last_position[5]) if yaw is None else to_radian(yaw, is_radian),
         ]
         motion_type = kwargs.get('motion_type', False)
         for i in range(3):
@@ -460,7 +460,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         if servo_id is not None and servo_id != 8:
             if servo_id > self.axis or servo_id <= 0:
                 return APIState.SERVO_NOT_EXIST
-            angles = [math.inf if self.version_is_ge(2, 4, 100) else None] * 7
+            angles = [math.inf if self.version_is_ge(2, 4, 101) else None] * 7
             angles[servo_id - 1] = angle
         else:
             angles = angle

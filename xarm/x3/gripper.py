@@ -176,16 +176,16 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    def set_gripper_status(self, status, delay_sec=0):
+    def set_gripper_status(self, status, delay_sec=0, sync=True):
         code = self.checkset_modbus_baud(self._default_gripper_baud)
         if code != 0:
             return code
         if status:
-            code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec)
-            code2 = self.set_tgpio_digital(ionum=1, value=0, delay_sec=delay_sec)
+            code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec, sync=sync)
+            code2 = self.set_tgpio_digital(ionum=1, value=0, delay_sec=delay_sec, sync=sync)
         else:
-            code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec)
-            code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec)
+            code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec, sync=sync)
+            code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec, sync=sync)
         code = code1 if code2 == 0 else code2
         self.log_api_info('API -> set_gripper_status(status={}, delay_sec={}) -> code={}'.format(status, delay_sec, code), code=code)
         return code
@@ -725,19 +725,19 @@ class Gripper(GPIO):
         return code
 
     @xarm_is_connected(_type='set')
-    def open_lite6_gripper(self):
-        code1 = self.set_tgpio_digital(0, 1)
-        code2 = self.set_tgpio_digital(1, 0)
+    def open_lite6_gripper(self, sync=True):
+        code1 = self.set_tgpio_digital(0, 1, sync=sync)
+        code2 = self.set_tgpio_digital(1, 0, sync=sync)
         return code1 if code2 == 0 else code2
 
     @xarm_is_connected(_type='set')
-    def close_lite6_gripper(self):
-        code1 = self.set_tgpio_digital(0, 0)
-        code2 = self.set_tgpio_digital(1, 1)
+    def close_lite6_gripper(self, sync=True):
+        code1 = self.set_tgpio_digital(0, 0, sync=sync)
+        code2 = self.set_tgpio_digital(1, 1, sync=sync)
         return code1 if code2 == 0 else code2
 
     @xarm_is_connected(_type='set')
-    def stop_lite6_gripper(self):
-        code1 = self.set_tgpio_digital(0, 0)
-        code2 = self.set_tgpio_digital(1, 0)
+    def stop_lite6_gripper(self, sync=True):
+        code1 = self.set_tgpio_digital(0, 0, sync=sync)
+        code2 = self.set_tgpio_digital(1, 0, sync=sync)
         return code1 if code2 == 0 else code2

@@ -110,13 +110,17 @@ class GPIO(Base):
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    def set_tgpio_digital(self, ionum, value, delay_sec=0):
+    def set_tgpio_digital(self, ionum, value, delay_sec=0, sync=True):
         assert ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1.'
         if delay_sec is not None and delay_sec > 0:
+            if not sync:
+                logger.warning('The sync parameter is ignored when delay_sec is non-zero')
             ret = self.arm_cmd.tgpio_delay_set_digital(ionum if ionum < 2 else ionum-1, value, delay_sec)
             self.log_api_info('API -> set_tgpio_digital(ionum={}, value={}, delay_sec={}) -> code={}'.format(ionum, value, delay_sec, ret[0]), code=ret[0])
         else:
-            ret = self.arm_cmd.tgpio_set_digital(ionum+1, value)
+            if not sync and not self.version_is_ge(2, 4, 101):
+                logger.warning('The current firmware does not support sync to False. If necessary, please upgrade the firmware to 2.4.101 or later.')
+            ret = self.arm_cmd.tgpio_set_digital(ionum+1, value, sync=sync if self.version_is_ge(2, 4, 101) else None)
             self.log_api_info('API -> set_tgpio_digital(ionum={}, value={}) -> code={}'.format(ionum, value, ret[0]), code=ret[0])
         return ret[0]
 
@@ -191,13 +195,17 @@ class GPIO(Base):
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    def set_cgpio_digital(self, ionum, value, delay_sec=0):
+    def set_cgpio_digital(self, ionum, value, delay_sec=0, sync=True):
         assert isinstance(ionum, int) and 15 >= ionum >= 0
         if delay_sec is not None and delay_sec > 0:
+            if not sync:
+                logger.warning('The sync parameter is ignored when delay_sec is non-zero')
             ret = self.arm_cmd.cgpio_delay_set_digital(ionum, value, delay_sec)
             self.log_api_info('API -> set_cgpio_digital(ionum={}, value={}, delay_sec={}) -> code={}'.format(ionum, value, delay_sec, ret[0]), code=ret[0])
         else:
-            ret = self.arm_cmd.cgpio_set_auxdigit(ionum, value)
+            if not sync and not self.version_is_ge(2, 4, 101):
+                logger.warning('The current firmware does not support sync to False. If necessary, please upgrade the firmware to 2.4.101 or later.')
+            ret = self.arm_cmd.cgpio_set_auxdigit(ionum, value, sync=sync if self.version_is_ge(2, 4, 101) else None)
             self.log_api_info('API -> set_cgpio_digital(ionum={}, value={}) -> code={}'.format(ionum, value, ret[0]), code=ret[0])
         return ret[0]
 
@@ -205,12 +213,14 @@ class GPIO(Base):
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    def set_cgpio_analog(self, ionum, value):
+    def set_cgpio_analog(self, ionum, value, sync=True):
         assert ionum == 0 or ionum == 1, 'The value of parameter ionum can only be 0 or 1.'
+        if not sync and not self.version_is_ge(2, 4, 101):
+            logger.warning('The current firmware does not support sync to False. If necessary, please upgrade the firmware to 2.4.101 or later.')
         if ionum == 0:
-            ret = self.arm_cmd.cgpio_set_analog1(value)
+            ret = self.arm_cmd.cgpio_set_analog1(value, sync=sync if self.version_is_ge(2, 4, 101) else None)
         else:
-            ret = self.arm_cmd.cgpio_set_analog2(value)
+            ret = self.arm_cmd.cgpio_set_analog2(value, sync=sync if self.version_is_ge(2, 4, 101) else None)
         self.log_api_info('API -> set_cgpio_analog(ionum={}, value={}) -> code={}'.format(ionum, value, ret[0]), code=ret[0])
         return ret[0]
 
@@ -326,13 +336,13 @@ class GPIO(Base):
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    def set_suction_cup(self, on, wait=True, timeout=3, delay_sec=None):
+    def set_suction_cup(self, on, wait=True, timeout=3, delay_sec=None, sync=True):
         if on:
-            code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec)
-            code2 = self.set_tgpio_digital(ionum=1, value=0, delay_sec=delay_sec)
+            code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec, sync=sync)
+            code2 = self.set_tgpio_digital(ionum=1, value=0, delay_sec=delay_sec, sync=sync)
         else:
-            code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec)
-            code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec)
+            code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec, sync=sync)
+            code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec, sync=sync)
         code = code1 if code2 == 0 else code2
         if code == 0 and wait:
             start = time.monotonic()

@@ -110,9 +110,13 @@ class UxbusCmd(object):
         return self.recv_modbus_response(funcode, ret, num, self._G_TOUT)
 
     @lock_require
-    def set_nu16(self, funcode, datas, num):
+    def set_nu16(self, funcode, datas, num, additional_bytes=None):
         hexdata = convert.u16s_to_bytes(datas, num)
-        ret = self.send_modbus_request(funcode, hexdata, num * 2)
+        if additional_bytes is not None:
+            hexdata += additional_bytes
+            ret = self.send_modbus_request(funcode, hexdata, num * 2 + len(additional_bytes))
+        else:
+            ret = self.send_modbus_request(funcode, hexdata, num * 2)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
         ret = self.recv_modbus_response(funcode, ret, 0, self._S_TOUT)
@@ -679,11 +683,15 @@ class UxbusCmd(object):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
     @lock_require
-    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_HOST_ID):
+    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_HOST_ID, additional_bytes=None):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
-        ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
+        if additional_bytes is not None:
+            txdata += additional_bytes
+            ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_W16B, txdata, 7 + len(additional_bytes))
+        else:
+            ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_W16B, txdata, 7)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
@@ -734,7 +742,7 @@ class UxbusCmd(object):
         value[4] = (ret[1] & 0x0008) >> 3
         return value
 
-    def tgpio_set_digital(self, ionum, value):
+    def tgpio_set_digital(self, ionum, value, sync=None):
         tmp = 0
         if ionum == 1:
             tmp = tmp | 0x0100
@@ -758,7 +766,10 @@ class UxbusCmd(object):
                 tmp = tmp | 0x0008
         else:
             return [-1, -1]
-        return self.tgpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp)
+        if sync is not None:
+            return self.tgpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp, additional_bytes=bytes([sync]))
+        else:
+            return self.tgpio_addr_w16(XCONF.ServoConf.DIGITAL_OUT, tmp)        
 
     def tgpio_get_analog1(self):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.ANALOG_IO1)
@@ -1014,30 +1025,39 @@ class UxbusCmd(object):
         value[1] = ret[1] * 10.0 / 4095.0
         return value
 
-    def cgpio_set_auxdigit(self, ionum, value):
+    def cgpio_set_auxdigit(self, ionum, value, sync=None):
         tmp = [0] * 2
         if ionum > 7:
             tmp[1] = tmp[1] | (0x0100 << (ionum - 8))
             if value:
                 tmp[1] = tmp[1] | (0x0001 << (ionum - 8))
+            if sync is not None:
+                return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2, additional_bytes=bytes([sync]))
+            else:
+                return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2)
         else:
             tmp[0] = tmp[0] | (0x0100 << ionum)
             if value:
                 tmp[0] = tmp[0] | (0x0001 << ionum)
-        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2 if ionum > 7 else 1)
-        # tmp = [0] * 1
-        # tmp[0] = tmp[0] | (0x0100 << ionum)
-        # if value:
-        #     tmp[0] = tmp[0] | (0x0001 << ionum)
-        # return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1)
+            if sync is not None:
+                return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1, additional_bytes=bytes([sync]))
+            else:
+                return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 1)
+        # return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_DIGIT, tmp, 2 if ionum > 7 else 1)
 
-    def cgpio_set_analog1(self, value):
+    def cgpio_set_analog1(self, value, sync=None):
         txdata = [int(value / 10.0 * 4095.0)]
-        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG1, txdata, 1)
+        if sync is not None:
+            return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG1, txdata, 1, additional_bytes=bytes([sync]))
+        else:
+            return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG1, txdata, 1)
 
-    def cgpio_set_analog2(self, value):
+    def cgpio_set_analog2(self, value, sync=None):
         txdata = [int(value / 10.0 * 4095.0)]
-        return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG2, txdata, 1)
+        if sync is not None:
+            return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG2, txdata, 1, additional_bytes=bytes([sync]))
+        else:
+            return self.set_nu16(XCONF.UxbusReg.CGPIO_SET_ANALOG2, txdata, 1)
 
     def cgpio_set_infun(self, num, fun):
         txdata = [int(num), int(fun)]

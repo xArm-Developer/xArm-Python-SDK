@@ -24,6 +24,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._main_run_code_list = []
         self._is_main_run_code = True
         self._is_exec = False
+        self._is_ide = False
 
         self._listen_tgpio_digital = False
         self._listen_tgpio_analog = False
@@ -1116,7 +1117,7 @@ class _BlocklyHandler(_BlocklyBase):
                 prev_is_empty = True
             else:
                 prev_is_empty = False
-            if self._is_exec and code.strip():
+            if (self._is_exec or (not self._is_exec and not self._is_ide)) and code.strip():
                 code_indent = re.match('(\s*).*', code).group(1)
                 self._append_main_code(code_indent + 'if not self.is_alive:', indent + 2)
                 self._append_main_code(code_indent + 'return', indent + 3)

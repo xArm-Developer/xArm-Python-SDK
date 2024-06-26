@@ -1461,7 +1461,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             if not os.path.exists(path):
                 raise FileNotFoundError('{} is not found'.format(path))
             blockly_tool = BlocklyTool(path)
-            succeed = blockly_tool.to_python(arm=self._api_instance, is_exec=True, **kwargs)
+            succeed = blockly_tool.to_python(arm=self._api_instance, **kwargs)
             if succeed:
                 times = kwargs.get('times', 1)
                 highlight_callback = kwargs.get('highlight_callback', None)

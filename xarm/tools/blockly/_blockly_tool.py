@@ -23,6 +23,7 @@ class BlocklyTool(_BlocklyHandler):
     def to_python(self, path=None, arm=None, init=True, wait_seconds=1, mode=0, state=0, error_exit=True, stop_exit=True, **kwargs):
         if not self._is_converted:
             self._is_exec = kwargs.get('is_exec', False)
+            self._is_ide = kwargs.get('is_ide', False)
             # highlight_callback: only use pack to run blockly in studio
             self._highlight_callback = kwargs.get('highlight_callback', None)
             # axis_type: Obtain the type of mechanical arm axis for end leveling use
@@ -451,9 +452,9 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_init_code('        return self.is_alive\n')
 
     def _init_main_codes(self, arm=None):
-        # exec can not run main function, if run in exec(), the parameter is_exec must set True
+        # exec can not run main function, if run in exec(), the parameter is_ide must set False
         self._append_main_code('\n', indent=-1)
-        if not self._is_exec:
+        if self._is_ide:
             self._append_main_code('if __name__ == \'__main__\':', indent=-1)
             indent = 0
         else:

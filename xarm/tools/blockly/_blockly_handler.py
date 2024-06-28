@@ -1119,7 +1119,7 @@ class _BlocklyHandler(_BlocklyBase):
                 prev_is_empty = False
             if (self._is_exec or (not self._is_exec and not self._is_ide)) and code.strip() and code not in \
                     ['finally:', 'else:'] and all([i not in code for i in ['elif', 'except', 'def', 'class']]) \
-                    and not code.startswith('@')::
+                    and not code.startswith('@'):
                 code_indent = re.match('(\s*).*', code).group(1)
                 self._append_main_code(code_indent + 'if not self.is_alive:', indent + 2)
                 self._append_main_code(code_indent + 'return', indent + 3)

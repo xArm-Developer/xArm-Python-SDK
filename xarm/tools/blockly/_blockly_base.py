@@ -228,7 +228,7 @@ class _BlocklyBase(_BlocklyNode):
             cond_a = self._get_condition_expression(values[0], arg_map=arg_map)
             if len(values) > 1:
                 cond_b = self._get_condition_expression(values[1], arg_map=arg_map)
-        return '{} {} {}'.format(cond_a, op, cond_b)
+        return '({}) {} ({})'.format(cond_a, op, cond_b)
 
     def __get_logic_operation(self, block, arg_map=None):
         op = self._get_node('field', block).text.lower()
@@ -239,7 +239,7 @@ class _BlocklyBase(_BlocklyNode):
             cond_a = self._get_condition_expression(values[0], arg_map=arg_map)
             if len(values) > 1:
                 cond_b = self._get_condition_expression(values[1], arg_map=arg_map)
-        return '{} {} {}'.format(cond_a, op, cond_b)
+        return '({}) {} ({})'.format(cond_a, op, cond_b)
 
     def __get_math_arithmetic(self, block, arg_map=None):
         field = self._get_node('field', block).text

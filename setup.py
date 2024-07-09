@@ -39,8 +39,11 @@ version = main_ns['__version__']
 # long_description = open('README.rst').read()
 long_description = 'long description for xArm-Python-SDK'
 
-with open(os.path.join(os.getcwd(), 'requirements.txt')) as f:
-    requirements = f.read().splitlines()
+try:
+    with open(os.path.join(os.getcwd(), 'requirements.txt')) as f:
+        requirements = f.read().splitlines()
+except:
+    requirements = []
 
 setup(
     name='xArm-Python-SDK',

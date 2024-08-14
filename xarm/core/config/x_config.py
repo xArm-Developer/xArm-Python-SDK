@@ -41,6 +41,9 @@ class XCONF(object):
             XARM6_X11 = 11
             XARM6_X12 = 12
             XARM7_X13 = 13
+            XARM5_X4_1305 = 51305
+            XARM6_X4_1305 = 61305
+            XARM7_X4_1305 = 71305
 
         JOINT_LIMITS = {
             Axis.XARM5: {
@@ -51,12 +54,27 @@ class XCONF(object):
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
                 ],
+                Type.XARM5_X4_1305: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.042035, 2.024581),
+                    (-3.822271, 0.174532),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
             },
             Axis.XARM6: {
                 Type.XARM6_X4: [
                     (-2 * math.pi, 2 * math.pi),
                     (-2.059488, 2.094395),  # (-2.18, 2.18),
                     (-3.92699, 0.191986),  # (-4.01, 0.1),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+                Type.XARM6_X4_1305: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.042035, 2.024581),
+                    (-3.822271, 0.174532),
                     (-2 * math.pi, 2 * math.pi),
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
@@ -110,6 +128,15 @@ class XCONF(object):
                     (-2.059488, 2.094395),  # (-2.18, 2.18),
                     (-2 * math.pi, 2 * math.pi),
                     (-0.191986, 3.92699),  # (-0.1, 4.01),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-1.692969, math.pi),  # (-1.75, math.pi),
+                    (-2 * math.pi, 2 * math.pi)
+                ],
+                Type.XARM7_X4_1305: [
+                    (-2 * math.pi, 2 * math.pi),
+                    (-2.042035, 2.024581),
+                    (-2 * math.pi, 2 * math.pi),
+                    (-0.10472, 3.92699),
                     (-2 * math.pi, 2 * math.pi),
                     (-1.692969, math.pi),  # (-1.75, math.pi),
                     (-2 * math.pi, 2 * math.pi)
@@ -388,7 +415,8 @@ class XCONF(object):
         IMPEDANCE_CTRL_MBK = 210
         IMPEDANCE_CTRL_CONFIG = 211
         FTSENSOR_GET_CONFIG = 212
-
+        
+        GET_TRAJ_SPEEDING = 230
         GET_MAX_JOINT_VELOCITY = 231
         SET_COMMON_PARAM = 232
         GET_COMMON_PARAM = 233

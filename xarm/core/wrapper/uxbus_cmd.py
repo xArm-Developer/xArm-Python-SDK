@@ -1432,3 +1432,14 @@ class UxbusCmd(object):
             else:
                 data[0] = XCONF.UxbusState.ERR_PARAM
         return data
+    
+    def get_traj_speeding(self, rate):
+        txdata = bytes([rate])
+        ret = self.getset_nu8(XCONF.UxbusReg.GET_TRAJ_SPEEDING, txdata, 1, -1)
+        data = [0] * 4
+        data[0] = ret[0]
+        if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
+            data[1] = convert.bytes_to_int32(ret[1:5])
+            data[2] = convert.bytes_to_int32(ret[5:9])
+            data[3] = round(math.degrees(convert.bytes_to_fp32(ret[9:])),3)
+        return data

@@ -1947,7 +1947,7 @@ class XArmAPI(object):
         """
         Get the digital value of the specified Controller GPIO
 
-        :param ionum: 0~15 or None(both 0~15), default is None
+        :param ionum: 0~7(CI0~CI7), 8~15(DI0~DI7) or None(both 0~15), default is None
         :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -1966,7 +1966,7 @@ class XArmAPI(object):
         """
         Set the digital value of the specified Controller GPIO
 
-        :param ionum: 0~15
+        :param ionum: 0~7(CO0~CO7), 8~15(DO0~DO7)
         :param value: value
         :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
         :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)
@@ -1993,7 +1993,7 @@ class XArmAPI(object):
     def set_cgpio_digital_input_function(self, ionum, fun):
         """
         Set the digital input functional mode of the Controller GPIO
-        :param ionum: 0~15
+        :param ionum: 0~7(CI0~CI7), 8~15(DI0~DI7)
         :param fun: functional mode
             0: general input
             1: external emergency stop
@@ -2010,7 +2010,7 @@ class XArmAPI(object):
     def set_cgpio_digital_output_function(self, ionum, fun):
         """
         Set the digital output functional mode of the specified Controller GPIO
-        :param ionum: 0~15
+        :param ionum: 0~7(CO0~CO7), 8~15(DO0~DO7)
         :param fun: functionnal mode
             0: general output
             1: emergency stop
@@ -4198,3 +4198,26 @@ class XArmAPI(object):
             return 0, err_info
             # ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret
+    
+    def run_gcode_app(self, path, **kwargs):
+        """
+        Run gcode project file by xArmStudio software
+        :param path: gcode file path
+        
+        :return: code, only when code is 0, the returned result is correct.
+        """
+        return self._arm.run_gcode_app(path, **kwargs)
+
+    def get_traj_speeding(self, rate):
+        """
+        Obtain the joint and velocity values of joint overspeed during trajectory recording
+        :param rate: speed rate, It can only be 1/2/4
+
+        :return: tuple((code, speed_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            speed_info: [result_code, servo_id, servo_speed]
+                        result_code: 0：Pass, -1: Fail, >0: abnormal(1:Trajectory not loaded or incorrect status;2:The input magnification is incorrect)
+                        servo_id: Effective only when result_code is -1
+                        servo_speed: Effective only when result_code is -1
+        """
+        return self._arm.get_traj_speeding(rate)

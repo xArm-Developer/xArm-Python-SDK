@@ -248,6 +248,16 @@ ServoCodeMap = {
             'desc': '请通过控制器上的紧急停止按钮重启机械臂。如多次重启无效，请联系技术支持。',
         }
     },
+    58: {
+        'en': {
+            'title': 'Torque Command Timeout',
+            'desc': 'Please check the connection between the Control Box and the robot.',
+        },
+        'cn': {
+            'title': '转矩指令超时',
+            'desc': '请检查控制器与机械臂的连接。',
+        }
+    },
     'other': {
         'en': {
             'title': 'Joint Error',

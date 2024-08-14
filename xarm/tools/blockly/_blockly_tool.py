@@ -267,8 +267,10 @@ class BlocklyTool(_BlocklyHandler):
             
             self._append_main_init_code('    def _listen_gpio_thread(self):')
             if self._listen_tgpio_digital or len(self._tgpio_digital_callbacks):
+                self._append_main_init_code('        _, values2 = self._arm.get_tgpio_digital(2)')
                 self._append_main_init_code('        _, values = self._arm.get_tgpio_digital()')
-                self._append_main_init_code('        tgpio_digitals = values if _ == 0 else [0] * 2')
+                self._append_main_init_code('        values.insert(2, values2)')
+                self._append_main_init_code('        tgpio_digitals = values if _ == 0 else [0] * 5')
             if self._listen_tgpio_analog or len(self._tgpio_analog_callbacks):
                 self._append_main_init_code('        _, values = self._arm.get_tgpio_analog()')
                 self._append_main_init_code('        tgpio_analogs = values if _ == 0 else [0] * 2')
@@ -281,10 +283,12 @@ class BlocklyTool(_BlocklyHandler):
 
             self._append_main_init_code('        while self.alive:')
             if self._listen_tgpio_digital or len(self._tgpio_digital_callbacks):
+                self._append_main_init_code('            _, values2 = self._arm.get_tgpio_digital(2)')
                 self._append_main_init_code('            _, values = self._arm.get_tgpio_digital()')
+                self._append_main_init_code('            values.insert(2, values2)')
                 self._append_main_init_code('            if _ == 0 and tgpio_digitals is not None:')
                 self._append_main_init_code('                for item in self._tgpio_digital_callbacks:')
-                self._append_main_init_code('                    for io in range(2):')
+                self._append_main_init_code('                    for io in range(5):')
                 self._append_main_init_code('                        if item[\'io\'] == io and eval(\'{} {} {}\'.format(values[io], item[\'op\'], item[\'trigger\'])) and not eval(\'{} {} {}\'.format(tgpio_digitals[io], item[\'op\'], item[\'trigger\'])):')
                 self._append_main_init_code('                            self._callback_que.put(item[\'callback\'])')
                 self._append_main_init_code('            tgpio_digitals = values if _ == 0 else tgpio_digitals')
@@ -361,7 +365,7 @@ class BlocklyTool(_BlocklyHandler):
         if self._is_run_blockly and not self._is_exec:
             self._append_main_init_code('    def _start_run_blockly(self, fileName, times):')
             self._append_main_init_code('       for i in range(times):')
-            self._append_main_init_code('           self._arm.run_blockly_app(fileName, init=False, axis_type=[self._arm.axis, self._arm.device_type])\n')
+            self._append_main_init_code('           code = self._arm.run_blockly_app(fileName, init=False, is_exec=True, axis_type=[self._arm.axis, self._arm.device_type])\n')
 
     def __define_robot_init_func(self, init=True, wait_seconds=1, mode=0, state=0, error_exit=True, stop_exit=True):
         # Define XArm Init Function:
@@ -462,9 +466,11 @@ class BlocklyTool(_BlocklyHandler):
         self._append_main_code('RobotMain.pprint(\'xArm-Python-SDK Version:{}\'.format(version.__version__))', indent=indent)
         if arm is None:
             self._append_main_code('arm = XArmAPI(sys.argv[1], baud_checkset=False)', indent=indent)
+            self._append_main_code('time.sleep(0.5)', indent=indent)
         elif isinstance(arm, str):
             self._append_main_code('arm = XArmAPI(\'{}\', baud_checkset=False)'.format(arm), indent=indent)
-
+            self._append_main_code('time.sleep(0.5)', indent=indent)
+            
         self._append_main_code('robot_main = RobotMain(arm)', indent=indent)
         self._append_main_code('robot_main.run()', indent=indent)
         self._append_main_code('', indent=-1)

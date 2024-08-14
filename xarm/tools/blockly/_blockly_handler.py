@@ -398,8 +398,11 @@ class _BlocklyHandler(_BlocklyBase):
 
     def _handle_wait(self, block, indent=0, arg_map=None):
         value = self._get_node('value', root=block)
-        value = self._get_nodes('field', root=value, descendant=True)[0].text
-        self._append_main_code('time.sleep({})'.format(value), indent + 2)
+        value = float(self._get_nodes('field', root=value, descendant=True)[0].text)
+        self._append_main_code('for i in range({}):'.format(int(value / 0.1)), indent + 2)
+        self._append_main_code('    time.sleep(0.1)', indent + 2)
+        self._append_main_code('    if not self.is_alive:', indent=indent + 2)
+        self._append_main_code('        return', indent=indent + 2)
 
     def _handle_gpio_get_digital(self, block, indent=0, arg_map=None):
         io = self._get_node('field', block).text
@@ -1211,5 +1214,15 @@ class _BlocklyHandler(_BlocklyBase):
         projectName = fields[0].text
         fileName = fields[1].text
         times = fields[2].text
-        self._append_main_code('start_run_gcode(projectName="{}", fileName="{}", times={})'.format(projectName, fileName, times), indent + 2)
+        if self._is_exec:
+            self._append_main_code('start_run_gcode(projectName="{}", fileName="{}", times={})'.format(projectName, fileName, times), indent + 2)
+        else:
+            self._append_main_code("for i in range({}):".format(times), indent + 2)
+            self._append_main_code('    self._arm.run_gcode_app(path="{}")'.format(projectName+fileName), indent + 2)
+
+    def _handle_write_single_holding_register(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        addr = int(fields[0].text.replace(' ', '').replace('0x','').replace(',','').replace('\xa0', ''), 16)
+        value = int(fields[1].text.replace(' ', '').replace('0x','').replace(',','').replace('\xa0', ''), 16)
+        self._append_main_code('self._arm.write_single_holding_register({}, {})'.format(addr, value), indent + 2)
 

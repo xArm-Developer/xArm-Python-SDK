@@ -2328,7 +2328,7 @@ class Base(BaseObject, Events):
             time.sleep(0.05)
         return APIState.WAIT_FINISH_TIMEOUT, -1
     
-    def wait_move(self, timeout=None, trans_id=-1):
+    def wait_move(self, timeout=None, trans_id=-1, set_cnt=2):
         if self._support_feedback and trans_id > 0:
             return self._wait_feedback(timeout, trans_id)[0]
         if timeout is not None:
@@ -2338,7 +2338,7 @@ class Base(BaseObject, Events):
         _, state = self.get_state()
         cnt = 0
         state5_cnt = 0
-        max_cnt = 2 if _ == 0 and state == 1 else 10
+        max_cnt = set_cnt if _ == 0 and state == 1 else 10
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
                 self.log_api_info('wait_move, xarm is disconnect', code=APIState.NOT_CONNECTED)
@@ -2367,7 +2367,7 @@ class Base(BaseObject, Events):
                 continue
             if state == 0 or state == 1:
                 cnt = 0
-                max_cnt = 2
+                max_cnt = set_cnt
                 time.sleep(0.05)
                 continue
             else:
@@ -2597,3 +2597,8 @@ class Base(BaseObject, Events):
         ret = self.arm_cmd.get_common_info(param_type) 
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1] if return_val else ret[1:]
+        
+    def get_traj_speeding(self, rate):
+        ret = self.arm_cmd.get_traj_speeding(rate)
+        ret[0] = self._check_code(ret[0])
+        return ret[0], ret[1:]

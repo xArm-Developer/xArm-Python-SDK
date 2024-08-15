@@ -1664,10 +1664,13 @@ xArm-Python-SDK API Documentation (V1.14.6): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;6: save failed
 
 
-#### def __get_vacuum_gripper__(self):
+#### def __get_vacuum_gripper__(self, hardware_version=1):
 
 > Get vacuum gripper state  
 >   
+> :param hardware_version: hardware version  
+> &ensp;&ensp;&ensp;&ensp;1: Plug-in Connection, default  
+> &ensp;&ensp;&ensp;&ensp;2: Contact Connection  
 > :return: tuple((code, state)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;state: suction cup state  

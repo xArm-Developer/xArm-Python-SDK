@@ -1913,17 +1913,20 @@ class XArmAPI(object):
         """
         return self._arm.get_tgpio_analog(ionum)
 
-    def get_vacuum_gripper(self):
+    def get_vacuum_gripper(self, hardware_version=1):
         """
         Get vacuum gripper state
 
+        :param hardware_version: hardware version
+            1: Plug-in Connection, default
+            2: Contact Connection
         :return: tuple((code, state)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             state: suction cup state
                 0: suction cup is off
                 1: suction cup is on
         """
-        return self._arm.get_suction_cup()
+        return self._arm.get_suction_cup(hardware_version=hardware_version)
 
     def set_vacuum_gripper(self, on, wait=False, timeout=3, delay_sec=None, sync=True, hardware_version=1):
         """

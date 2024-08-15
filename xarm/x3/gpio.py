@@ -336,13 +336,13 @@ class GPIO(Base):
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
-    def set_suction_cup(self, on, wait=True, timeout=3, delay_sec=None, sync=True):
+    def set_suction_cup(self, on, wait=True, timeout=3, delay_sec=None, sync=True, hardware_version=1):
         if on:
-            code1 = self.set_tgpio_digital(ionum=0, value=1, delay_sec=delay_sec, sync=sync)
-            code2 = self.set_tgpio_digital(ionum=1, value=0, delay_sec=delay_sec, sync=sync)
+            code1 = self.set_tgpio_digital(ionum=0 if hardware_version == 1 else 3, value=1, delay_sec=delay_sec, sync=sync)
+            code2 = self.set_tgpio_digital(ionum=1 if hardware_version == 1 else 4, value=0, delay_sec=delay_sec, sync=sync)
         else:
-            code1 = self.set_tgpio_digital(ionum=0, value=0, delay_sec=delay_sec, sync=sync)
-            code2 = self.set_tgpio_digital(ionum=1, value=1, delay_sec=delay_sec, sync=sync)
+            code1 = self.set_tgpio_digital(ionum=0 if hardware_version == 1 else 3, value=0, delay_sec=delay_sec, sync=sync)
+            code2 = self.set_tgpio_digital(ionum=1 if hardware_version == 1 else 4, value=1, delay_sec=delay_sec, sync=sync)
         code = code1 if code2 == 0 else code2
         if code == 0 and wait:
             start = time.monotonic()
@@ -350,7 +350,7 @@ class GPIO(Base):
             if delay_sec is not None and delay_sec > 0:
                 timeout += delay_sec
             while time.monotonic() - start < timeout:
-                ret = self.get_suction_cup()
+                ret = self.get_suction_cup(hardware_version=hardware_version)
                 if ret[0] == XCONF.UxbusState.ERR_CODE:
                     code = XCONF.UxbusState.ERR_CODE
                     break
@@ -369,8 +369,8 @@ class GPIO(Base):
         return code
 
     @xarm_is_connected(_type='get')
-    def get_suction_cup(self):
-        return self.get_tgpio_digital(ionum=0)
+    def get_suction_cup(self, hardware_version=1):
+        return self.get_tgpio_digital(ionum=0 if hardware_version == 1 else 3)
 
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max
@@ -412,14 +412,14 @@ class GPIO(Base):
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=False)
-    def check_air_pump_state(self, state, timeout=3):
+    def check_air_pump_state(self, state, timeout=3, hardware_version=1):
         start_time = time.monotonic()
         is_first = True
         while is_first or time.monotonic() - start_time < timeout:
             is_first = False
             if not self.connected or self.state == 4:
                 return False
-            ret = self.get_suction_cup()
+            ret = self.get_suction_cup(hardware_version=hardware_version)
             if ret[0] == XCONF.UxbusState.ERR_CODE:
                 return False
             if ret[0] == 0:

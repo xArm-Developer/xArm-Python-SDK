@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.14.6): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -978,7 +978,7 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 
 > Get the digital value of the specified Controller GPIO  
 >   
-> :param ionum: 0~15 or None(both 0~15), default is None  
+> :param ionum: 0~7(CI0~CI7), 8~15(DI0~DI7) or None(both 0~15), default is None  
 > :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -1617,6 +1617,19 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 >   
 > :return: (code, version)  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __get_traj_speeding__(self, rate):
+
+> Obtain the joint and velocity values of joint overspeed during trajectory recording  
+> :param rate: speed rate, It can only be 1/2/4  
+>   
+> :return: tuple((code, speed_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;speed_info: [result_code, servo_id, servo_speed]  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;result_code: 0：Pass, -1: Fail, >0: abnormal(1:Trajectory not loaded or incorrect status;2:The input magnification is incorrect)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;servo_id: Effective only when result_code is -1  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;servo_speed: Effective only when result_code is -1
 
 
 #### def __get_trajectories__(self):
@@ -2311,6 +2324,14 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 > :param path: app path
 
 
+#### def __run_gcode_app__(self, path, **kwargs):
+
+> Run gcode project file by xArmStudio software  
+> :param path: gcode file path  
+>   
+> :return: code, only when code is 0, the returned result is correct.
+
+
 #### def __run_gcode_file__(self, path, **kwargs):
 
 > Run the gcode file  
@@ -2508,7 +2529,7 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 
 > Set the digital value of the specified Controller GPIO  
 >   
-> :param ionum: 0~15  
+> :param ionum: 0~7(CO0~CO7), 8~15(DO0~DO7)  
 > :param value: value  
 > :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)  
 > :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
@@ -2521,7 +2542,7 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 #### def __set_cgpio_digital_input_function__(self, ionum, fun):
 
 > Set the digital input functional mode of the Controller GPIO  
-> :param ionum: 0~15  
+> :param ionum: 0~7(CI0~CI7), 8~15(DI0~DI7)  
 > :param fun: functional mode  
 > &ensp;&ensp;&ensp;&ensp;0: general input  
 > &ensp;&ensp;&ensp;&ensp;1: external emergency stop  
@@ -2537,7 +2558,7 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 #### def __set_cgpio_digital_output_function__(self, ionum, fun):
 
 > Set the digital output functional mode of the specified Controller GPIO  
-> :param ionum: 0~15  
+> :param ionum: 0~7(CO0~CO7), 8~15(DO0~DO7)  
 > :param fun: functionnal mode  
 > &ensp;&ensp;&ensp;&ensp;0: general output  
 > &ensp;&ensp;&ensp;&ensp;1: emergency stop  
@@ -3565,7 +3586,7 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;code >= 0: the last_used_tcp_speed/last_used_tcp_acc will be modified
 
 
-#### def __set_vacuum_gripper__(self, on, wait=False, timeout=3, delay_sec=None, sync=True):
+#### def __set_vacuum_gripper__(self, on, wait=False, timeout=3, delay_sec=None, sync=True, hardware_version=1):
 
 > Set vacuum gripper state  
 >   
@@ -3578,6 +3599,9 @@ xArm-Python-SDK API Documentation (V1.14.2): class XArmAPI in module xarm.wrappe
 > :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.4.101  
 > &ensp;&ensp;&ensp;&ensp;2. only available if delay_sec <= 0  
+> :param hardware_version: hardware version  
+> &ensp;&ensp;&ensp;&ensp;1: Plug-in Connection, default  
+> &ensp;&ensp;&ensp;&ensp;2: Contact Connection  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

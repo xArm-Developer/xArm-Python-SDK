@@ -566,7 +566,7 @@ class UxbusCmd(object):
 
     def move_circle_common(self, pose1, pose2, mvvelo, mvacc, mvtime, percent, coord=0, is_axis_angle=False, only_check_type=0, feedback_key=None):
         """
-        通用指令，固件1.10.0开始支持 
+        通用指令, 固件1.10.0开始支持 
         """
         txdata = [0] * 16
         for i in range(6):

@@ -932,10 +932,10 @@ class Base(BaseObject, Events):
                 self._report_connect_changed_callback()
             else:
                 if SerialPort is None:
-                    raise Exception('serial module is not found, if you want to connect to xArm with serial, please `pip install pyserial==3.4`')
+                    raise Exception('serial module is not found, if you want to connect to xArm with serial, please `pip install pyserial>=3.4`')
                 self._stream = SerialPort(self._port)
                 if not self.connected:
-                    raise Exception('connect serail failed')
+                    raise Exception('connect serial failed')
                 self._report_error_warn_changed_callback()
 
                 self.arm_cmd = UxbusCmdSer(self._stream)

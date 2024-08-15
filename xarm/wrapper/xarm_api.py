@@ -1925,7 +1925,7 @@ class XArmAPI(object):
         """
         return self._arm.get_suction_cup()
 
-    def set_vacuum_gripper(self, on, wait=False, timeout=3, delay_sec=None, sync=True):
+    def set_vacuum_gripper(self, on, wait=False, timeout=3, delay_sec=None, sync=True, hardware_version=1):
         """
         Set vacuum gripper state
 
@@ -1938,10 +1938,13 @@ class XArmAPI(object):
         :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)
             1. only available if firmware_version >= 2.4.101
             2. only available if delay_sec <= 0
+        :param hardware_version: hardware version
+            1: Plug-in Connection, default
+            2: Contact Connection
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_suction_cup(on, wait=wait, timeout=timeout, delay_sec=delay_sec, sync=sync)
+        return self._arm.set_suction_cup(on, wait=wait, timeout=timeout, delay_sec=delay_sec, sync=sync, hardware_version=hardware_version)
 
     def get_cgpio_digital(self, ionum=None):
         """

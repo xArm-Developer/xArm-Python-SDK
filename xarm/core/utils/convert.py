@@ -120,3 +120,5 @@ def bytes_to_long_big(data):
     """大端字节序"""
     return bytes_to_num32(data, '>l')
 
+def bytes_to_int32(data):
+    return int.from_bytes(data, byteorder='big', signed=True)

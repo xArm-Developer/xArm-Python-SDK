@@ -8,6 +8,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import time
+import math
 import threading
 import functools
 from ..utils import convert

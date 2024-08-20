@@ -7,10 +7,12 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import os
+import re
 import math
 import sys
 import time
 import uuid
+import socket
 import warnings
 from collections.abc import Iterable
 from ..core.config.x_config import XCONF
@@ -66,7 +68,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
     def _is_out_of_joint_range(self, angle, i):
         if not self._check_joint_limit or self._stream_type != 'socket' or not self._enable_report or angle == math.inf:
             return False
-        device_type = int('{}1305'.format(self.axis)) if self.sn and int(self.sn[2:6]) >= 1305 else self.device_type
+        device_type = int('{}1305'.format(self.axis)) if self.sn and int(self.sn[2:6]) >= 1305 and int(self.sn[2:6]) < 8500 else self.device_type
         joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(device_type, [])
         if i < len(joint_limit):
             angle_range = joint_limit[i]
@@ -767,7 +769,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             # limits = list(map(lambda x: round(math.radians(x), 3), limits))
 
         for i in range(self.axis):
-            device_type = int('{}1305'.format(self.axis)) if self.sn and int(self.sn[2:6]) >= 1305 else self.device_type
+            device_type = int('{}1305'.format(self.axis)) if self.sn and int(self.sn[2:6]) >= 1305 and int(self.sn[2:6]) < 8500 else self.device_type
             joint_limit = XCONF.Robot.JOINT_LIMITS.get(self.axis).get(device_type, [])
             if i < len(joint_limit):
                 angle_range = joint_limit[i]

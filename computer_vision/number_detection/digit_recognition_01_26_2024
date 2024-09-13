@@ -1,0 +1,7 @@
+'''
+01/26/2024 - Snaeha Shriram
+Restarting number detection. Planning to start with some pre-established number detection algorithm 
+and get it working with the webcam before trying to fine tune. Also, with the prevalence of existing 
+number detection algorithms, it's highly likely we won't need to do much fine tuning.
+'''
+

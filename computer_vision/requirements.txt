@@ -3,3 +3,6 @@ opencv-python==4.10.0.84
 packaging==24.1
 pillow==10.4.0
 pytesseract==0.3.13
+robotpy-apriltag==2024.3.2.1
+robotpy-wpimath==2024.3.2.1
+robotpy-wpiutil==2024.3.2.1

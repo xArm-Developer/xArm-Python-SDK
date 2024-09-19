@@ -1,0 +1,5 @@
+numpy==2.1.1
+opencv-python==4.10.0.84
+robotpy-apriltag==2024.3.2.1
+robotpy-wpimath==2024.3.2.1
+robotpy-wpiutil==2024.3.2.1

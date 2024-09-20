@@ -96,6 +96,8 @@ def read_img(img_path: str, show_images= False):
         cv2.waitKey(0)
 
     #extracting text from the image as a single line
+
+    #101 [0,0,1]
     txt = image_to_string(thr, config='--psm 10  --oem 3 -c tessedit_char_whitelist=0123456789')
     digits = "".join([t for t in txt if t != '|']).strip()
 
@@ -107,5 +109,6 @@ def read_img(img_path: str, show_images= False):
             chars.append(digit)
             
     print(chars)
+    return digits
 
 read_img("sdfs")

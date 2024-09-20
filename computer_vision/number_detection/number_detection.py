@@ -107,3 +107,5 @@ def read_img(img_path: str, show_images= False):
             chars.append(digit)
             
     print(chars)
+
+read_img("sdfs")

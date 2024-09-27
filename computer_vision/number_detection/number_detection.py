@@ -45,7 +45,7 @@ def num_reader(img):
                 
         # print("In",filename,"detecting",chars)
         if len(chars) == 3:
-            print("Result: " + chars[0] + chars[1] + "." + chars[2])
+            # print("Result: " + chars[0] + chars[1] + "." + chars[2])
             # cv2.imshow("test", thr)
             # cv2.waitKey(0)
             
@@ -80,7 +80,7 @@ def read_camera():
         cv2.waitKey(1)
 
 def read_img(img_path: str, show_images= False):
-    img = cv2.imread("test/IMG_2554(1).JPG")
+    img = cv2.imread(img_path)
     
     #converting to grayscale
     gry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -104,11 +104,11 @@ def read_img(img_path: str, show_images= False):
     #only keeping numeric digits
     chars = []
     for digit in digits:
-        print(digits)
-        if digit.isnumeric():
+        # print(digits)
+        if digit.isnumeric() or digit == '.':
             chars.append(digit)
             
     print(chars)
-    return digits
+    return ''.join(chars)
 
-read_img("sdfs")
+# read_img("sdfs")

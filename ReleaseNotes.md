@@ -2,6 +2,13 @@
 
 ## Update Summary
 
+- > ### 1.14.7
+  - Fixed the problem that single joint or direction movement fails in some cases (valid from firmware 2.5.0)
+  - Added standard ModbusTcp client and Gcode client
+  - GPIO control supports immediate execution
+  - Support new version of vacuum gripper
+  - Support the studio-2.5.0 blockly project conversion to python
+
 - > ### 1.13.30
   - Supports obtaining unsaved track recording duration
   - Fix the abnormal path of running blockly program in some cases

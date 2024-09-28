@@ -12,14 +12,16 @@ import os
 import pydoc
 import re
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+curr_file_dir = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(curr_file_dir, '../..'))
 
 from xarm.wrapper import XArmAPI
 from xarm.version import __version__
 
 from doc.tool.markdown_doc import MarkdownDoc
 
-open('../api/xarm_api.md', 'w', encoding='utf-8').write(
+doc_filepath = os.path.join(curr_file_dir, '../api/xarm_api.md')
+open(doc_filepath, 'w', encoding='utf-8').write(
     pydoc.render_doc(XArmAPI,
                      title='xArm-Python-SDK API Documentation (V{}): %s'.format(__version__),
                      renderer=MarkdownDoc()))

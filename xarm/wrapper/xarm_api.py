@@ -1922,9 +1922,9 @@ class XArmAPI(object):
             2: Contact Connection
         :return: tuple((code, state)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            state: suction cup state
-                0: suction cup is off
-                1: suction cup is on
+            state: vacuum gripper state
+                0: vacuum gripper is off
+                1: vacuum gripper is on
         """
         return self._arm.get_suction_cup(hardware_version=hardware_version)
 

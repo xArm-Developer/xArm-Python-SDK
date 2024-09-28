@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.14.6): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -1673,9 +1673,9 @@ xArm-Python-SDK API Documentation (V1.14.6): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;2: Contact Connection  
 > :return: tuple((code, state)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;state: suction cup state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: suction cup is off  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: suction cup is on
+> &ensp;&ensp;&ensp;&ensp;state: vacuum gripper state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: vacuum gripper is off  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: vacuum gripper is on
 
 
 #### def __get_version__(self):

@@ -44,7 +44,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 arm.set_tool_position(x=100, y=0, z=0, roll=0, pitch=0, yaw=0, speed=100, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=True))
@@ -59,5 +59,5 @@ print(arm.get_position(), arm.get_position(is_radian=True))
 arm.set_tool_position(x=0, y=200, z=0, roll=0, pitch=0, yaw=0, speed=600, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=True))
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

@@ -45,7 +45,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 speed = 50
 
@@ -60,5 +60,5 @@ for _ in range(10):
     for angle in angles:
         code = arm.set_servo_angle(angle=angle, speed=speed, radius=60, wait=False)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

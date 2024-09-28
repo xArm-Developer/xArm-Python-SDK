@@ -44,7 +44,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 arm.set_position(x=100, relative=True, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=False))
@@ -59,5 +59,5 @@ print(arm.get_position(), arm.get_position(is_radian=False))
 arm.set_position(y=200, z=100, relative=True, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=False))
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

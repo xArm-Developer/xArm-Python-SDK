@@ -44,7 +44,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 arm.set_position(x=300, y=0, z=150, roll=-180, pitch=0, yaw=0, speed=100, is_radian=False, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=False))
@@ -60,7 +60,7 @@ arm.set_position(x=300, y=0, z=250, roll=-180, pitch=0, yaw=0, speed=600, is_rad
 print(arm.get_position(), arm.get_position(is_radian=False))
 
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 arm.set_position(x=300, y=0, z=150, roll=-3.1415926, pitch=0, yaw=0, speed=100, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=False))
@@ -75,5 +75,5 @@ print(arm.get_position(), arm.get_position(is_radian=False))
 arm.set_position(x=300, y=0, z=250, roll=-3.1415926, pitch=0, yaw=0, speed=600, wait=True)
 print(arm.get_position(), arm.get_position(is_radian=False))
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

@@ -45,7 +45,7 @@ arm.set_mode(0)
 arm.set_state(state=0)
 time.sleep(1)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 # set cartesian velocity control mode
 arm.set_mode(5)

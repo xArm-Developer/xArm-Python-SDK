@@ -45,7 +45,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 speed = 50
 arm.set_servo_angle(angle=[90, 0, 0, 0, 0], speed=speed, wait=True)
@@ -62,7 +62,7 @@ arm.set_servo_angle(angle=[0, 0, 0, 0, 0], speed=speed, wait=True)
 print(arm.get_servo_angle(), arm.get_servo_angle(is_radian=True))
 
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 speed = math.radians(50)
 arm.set_servo_angle(angle=[math.radians(90), 0, 0, 0, 0], speed=speed, is_radian=True, wait=True)
 print(arm.get_servo_angle(), arm.get_servo_angle(is_radian=True))
@@ -78,5 +78,5 @@ arm.set_servo_angle(angle=[0, 0, 0, 0, 0], speed=speed, is_radian=True, wait=Tru
 print(arm.get_servo_angle(), arm.get_servo_angle(is_radian=True))
 
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

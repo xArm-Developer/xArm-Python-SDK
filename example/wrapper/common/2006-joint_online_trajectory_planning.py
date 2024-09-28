@@ -45,7 +45,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.set_servo_angle(angle=[-50, 0, 0, 0, 0, 0, 0], wait=True)
 
 # set mode: joint online trajectory planning mode
@@ -68,5 +68,5 @@ for i in range(10):
 # set_mode: position mode
 arm.set_mode(0)
 arm.set_state(0)
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

@@ -44,7 +44,7 @@ arm.motion_enable(enable=True)
 arm.set_mode(0)
 arm.set_state(state=0)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 paths = [
     [300, 0, 150, -180, 0, 0],
@@ -62,5 +62,5 @@ paths = [
 
 arm.move_arc_lines(paths, speed=300, times=10, wait=True)
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

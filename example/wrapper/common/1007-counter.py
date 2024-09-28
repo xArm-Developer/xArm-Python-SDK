@@ -51,7 +51,7 @@ def callback_count_changed(item):
 arm.register_count_changed_callback(callback_count_changed)
 
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 
 paths = [
     [300, 0, 150, -180, 0, 0],
@@ -91,5 +91,5 @@ for i in range(100):
         break
     arm.set_counter_increase()
 
-arm.reset(wait=True)
+arm.move_gohome(wait=True)
 arm.disconnect()

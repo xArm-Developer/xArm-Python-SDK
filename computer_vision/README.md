@@ -1,11 +1,6 @@
-To set up venv:
+To set up virtual environment, make sure you have conda installed.
 In your terminal:
 cd computer_vision
-python -m venv venv
-source venv/bin/activate
+conda create --name pcr python=3.10
+conda activate pcr
 pip install -r requirements.txt
-
-To run number_detection code:
-cd computer_vision/number_detection
-source venv/bin/activate
-python number_detection.py

@@ -9,5 +9,3 @@ To run number_detection code:
 cd computer_vision/number_detection
 source venv/bin/activate
 python number_detection.py
-
-check

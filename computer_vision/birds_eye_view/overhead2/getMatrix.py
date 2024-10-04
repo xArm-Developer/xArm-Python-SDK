@@ -1,50 +1,71 @@
 import cv2
 import numpy as np
 
-def detect_apriltag_and_warp(image):
-    # Convert the image to grayscale for better tag detection
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+def detect_apriltag_and_warp(frame, width_in_units, height_in_units):
+    width_px = width_in_units
+    height_px = height_in_units
+
+    # Convert frame to grayscale for AprilTag detection
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Initialize the AprilTag detector
-    detector = apriltag.Detector()
+    detector = cv2.apriltag_AprilTagDetector()
 
-    # Detect tags in the image
-    results = detector.detect(gray)
+    # Detect AprilTags in the image
+    tags = detector.detect(gray)
 
-    if len(results) > 0:
-        # Loop through the detected tags (assuming one tag for simplicity)
-        for result in results:
-            # Extract the corners of the detected tag
-            pts = np.array([result.corners], dtype="float32")
+    if len(tags) > 0:
+        # Assuming one tag for simplicity, get the corners of the first detected AprilTag
+        pts = np.array(tags[0].corners, dtype="float32")
 
-            # Define the size of the output warp (standard tag size in pixels)
-            (tagWidth, tagHeight) = (300, 300)
-            dst = np.array([
-                [0, 0],
-                [tagWidth - 1, 0],
-                [tagWidth - 1, tagHeight - 1],
-                [0, tagHeight - 1]], dtype="float32")
+        # Define the destination points (the desired size of the output warp)
+        dst = np.array([
+            [0, 0],
+            [width_px - 1, 0],
+            [width_px - 1, height_px - 1],
+            [0, height_px - 1]], dtype="float32")
 
-            # Compute the perspective transform matrix and warp the image
-            M = cv2.getPerspectiveTransform(pts[0], dst)
-            warped = cv2.warpPerspective(image, M, (tagWidth, tagHeight))
+        # Compute the perspective transform matrix and warp the image
+        M = cv2.getPerspectiveTransform(pts, dst)
+        warped = cv2.warpPerspective(frame, M, (width_px, height_px))
 
-            # Return the warped image
-            return warped
+        return warped
     else:
-        print("No AprilTag detected")
-        return image
+        return None
 
-# Load the image (replace with your video stream frame)
-image = cv2.imread('image_with_apriltag.jpg')
+# Open the webcam
+cap = cv2.VideoCapture(0)
 
-# Detect and warp the AprilTag
-warped_image = detect_apriltag_and_warp(image)
+# Define the dimensions in inches or centimeters
+width_in_units = 5  # e.g., 5 inches
+height_in_units = 5  # e.g., 5 inches
 
-# Display the result
-cv2.imshow('Warped AprilTag', warped_image)
-cv2.waitKey(0)
+while True:
+    # Capture frame-by-frame from the webcam
+    ret, frame = cap.read()
+
+    if not ret:
+        print("Failed to grab frame")
+        break
+
+    # Detect and warp the AprilTag
+    warped_frame = detect_apriltag_and_warp(frame, width_in_units, height_in_units)
+
+    # If an AprilTag is detected and warped
+    if warped_frame is not None:
+        cv2.imshow('Warped AprilTag', warped_frame)
+    else:
+        cv2.imshow('Webcam Feed', frame)
+
+    # Press 'q' to quit
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release the webcam and close all windows
+cap.release()
 cv2.destroyAllWindows()
+
 
 # def getMatrix():
 #     cap = cv2.VideoCapture(1)

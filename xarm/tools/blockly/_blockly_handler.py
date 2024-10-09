@@ -41,6 +41,7 @@ class _BlocklyHandler(_BlocklyBase):
         self.is_run_linear_track = False
         self._is_run_blockly = False
         self._listen_counter = False
+        self._vacuum_version = '1'
     
     def _append_init_code(self, code):
         self._init_code_list.append(code)
@@ -435,7 +436,7 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('    return', indent + 2)
 
     def _handle_get_suction_cup(self, block, indent=0, arg_map=None):
-        self._append_main_code('{}self._arm.get_suction_cup()', indent + 2)
+        self._append_main_code('{}self._arm.get_suction_cup(hardware_version={})'.format('{}', self._vacuum_version), indent + 2)
 
     def _handle_check_air_pump_state(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
@@ -463,7 +464,7 @@ class _BlocklyHandler(_BlocklyBase):
             wait = False
         fields = self._get_nodes('field', root=block, name='delay')
         delay_sec = fields[0].text if len(fields) > 0 else 0
-        self._append_main_code('code = self._arm.set_suction_cup({}, wait={}, delay_sec={})'.format( on, wait, delay_sec), indent + 2)
+        self._append_main_code('code = self._arm.set_suction_cup({}, wait={}, delay_sec={}, hardware_version={})'.format( on, wait, delay_sec, self._vacuum_version), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_suction_cup\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 

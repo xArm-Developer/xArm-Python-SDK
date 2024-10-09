@@ -31,6 +31,7 @@ class _BlocklyBase(_BlocklyNode):
         self._funcs = {}
         self._define_is_prime_func = False
         self._define_bin_matchs_func = False
+        self._vacuum_version = '1'
     
     def _get_field_value(self, block):
         field = self._get_node('field', root=block)
@@ -94,12 +95,13 @@ class _BlocklyBase(_BlocklyNode):
             self._define_bin_matchs_func = True
             return 'self._cgpio_digitals_is_matchs_bin(\'{}\')'.format(bin_val)
         elif block.attrib['type'] == 'get_suction_cup':
-            return 'self._arm.get_suction_cup()[{}]'.format(1)
+            return 'self._arm.get_suction_cup(hardware_version={})[{}]'.format(self._vacuum_version, 1)
         elif block.attrib['type'] == 'check_air_pump_state':
             fields = self._get_nodes('field', root=block)
             state = 1 if fields[0].text == 'ON' else 0
             timeout = float(fields[1].text)
-            return 'self._arm.arm.check_air_pump_state({}, timeout={})'.format(state, timeout)
+            return 'self._arm.arm.check_air_pump_state({}, timeout={}, hardware_version={})'.format(state, timeout, 
+                                                                                                self._vacuum_version)
         elif block.attrib['type'] == 'check_bio_gripper_is_catch':
             fields = self._get_nodes('field', root=block)
             timeout = float(fields[0].text)

@@ -24,6 +24,7 @@ class BlocklyTool(_BlocklyHandler):
         if not self._is_converted:
             self._is_exec = kwargs.get('is_exec', False)
             self._is_ide = kwargs.get('is_ide', False)
+            self._vacuum_version = kwargs.get('vacuum_version', '1')
             # highlight_callback: only use pack to run blockly in studio
             self._highlight_callback = kwargs.get('highlight_callback', None)
             # axis_type: Obtain the type of mechanical arm axis for end leveling use

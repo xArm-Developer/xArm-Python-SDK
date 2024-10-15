@@ -86,11 +86,18 @@ class GPIO(Base):
             # only available in Lite6
             ret = self.arm_cmd.tgpio_addr_r16(0x0A12)
             return ret[0], ret[1] & 0x0001
-        else:
+        elif isinstance(ionum, int):
             ret = self.arm_cmd.tgpio_get_digital()
             if ret[0] == 0:
                 self.tgpio_state['digital'] = ret[1:]
-            return ret[0], ret[1:] if ionum is None else ret[ionum+1 if ionum < 3 else ionum]
+            return ret[0], ret[ionum+1 if ionum < 3 else ionum]
+        else:
+            ret1 = self.arm_cmd.tgpio_addr_r16(0x0A12)
+            ret2 = self.arm_cmd.tgpio_get_digital()
+            if ret2[0] == 0:
+              self.tgpio_state['digital'] = ret2[1:]
+            ret2.insert(3, ret1[1])
+            return ret1[0] or ret2[0], ret2[1:]
     
     @xarm_is_connected(_type='get')
     def get_tgpio_output_digital(self, ionum=None):

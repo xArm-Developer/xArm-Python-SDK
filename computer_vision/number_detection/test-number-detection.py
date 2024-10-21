@@ -7,6 +7,29 @@ import time
 filePath = './test/cropped/'
 txtPath = './test/testResults/'
 
+
+
+'''
+
+TEST NOTES:
+
+    - the gray scaling and binary contrast leads to some of the numbers being obscured
+        likely due to glare
+
+    - the morphology applied is definitely making small improvements,
+        maybe run this in a loop. How many times?
+
+    - the dot is consistently being judged as a '0' does the OCR model 
+        not recognize non-numbers? If a string is the size of four and if at index size-2
+        is 0, then just replace as a '.'?
+
+
+    - find images with glare or blurriness
+
+    - for thresholding 
+
+'''
+
 class TestNumberDetection(unittest.TestCase):
     def test_function_multiple_times(self):
         # go through each file in the cropped directory

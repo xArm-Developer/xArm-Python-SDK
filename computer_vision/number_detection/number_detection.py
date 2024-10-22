@@ -89,9 +89,9 @@ def read_img(img_path: str, show_images= True):
     
     #converting to grayscale
     gry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if show_images:
-        cv2.imshow("test", gry)
-        cv2.waitKey(0)
+    # if show_images:
+    #     cv2.imshow("test", gry)
+    #     cv2.waitKey(0)
 
 
     #setting threshold to make all pixels white or black
@@ -99,30 +99,26 @@ def read_img(img_path: str, show_images= True):
     thr = cv2.threshold(gry, 45, 225,
                     cv2.THRESH_BINARY_INV)[1]
 
-    if show_images:
-        cv2.imshow("test", thr)
-        cv2.waitKey(0)
+    # if show_images:
+    #     cv2.imshow("test", thr)
+    #     cv2.waitKey(0)
 
 
     # NOTE: experiement with the size of the structuring element
 
 
     # Experiment with different structuring elements
-    kernel_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    kernel_ellipse = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-    kernel_cross = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+    # kernel_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    # kernel_rect2 = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+    kernel_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
 
     # Apply morphological operations with different kernels
     morph_rect = cv2.morphologyEx(thr, cv2.MORPH_CLOSE, kernel_rect)
-    morph_ellipse = cv2.morphologyEx(thr, cv2.MORPH_CLOSE, kernel_ellipse)
-    morph_cross = cv2.morphologyEx(thr, cv2.MORPH_CLOSE, kernel_cross)
 
     if show_images:
         cv2.imshow("Morphology Rect", morph_rect)
-        cv2.imshow("Morphology Ellipse", morph_ellipse)
-        cv2.imshow("Morphology Cross", morph_cross)
         cv2.waitKey(0)
-
+    
     # Choose the best result based on visual inspection or further processing
     morph = morph_rect  # or morph_ellipse, morph_cross
     #extracting text from the image as a single line

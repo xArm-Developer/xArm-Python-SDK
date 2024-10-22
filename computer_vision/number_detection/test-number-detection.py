@@ -51,6 +51,21 @@ class TestNumberDetection(unittest.TestCase):
             print('\n')
             #END OF METHOD
 
+    def test_function_once(self):
+        imgFile = self.imgFile
+        imgExpected = imgFile.split('(')[0].split('.jpg')[0].split('.png')[0]
+
+        print("File Name: " + imgFile)
+        print("Expected Value: " + imgExpected)
+
+        #not completely sure about this syntax
+        with self.subTest(imgFile=imgFile, imgExpected=imgExpected):
+            result = read_img(filePath+imgFile)
+            self.assertEqual(result,imgExpected,
+                            imgFile +" FAILED! RESULT: " + result + " EXPECTED: " + imgExpected)
+        
+        print('\n')
+
 
 # NOTE: to run this block of code, run 'python test-number-detection.py'
 
@@ -69,7 +84,11 @@ if __name__ == '__main__':
     with open(file_path, 'w') as f:
         f.write(f"Test started at: {currentTime}\n")
         # Create a test suite and add the test case
-        suite = unittest.TestLoader().loadTestsFromTestCase(TestNumberDetection)
+        suite = unittest.TestSuite()
+        test_case = TestNumberDetection('test_function_once')
+        test_case.imgFile = "15.5.jpg"
+        # test_case = TestNumberDetection('test_function_multiple_times')
+        suite.addTest(test_case)
         
         # Create a test runner that writes to the file
         runner = unittest.TextTestRunner(stream=f, verbosity=2)

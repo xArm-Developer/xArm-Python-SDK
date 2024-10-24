@@ -1,3 +1,4 @@
+import apriltag
 import cv2
 import numpy as np
 
@@ -10,7 +11,7 @@ def detect_apriltag_and_warp(frame, width_in_units, height_in_units):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Initialize the AprilTag detector
-    detector = cv2.apriltag_AprilTagDetector()
+    detector = apriltag.Detector()
 
     # Detect AprilTags in the image
     tags = detector.detect(gray)

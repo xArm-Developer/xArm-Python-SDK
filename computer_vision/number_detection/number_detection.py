@@ -7,6 +7,21 @@ import time
 import platform
 
 
+'''
+Noise Removal:
+    - Clustering algorithm based on camera positions
+
+    - Gaussian Blur
+    
+    - hybrid between neural and pretrained
+        - build a layer ontop of pretrained model with a neural network
+        - needs MORE DATA LOTS OF DATA
+    
+    - Find out what EXACTLY our camera will be reading the values
+
+    - Make cropping algo
+'''
+
 # is this function redundant? 
 def num_reader(img):    
     
@@ -113,6 +128,12 @@ def read_img(img_path: str, show_images= True):
     kernel_rect = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
 
     # Apply morphological operations with different kernels
+    morph_rect = cv2.morphologyEx(thr, cv2.MORPH_OPEN, kernel_rect)
+
+    if show_images:
+        cv2.imshow("Morphology Rect", morph_rect)
+        cv2.waitKey(0)
+
     morph_rect = cv2.morphologyEx(thr, cv2.MORPH_CLOSE, kernel_rect)
 
     if show_images:

@@ -111,4 +111,4 @@ def read_img(img_path: str, show_images= False):
     print(chars)
     return ''.join(chars)
 
-# read_img("sdfs")
+read_img("sdfs")

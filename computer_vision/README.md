@@ -4,5 +4,3 @@ cd computer_vision
 conda create --name pcr python=3.10
 conda activate pcr
 pip install -r requirements.txt
-
-:)

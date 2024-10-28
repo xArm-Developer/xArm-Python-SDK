@@ -1,0 +1,11 @@
+opencv-python
+packaging
+pillow
+pytesseract
+cmake
+robotpy-apriltag
+robotpy-wpimath
+robotpy-wpiutil
+apriltag
+fonttools
+munkres

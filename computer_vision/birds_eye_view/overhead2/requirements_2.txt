@@ -1,0 +1,6 @@
+fonttools==4.25.0
+munkres==1.1.4
+robotpy-apriltag==2024.3.2.1
+robotpy-wpimath==2024.3.2.1
+robotpy-wpiutil==2024.3.2.1
+apriltag==0.0.16

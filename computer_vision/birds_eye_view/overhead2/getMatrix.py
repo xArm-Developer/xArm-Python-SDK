@@ -1,4 +1,3 @@
-import apriltag
 import cv2
 import numpy as np
 import robotpy_apriltag

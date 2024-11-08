@@ -2,6 +2,12 @@ import cv2
 import os
 import numpy as np
 
+
+'''
+We are going to implement a prefix-minimum solution to the cropping problem
+
+'''
+
 save_dir = 'computer_vision/number_detection/test/test_cropped'
 save_path = os.path.join(save_dir, '08.0.jpg')
 

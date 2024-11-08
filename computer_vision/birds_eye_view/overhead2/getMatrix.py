@@ -23,7 +23,7 @@ def detect_apriltag_and_warp(frame, width_in_units, height_in_units):
         corners_buf = [0.0] * 8  # 8 floats for 4 corners (x, y) for each corner
 
         # Get the corners using the buffer
-        tags[0].getCorners(corners_buf)  # Fill the buffer with corner values
+        corners_buf = tags[0].getCorners(corners_buf)  # Fill the buffer with corner values
         
         # Convert the buffer to a numpy array
         pts = np.array(corners_buf).reshape(4, 2).astype("float32")  # Reshape to (4, 2) for corners
@@ -38,7 +38,8 @@ def detect_apriltag_and_warp(frame, width_in_units, height_in_units):
         # Compute the perspective transform matrix and warp the image
         M = cv2.getPerspectiveTransform(pts, dst)
 
-        return M
+        # return M
+        return cv2.warpPerspective(frame, M, (500, 500))
     else:
         print('No tags detected')
         return None

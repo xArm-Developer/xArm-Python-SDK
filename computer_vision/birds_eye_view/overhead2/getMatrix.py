@@ -39,10 +39,10 @@ def detect_apriltag_and_warp(frame, width_in_units, height_in_units):
         M = cv2.getPerspectiveTransform(pts, dst)
 
         # return M
-        return cv2.warpPerspective(frame, M, (500, 500))
+        return (cv2.warpPerspective(frame, M, (500, 500)), M)
     else:
         print('No tags detected')
-        return None
+        return (None, None)
 
 def getMatrix():
     # Open the webcam
@@ -61,7 +61,7 @@ def getMatrix():
             break
 
         # Detect and warp the AprilTag
-        warped_frame = detect_apriltag_and_warp(frame, width_in_units, height_in_units)
+        warped_frame, matrix = detect_apriltag_and_warp(frame, width_in_units, height_in_units)
 
         # If an AprilTag is detected and warped
         if warped_frame is not None:
@@ -77,6 +77,7 @@ def getMatrix():
     # Release the webcam and close all windows
     cap.release()
     cv2.destroyAllWindows()
+    return matrix
 
 # def getMatrix():
 #     cap = cv2.VideoCapture(1)

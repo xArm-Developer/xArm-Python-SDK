@@ -1,6 +1,10 @@
 import cv2
 import os
+import glob
 import numpy as np
+import timeit
+import threading
+import multiprocessing
 
 '''
 We are going to implement a prefix-minimum solution to the cropping problem
@@ -10,37 +14,37 @@ TODO:
     0) Maybe try making the cropping out of the white first before cropping the dark
     1) create a single pass prefix-minimum algorithm starting from left to right on the matrix
 
+    RUNTIMES:
+        OG: 0.028703362499800277 seconds
+        THREAD: 0.021070941699872493 seconds
+        Process: 0.25637598340035767
 
-
+    PROBLEM FILES:
+        - 0.0
+        - 1.0
+        - 1.5
+        - 2.5
+        - 3.0
+        - 4.0
+        - 4.5
+        - 7.0
+        - 7.5
+        - 8.5
+        - 11.5
+        - 12.0
+        - 13.0
+        - 13.5
+        - 16.0
+        - 16.5
+        - 18.5
+        - 19.5
 
 '''
 
-# Read the image
-file_dir = "./UncroppedImagesSet2"
-filename = os.path.join(file_dir, "18.0.jpg")
-img = cv2.imread(filename)
-height, width = img.shape[:2]
+# Global variables
 
-# Check if the image was successfully loaded
-if img is not None:
-    # Get the dimensions of the image
-    height, width = img.shape[:2]
-    
-    print(f"Image width: {width} pixels")
-    print(f"Image height: {height} pixels")
-else:
-    print("Failed to load the image")
-    exit()
 
-# def compute_prefix_sums(image):
-#     # Compute prefix sums in all four directions
-#     prefix_sum_lr = np.cumsum(image, axis=1)
-#     prefix_sum_rl = np.cumsum(image[:, ::-1], axis=1)[:, ::-1]
-#     prefix_sum_tb = np.cumsum(image, axis=0)
-#     prefix_sum_bt = np.cumsum(image[::-1, :], axis=0)[::-1, :]
-#     return prefix_sum_lr, prefix_sum_rl, prefix_sum_tb, prefix_sum_bt
-
-def prefix_min(arr, axis=0):
+def prefix_min(arr, results, axis=0):
     # Initialize the prefix minimum array with the same shape as the input array
     prefix_min_arr = np.empty_like(arr)
     
@@ -50,53 +54,77 @@ def prefix_min(arr, axis=0):
         prefix_min_arr[0, :] = arr[0, :]
         for i in range(1, arr.shape[0]):
             prefix_min_arr[i, :] = np.minimum(prefix_min_arr[i-1, :], arr[i, :])
+    
+    
     # left -> right
     elif axis == 1:
         prefix_min_arr[:, 0] = arr[:, 0]
         for j in range(1, arr.shape[1]):
             prefix_min_arr[:, j] = np.minimum(prefix_min_arr[:, j-1], arr[:, j])
-
     
-    return prefix_min_arr
+
+    results[axis] = prefix_min_arr
+
+def crop_image(img):
+    # Call the function and display the result
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    results = {}
+
+    thread1 = threading.Thread(target=prefix_min, args=(gray,results,0))
+    thread2 = threading.Thread(target=prefix_min, args=(gray,results,1))
 
 
-# Call the function and display the result
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-prefix_min_tb = prefix_min(gray, axis=0)
-prefix_min_lr = prefix_min(gray, axis=1)
+    thread1.start()
+    thread2.start()
+
+    thread1.join()
+    thread2.join()
+
+    prefix_min_tb = results[0]
+    prefix_min_lr = results[1]
+    # prefix_min_tb = prefix_min(gray, axis=0)
+    # prefix_min_lr = prefix_min(gray, axis=1)
+
+    shared_min_mask = (prefix_min_lr == prefix_min_tb)
+
+    # Find the darkest region in the shared minimum region
+    darkest_value = np.min(gray[shared_min_mask])+1
+    darkest_coords = np.argwhere((gray <= darkest_value) & shared_min_mask)
+
+    # Find the bounding box of the darkest region
+    min_row, min_col = np.min(darkest_coords, axis=0)
+    max_row, max_col = np.max(darkest_coords, axis=0)
+
+    # Crop the image based on the bounding box
+    cropped_img = img[min_row:max_row+1, min_col:max_col+1]
+
+    return cropped_img
 
 
-shared_min_mask = (prefix_min_lr == prefix_min_tb)
+def main():
+     # Read the image
+    rd_dir = "./UncroppedImagesSet2"
+    wr_dir = "./cropped"
 
-# Get the coordinates of the shared minimum region
-shared_min_coords = np.argwhere(shared_min_mask)
+    image_files = glob.glob(os.path.join(rd_dir,"*.jpg"))
 
-# Find the darkest region in the shared minimum region
-darkest_value = np.min(gray[shared_min_mask])+1
-print(darkest_value)
-darkest_coords = np.argwhere((gray <= darkest_value) & shared_min_mask)
+    for filename in image_files:
 
-print("Coordinates of the darkest region in the shared minimum region:")
-print(darkest_coords)
+        img = cv2.imread(filename)
 
-# Find the bounding box of the darkest region
-min_row, min_col = np.min(darkest_coords, axis=0)
+        # Check if the image was successfully loaded
+        if img is None:
+            print("Failed to load the image")
+            exit()
+        
+        cropped_img = crop_image(img)
+        # Save the cropped image to the output directory
+        base_filename = os.path.basename(filename)
+        output_path = os.path.join(wr_dir, base_filename)
+        cv2.imwrite(output_path, cropped_img)
+        print(f"Cropped image saved to {output_path}")
+        
 
-max_row, max_col = np.max(darkest_coords, axis=0)
-
-
-# Crop the image based on the bounding box
-cropped_img = img[min_row:max_row+1, min_col:max_col+1]
-
-# Create an image to visualize the shared minimum region
-shared_min_image = np.zeros_like(gray)
-shared_min_image[shared_min_mask] = 255
-
-cv2.imshow('Original Image', img)
-cv2.imshow('left to right', prefix_min_lr)
-cv2.imshow('top to bottom', prefix_min_tb)
-# cv2.imshow('bottom to top', prefix_min_bt)
-# cv2.imshow('right to left', prefix_min_rl)
-cv2.imshow('Cropped Image', cropped_img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    main()

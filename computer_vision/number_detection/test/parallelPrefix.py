@@ -47,20 +47,35 @@ TODO:
 def prefix_min(arr, results, axis=0):
     # Initialize the prefix minimum array with the same shape as the input array
     prefix_min_arr = np.empty_like(arr)
+
+    row_bound = arr.shape[0]
+    col_bound = arr.shape[1]
     
     # Compute the prefix minimum along the specified axis
-    #top -> bottom
+    # top -> bottom
     if axis == 0:
         prefix_min_arr[0, :] = arr[0, :]
-        for i in range(1, arr.shape[0]):
+        for i in range(1, row_bound):
             prefix_min_arr[i, :] = np.minimum(prefix_min_arr[i-1, :], arr[i, :])
     
     
     # left -> right
     elif axis == 1:
         prefix_min_arr[:, 0] = arr[:, 0]
-        for j in range(1, arr.shape[1]):
+        for j in range(1, col_bound):
             prefix_min_arr[:, j] = np.minimum(prefix_min_arr[:, j-1], arr[:, j])
+
+    # bottom -> top
+    elif axis == 2:
+        prefix_min_arr[row_bound-1, :] = arr[row_bound-1, :]
+        for i in range(row_bound-2, -1, -1):
+            prefix_min_arr[i, :] = np.minimum(prefix_min_arr[i+1, :], arr[i, :])
+
+    # left -> right
+    elif axis == 3:
+        prefix_min_arr[:, col_bound-1] = arr[:, col_bound-1]
+        for j in range(col_bound-2, -1, -1):
+            prefix_min_arr[:, j] = np.minimum(prefix_min_arr[:, j+1], arr[:, j])
     
 
     results[axis] = prefix_min_arr
@@ -70,23 +85,24 @@ def crop_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     results = {}
+    threads = [None] * 4
 
-    thread1 = threading.Thread(target=prefix_min, args=(gray,results,0))
-    thread2 = threading.Thread(target=prefix_min, args=(gray,results,1))
+    # create and start threads
+    for i in range(0,4):
+        threads[i] = threading.Thread(target=prefix_min, args=(gray,results,i))
+        threads[i].start()
 
-
-    thread1.start()
-    thread2.start()
-
-    thread1.join()
-    thread2.join()
+    # stop and join them back
+    for i in range(0,4):
+        threads[i].join()
 
     prefix_min_tb = results[0]
     prefix_min_lr = results[1]
-    # prefix_min_tb = prefix_min(gray, axis=0)
-    # prefix_min_lr = prefix_min(gray, axis=1)
+    prefix_min_bt = results[2]
+    prefix_min_rl = results[3]
 
-    shared_min_mask = (prefix_min_lr == prefix_min_tb)
+    shared_min_mask = (prefix_min_lr == prefix_min_tb) | (prefix_min_bt == prefix_min_rl)
+    # shared_min_mask = (prefix_min_lr == prefix_min_tb)
 
     # Find the darkest region in the shared minimum region
     darkest_value = np.min(gray[shared_min_mask])+1

@@ -7,8 +7,8 @@ import time
 start_time = time.perf_counter()
 
 # where new image is saved at
-save_dir = 'test/test_cropped'
-save_path = os.path.join(save_dir, '08.0.jpeg')
+save_dir = 'test/test_contrast'
+save_path = os.path.join(save_dir, '00.0.jpeg')
 
 # access uncropped file
 file_dir = "test/UncroppedImagesSet2"

@@ -26,6 +26,7 @@ class TestCropping(unittest.TestCase):
             exit()
         
         cropped_img = crop_image(img)
+        
         cv2.imshow(imgFile, cropped_img)
         cv2.waitKey(0)
         return

@@ -85,24 +85,24 @@ def crop_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     results = {}
-    threads = [None] * 4
+    NUM_THREADS = 2
+    threads = [None] * NUM_THREADS
 
     # create and start threads
-    for i in range(0,4):
+    for i in range(0,NUM_THREADS):
         threads[i] = threading.Thread(target=prefix_min, args=(gray,results,i))
         threads[i].start()
 
     # stop and join them back
-    for i in range(0,4):
+    for i in range(0,NUM_THREADS):
         threads[i].join()
 
     prefix_min_tb = results[0]
     prefix_min_lr = results[1]
-    prefix_min_bt = results[2]
-    prefix_min_rl = results[3]
+    # prefix_min_bt = results[2]
+    # prefix_min_rl = results[3]
 
-    shared_min_mask = (prefix_min_lr == prefix_min_tb) | (prefix_min_bt == prefix_min_rl)
-    # shared_min_mask = (prefix_min_lr == prefix_min_tb)
+    shared_min_mask = (prefix_min_lr == prefix_min_tb)
 
     # Find the darkest region in the shared minimum region
     darkest_value = np.min(gray[shared_min_mask])+1

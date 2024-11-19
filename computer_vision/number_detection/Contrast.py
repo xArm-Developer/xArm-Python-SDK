@@ -4,27 +4,24 @@ import numpy as np
 #import matplotlib.pyplot as plt
 
 import time
-start_time = time.perf_counter()
-
-# where new image is saved at
-save_dir = 'test/test_contrast'
-save_path = os.path.join(save_dir, '00.0.jpeg')
-
-# access uncropped file
-file_dir = "test/UncroppedImagesSet2"
-filename = os.path.join(file_dir, "00.0.jpg")
-image = cv2.imread(filename)
-
-gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-gray_image = gray_image.astype(np.uint16)
 
 def contrast(gray_image):
+    
+    if gray_image.dtype != np.uint16:
+        gray_image = gray_image.astype(np.uint16)
+
+    print(__name__)
     # maybe use this later: np.full((3, 3), False, dtype=bool)
     rows = gray_image.shape[0]
     cols = gray_image.shape[1]
     # matrix = np.full((rows, cols), np.nan)
     outline = np.ones((gray_image.shape[0],gray_image.shape[1], 1), dtype=np.uint16) * 255
 
+    outline[0,:] = 255
+    outline[rows-1,:] = 255
+    outline[:,0] = 255
+    outline[:,cols-1] = 255
+    
     for i in range(rows):
         for j in range(cols):
             diff = []
@@ -38,29 +35,49 @@ def contrast(gray_image):
                 diff.append(int(gray_image[i, j+1]) - int(gray_image[i, j]))
 
             difference = max(diff)
+            #print(diff)
             # Threshold, higher = more difference between neighboring pixels
             if difference >= 30: 
                 outline[i, j] = 0
 
+    outline = outline.astype(np.uint8)
 
     return outline
 
 
-# Show image
-print(image.shape)
-outline = contrast(gray_image)
-gray_image = gray_image.astype(np.uint8)
-outline = outline.astype(np.uint8)
+if __name__ == "__main__":
 
-cv2.namedWindow('gray image', cv2.WINDOW_NORMAL)
-cv2.namedWindow('outline', cv2.WINDOW_NORMAL)
-cv2.imshow('gray image', gray_image)
-cv2.imshow('outline', outline)
+    print(__name__)
 
-end_time = time.perf_counter()
-elapsed_time = end_time - start_time
-print(f"Program ran in {elapsed_time:.5f} seconds")
+    start_time = time.perf_counter()
 
-# Wait for a key press and close the window
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    # where new image is saved at
+    save_dir = 'test/test_contrast'
+    save_path = os.path.join(save_dir, '00.0.jpeg')
+
+    # access uncropped file
+    file_dir = "test/UncroppedImagesSet2"
+    filename = os.path.join(file_dir, "00.0.jpg")
+    image = cv2.imread(filename)
+
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    #gray_image = gray_image.astype(np.uint16)
+
+    # Show image
+    print(image.shape)
+    outline = contrast(gray_image)
+    #gray_image = gray_image.astype(np.uint8)
+    #outline = outline.astype(np.uint8)
+
+    #cv2.namedWindow('gray image', cv2.WINDOW_NORMAL)
+    cv2.namedWindow('outline', cv2.WINDOW_NORMAL)
+    #cv2.imshow('gray image', gray_image)
+    cv2.imshow('outline', outline)
+
+    end_time = time.perf_counter()
+    elapsed_time = end_time - start_time
+    print(f"Program ran in {elapsed_time:.5f} seconds")
+
+    # Wait for a key press and close the window
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()

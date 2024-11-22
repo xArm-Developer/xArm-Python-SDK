@@ -20,27 +20,32 @@ TODO:
         Process: 0.25637598340035767
 
     PROBLEM FILES:
-        - 0.0
-        - 1.0
-        - 1.5
-        - 2.5
-        - 3.0
-        - 4.0
-        - 4.5
-        - 7.0
-        - 7.5
-        - 8.5
-        - 11.5
-        - 12.0
-        - 13.0
-        - 13.5
-        - 16.0
-        - 16.5
-        - 18.5
-        - 19.5
+        - 0.0 (up dark value tolerance to +3, passes)
+        - 1.0 (tolerance to 1, doesn't crop at all)
+        - 1.5 (tolerance to 2, bottom right bias)
+        - 2.5 (tolerance to 3, crops not enough, but O.W number isn't visible,
+            bottom right)
+        - 3.0 (tolerance to 3), crops not enough, but O.W number isn't completely visible
+        - 4.0 (tolerance to 1, bottom right)
+        - 4.5 (tolerance to 1, top left bias)
+        - 7.0  (tolerance to 2, no bias)
+        
+        
+        ARYAAN 
+        - 7.5 (0, no bias)
+        - 8.5 (+1, no bias)
+        - 11.5 (N/A, larger problem, 
+            bottom right bias cuts off number from left)
+        - 12.0 (0, bottom right)
+        - 13.0 (0, no bias)
+        - 13.5 (1, no bias)
+        - 16.0 (2, bottom right)
+        - 16.5 (0, top left bias)
+        - 18.5 (0, bottom right )
+        - 19.5 (1, bottom left bias)
 
 '''
-
+toleranceOffst = 1
 # Global variables
 
 
@@ -71,7 +76,7 @@ def prefix_min(arr, results, axis=0):
         for i in range(row_bound-2, -1, -1):
             prefix_min_arr[i, :] = np.minimum(prefix_min_arr[i+1, :], arr[i, :])
 
-    # left -> right
+    # right -> left
     elif axis == 3:
         prefix_min_arr[:, col_bound-1] = arr[:, col_bound-1]
         for j in range(col_bound-2, -1, -1):
@@ -82,10 +87,13 @@ def prefix_min(arr, results, axis=0):
 
 def crop_image(img):
     # Call the function and display the result
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # cv2.imshow('gray',gray)
 
     results = {}
-    NUM_THREADS = 2
+    #NOTE: changed to 4 to calculate all scan direction 
+    NUM_THREADS = 4
     threads = [None] * NUM_THREADS
 
     # create and start threads
@@ -97,15 +105,20 @@ def crop_image(img):
     for i in range(0,NUM_THREADS):
         threads[i].join()
 
+    #NOTE: try changing the mask to include right->left instead of 
+    # left->right, will it change the crop bias????
+
+    #NOTE: Doesn't matter.....
+
     prefix_min_tb = results[0]
     prefix_min_lr = results[1]
-    # prefix_min_bt = results[2]
-    # prefix_min_rl = results[3]
+    prefix_min_bt = results[2]
+    prefix_min_rl = results[3]
 
-    shared_min_mask = (prefix_min_lr == prefix_min_tb)
+    shared_min_mask = ((prefix_min_lr == prefix_min_rl) == (prefix_min_bt == prefix_min_tb))
 
     # Find the darkest region in the shared minimum region
-    darkest_value = np.min(gray[shared_min_mask])+1
+    darkest_value = np.min(gray[shared_min_mask])+toleranceOffst
     darkest_coords = np.argwhere((gray <= darkest_value) & shared_min_mask)
 
     # Find the bounding box of the darkest region

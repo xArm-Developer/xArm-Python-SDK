@@ -35,21 +35,47 @@ class TestNumberDetection(unittest.TestCase):
         # go through each file in the cropped directory
         # parse through the name and extract the expected value from the file name
         # anything in ()'s is diregarded
+        fails = 0
+        passes = 0
+        results = []
+
+        writeFile = self.writeFile
+
         for imgFile in os.listdir(filePath):
             #only get the first three digits with hyphen
             imgExpected = imgFile.split('(')[0].split('.jpg')[0].split('.png')[0]
 
-            print("File Name: " + imgFile)
-            print("Expected Value: " + imgExpected)
+            # print("File Name: " + imgFile)
+            # print("Expected Value: " + imgExpected)
 
             #not completely sure about this syntax
             with self.subTest(imgFile=imgFile, imgExpected=imgExpected):
                 result = read_img(filePath+imgFile)
-                self.assertEqual(result,imgExpected,
-                                imgFile +" FAILED! RESULT: " + result + " EXPECTED: " + imgExpected)
+
+                try:
+                    self.assertEqual(result,imgExpected)
+                    passes += 1
+                    results.append(f"{imgFile:<15} PASSED! RESULT: {result:<8}")
+                except AssertionError as e:
+                    fails += 1
+                    results.append(f"{imgFile:<15} FAILED! RESULT: {result:<8} EXPECTED: {imgExpected:<5}")
             
-            print('\n')
+        # Sort results: FAILED first, then PASSED
+        results.sort(key=lambda x: "PASSED" in x)
+        
+        pass_rate = passes / (passes + fails) if (passes + fails) > 0 else 0
+        summary = f"PASSES: {passes} \t FAILS: {fails} \t RATE: {pass_rate:.2f}\n"
+        
+        with open(writeFile, "w") as f:
+            f.write(f"Test started at: {currentTime}\n")
+            f.write("\nTest Results:\n")
+            for result in results:
+                f.write(result + "\n")
+            f.write("\nSummary:\n")
+            f.write(summary)
             #END OF METHOD
+        
+       
 
     def test_function_once(self):
         imgFile = self.imgFile
@@ -86,17 +112,24 @@ if __name__ == '__main__':
     # Open the file with the current time in the filename
     # file_path = f'{txtPath}{arg.imgFile}_result_{currentTime}.txt'
     file_path = f'{txtPath}FULL_result_{currentTime}.txt'
-    with open(file_path, 'w') as f:
-        f.write(f"Test started at: {currentTime}\n")
-        # Create a test suite and add the test case
-        suite = unittest.TestSuite()
-        # test_case = TestNumberDetection('test_function_once')
-        # test_case.imgFile = arg.imgFile
-        test_case = TestNumberDetection('test_function_multiple_times')
-        suite.addTest(test_case)
-        
-        # Create a test runner that writes to the file
-        runner = unittest.TextTestRunner(stream=f, verbosity=2)
-        
-        # Run the tests
-        runner.run(suite)
+    # Create a test suite and add the test case
+    suite = unittest.TestSuite()
+    # test_case = TestNumberDetection('test_function_once')
+    # test_case.imgFile = arg.imgFile
+    test_case = TestNumberDetection('test_function_multiple_times')
+    test_case.writeFile = file_path
+    suite.addTest(test_case)
+    
+    # Create a test runner that writes to the file
+    runner = unittest.TextTestRunner(verbosity=0)
+    
+    # Run the tests
+    result = runner.run(suite)
+
+        #  # Write summary to the file
+        # f.write(f"\n\nSummary:\n")
+        # f.write(f"Ran {result.testsRun} tests\n")
+        # f.write(f"Failures: {len(result.failures)}\n")
+        # f.write(f"Errors: {len(result.errors)}\n")
+        # f.write(f"Skipped: {len(result.skipped)}\n")
+        # f.write(f"Passes: {result.testsRun - len(result.failures) - len(result.errors)}\n")

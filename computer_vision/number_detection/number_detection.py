@@ -62,7 +62,6 @@ def preprocessing(img):
 
     img = cv2.medianBlur(img,5)
     
-    # cv2.imshow("gaus",gaus)
     # cv2.imshow("final product",img)
 
     # cv2.waitKey(0)
@@ -79,14 +78,12 @@ def read_img(img_path: str, show_images= True):
     # heuristic corrections
 
     # if size of just 3, add a . , if size of just 4, replace second to last with .
-    print(filtered_data)
+    # print(filtered_data)
     match len(filtered_data):
             case 3:
                 filtered_data = filtered_data[:2] + '.' + filtered_data[2:]
             case 4:
                 filtered_data = f"{filtered_data[:2]}.{filtered_data[3:]}"
-    print(filtered_data)
+    # print(filtered_data)
 
     return filtered_data
-
-# read_img("sdfs")

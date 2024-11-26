@@ -1,8 +1,8 @@
 import unittest
 import os
 from number_detection import read_img
-import contextlib
 import time
+import argparse
 
 filePath = './test/cropped/'
 txtPath = './test/testResults/'
@@ -79,15 +79,20 @@ if __name__ == '__main__':
     currentTime = time.strftime('%m-%d_%H-%M-%S')
     print(f"Current time: {currentTime}")
 
+    parser = argparse.ArgumentParser(description="Run single test")
+    parser.add_argument("imgFile", type=str, nargs="?", default="15.5.jpg", help="The image file we wish to crop")
+    arg = parser.parse_args()
+
     # Open the file with the current time in the filename
-    file_path = f'{txtPath}result_{currentTime}.txt'
+    # file_path = f'{txtPath}{arg.imgFile}_result_{currentTime}.txt'
+    file_path = f'{txtPath}FULL_result_{currentTime}.txt'
     with open(file_path, 'w') as f:
         f.write(f"Test started at: {currentTime}\n")
         # Create a test suite and add the test case
         suite = unittest.TestSuite()
-        test_case = TestNumberDetection('test_function_once')
-        test_case.imgFile = "15.5.jpg"
-        # test_case = TestNumberDetection('test_function_multiple_times')
+        # test_case = TestNumberDetection('test_function_once')
+        # test_case.imgFile = arg.imgFile
+        test_case = TestNumberDetection('test_function_multiple_times')
         suite.addTest(test_case)
         
         # Create a test runner that writes to the file

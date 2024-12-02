@@ -10,23 +10,12 @@ txtPath = './test/testResults/'
 
 
 '''
-
 TEST NOTES:
+    - Two variations, one that runs on all files in cropped and another
+    where the user passes in a single filename
 
-    - the gray scaling and binary contrast leads to some of the numbers being obscured
-        likely due to glare
-
-    - the morphology applied is definitely making small improvements,
-        maybe run this in a loop. How many times?
-
-    - the dot is consistently being judged as a '0' does the OCR model 
-        not recognize non-numbers? If a string is the size of four and if at index size-2
-        is 0, then just replace as a '.'?
-
-
-    - find images with glare or blurriness
-
-    - for thresholding 
+    - Results are stored in testResults and should show you which files failed any why.
+    Including a total tally and correct ratio.
 
 '''
 
@@ -93,12 +82,12 @@ class TestNumberDetection(unittest.TestCase):
         print('\n')
 
 
-# NOTE: to run this block of code, run 'python test-number-detection.py'
+'''
+MULTIPLE TESTS: set 'runMultiple' to True and run "python test-number-detection.py"
+SINGLE TEST: set 'runMultiple' to False and run "python test-number-detection.py [FILENAME]"
+'''
 
-if __name__ == '__main__':
-    # unittest.main()
-    
-    # Ensure the directory exists
+def main(runMultiple=True):
     os.makedirs(txtPath, exist_ok=True)
 
     # Get the current time and format it
@@ -110,26 +99,29 @@ if __name__ == '__main__':
     arg = parser.parse_args()
 
     # Open the file with the current time in the filename
+
     # file_path = f'{txtPath}{arg.imgFile}_result_{currentTime}.txt'
-    file_path = f'{txtPath}FULL_result_{currentTime}.txt'
+    file_path = f'{txtPath}FULL_result_{currentTime}.txt' if runMultiple else f'{txtPath}{arg.imgFile}_result_{currentTime}.txt'
     # Create a test suite and add the test case
     suite = unittest.TestSuite()
-    # test_case = TestNumberDetection('test_function_once')
-    # test_case.imgFile = arg.imgFile
-    test_case = TestNumberDetection('test_function_multiple_times')
-    test_case.writeFile = file_path
+    
+    # NOTE: To 
+    if (runMultiple):
+        test_case = TestNumberDetection('test_function_multiple_times')
+        test_case.writeFile = file_path
+    else:
+        test_case = TestNumberDetection('test_function_once')
+        test_case.imgFile = arg.imgFile
+    
+    
     suite.addTest(test_case)
     
     # Create a test runner that writes to the file
     runner = unittest.TextTestRunner(verbosity=0)
     
     # Run the tests
-    result = runner.run(suite)
+    runner.run(suite)
 
-        #  # Write summary to the file
-        # f.write(f"\n\nSummary:\n")
-        # f.write(f"Ran {result.testsRun} tests\n")
-        # f.write(f"Failures: {len(result.failures)}\n")
-        # f.write(f"Errors: {len(result.errors)}\n")
-        # f.write(f"Skipped: {len(result.skipped)}\n")
-        # f.write(f"Passes: {result.testsRun - len(result.failures) - len(result.errors)}\n")
+
+if __name__ == '__main__':
+    main()

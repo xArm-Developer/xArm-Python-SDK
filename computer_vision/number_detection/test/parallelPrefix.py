@@ -20,7 +20,8 @@ TODO:
         Process: 0.25637598340035767
 
     PROBLEM FILES:
-        - 11.0: still cuts off!
+        - 11.0: still cuts off! Reason why is because at the very bottom of the dial is a number partially showing which causes
+        our bounding box edge to be noncontigious
 
 '''
 toleranceOffst = 1
@@ -98,6 +99,19 @@ def crop_image(img):
 
     combined_mask = ((prefix_min_tb >= lowerThresh) & (prefix_min_tb <= upperThresh)) & (prefix_min_lr >= lowerThresh) & (prefix_min_lr <= upperThresh) & (prefix_min_rl >= lowerThresh) & (prefix_min_rl <= upperThresh) & (prefix_min_bt >= lowerThresh) & (prefix_min_bt <= upperThresh) 
 
+    kernel = np.ones((5, 5), np.uint8)
+    combined_mask = cv2.dilate(combined_mask.astype(np.uint8), kernel, iterations=2)
+    combined_mask = cv2.erode(combined_mask, kernel, iterations=2)
+
+    # DEBUG:
+    # copy_img = img.copy()
+
+    # copy_img[combined_mask.astype(bool)] = [0,255,0]
+
+    # cv2.imshow('morphed',copy_img)
+    # cv2.waitKey(0)
+
+
 
     max_area = 0
     largest_bbox = None
@@ -112,9 +126,12 @@ def crop_image(img):
 
     if largest_bbox is not None:
         x,y,w,h = largest_bbox
+        # cv2.rectangle(copy_img,(x,y),(x+w,y+h),(255,0,0),2)
         cropped_img = img[y:y+h, x:x+w]
     else:
         cropped_img = img
+
+    # cv2.imshow('bounding box',copy_img)
 
     return cropped_img
 

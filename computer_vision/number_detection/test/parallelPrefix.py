@@ -20,29 +20,7 @@ TODO:
         Process: 0.25637598340035767
 
     PROBLEM FILES:
-        - 0.0 (up dark value tolerance to +3, passes)
-        - 1.0 (tolerance to 1, doesn't crop at all)
-        - 1.5 (tolerance to 2, bottom right bias)
-        - 2.5 (tolerance to 3, crops not enough, but O.W number isn't visible,
-            bottom right)
-        - 3.0 (tolerance to 3), crops not enough, but O.W number isn't completely visible
-        - 4.0 (tolerance to 1, bottom right)
-        - 4.5 (tolerance to 1, top left bias)
-        - 7.0  (tolerance to 2, no bias)
-        
-        
-        ARYAAN 
-        - 7.5 (0, no bias)
-        - 8.5 (+1, no bias)
-        - 11.5 (N/A, larger problem, 
-            bottom right bias cuts off number from left)
-        - 12.0 (0, bottom right)
-        - 13.0 (0, no bias)
-        - 13.5 (1, no bias)
-        - 16.0 (2, bottom right)
-        - 16.5 (0, top left bias)
-        - 18.5 (0, bottom right )
-        - 19.5 (1, bottom left bias)
+        - 11.0: still cuts off!
 
 '''
 toleranceOffst = 1
@@ -89,7 +67,6 @@ def crop_image(img):
     # Call the function and display the result
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # cv2.imshow('gray',gray)
 
     results = {}
     #NOTE: changed to 4 to calculate all scan direction 
@@ -115,18 +92,29 @@ def crop_image(img):
     prefix_min_bt = results[2]
     prefix_min_rl = results[3]
 
-    shared_min_mask = ((prefix_min_lr == prefix_min_rl) == (prefix_min_bt == prefix_min_tb))
+    
+    lowerThresh = 0
+    upperThresh = 25
 
-    # Find the darkest region in the shared minimum region
-    darkest_value = np.min(gray[shared_min_mask])+toleranceOffst
-    darkest_coords = np.argwhere((gray <= darkest_value) & shared_min_mask)
+    combined_mask = ((prefix_min_tb >= lowerThresh) & (prefix_min_tb <= upperThresh)) & (prefix_min_lr >= lowerThresh) & (prefix_min_lr <= upperThresh) & (prefix_min_rl >= lowerThresh) & (prefix_min_rl <= upperThresh) & (prefix_min_bt >= lowerThresh) & (prefix_min_bt <= upperThresh) 
 
-    # Find the bounding box of the darkest region
-    min_row, min_col = np.min(darkest_coords, axis=0)
-    max_row, max_col = np.max(darkest_coords, axis=0)
 
-    # Crop the image based on the bounding box
-    cropped_img = img[min_row:max_row+1, min_col:max_col+1]
+    max_area = 0
+    largest_bbox = None
+    
+    contours, _ = cv2.findContours(combined_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        area = w*h
+        if (area > max_area):
+            max_area = area
+            largest_bbox = (x,y,w,h)
+
+    if largest_bbox is not None:
+        x,y,w,h = largest_bbox
+        cropped_img = img[y:y+h, x:x+w]
+    else:
+        cropped_img = img
 
     return cropped_img
 

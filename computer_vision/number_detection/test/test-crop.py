@@ -12,6 +12,7 @@ class TestCropping(unittest.TestCase):
     def setUp(self):
         # Read the image
         self.rd_dir = "./UncroppedImagesSet2/"
+        #NOTE: change once ready back to "/cropped/"
         self.wr_dir = "./cropped/"
         os.makedirs(self.rd_dir, exist_ok=True)
         os.makedirs(self.wr_dir, exist_ok=True)
@@ -53,17 +54,22 @@ class TestCropping(unittest.TestCase):
             print(f"Cropped image saved to {output_path}")
         return
 
-def main():
+#NOTE: change testAll if you want to test all files or not
+def main(testAll=True):
     # user should give us an image file arg
-    parser = argparse.ArgumentParser(description="Run single test")
-    parser.add_argument("imgFile", type=str, nargs="?", default="00.0.jpg", help="The image file we wish to crop")
-    arg = parser.parse_args()
-
     suite = unittest.TestSuite()
-    test_case = TestCropping('test_single')
-    
-    #default value should be to 0.0.jpg
-    test_case.imgFile = arg.imgFile
+    if testAll:
+        test_case = TestCropping('test_all')
+    else:    
+        parser = argparse.ArgumentParser(description="Run single test")
+        parser.add_argument("imgFile", type=str, nargs="?", default="00.0.jpg", help="The image file we wish to crop")
+        arg = parser.parse_args()
+
+
+        test_case = TestCropping('test_single')
+        
+        #default value should be to 0.0.jpg
+        test_case.imgFile = arg.imgFile
 
     suite.addTest(test_case)
 

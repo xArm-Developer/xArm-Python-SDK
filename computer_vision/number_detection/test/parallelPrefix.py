@@ -15,9 +15,7 @@ TODO:
     1) create a single pass prefix-minimum algorithm starting from left to right on the matrix
 
     RUNTIMES:
-        OG: 0.028703362499800277 seconds
-        THREAD: 0.021070941699872493 seconds
-        Process: 0.25637598340035767
+        CURRENT: 
 
     PROBLEM FILES:
         - 11.0: still cuts off! Reason why is because at the very bottom of the dial is a number partially showing which causes
@@ -64,6 +62,48 @@ def prefix_min(arr, results, axis=0):
 
     results[axis] = prefix_min_arr
 
+def get_mask(results:dict):
+    prefix_min_tb = results[0]
+    prefix_min_lr = results[1]
+    prefix_min_bt = results[2]
+    prefix_min_rl = results[3]
+
+    
+    lowerThresh = 0
+    upperThresh = 25
+
+    combined_mask = ((prefix_min_tb >= lowerThresh) & (prefix_min_tb <= upperThresh)) & (prefix_min_lr >= lowerThresh) & (prefix_min_lr <= upperThresh) & (prefix_min_rl >= lowerThresh) & (prefix_min_rl <= upperThresh) & (prefix_min_bt >= lowerThresh) & (prefix_min_bt <= upperThresh) 
+
+    kernel = np.ones((5, 5), np.uint8)
+    combined_mask = cv2.dilate(combined_mask.astype(np.uint8), kernel, iterations=2)
+    combined_mask = cv2.erode(combined_mask, kernel, iterations=2)
+
+    return combined_mask
+
+
+#NOTE: this was code take from https://github.com/wjbmattingly/ocr_python_textbook/blob/main/02_02_working%20with%20opencv.ipynb
+
+def get_skew_angle(contour):
+    min_area_rect = cv2.minAreaRect(contour)
+    angle = min_area_rect[-1]
+    if angle < -45:
+        angle = 90 + angle
+    (h,w) = min_area_rect[1]
+    if w > h:
+        angle = 90 - angle
+    
+    angle = round(angle,2)
+    return angle
+
+# Rotate the image around its center
+def rotateImage(cvImage, angle: float):
+    newImage = cvImage.copy()
+    (h, w) = newImage.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    newImage = cv2.warpAffine(newImage, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+    return newImage
+
 def crop_image(img):
     # Call the function and display the result
 
@@ -88,20 +128,7 @@ def crop_image(img):
 
     #NOTE: Doesn't matter.....
 
-    prefix_min_tb = results[0]
-    prefix_min_lr = results[1]
-    prefix_min_bt = results[2]
-    prefix_min_rl = results[3]
-
-    
-    lowerThresh = 0
-    upperThresh = 25
-
-    combined_mask = ((prefix_min_tb >= lowerThresh) & (prefix_min_tb <= upperThresh)) & (prefix_min_lr >= lowerThresh) & (prefix_min_lr <= upperThresh) & (prefix_min_rl >= lowerThresh) & (prefix_min_rl <= upperThresh) & (prefix_min_bt >= lowerThresh) & (prefix_min_bt <= upperThresh) 
-
-    kernel = np.ones((5, 5), np.uint8)
-    combined_mask = cv2.dilate(combined_mask.astype(np.uint8), kernel, iterations=2)
-    combined_mask = cv2.erode(combined_mask, kernel, iterations=2)
+    combined_mask = get_mask(results=results)
 
     # DEBUG:
     # copy_img = img.copy()
@@ -115,6 +142,7 @@ def crop_image(img):
 
     max_area = 0
     largest_bbox = None
+    largest_contour = None
     
     contours, _ = cv2.findContours(combined_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
@@ -123,11 +151,20 @@ def crop_image(img):
         if (area > max_area):
             max_area = area
             largest_bbox = (x,y,w,h)
+            largest_contour = contour
 
     if largest_bbox is not None:
         x,y,w,h = largest_bbox
+
+        # print(f"WIDTH: {w}, HEIGHT {h}")
+        # skew_angle = get_skew_angle(largest_contour)
+        # rotated_img = rotateImage(img,-1.0*skew_angle)
         # cv2.rectangle(copy_img,(x,y),(x+w,y+h),(255,0,0),2)
         cropped_img = img[y:y+h, x:x+w]
+        # print(f"SKEW angle: {skew_angle}")
+        
+        # cv2.imshow("rotated", new_img)
+
     else:
         cropped_img = img
 

@@ -55,6 +55,8 @@ class TestNumberDetection(unittest.TestCase):
         pass_rate = passes / (passes + fails) if (passes + fails) > 0 else 0
         summary = f"PASSES: {passes} \t FAILS: {fails} \t RATE: {pass_rate:.2f}\n"
         
+        currentTime = time.strftime('%m-%d_%H-%M-%S')
+
         with open(writeFile, "w") as f:
             f.write(f"Test started at: {currentTime}\n")
             f.write("\nTest Results:\n")

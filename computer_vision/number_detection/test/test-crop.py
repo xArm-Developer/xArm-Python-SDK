@@ -3,6 +3,7 @@ import cv2
 import os
 import glob
 import argparse
+import time
 from parallelPrefix import crop_image
 
 
@@ -26,7 +27,13 @@ class TestCropping(unittest.TestCase):
             print("Failed to load image")
             exit()
         
+        start_time = time.time()
         cropped_img = crop_image(img)
+        end_time = time.time()
+
+        exec_time = (end_time - start_time) * 1000
+
+        print(f"Execution time: {exec_time} seconds")
         
         cv2.imshow(imgFile, cropped_img)
         cv2.waitKey(0)
@@ -55,7 +62,7 @@ class TestCropping(unittest.TestCase):
         return
 
 #NOTE: change testAll if you want to test all files or not
-def main(testAll=True):
+def main(testAll=False):
     # user should give us an image file arg
     suite = unittest.TestSuite()
     if testAll:

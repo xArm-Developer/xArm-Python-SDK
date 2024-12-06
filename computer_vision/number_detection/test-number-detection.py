@@ -107,7 +107,7 @@ MULTIPLE TESTS: set 'runMultiple' to True and run "python test-number-detection.
 SINGLE TEST: set 'runMultiple' to False and run "python test-number-detection.py [FILENAME]"
 '''
 
-def main(runMultiple=False):
+def main(runMultiple=True):
     os.makedirs(txtPath, exist_ok=True)
 
     # Get the current time and format it

@@ -9,3 +9,6 @@
 ### Things to Remember
 1. The pytesseract.pytesseract.tesseract_cmd field must be set to different paths depending on OS.
 2. The 2nd argument for cv2.VideoCapture also depends on OS.
+
+### If you need to compile prefixMin.c
+- gcc -shared -o library/number-detection-pkg.dylib -fPIC -arch x86_64 prefixMin.c 

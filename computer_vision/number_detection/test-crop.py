@@ -52,7 +52,7 @@ class TestCropping(unittest.TestCase):
                 print("Failed to load the image")
                 exit()
             
-            cropped_img = crop_image(img)
+            cropped_img = crop_image(img)[0]
 
             # Save the cropped image to the output directory
             base_filename = os.path.basename(filename)
@@ -62,7 +62,7 @@ class TestCropping(unittest.TestCase):
         return
 
 #NOTE: change testAll if you want to test all files or not
-def main(testAll=False):
+def main(testAll=True):
     # user should give us an image file arg
     suite = unittest.TestSuite()
     if testAll:

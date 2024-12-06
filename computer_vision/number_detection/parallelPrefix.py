@@ -141,35 +141,36 @@ def crop_image(img):
 
     combined_mask = get_mask(results=results)
 
-    # DEBUG:
-    # copy_img = img.copy()
-
-    # copy_img[combined_mask.astype(bool)] = [0,255,0]
-
-    # cv2.imshow('morphed',copy_img)
-    # cv2.waitKey(0)
-
-
 
     max_area = 0
     largest_bbox = None
     largest_contour = None
 
+
+    #NOTE: add another heuristic that eliminates distinctly small rectangles (get area of pipette when detected)
+
+
+    # countour selection heuristics
+    lwr_bound = 3.5
+    high_bound = 4.4
+
     copy_img  = img.copy()
     
     contours, _ = cv2.findContours(combined_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print(f"Number of contours found: {len(contours)}")
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
         area = w*h
+        ratio = w/h
 
-        if (area > max_area):
+        if (ratio >= lwr_bound and ratio <= high_bound and area > max_area):
             max_area = area
             largest_bbox = (x,y,w,h)
             largest_contour = contour
 
     if largest_bbox is not None:
         x,y,w,h = largest_bbox
+
+        # print(f"RATION w/h: {w/h}")
 
         skew_angle = get_skew_angle(largest_contour)
         # cv2.drawContours(img,largest_contour,-1,(0,255,0),2)

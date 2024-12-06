@@ -33,7 +33,7 @@ class TestCropping(unittest.TestCase):
 
         exec_time = (end_time - start_time) * 1000
 
-        print(f"Execution time: {exec_time} seconds")
+        print(f"Execution time: {exec_time} ms")
         
         cv2.imshow(imgFile, cropped_img)
         cv2.waitKey(0)
@@ -62,7 +62,7 @@ class TestCropping(unittest.TestCase):
         return
 
 #NOTE: change testAll if you want to test all files or not
-def main(testAll=False):
+def main(testAll=True):
     # user should give us an image file arg
     suite = unittest.TestSuite()
     if testAll:

@@ -53,11 +53,12 @@ def preprocessing(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.threshold(img,200,235, cv2.THRESH_BINARY)[1]
     cv2.imshow("binary",img)
-
+    #NOTE: was 4x4
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(4,4))
     img = cv2.dilate(img,kernel=kernel,iterations=1)
-    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(2,2))
-    img = cv2.erode(img,kernel=kernel,iterations=2)
+    #NOTE: was 3x3
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+    img = cv2.erode(img,kernel=kernel,iterations=3)
     img = cv2.morphologyEx(img,cv2.MORPH_CLOSE,kernel, iterations=3)
 
     img = cv2.medianBlur(img,5)

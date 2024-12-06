@@ -17,6 +17,20 @@ TEST NOTES:
     - Results are stored in testResults and should show you which files failed any why.
     Including a total tally and correct ratio.
 
+    NOTE: add a heuristic to cropping to get rid of any white on edges from left side
+
+    NOTE: find a way to deal with dial not being fully turned edge case
+
+    00.5.jpg: IDK it looks very clear to me
+    19.5.jpg: glare
+    07.5.jpg: glare
+    11.0(2).jpg: glare/noise
+    07.0.jpg: cutoff top of numbers
+    15.5(2).jpg: too much erosion on numbers
+    10.0.jpg: 1 looks like 4 because it's too thick (RESOLVED)
+    08.5.jpg: IDK it looks very clear to me
+    11.5.jpg: confusion between a 1 and 4?
+
 '''
 
 class TestNumberDetection(unittest.TestCase):

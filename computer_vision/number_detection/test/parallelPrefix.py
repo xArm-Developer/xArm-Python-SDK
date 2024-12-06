@@ -84,15 +84,22 @@ def get_mask(results:dict):
 #NOTE: this was code take from https://github.com/wjbmattingly/ocr_python_textbook/blob/main/02_02_working%20with%20opencv.ipynb
 
 def get_skew_angle(contour):
+
     min_area_rect = cv2.minAreaRect(contour)
     angle = min_area_rect[-1]
+    (width, height) = min_area_rect[1]
+    
+    # Adjust the angle based on the width and height
+    if width < height:
+        angle = 90 + angle
     if angle < -45:
         angle = 90 + angle
-    (h,w) = min_area_rect[1]
-    if w > h:
-        angle = 90 - angle
+    elif angle > 45:
+        angle = angle - 90
     
-    angle = round(angle,2)
+    # Round the angle to the nearest hundredth degree
+    angle = round(angle, 2)
+    
     return angle
 
 # Rotate the image around its center
@@ -143,11 +150,14 @@ def crop_image(img):
     max_area = 0
     largest_bbox = None
     largest_contour = None
+
+    copy_img  = img.copy()
     
     contours, _ = cv2.findContours(combined_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
         area = w*h
+
         if (area > max_area):
             max_area = area
             largest_bbox = (x,y,w,h)
@@ -157,10 +167,12 @@ def crop_image(img):
         x,y,w,h = largest_bbox
 
         # print(f"WIDTH: {w}, HEIGHT {h}")
-        # skew_angle = get_skew_angle(largest_contour)
+        skew_angle = get_skew_angle(largest_contour)
         # rotated_img = rotateImage(img,-1.0*skew_angle)
         # cv2.rectangle(copy_img,(x,y),(x+w,y+h),(255,0,0),2)
-        cropped_img = img[y:y+h, x:x+w]
+        # NOTE: applied heursitic to right and bottom sides
+        heuristic = 5
+        cropped_img = img[y+heuristic:y+h, x+heuristic:x+w]
         # print(f"SKEW angle: {skew_angle}")
         
         # cv2.imshow("rotated", new_img)

@@ -4,7 +4,7 @@ from number_detection import read_img
 import time
 import argparse
 
-filePath = './test/cropped/'
+filePath = './test/test-cropped/'
 txtPath = './test/testResults/'
 
 
@@ -20,16 +20,14 @@ TEST NOTES:
     NOTE: add a heuristic to cropping to get rid of any white on edges from left side
 
     NOTE: find a way to deal with dial not being fully turned edge case
-
-    00.5.jpg: IDK it looks very clear to me
-    19.5.jpg: glare
-    07.5.jpg: glare
-    11.0(2).jpg: glare/noise
-    07.0.jpg: cutoff top of numbers
-    15.5(2).jpg: too much erosion on numbers
-    10.0.jpg: 1 looks like 4 because it's too thick (RESOLVED)
-    08.5.jpg: IDK it looks very clear to me
-    11.5.jpg: confusion between a 1 and 4?
+    19.5.jpg        FAILED! RESULT: 49.5     EXPECTED: 19.5 
+    02.5.jpg        FAILED! RESULT: 02       EXPECTED: 02.5 
+    07.0.jpg        FAILED! RESULT: 2..0     EXPECTED: 07.0 
+    09.5.jpg        FAILED! RESULT: 09       EXPECTED: 09.5 
+    15.5.jpg        FAILED! RESULT: 16       EXPECTED: 15.5 
+    11.0.jpg        FAILED! RESULT: 7112.0   EXPECTED: 11.0 
+    11.5.jpg        FAILED! RESULT: 11.0     EXPECTED: 11.5 
+    17.0.jpg        FAILED! RESULT: 172.0    EXPECTED: 17.0 
 
 '''
 
@@ -103,7 +101,7 @@ MULTIPLE TESTS: set 'runMultiple' to True and run "python test-number-detection.
 SINGLE TEST: set 'runMultiple' to False and run "python test-number-detection.py [FILENAME]"
 '''
 
-def main(runMultiple=True):
+def main(runMultiple=False):
     os.makedirs(txtPath, exist_ok=True)
 
     # Get the current time and format it

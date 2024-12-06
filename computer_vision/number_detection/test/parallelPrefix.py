@@ -87,11 +87,17 @@ def get_skew_angle(contour):
 
     min_area_rect = cv2.minAreaRect(contour)
     angle = min_area_rect[-1]
-    (width, height) = min_area_rect[1]
+    (h,w) = min_area_rect[1]
+
+    # Adjust the angle based on the w and height
+    if w < h:
+        tmp = h
+        h = w
+        w = tmp
+
     
-    # Adjust the angle based on the width and height
-    if width < height:
-        angle = 90 + angle
+    if w > h:
+        angle = 90 - angle
     if angle < -45:
         angle = 90 + angle
     elif angle > 45:
@@ -166,14 +172,20 @@ def crop_image(img):
     if largest_bbox is not None:
         x,y,w,h = largest_bbox
 
-        # print(f"WIDTH: {w}, HEIGHT {h}")
         skew_angle = get_skew_angle(largest_contour)
-        # rotated_img = rotateImage(img,-1.0*skew_angle)
+        # cv2.drawContours(img,largest_contour,-1,(0,255,0),2)
+
+        # print(f"SKEW: {skew_angle} \t CORRECTION: {skew_angle*-1.0}")
+        
+        if skew_angle !=  0.0:
+            rotated_img = rotateImage(img,-1.0*skew_angle)
+        else:
+            rotated_img = img
         # cv2.rectangle(copy_img,(x,y),(x+w,y+h),(255,0,0),2)
         # NOTE: applied heursitic to right and bottom sides
         heuristic = 5
-        cropped_img = img[y+heuristic:y+h, x+heuristic:x+w]
-        # print(f"SKEW angle: {skew_angle}")
+        
+        cropped_img = rotated_img[y+heuristic:y+h-heuristic, x+heuristic:x+w-heuristic]
         
         # cv2.imshow("rotated", new_img)
 

@@ -14,7 +14,7 @@ class TestCropping(unittest.TestCase):
         # Read the image
         self.rd_dir = "./UncroppedImagesSet2/"
         #NOTE: change once ready back to "/cropped/"
-        self.wr_dir = "./cropped/"
+        self.wr_dir = "./test-cropped/"
         os.makedirs(self.rd_dir, exist_ok=True)
         os.makedirs(self.wr_dir, exist_ok=True)
 

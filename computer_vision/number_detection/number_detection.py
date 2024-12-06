@@ -65,8 +65,8 @@ def preprocessing(img):
     
     # NOTE: comment these two lines out in order to display processed results
 
-    # cv2.imshow("final product",img)
-    # cv2.waitKey(0)
+    cv2.imshow("final product",img)
+    cv2.waitKey(0)
 
     return img
 

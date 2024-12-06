@@ -1,10 +1,11 @@
 import unittest
 import os
+import cv2
 from number_detection import read_img
 import time
 import argparse
 
-filePath = './test/test-cropped/'
+filePath = './test/cropped/'
 txtPath = './test/testResults/'
 
 
@@ -51,7 +52,8 @@ class TestNumberDetection(unittest.TestCase):
 
             #not completely sure about this syntax
             with self.subTest(imgFile=imgFile, imgExpected=imgExpected):
-                result = read_img(filePath+imgFile)
+                img = cv2.imread(filePath+imgFile)
+                result = read_img(img)
 
                 try:
                     self.assertEqual(result,imgExpected)
@@ -81,15 +83,19 @@ class TestNumberDetection(unittest.TestCase):
        
 
     def test_function_once(self):
+
         imgFile = self.imgFile
         imgExpected = imgFile.split('(')[0].split('.jpg')[0].split('.png')[0]
+
+        img = cv2.imread(filePath+imgFile)
 
         print("File Name: " + imgFile)
         print("Expected Value: " + imgExpected)
 
         #not completely sure about this syntax
-        with self.subTest(imgFile=imgFile, imgExpected=imgExpected):
-            result = read_img(filePath+imgFile)
+        with self.subTest(img=img,imgFile=imgFile, imgExpected=imgExpected):
+            # img = cv2.imread(filePath+imgFile)
+            result = read_img(img)
             self.assertEqual(result,imgExpected,
                             imgFile +" FAILED! RESULT: " + result + " EXPECTED: " + imgExpected)
         
@@ -126,6 +132,7 @@ def main(runMultiple=False):
     else:
         test_case = TestNumberDetection('test_function_once')
         test_case.imgFile = arg.imgFile
+        print(f"PATH: {filePath+arg.imgFile}")
     
     
     suite.addTest(test_case)

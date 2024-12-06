@@ -7,6 +7,8 @@ import time
 import platform
 import re
 
+from parallelPrefix import crop_image
+
 
 '''
 Noise Removal:
@@ -23,36 +25,36 @@ Noise Removal:
     - Make cropping algo
 '''
 
-def read_camera(): 
-    current_os = platform.system()
+# def read_camera(): 
+#     current_os = platform.system()
 
-    if current_os == "Windows":
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  
-    elif current_os == "Darwin": 
-        cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-    elif current_os == "Linux":
-        cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-    else:
-        cap = cv2.VideoCapture(0)
+#     if current_os == "Windows":
+#         cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  
+#     elif current_os == "Darwin": 
+#         cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+#     elif current_os == "Linux":
+#         cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+#     else:
+#         cap = cv2.VideoCapture(0)
 
-    # set lowest point of webcam 5 inches above the surface
-    while True:
-        ret, frame = cap.read()
+#     # set lowest point of webcam 5 inches above the surface
+#     while True:
+#         ret, frame = cap.read()
         
-        if not ret:
-            break
+#         if not ret:
+#             break
         
-        # crop frame first
-        num_reader(frame)
-        cv2.imshow("test", frame)
-        cv2.waitKey(1)
+#         # crop frame first
+#         num_reader(frame)
+#         cv2.imshow("test", frame)
+#         cv2.waitKey(1)
 
 def preprocessing(img):
     #grayscale
     img = cv2.bitwise_not(img)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     img = cv2.threshold(img,200,235, cv2.THRESH_BINARY)[1]
-    cv2.imshow("binary",img)
+    # cv2.imshow("binary",img)
     #NOTE: was 4x4
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(4,4))
     img = cv2.dilate(img,kernel=kernel,iterations=1)
@@ -70,8 +72,8 @@ def preprocessing(img):
 
     return img
 
-def read_img(img_path: str, show_images= True):
-    img = cv2.imread(img_path)
+def read_img(img):
+
     img = preprocessing(img)
     data = pytesseract.image_to_string(img,config='--psm 8  --oem 3 -c tessedit_char_whitelist=.0123456789')
     
@@ -91,3 +93,42 @@ def read_img(img_path: str, show_images= True):
     # print(filtered_data)
 
     return filtered_data
+
+# run video feed and 
+
+def main():
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        print("Camera not found or not accessible")
+        exit(1)
+    
+    # calibrate camera
+
+    #config 
+    try:
+        while True:
+            ret, frame = cap.read()
+
+            #for now frame is our image
+            crop_frame, frame = crop_image(frame)
+
+            if not ret: 
+                print("Failed to grab frame")
+                break
+            
+            filtered_data = read_img(crop_frame)
+            print(f'\rFiltered data: {filtered_data}', end='', flush=True)
+
+            cv2.imshow('Video feed',frame)
+            # cv2.imshow('crop feed', crop_frame)
+
+            # exit check
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,7 @@
+computer_vision/number_detection/venv
+computer_vision/birds_eye_view/venv
 computer_vision/venv
 **/__pycache__/
 .DS_Store
 **/.DS_Store
+computer_vision/number_detection/__pycache__

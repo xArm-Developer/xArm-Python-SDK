@@ -12,20 +12,20 @@ def calibrate(cap):
     chess_points_horizontal = 6
     photo_directory = 'calibration_photos'  # Change this to your desired folder path
 
-    # photos_found = True
-    photos_found = False
-    if os.path.exists(photo_directory):
-        existing_photos = [f for f in os.listdir(photo_directory) if f.endswith('.jpg')]
-        if existing_photos:
-            print(f"Warning: The folder '{photo_directory}' already contains {len(existing_photos)} photos.")
-            response = input("Do you want to overwrite the existing photos? (y/n): ").lower()
-            if response != 'y':
-                print("Continuing without overwriting.")
-                photos_found = True
-                # exit()  # Quit the script if the user doesn't want to overwrite
-    else:
-        # Create the directory if it doesn't exist
-        os.makedirs(photo_directory)
+    photos_found = True
+    # photos_found = False
+    # if os.path.exists(photo_directory):
+    #     existing_photos = [f for f in os.listdir(photo_directory) if f.endswith('.jpg')]
+    #     if existing_photos:
+    #         print(f"Warning: The folder '{photo_directory}' already contains {len(existing_photos)} photos.")
+    #         response = input("Do you want to overwrite the existing photos? (y/n): ").lower()
+    #         if response != 'y':
+    #             print("Continuing without overwriting.")
+    #             photos_found = True
+    #             # exit()  # Quit the script if the user doesn't want to overwrite
+    # else:
+    #     # Create the directory if it doesn't exist
+    #     os.makedirs(photo_directory)
 
     if not photos_found:
         # Check if the camera is opened correctly
@@ -71,7 +71,7 @@ def calibrate(cap):
                 break
 
         # Release the camera and close all OpenCV windows
-        cap.release()
+        # cap.release()
         cv.destroyAllWindows()
 
     # termination criteria
@@ -94,23 +94,23 @@ def calibrate(cap):
             corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
             imgpoints.append(corners2)
             # Draw and display the corners
-            cv.drawChessboardCorners(img, (chess_points_vertical,chess_points_horizontal), corners2, ret)
-            cv.imshow('img', img)
-            cv.waitKey(100)
+            # cv.drawChessboardCorners(img, (chess_points_vertical,chess_points_horizontal), corners2, ret)
+            # cv.imshow('img', img)
+            # cv.waitKey(100)
     # cv.destroyAllWindows()
 
     ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
-    print(f'Error: {ret}')
-    print(ret, mtx, dist, rvecs, tvecs)
+    # print(f'Error: {ret}')
+    # print(ret, mtx, dist, rvecs, tvecs)
 
-    response = input(f"Do you want to keep the calibration photos in '{photo_directory}'? (y/n): ").lower()
-    if response != 'y':
-        # Delete the directory and its contents
-        print(f"Deleting '{photo_directory}' and its contents...")
-        shutil.rmtree(photo_directory)
-        print(f"'{photo_directory}' and its contents have been deleted.")
-    else:
-        print(f"'{photo_directory}' has been kept.")
+    # response = input(f"Do you want to keep the calibration photos in '{photo_directory}'? (y/n): ").lower()
+    # if response != 'y':
+    #     # Delete the directory and its contents
+    #     print(f"Deleting '{photo_directory}' and its contents...")
+    #     shutil.rmtree(photo_directory)
+    #     print(f"'{photo_directory}' and its contents have been deleted.")
+    # else:
+    #     print(f"'{photo_directory}' has been kept.")
 
     return ret, mtx, dist, rvecs, tvecs

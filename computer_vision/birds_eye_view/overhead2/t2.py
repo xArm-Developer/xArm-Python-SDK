@@ -3,12 +3,15 @@ import numpy as np
 from getMatrix import getMatrix
 import robotpy_apriltag
 
-
+# Return the coordinates of the center of the image
 def find_beaker_center(image):
+
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     lower_blue = np.array([110,50,50])
     upper_blue = np.array([130,255,255])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
+
+    # Find the 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
         largest_contour = max(contours, key=cv2.contourArea)
@@ -22,11 +25,17 @@ def find_beaker_center(image):
 
     return None
 
+# Draw a circle around the beaker and return the coordinates of the beaker and the
+# image frame
 def find_beaker(frame):
+
+    # Transform frame to find clear edges
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (9, 9), 2)
     edges = cv2.Canny(blurred, 50, 150)
     adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+
+    # Locate circles on screen
     circles = cv2.HoughCircles(
             adjusted_frame,
             cv2.HOUGH_GRADIENT,
@@ -52,11 +61,16 @@ def find_beaker(frame):
     
     return None, frame
     
+# Draw a circle around the beaker and return the warped frame and coordinates
 def find_beaker_warp(frame, warped, matrix):
+
+    # Transform frame to find clear edges
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (9, 9), 2)
     edges = cv2.Canny(blurred, 50, 150)
     adjusted_frame = cv2.convertScaleAbs(edges, alpha=3.5, beta=0)
+
+    # Locate circles on screen
     circles = cv2.HoughCircles(
             adjusted_frame,
             cv2.HOUGH_GRADIENT,
@@ -67,8 +81,10 @@ def find_beaker_warp(frame, warped, matrix):
             minRadius=20,
             maxRadius=100
         )
+    
     x = None
     y = None
+
     if circles is not None:
             # Convert the (x, y) coordinates and radius of the circles to integers.
             circles = np.round(circles[0, :]).astype("int")
@@ -89,7 +105,7 @@ def find_beaker_warp(frame, warped, matrix):
     
     return None, warped
      
-
+# Detect and return the coordinates of the center of the AprilTag
 def detect_apriltag(frame, warped, matrix):
     # Initialize the AprilTag detector
 
@@ -130,6 +146,7 @@ def detect_apriltag(frame, warped, matrix):
 
     return tag_center, warped
 
+# Return the distance between two given points
 def calculate_distance(point1, point2):
     """Calculate Euclidean distance between two points."""
     print(point1, point2)
@@ -138,6 +155,7 @@ def calculate_distance(point1, point2):
     
     return None
 
+# Draw the line from the beaker to the 
 def draw_line_and_label(image, point1, point2, distance):
     """Draw a line between two points and label them on the image."""
     # Draw the line
@@ -152,6 +170,7 @@ def draw_line_and_label(image, point1, point2, distance):
     cv2.putText(image, f"Dist: {distance:.2f}", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
     return image
 
+# Main
 def main():
     # cap = cv2.VideoCapture(1)  # Use 0 for webcam
 

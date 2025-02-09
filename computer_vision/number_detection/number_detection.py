@@ -1,53 +1,10 @@
 import cv2
 import pytesseract
 from pytesseract import image_to_string
-import os
 import numpy as np
-import time
-import platform
 import re
 
-from parallelPrefix import crop_image
-
-
-'''
-Noise Removal:
-    - Clustering algorithm based on camera positions
-
-    - Gaussian Blur
-    
-    - hybrid between neural and pretrained
-        - build a layer ontop of pretrained model with a neural network
-        - needs MORE DATA LOTS OF DATA
-    
-    - Find out what EXACTLY our camera will be reading the values
-
-    - Make cropping algo
-'''
-
-# def read_camera(): 
-#     current_os = platform.system()
-
-#     if current_os == "Windows":
-#         cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  
-#     elif current_os == "Darwin": 
-#         cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-#     elif current_os == "Linux":
-#         cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-#     else:
-#         cap = cv2.VideoCapture(0)
-
-#     # set lowest point of webcam 5 inches above the surface
-#     while True:
-#         ret, frame = cap.read()
-        
-#         if not ret:
-#             break
-        
-#         # crop frame first
-#         num_reader(frame)
-#         cv2.imshow("test", frame)
-#         cv2.waitKey(1)
+from crop_tool import crop_image
 
 def preprocessing(img,debug=False,still=False):
     #grayscale

@@ -6,4 +6,5 @@ computer_vision/venv
 **/.DS_Store
 computer_vision/number_detection/test/testResults/
 computer_vision/number_detection/test/test-cropped/
-computer_vision/number_detection/library/
+computer_vision/number_detection/library/*
+!computer_vision/number_detection/library/

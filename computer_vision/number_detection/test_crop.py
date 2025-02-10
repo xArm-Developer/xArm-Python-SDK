@@ -4,9 +4,7 @@ import os
 import glob
 import argparse
 import time
-from parallelPrefix import crop_image
-
-
+from crop_tool import crop_image
 
 class TestCropping(unittest.TestCase):
 
@@ -62,7 +60,7 @@ class TestCropping(unittest.TestCase):
         return
 
 #NOTE: change testAll if you want to test all files or not
-def main(testAll=True):
+def main(testAll=False):
     # user should give us an image file arg
     suite = unittest.TestSuite()
     if testAll:

@@ -75,7 +75,7 @@ endif
 
 CLEANUP_CMD := sudo rm $(MINICONDA_INSTALLER)
 
-.PHONY: install
+.PHONY: install 
 
 install:
 	@echo "Checking for package manager..."
@@ -106,4 +106,31 @@ install:
 	@eval "$$(conda shell.bash hook)"; \
 	conda activate pcr
 	@echo "Installing modules from 'requirements.txt'"
+
 	pip install -r "requirements.txt"
+
+SRC_FILE := ./number_detection/prefix_min.c
+LIB_DIR := ./number_detection/library
+CC := gcc
+
+ifeq ($(OS),Windows_NT)
+	LIB_FILE := $(LIB_DIR)/number-detection-pkg.dll
+	CFLAGS := -dynamiclib -o $(LIB_FILE)
+else 
+	ifeq ($(UNAME_S),Darwin)
+		LIB_FILE := $(LIB_DIR)/number-detection-pkg.dylib
+		CFLAGS := -dynamiclib -o $(LIB_FILE)
+	else ifeq ($(UNAME_S),Linux)
+		LIB_FILE := $(LIB_DIR)/number-detection-pkg.so
+		CFLAGS := -shared -o $(LIB_FILE)
+	else 
+		$(error Unsupported operating system: $(UNAME_S))
+	endif
+endif
+
+.PHONY: compile_lib
+compile_lib:
+	@echo "Compiling $(SRC_FILE) into $(LIB_FILE)..."
+	@mkdir -p $(LIB_DIR)
+	@$(CC) $(SRC_FILE) $(CFLAGS)
+	@echo "Compilation finished."

@@ -8,30 +8,6 @@ import argparse
 filePath = './test/cropped/'
 txtPath = './test/testResults/'
 
-
-
-'''
-TEST NOTES:
-    - Two variations, one that runs on all files in cropped and another
-    where the user passes in a single filename
-
-    - Results are stored in testResults and should show you which files failed any why.
-    Including a total tally and correct ratio.
-
-    NOTE: add a heuristic to cropping to get rid of any white on edges from left side
-
-    NOTE: find a way to deal with dial not being fully turned edge case
-    19.5.jpg        FAILED! RESULT: 49.5     EXPECTED: 19.5 
-    02.5.jpg        FAILED! RESULT: 02       EXPECTED: 02.5 
-    07.0.jpg        FAILED! RESULT: 2..0     EXPECTED: 07.0 
-    09.5.jpg        FAILED! RESULT: 09       EXPECTED: 09.5 
-    15.5.jpg        FAILED! RESULT: 16       EXPECTED: 15.5 
-    11.0.jpg        FAILED! RESULT: 7112.0   EXPECTED: 11.0 
-    11.5.jpg        FAILED! RESULT: 11.0     EXPECTED: 11.5 
-    17.0.jpg        FAILED! RESULT: 172.0    EXPECTED: 17.0 
-
-'''
-
 class TestNumberDetection(unittest.TestCase):
     def test_function_multiple_times(self):
         # go through each file in the cropped directory

@@ -4,10 +4,7 @@ computer_vision/venv
 **/__pycache__/
 .DS_Store
 **/.DS_Store
-computer_vision/number_detection/__pycache__
-.DS_Store
-computer_vision/.DS_Store
-computer_vision/number_detection/.DS_Store
-computer_vision/number_detection/test/.DS_Store
-computer_vision/number_detection/test/__pycache__/
 computer_vision/number_detection/test/testResults/
+computer_vision/number_detection/test/test-cropped/
+computer_vision/number_detection/library/*
+!computer_vision/number_detection/library/

@@ -13,7 +13,7 @@ ifeq ($(UNAME_S),Darwin)
 		MINICONDA_INSTALLER := Miniconda3-latest-MacOSX-x86_64.sh
 	endif
 	INSTALL_CMD := bash $(MINICONDA_INSTALLER) -b -p $(HOME)/miniconda
-	SYSTEM_DEPENDENCIES := brew install cmake python
+	SYSTEM_DEPENDENCIES := brew install cmake python tesseract
 	CHECK_PACKAGE_MANAGER := @if ! command -v brew &> /dev/null; then \
 								echo "Hombrew not found, installing..."; \
 								/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
@@ -25,9 +25,9 @@ endif
 ifeq ($(UNAME_S),Linux)
     # CONDA CONFIG
 	MINICONDA_URL := https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-	MINICONDA_INSTALLER := Miniconda3-latest-MacOSX-x86_64.sh
+	MINICONDA_INSTALLER := Miniconda3-latest-Linux-x86_64.sh
 	INSTALL_CMD := bash $(MINICONDA_INSTALLER) -b -p $(HOME)/miniconda
-	SYSTEM_DEPENDENCIES := sudo apt-get update && sudo apt-get install -y build-essential cmake python3 python3-pip
+	SYSTEM_DEPENDENCIES := sudo apt-get update && sudo apt-get install -y build-essential cmake python3 python3-pip tesseract-ocr
 	CHECK_PACKAGE_MANAGER := @echo "No additional package manager needed for Linux."
 endif
 
@@ -36,7 +36,7 @@ ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
 	MINICONDA_URL := https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
 	MINICONDA_INSTALLER := Miniconda3-latest-Windows-x86_64.exe
 	INSTALL_CMD := start /wait $(MINICONDA_INSTALLER) /S /D=$(HOME)\miniconda
-	SYSTEM_DEPENDENCIES := choco install cmake python3
+	SYSTEM_DEPENDENCIES := choco install cmake python3 tesseract
 	CHECK_PACKAGE_MANAGER := @if ! command -v choco &> /dev/null; then \
 								echo "Chocolatey not found, installing..."; \
 								@powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"; \
@@ -50,7 +50,7 @@ ifeq ($(findstring MSYS,$(UNAME_S)),MSYS)
 	MINICONDA_URL := https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
 	MINICONDA_INSTALLER := Miniconda3-latest-Windows-x86_64.exe
 	INSTALL_CMD := start /wait $(MINICONDA_INSTALLER) /S /D=$(HOME)\miniconda
-	SYSTEM_DEPENDENCIES := choco install cmake python3
+	SYSTEM_DEPENDENCIES := choco install cmake python3 tesseract
 	CHECK_PACKAGE_MANAGER := @if ! command -v choco &> /dev/null; then \
 							echo "Chocolatey not found, installing..."; \
 							@powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"; \
@@ -64,7 +64,7 @@ ifeq ($(findstring CYGWIN,$(UNAME_S)),CYGWIN)
 	MINICONDA_URL := https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe
 	MINICONDA_INSTALLER := Miniconda3-latest-Windows-x86_64.exe
 	INSTALL_CMD := start /wait $(MINICONDA_INSTALLER) /S /D=$(HOME)\miniconda
-	SYSTEM_DEPENDENCIES := choco install cmake python3
+	SYSTEM_DEPENDENCIES := choco install cmake python3 tesseract
 	CHECK_PACKAGE_MANAGER := @if ! command -v choco &> /dev/null; then \
 								echo "Chocolatey not found, installing..."; \
 								@powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"; \
@@ -73,7 +73,7 @@ ifeq ($(findstring CYGWIN,$(UNAME_S)),CYGWIN)
 							fi
 endif
 
-CLEANUP_CMD := rm $(MINICONDA_INSTALLER)
+CLEANUP_CMD := sudo rm $(MINICONDA_INSTALLER)
 
 .PHONY: install
 
@@ -85,7 +85,8 @@ install:
 	@echo "Checking for conda..."
 	@if ! command -v conda &> /dev/null; then \
 		echo "conda could not be found, installing Miniconda..."; \
-		curl -fsSl $(MINICONDA_URL) -o $(MINICONDA_INSTALLER) \
+		mkdir -p $(dirname $MINICONDA_INSTALLER); \
+		sudo curl -fsSL $(MINICONDA_URL) -o $(MINICONDA_INSTALLER); \
 		$(INSTALL_CMD); \
 		$(CLEANUP_CMD); \
 		export PATH="$(HOME)/miniconda/bin:$$PATH"; \
@@ -105,3 +106,4 @@ install:
 	@eval "$$(conda shell.bash hook)"; \
 	conda activate pcr
 	@echo "Installing modules from 'requirements.txt'"
+	pip install -r "requirements.txt"

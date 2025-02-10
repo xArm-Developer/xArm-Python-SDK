@@ -106,6 +106,7 @@ install:
 	@eval "$$(conda shell.bash hook)"; \
 	conda activate pcr
 	@echo "Installing modules from 'requirements.txt'"
+
 	pip install -r "requirements.txt"
 
 SRC_FILE := ./number_detection/prefix_min.c

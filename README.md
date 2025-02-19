@@ -22,6 +22,10 @@ xArm Python SDK
   python setup.py install
   ```
 
+  ```bash
+  pip install xarm-python-sdk
+  ```
+
 ## Doc
 - #### [API Document](doc/api/xarm_api.md)
 

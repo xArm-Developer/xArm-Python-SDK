@@ -82,58 +82,70 @@ def calculate_distance(point1, point2):
         return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
 
 def main():
+    # Open up the camera feed from the default webcam (index 0)
     cap = cv2.VideoCapture(0)
 
+    # Exit if the camera feed is not successfully opened
     if not cap.isOpened():
         print("Camera not found or not accessible")
         exit()
 
+    # Perform camera calibration and retrieve calibration parameters
     ret, mtx, dist, rvecs, tvecs = calibrate(cap)
 
+    # Configure the AprilTag pose estimator with camera parameters
     config = robotpy_apriltag.AprilTagPoseEstimator.Config(
-        tagSize=0.1,   # Replace with your tag size in meters
-        fx=mtx[0, 0],        # Replace with your camera's horizontal focal length in pixels
-        fy=mtx[1, 1],        # Replace with your camera's vertical focal length in pixels
-        cx=mtx[0, 2],        # Replace with your camera's principal point X in pixels
-        cy=mtx[1, 2]         # Replace with your camera's principal point Y in pixels
+        tagSize=0.1,   # Size of the AprilTag in meters
+        fx=mtx[0, 0],  # Camera's horizontal focal length in pixels
+        fy=mtx[1, 1],  # Camera's vertical focal length in pixels
+        cx=mtx[0, 2],  # Camera's principal point X coordinate in pixels
+        cy=mtx[1, 1]   # Camera's principal point Y coordinate in pixels
     )
+
+    # Initialize the AprilTag detector and configure it to detect "tag25h9" family
     detector = robotpy_apriltag.AprilTagDetector()
     detector.addFamily("tag25h9")
+
+    # Create an AprilTag pose estimator using the configured parameters
     estimator = robotpy_apriltag.AprilTagPoseEstimator(config)
 
+    # Lists to store detected positions of multiple circles (e.g., beakers)
     x_positions = []  
     y_positions = []
     r_positions = []
-    max_history = 10
-    num_circles = 2
 
-    for i in range(0, num_circles):
+    max_history = 10  # Maximum number of past detections to store
+    num_circles = 2   # Number of circles being tracked
+
+    # Initialize position lists for each circle
+    for i in range(num_circles):
         x_positions.append([])
         y_positions.append([])
         r_positions.append([])
 
-    # num_circles = input("Number of circles to detect: ")
-    
     try:
         while True:
+            # Read a frame from the webcam
             ret, frame = cap.read()
 
             if not ret:
                 print("Failed to grab frame")
                 break
             
-            # processing for april tag detection
+            # Convert frame to grayscale for AprilTag detection
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
             cv2.imshow('Grey Feed', gray)
 
+            # Detect AprilTags in the grayscale image
             results = detector.detect(gray)
             
-            # processing for beaker detection
+            # Preprocessing for circle (beaker) detection
             blurred = cv2.GaussianBlur(gray, (9, 9), 2)
             cv2.imshow('Blurred Feed', blurred)
             edges = cv2.Canny(blurred, 50, 150)
             cv2.imshow('Edges Feed', edges)
+
+            # Detect circles using Hough Circle Transform
             circles = cv2.HoughCircles(
                 edges,
                 cv2.HOUGH_GRADIENT,
@@ -148,240 +160,103 @@ def main():
             curr_averages = []
 
             if circles is not None:
-                # Convert the (x, y) coordinates and radius of the circles to integers.
+                # Convert detected circles to integer values
                 circles = np.round(circles[0, :]).astype("int")
 
-                # print(circles)
-                # get rid of overlapping circles
+                # Remove overlapping circles
                 circles = filter_overlapping_circles(circles)
-                # print(circles)
 
-                # for (x, y, r) in circles:
-                #     cv2.circle(frame, (x, y), r, (255, 0, 0), 10)
-
-                # Draw circles on the frame.
-                # x, y, r = circles[0]
+                # Keep only the specified number of circles and sort them by x-coordinate
                 circles = circles[:num_circles]
                 circles = sorted(circles, key=lambda x: x[0])
 
+                # Store detected circle positions
                 for index, (x, y, r) in enumerate(circles):
                     if index >= num_circles:
                         break
                     x_positions[index].append(x)
                     y_positions[index].append(y)
                     r_positions[index].append(r)
-                
-                # x_positions.append(x_coords)
-                # y_positions.append(y_coords)
-                # r_coords.append(r_coords)
 
-                # x_positions.append(x)
-                # y_positions.append(y)
-                # r_positions.append(r)
-                for index, arr in enumerate(x_positions):
-                    if len(arr) > max_history:
+                # Maintain history of detected positions (limited to max_history)
+                for index in range(num_circles):
+                    if len(x_positions[index]) > max_history:
                         x_positions[index].pop(0)
                         y_positions[index].pop(0)
                         r_positions[index].pop(0)
-
-                # if len(x_positions) > max_history:
-                #     x_positions.pop(0)
-                #     y_positions.pop(0)
-                #     r_positions.pop(0)
                 
+                # Define colors for visualizing detected circles
                 colors = [255, 0]
-                for i in range(0, num_circles):
+                for i in range(num_circles):
                     if len(x_positions[i]) > 0:
+                        # Compute average position and radius over the stored history
                         x_avg = int(sum(x_positions[i]) / len(x_positions[i]))
                         y_avg = int(sum(y_positions[i]) / len(y_positions[i]))
                         r_avg = int(sum(r_positions[i]) / len(r_positions[i]))
-                        cv2.circle(frame, (x_avg, y_avg), r_avg, (0, colors[i], 0), 4)
-                        cv2.rectangle(frame, (int(x_avg- 5), int(y_avg) - 5), (int(x_avg) + 5, int(y_avg) + 5), (0, 128, 255), -1)
-                        curr_averages.append((x_avg, y_avg, r_avg))
-                # avg_x = sum(x_positions) / len(x_positions)
-                # avg_y = sum(y_positions) / len(y_positions)
-                # cv2.circle(frame, (int(avg_x), int(avg_y)), r, (0, 255, 0), 4)
-                # cv2.rectangle(frame, (int(avg_x - 5), int(avg_y) - 5), (int(avg_x) + 5, int(avg_y) + 5), (0, 128, 255), -1)
 
+                        # Draw the detected circle and its center
+                        cv2.circle(frame, (x_avg, y_avg), r_avg, (0, colors[i], 0), 4)
+                        cv2.rectangle(frame, (x_avg - 5, y_avg - 5), (x_avg + 5, y_avg + 5), (0, 128, 255), -1)
+
+                        curr_averages.append((x_avg, y_avg, r_avg))
+
+            # AprilTag processing
             center = None
-            c1 = None
-            c2 = None
-            corners_points = None
             if len(results) > 0:
                 pose = estimator.estimate(results[0])
                 print(pose)
 
+                # Get the AprilTag corner coordinates
                 corners = results[0].getCorners((0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
-
                 corners_points = [
-                    (int(corners[0]), int(corners[1])),  # (x1, y1)
-                    (int(corners[2]), int(corners[3])),  # (x2, y2)
-                    (int(corners[4]), int(corners[5])),  # (x3, y3)
-                    (int(corners[6]), int(corners[7]))   # (x4, y4)
+                    (int(corners[i]), int(corners[i + 1])) for i in range(0, 8, 2)
                 ]
 
-                c1 = corners_points[3]
-                c2 = corners_points[2]
-
-                corner_colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 255, 255)]  # Red, Green, Blue, Yellow
-
+                # Draw the detected corners
                 for i, point in enumerate(corners_points):
-                    cv2.circle(frame, point, 5, corner_colors[i], -1)  # D
+                    cv2.circle(frame, point, 5, (0, 255, 0), -1)
 
+                # Draw lines between corners
                 for i in range(4):
-                    start_point = tuple(corners_points[i])
-                    end_point = tuple(corners_points[(i + 1) % 4])
-                    cv2.line(frame, start_point, end_point, (0, 255, 0), 2)
+                    cv2.line(frame, corners_points[i], corners_points[(i + 1) % 4], (0, 255, 0), 2)
 
-                # Draw the center of the tag
+                # Compute and draw the center of the AprilTag
                 center = tuple(np.mean(corners_points, axis=0, dtype=int))
                 cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
-                # if circles is not None:
-                #     x = int(sum(x_positions) / len(x_positions))
-                #     y = int(sum(y_positions) / len(y_positions))
-                #     # x, y, _ = circles[0]
-                #     # for (x, y, r) in circles:
-                #     distance = calculate_distance(center, (x, y))
-
-                #     x_tag, y_tag, z_tag = pose.translation()
-                #     roll = pose.rotation().x
-                #     pitch = pose.rotation().y
-                #     yaw = pose.rotation().z
-
-                #     r = R.from_euler('xyz', [roll, pitch, yaw]) 
-                #     R_tag = r.as_matrix()
-
-                #     n = R_tag[:, 2]
-
-                #     p0 = np.array([x_tag, y_tag, z_tag])
-                    
-                #     r = np.array([
-                #         (x - mtx[0, 2]) / mtx[0, 0],
-                #         (y - mtx[1, 2]) / mtx[1, 1],
-                #         1
-                #     ])
-
-                #     p_camera = np.array([0, 0, 0])
-
-                #     numerator = np.dot(n, (p0 - p_camera))
-                #     denominator = np.dot(n, r)
-                #     t = numerator / denominator
-
-                #     p_item = p_camera + t * r
-
-                #     distance = np.linalg.norm(p_item - np.array([x_tag, y_tag, z_tag]))
-                #     midpoint = ((center[0] + x) // 2, (center[1] + y) // 2)
-                #     cv2.putText(frame, f"Dist: {100*distance:.3f} cm", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-
-                #     cv2.line(frame, center, (x, y), (255, 0, 0), thickness=2)
-
+            # Calculate distances from the tag to detected circles
             if center:
                 irl_coords = []
                 for (x, y, _) in curr_averages:
                     distance = calculate_distance(center, (x, y))
 
+                    # Get the translation and rotation of the AprilTag
                     x_tag, y_tag, z_tag = pose.translation()
-                    roll = pose.rotation().x
-                    pitch = pose.rotation().y
-                    yaw = pose.rotation().z
+                    roll, pitch, yaw = pose.rotation().x, pose.rotation().y, pose.rotation().z
 
-                    r = R.from_euler('xyz', [roll, pitch, yaw]) 
+                    # Convert rotation angles into a rotation matrix
+                    r = R.from_euler('xyz', [roll, pitch, yaw])
                     R_tag = r.as_matrix()
-
                     n = R_tag[:, 2]
 
-                    p0 = np.array([x_tag, y_tag, z_tag])
-
-                    r_dir = np.array([
-                        (x - mtx[0, 2]) / mtx[0, 0],
-                        (y - mtx[1, 2]) / mtx[1, 1],
-                        1
-                    ])
+                    # Compute real-world coordinates of the detected circles
+                    r_dir = np.array([(x - mtx[0, 2]) / mtx[0, 0], (y - mtx[1, 2]) / mtx[1, 1], 1])
                     r_dir /= np.linalg.norm(r_dir)
-                    
-                    r = np.array([
-                        (x - mtx[0, 2]) / mtx[0, 0],
-                        (y - mtx[1, 2]) / mtx[1, 1],
-                        1
-                    ])
 
                     p_camera = np.array([0, 0, 0])
+                    t = np.dot(n, (np.array([x_tag, y_tag, z_tag]) - p_camera)) / np.dot(n, r_dir)
+                    p_item = p_camera + t * r_dir
+                    irl_coords.append(p_item)
 
-                    numerator = np.dot(n, (p0 - p_camera))
-                    denominator = np.dot(n, r)
-                    t = numerator / denominator
-
-                    p_item = p_camera + t * r
-
-                    distance = np.linalg.norm(p_item - np.array([x_tag, y_tag, z_tag]))
+                    # Display the calculated distance
                     midpoint = ((center[0] + x) // 2, (center[1] + y) // 2)
                     cv2.putText(frame, f"Dist: {100*distance:.3f} cm", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-
                     cv2.line(frame, center, (x, y), (255, 0, 0), thickness=2)
 
-                    # midpoint1 = ((corners_points[1][0] + corners_points[2][0]) // 2, (corners_points[1][1] + corners_points[2][1]) // 2)
-                    # midpoint2 = ((corners_points[0][0] + corners_points[3][0]) // 2, (corners_points[0][1] + corners_points[3][1]) // 2)
-
-                    # dx = midpoint2[0] - midpoint1[0]
-                    # dy = midpoint2[1] - midpoint1[1]
-
-                    # if dx == 0:  # Vertical line
-                    #     start_point = (midpoint1[0], 0)  # Top of the frame
-                    #     end_point = (midpoint1[0], frame.shape[0])  # Bottom of the frame
-                    # else:
-                    #     # Calculate line endpoints based on frame boundaries
-                    #     slope = dy / dx
-                    #     y1 = int(midpoint1[1] - slope * midpoint1[0])  # y at x = 0
-                    #     y2 = int(midpoint1[1] + slope * (frame.shape[1] - midpoint1[0]))  # y at x = frame width
-
-                    #     start_point = (0, y1)
-                    #     end_point = (frame.shape[1], y2)
-
-                    # # Draw the line
-                    # cv2.line(frame, start_point, end_point, (0, 0, 255), 2)
-
-                    # # Find the perpendicular point
-                    # t = ((x - midpoint1[0]) * dx + (y - midpoint1[1]) * dy) / (dx ** 2 + dy ** 2)
-                    # perp = (int(midpoint1[0] + t * dx), int(midpoint1[1] + t * dy))
-                    # # xp = int(midpoint1[0] + t * dx)
-                    # # yp = int(midpoint1[1] + t * dy)
-
-                    # # Draw the perpendicular point
-                    # cv2.circle(frame, perp, 5, (0, 255, 0), -1)  # Mark the perpendicular point
-                    # cv2.line(frame, (x, y), perp, (255, 255, 0), 1)  # Draw the perpendicular line
-
-                    # angle = calculate_angle(c1, c2, center, (x, y)) 
-                    # angle_radians = math.radians(angle)
-
-                    # # Calculate pixel distance of hypotenuse
-                    # hd_pixels = math.sqrt((center[0] - x) ** 2 + (center[1] - y) ** 2)
-
-                    # # Calculate the scaling factor
-                    # scaling_factor = distance / hd_pixels
-
-                    # # Calculate the horizontal and vertical legs in pixels
-                    # xd_pixels = math.sqrt((center[0] - perp[0]) ** 2 + (center[1] - perp[1]) ** 2)
-                    # yd_pixels = math.sqrt((x - perp[0]) ** 2 + (y - perp[1]) ** 2)
-
-                    # # Convert the horizontal and vertical leg distances to real-world units
-                    # d_horizontal = xd_pixels * scaling_factor
-                    # d_vertical = yd_pixels * scaling_factor
-
-                    # # Output the real-world distances
-                    # print(f"Horizontal leg distance: {d_horizontal * 100} units")
-                    # print(f"Vertical leg distance: {d_vertical* 100} units")
-
-                    irl_coords.append(p_item)
-                
-                indexed_irl_coords = list(enumerate(irl_coords))
-
-                for (i1, val1), (i2, val2) in combinations(indexed_irl_coords, 2):
+                # Compute distances between detected circles
+                for (i1, val1), (i2, val2) in combinations(enumerate(irl_coords), 2):
                     distance = np.linalg.norm(np.array(val1) - np.array(val2))
-                    midpoint = ((curr_averages[i1][0] + curr_averages[i2][0]) // 2, (curr_averages[i1][1] + curr_averages[i2][1]) // 2)
-                    cv2.putText(frame, f"Dist: {100*distance:.3f} cm", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                    print(curr_averages[i1])
-                    cv2.line(frame, (curr_averages[i1][0], curr_averages[i1][1]), (curr_averages[i2][0], curr_averages[i2][1]), (255, 0, 0), thickness=2)
+                    cv2.putText(frame, f"Dist: {100*distance:.3f} cm", (curr_averages[i1][0], curr_averages[i1][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
             cv2.imshow('Video Feed', frame)
 
@@ -391,273 +266,6 @@ def main():
     finally:
         cap.release()
         cv2.destroyAllWindows()
-
-def get_locations(cap, num_circles, max_history=10):
-    if not cap.isOpened():
-        print("Camera not found or not accessible")
-        exit()
-
-    ret, mtx, dist, rvecs, tvecs = calibrate(cap)
-
-    config = robotpy_apriltag.AprilTagPoseEstimator.Config(
-        tagSize=0.1,   # Replace with your tag size in meters
-        fx=mtx[0, 0],        # Replace with your camera's horizontal focal length in pixels
-        fy=mtx[1, 1],        # Replace with your camera's vertical focal length in pixels
-        cx=mtx[0, 2],        # Replace with your camera's principal point X in pixels
-        cy=mtx[1, 2]         # Replace with your camera's principal point Y in pixels
-    )
-    detector = robotpy_apriltag.AprilTagDetector()
-    detector.addFamily("tag25h9")
-    estimator = robotpy_apriltag.AprilTagPoseEstimator(config)
-
-    x_positions = []  
-    y_positions = []
-    r_positions = []
-
-    for i in range(0, num_circles):
-        x_positions.append([])
-        y_positions.append([])
-        r_positions.append([])
-    
-    return_value = []
-
-    try:
-        for blah in range(0, max_history):
-            # return_value = []
-            ret, frame = cap.read()
-
-            if not ret:
-                print("Failed to grab frame")
-                break
-            
-            # processing for april tag detection
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-            cv2.imshow('Grey Feed', gray)
-
-            results = detector.detect(gray)
-            
-            # processing for beaker detection
-            blurred = cv2.GaussianBlur(gray, (9, 9), 2)
-            cv2.imshow('Blurred Feed', blurred)
-            edges = cv2.Canny(blurred, 50, 150)
-            cv2.imshow('Edges Feed', edges)
-            circles = cv2.HoughCircles(
-                edges,
-                cv2.HOUGH_GRADIENT,
-                1,
-                30,
-                param1=50,
-                param2=30,
-                minRadius=20,
-                maxRadius=100
-            )
-
-            curr_averages = []
-
-            if circles is not None:
-                # Convert the (x, y) coordinates and radius of the circles to integers.
-                circles = np.round(circles[0, :]).astype("int")
-
-                # print(circles)
-                # get rid of overlapping circles
-                circles = filter_overlapping_circles(circles)
-                # print(circles)
-
-                for (x, y, r) in circles:
-                    cv2.circle(frame, (x, y), r, (255, 0, 0), 10)
-
-                # Draw circles on the frame.
-                # x, y, r = circles[0]
-                circles = circles[:num_circles]
-                circles = sorted(circles, key=lambda x: x[0])
-
-                for index, (x, y, r) in enumerate(circles):
-                    if index >= num_circles:
-                        break
-                    x_positions[index].append(x)
-                    y_positions[index].append(y)
-                    r_positions[index].append(r)
-                
-                # x_positions.append(x_coords)
-                # y_positions.append(y_coords)
-                # r_coords.append(r_coords)
-
-                # x_positions.append(x)
-                # y_positions.append(y)
-                # r_positions.append(r)
-                for index, arr in enumerate(x_positions):
-                    if len(arr) > max_history:
-                        x_positions[index].pop(0)
-                        y_positions[index].pop(0)
-                        r_positions[index].pop(0)
-
-                # if len(x_positions) > max_history:
-                #     x_positions.pop(0)
-                #     y_positions.pop(0)
-                #     r_positions.pop(0)
-                
-                colors = [255, 0]
-                for i in range(0, num_circles):
-                    if len(x_positions[i]) > 0:
-                        x_avg = int(sum(x_positions[i]) / len(x_positions[i]))
-                        y_avg = int(sum(y_positions[i]) / len(y_positions[i]))
-                        r_avg = int(sum(r_positions[i]) / len(r_positions[i]))
-                        cv2.circle(frame, (x_avg, y_avg), r_avg, (0, colors[i], 0), 4)
-                        cv2.rectangle(frame, (int(x_avg- 5), int(y_avg) - 5), (int(x_avg) + 5, int(y_avg) + 5), (0, 128, 255), -1)
-                        curr_averages.append((x_avg, y_avg, r_avg))
-
-            center = None
-            c1 = None
-            c2 = None
-            corners_points = None
-            if len(results) > 0:
-                pose = estimator.estimate(results[0])
-                # print(pose)
-
-                corners = results[0].getCorners((0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
-
-                corners_points = [
-                    (int(corners[0]), int(corners[1])),  # (x1, y1)
-                    (int(corners[2]), int(corners[3])),  # (x2, y2)
-                    (int(corners[4]), int(corners[5])),  # (x3, y3)
-                    (int(corners[6]), int(corners[7]))   # (x4, y4)
-                ]
-
-                c1 = corners_points[3]
-                c2 = corners_points[2]
-
-                corner_colors = [(0, 0, 255), (0, 255, 0), (255, 0, 0), (0, 255, 255)]  # Red, Green, Blue, Yellow
-
-                for i, point in enumerate(corners_points):
-                    cv2.circle(frame, point, 5, corner_colors[i], -1)  # D
-
-                for i in range(4):
-                    start_point = tuple(corners_points[i])
-                    end_point = tuple(corners_points[(i + 1) % 4])
-                    cv2.line(frame, start_point, end_point, (0, 255, 0), 2)
-
-                # Draw the center of the tag
-                center = tuple(np.mean(corners_points, axis=0, dtype=int))
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
-
-            if center:
-                irl_coords = []
-                for (x, y, _) in curr_averages:
-                    return_value = []
-                    distance = calculate_distance(center, (x, y))
-
-                    x_tag, y_tag, z_tag = pose.translation()
-                    roll = pose.rotation().x
-                    pitch = pose.rotation().y
-                    yaw = pose.rotation().z
-
-                    r = R.from_euler('xyz', [roll, pitch, yaw]) 
-                    R_tag = r.as_matrix()
-
-                    n = R_tag[:, 2]
-
-                    p0 = np.array([x_tag, y_tag, z_tag])
-
-                    r_dir = np.array([
-                        (x - mtx[0, 2]) / mtx[0, 0],
-                        (y - mtx[1, 2]) / mtx[1, 1],
-                        1
-                    ])
-                    r_dir /= np.linalg.norm(r_dir)
-                    
-                    r = np.array([
-                        (x - mtx[0, 2]) / mtx[0, 0],
-                        (y - mtx[1, 2]) / mtx[1, 1],
-                        1
-                    ])
-
-                    p_camera = np.array([0, 0, 0])
-
-                    numerator = np.dot(n, (p0 - p_camera))
-                    denominator = np.dot(n, r)
-                    t = numerator / denominator
-
-                    p_item = p_camera + t * r
-
-                    distance = np.linalg.norm(p_item - np.array([x_tag, y_tag, z_tag]))
-                    midpoint = ((center[0] + x) // 2, (center[1] + y) // 2)
-                    cv2.putText(frame, f"Dist: {100*distance:.3f} cm", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-
-                    cv2.line(frame, center, (x, y), (255, 0, 0), thickness=2)
-
-                    midpoint1 = ((corners_points[1][0] + corners_points[2][0]) // 2, (corners_points[1][1] + corners_points[2][1]) // 2)
-                    midpoint2 = ((corners_points[0][0] + corners_points[3][0]) // 2, (corners_points[0][1] + corners_points[3][1]) // 2)
-
-                    dx = midpoint2[0] - midpoint1[0]
-                    dy = midpoint2[1] - midpoint1[1]
-
-                    if dx == 0:  # Vertical line
-                        start_point = (midpoint1[0], 0)  # Top of the frame
-                        end_point = (midpoint1[0], frame.shape[0])  # Bottom of the frame
-                    else:
-                        # Calculate line endpoints based on frame boundaries
-                        slope = dy / dx
-                        y1 = int(midpoint1[1] - slope * midpoint1[0])  # y at x = 0
-                        y2 = int(midpoint1[1] + slope * (frame.shape[1] - midpoint1[0]))  # y at x = frame width
-
-                        start_point = (0, y1)
-                        end_point = (frame.shape[1], y2)
-
-                    # Draw the line
-                    cv2.line(frame, start_point, end_point, (0, 0, 255), 2)
-
-                    # Find the perpendicular point
-                    t = ((x - midpoint1[0]) * dx + (y - midpoint1[1]) * dy) / (dx ** 2 + dy ** 2)
-                    perp = (int(midpoint1[0] + t * dx), int(midpoint1[1] + t * dy))
-
-                    # Draw the perpendicular point
-                    cv2.circle(frame, perp, 5, (0, 255, 0), -1)  # Mark the perpendicular point
-                    cv2.line(frame, (x, y), perp, (255, 255, 0), 1)  # Draw the perpendicular line
-
-                    angle = calculate_angle(c1, c2, center, (x, y)) 
-                    angle_radians = math.radians(angle)
-                    
-                    # Calculate pixel distance of hypotenuse
-                    hd_pixels = math.sqrt((center[0] - x) ** 2 + (center[1] - y) ** 2)
-
-                    # Calculate the scaling factor
-                    scaling_factor = distance / hd_pixels
-
-                    # Calculate the horizontal and vertical legs in pixels
-                    xd_pixels = math.sqrt((center[0] - perp[0]) ** 2 + (center[1] - perp[1]) ** 2)
-                    yd_pixels = math.sqrt((x - perp[0]) ** 2 + (y - perp[1]) ** 2)
-
-                    # Convert the horizontal and vertical leg distances to real-world units
-                    d_horizontal = xd_pixels * scaling_factor
-                    d_vertical = yd_pixels * scaling_factor
-
-                    # Output the real-world distances
-                    # print(f"Horizontal leg distance: {d_horizontal * 100} units")
-                    # print(f"Vertical leg distance: {d_vertical* 100} units")
-                    return_value.append((d_horizontal, d_vertical))
-
-                    irl_coords.append(p_item)
-                
-                indexed_irl_coords = list(enumerate(irl_coords))
-
-                for (i1, val1), (i2, val2) in combinations(indexed_irl_coords, 2):
-                    distance = np.linalg.norm(np.array(val1) - np.array(val2))
-                    midpoint = ((curr_averages[i1][0] + curr_averages[i2][0]) // 2, (curr_averages[i1][1] + curr_averages[i2][1]) // 2)
-                    cv2.putText(frame, f"Dist: {100*distance:.3f} cm", midpoint, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                    # print(curr_averages[i1])
-                    cv2.line(frame, (curr_averages[i1][0], curr_averages[i1][1]), (curr_averages[i2][0], curr_averages[i2][1]), (255, 0, 0), thickness=2)
-
-            cv2.imshow('Video Feed', frame)
-
-            # Exit on 'q' key
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-    finally:
-        # cap.release()
-        cv2.destroyAllWindows()
-    
-    return return_value
 
 if __name__ == "__main__":
     main()

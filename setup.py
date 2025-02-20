@@ -36,8 +36,8 @@ with open(os.path.join(os.getcwd(), ver_path)) as ver_file:
 
 version = main_ns['__version__']
 
-# long_description = open('README.rst').read()
-long_description = 'long description for xArm-Python-SDK'
+long_description = open('README.rst').read()
+# long_description = 'long description for xArm-Python-SDK'
 
 try:
     with open(os.path.join(os.getcwd(), 'requirements.txt')) as f:

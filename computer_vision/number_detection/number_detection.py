@@ -1,114 +1,108 @@
 import cv2
 import pytesseract
 from pytesseract import image_to_string
-import os
 import numpy as np
-import time
-import platform
+import re
 
-def num_reader(img):    
+from crop_tool import crop_image
+
+def preprocessing(img,debug=False,still=False):
+    #grayscale
+    if img is None or img.size == 0:
+         return None
+
+    img = cv2.bitwise_not(img)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # img = cv2.equalizeHist(img)
+    # img = cv2.GaussianBlur(img,(3,3),0)
+    img = cv2.medianBlur(img,5)
+
+    #NOTE: was 200, 215 clears 06.5.jpg issue, top 240
+    img = cv2.threshold(img,200,240, cv2.THRESH_BINARY)[1]
+
+    #NOTE: was 4x4 and 1 it
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(4,4))
+    img = cv2.dilate(img,kernel=kernel,iterations=1)
+
+    #NOTE: was 3x3 and 3 it
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS,(3,3))
+    img = cv2.erode(img,kernel=kernel,iterations=3)
+
+    #NOTE: 3 it
+    img = cv2.morphologyEx(img,cv2.MORPH_CLOSE,kernel, iterations=3)
     
-    # to use pytesseract
-    # pytesseract.pytesseract.tesseract_cmd = '/opt/homebrew/bin/tesseract'
-    # pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
+    # NOTE: comment these two lines out in order to display processed results
+    if debug:
+        cv2.imshow("final product",img)
+    if still:
+        cv2.waitKey(0)
+
+    return img
+
+def read_img(img):
+
+    img = preprocessing(img)
+    if img is None:
+         return ""
+    data = pytesseract.image_to_string(img,config='--psm 8  --oem 3 -c tessedit_char_whitelist=.0123456789')
     
-    # converting to grayscale
-    gry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # cv2.imshow("test", gry)
-    # cv2.waitKey(0)
+    filtered_data = re.sub(r'[^0-9.]', '', data)
+
+    # heuristic corrections
+
+    # if size of just 3, add a . , if size of just 4, replace second to last with .
+    # print(filtered_data)
+    if (len(filtered_data) == 3):
+            filtered_data = filtered_data[:2] + '.' + filtered_data[2:]
+            
+    elif (len(filtered_data) == 4):
+                filtered_data = f"{filtered_data[:2]}.{filtered_data[3:]}"
     
-    # # blur
-    # blur = cv2.GaussianBlur(gry, (0,0), sigmaX=33, sigmaY=33)
+    # NOTE: to see char results from OCR uncomment HERE
+    # print(filtered_data)
 
-    # # divide
-    # divide = cv2.divide(gry, blur, scale=255)
+    return filtered_data
+
+# run video feed and 
+
+def main():
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        print("Camera not found or not accessible")
+        exit(1)
     
-    # setting threshold to make all pixels white or black
-    for i in range(45, 225, 5):
+    # calibrate camera
 
-        thr = cv2.threshold(gry, i, 225, cv2.THRESH_BINARY_INV)[1]
-        
-        # # apply morphology
-        # kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
-        # morph = cv2.morphologyEx(thr, cv2.MORPH_CLOSE, kernel)
+    #config 
+    try:
+        i = 0
+        while True:
+                ret, frame = cap.read()
 
-        # extracting text from the image as a single line
-        txt = image_to_string(thr, config='--psm 10  --oem 3 -c tessedit_char_whitelist=0123456789')
-        digits = "".join([t for t in txt if t != '|']).strip()
-        print(f"Extracted digits: {digits}")
-
-        # only keeping numeric digits
-        chars = []
-        for digit in digits:
-            if digit.isnumeric():
-                chars.append(digit)
+                #for now frame is our image
                 
-        # print("In",filename,"detecting",chars)
-        if len(chars) == 3:
-            # print("Result: " + chars[0] + chars[1] + "." + chars[2])
-            # cv2.imshow("test", thr)
-            # cv2.waitKey(0)
-            
-            # cv2.imshow("test", morph)
-            # cv2.waitKey(0)
-            break
-        else:
-            continue
 
-def read_camera(): 
-    current_os = platform.system()
+                crop_frame, frame = crop_image(frame)
 
-    if current_os == "Windows":
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  
-    elif current_os == "Darwin": 
-        cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-    elif current_os == "Linux":
-        cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
-    else:
-        cap = cv2.VideoCapture(0)
+                if not ret: 
+                    print("Failed to grab frame")
+                    break
+                
+                processed = preprocessing(frame)
+                filtered_data = read_img(crop_frame)
+                print(f'\rFiltered data: {filtered_data}', end='', flush=True)
 
-    # set lowest point of webcam 5 inches above the surface
-    while True:
-        ret, frame = cap.read()
-        
-        if not ret:
-            break
-        
-        # crop frame first
-        num_reader(frame)
-        cv2.imshow("test", frame)
-        cv2.waitKey(1)
+                cv2.imshow('Video feed',frame)
+                cv2.imshow('processed',processed)
+            # cv2.imshow('crop feed', crop_frame)
 
-def read_img(img_path: str, show_images= False):
-    img = cv2.imread(img_path)
-    
-    #converting to grayscale
-    gry = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if show_images:
-        cv2.imshow("test", gry)
-        cv2.waitKey(0)
+            # exit check
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
 
-    #setting threshold to make all pixels white or black
-    thr = cv2.threshold(gry, 45, 225,
-                        cv2.THRESH_BINARY_INV)[1]
-    if show_images:
-        cv2.imshow("test", thr)
-        cv2.waitKey(0)
-
-    #extracting text from the image as a single line
-
-    #101 [0,0,1]
-    txt = image_to_string(thr, config='--psm 10  --oem 3 -c tessedit_char_whitelist=0123456789')
-    digits = "".join([t for t in txt if t != '|']).strip()
-
-    #only keeping numeric digits
-    chars = []
-    for digit in digits:
-        # print(digits)
-        if digit.isnumeric() or digit == '.':
-            chars.append(digit)
-            
-    print(chars)
-    return ''.join(chars)
-
-# read_img("sdfs")
+if __name__ == "__main__":
+    main()

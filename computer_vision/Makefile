@@ -103,11 +103,7 @@ install:
 		echo "conda environment 'pcr' already exists."; \
 	fi
 	@echo "Activating environment 'pcr'..."
-	@eval "$$(conda shell.bash hook)"; \
-	conda activate pcr
-	@echo "Installing modules from 'requirements.txt'"
-
-	pip install -r "requirements.txt"
+	@eval "$$(conda shell.bash hook) && conda activate pcr && pip install -r requirements.txt"
 
 SRC_FILE := ./number_detection/prefix_min.c
 LIB_DIR := ./number_detection/library

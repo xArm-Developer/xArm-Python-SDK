@@ -5,7 +5,7 @@ from number_detection import read_img
 import time
 import argparse
 
-filePath = './test/cropped/'
+filePath = './test/test-cropped/'
 txtPath = './test/testResults/'
 
 class TestNumberDetection(unittest.TestCase):

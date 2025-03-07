@@ -276,8 +276,8 @@ def compute_real_world_coordinates(curr_averages, center, pose, mtx, frame):
 
     return irl_coords
 
-def finding_the_angle(frame, tuple_april, list_beaker):
-    
+def finding_the_angle(frame, tuple_april, list_beaker, pose, mtx):
+    compute_real_world_coordinates(list_beaker, tuple_april, pose, mtx, frame)
     x_april = tuple_april[0]
     y_april = tuple_april[1]
     x_beaker = list_beaker[0][0]
@@ -292,10 +292,6 @@ def finding_the_angle(frame, tuple_april, list_beaker):
 
     # Draw perpendicular (vertical line)
     cv2.line(frame, (x_beaker, y_april), (x_beaker, y_beaker), (255, 0, 0), 2)  # Blue line
-
-
-    # Draw hypotenuse (optional, for visualization)
-    #cv2.line(frame, (x_april, y_april), (x_beaker, y_beaker), (0, 0, 255), 2)  # Red line
 
     # Display angle information
     cv2.putText(frame, f"Base: {base}px", (x_april, y_april), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
@@ -334,7 +330,7 @@ def main():
             # Calculate distances from the tag to detected circles
             if center and curr_averages:
                 irl_coords = compute_real_world_coordinates(curr_averages, center, pose, mtx, frame)
-                finding_the_angle(frame, center, curr_averages)
+                finding_the_angle(frame, center, curr_averages, pose, mtx)
 
             cv2.imshow('Video Feed', frame)
 

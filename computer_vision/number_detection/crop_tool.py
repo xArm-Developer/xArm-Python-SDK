@@ -2,14 +2,26 @@ import cv2
 import numpy as np
 import threading
 import ctypes
+import platform
 
 _initialized = False
 
 def init():
     global lib
     # Define the argument and return types of the C function
+   #evaluate platform that's running this file
+    system = platform.system()
     try:
-        lib = ctypes.CDLL('./library/number-detection-pkg.dylib')
+        match system:
+            case 'Darwin': #macOS
+                lib = ctypes.CDLL('./library/number-detection-pkg.dylib')
+            case 'Windows':
+                lib = ctypes.CDLL('./library/number-detection-pkg.dll')
+            case 'Linux':
+                lib = ctypes.CDLL('./library/number-detection-pkg.so')
+            case _:
+                raise OSError(f"Unsupported operating system: {system}")
+            
         lib.prefix_min.argtypes = [ctypes.POINTER(ctypes.c_uint8), ctypes.POINTER(ctypes.c_uint8), ctypes.c_int, ctypes.c_int, ctypes.c_int]
         lib.prefix_min.restype = None
         _initialized = True

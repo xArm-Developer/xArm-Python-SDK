@@ -2802,6 +2802,47 @@ class XArmAPI(object):
         """
         return self._arm.set_bio_gripper_speed(speed)
 
+    def set_bio_gripper_control_mode(self, mode):
+        """
+        Set the bio gripper control mode
+
+        :param mode: 0: bio gripper opening and closing mode
+                     1: position loop mode
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        
+        return self._arm.set_bio_gripper_control_mode(mode)
+
+    def set_bio_gripper_force(self, force):
+        """
+        Set the bio gripper force
+
+        :param force: gripper force between 10 and 100
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+
+        return self._arm.set_bio_gripper_force(force)
+
+    def set_bio_gripper_position(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
+        """
+        Set the bio gripper position
+
+        :param pos: gripper pos between 71 and 150
+        :param speed: gripper speed between 0 and 4500
+        :param force: gripper force between 10 and 100
+        :param wait: whether to wait for the robotiq motion to complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+
+        :return: tuple((code, robotiq_response))
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            robotiq_response: See the robotiq documentation
+        """
+        return self._arm.set_bio_gripper_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
+
     def open_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
         """
         Open the bio gripper

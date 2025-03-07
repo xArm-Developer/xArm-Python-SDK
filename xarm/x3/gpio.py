@@ -76,7 +76,7 @@ class GPIO(Base):
         #             versions = [ret1[1], ret2[1], ret3[1]]
 
         return code, '.'.join(map(str, versions))
-    
+
     @xarm_is_connected(_type='get')
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
@@ -91,6 +91,30 @@ class GPIO(Base):
             if ret[0] == 0:
                 self.tgpio_state['digital'] = ret[1:]
             return ret[0], ret[1:] if ionum is None else ret[ionum + 1 if ionum < 3 else ionum]
+
+    @xarm_is_connected(_type='get')
+    def get_tool_digital_input(self, ionum=None):
+        assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
+        if self.check_is_simulation_robot():
+            return 0, [0, 0] if ionum is None else 0
+        if ionum == 2:
+            # Only available for Lite6 and 850
+            ret = self.arm_cmd.tgpio_addr_r16(0x0A12)
+            return ret[0], ret[1] & 0x0001
+        elif isinstance(ionum, int):
+            ret = self.arm_cmd.tgpio_get_digital()
+            if ret[0] == 0:
+                self.tgpio_state['digital'] = ret[1:]
+            return ret[0], ret[ionum+1 if ionum < 3 else ionum]
+        else:
+            ret1 = self.arm_cmd.tgpio_get_digital()
+            if ret1[0] == 0:
+                self.tgpio_state['digital'] = ret1[1:]
+            ret2 = [0]
+            if self.is_lite6 or self.is_850:
+                ret2 = self.arm_cmd.tgpio_addr_r16(0x0A12)
+                ret1.insert(3, ret2[1])
+            return ret1[0] or ret2[0], ret1[1:4] if self.is_lite6 else ret1[1:] if self.is_850 or int(self.sn[2:6]) >= 1305 else ret1[1:3]
     
     @xarm_is_connected(_type='get')
     def get_tgpio_output_digital(self, ionum=None):
@@ -377,9 +401,9 @@ class GPIO(Base):
     @xarm_is_ready(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
     def set_tgpio_digital_with_xyz(self, ionum, value, xyz, fault_tolerance_radius):
-        assert isinstance(ionum, int) and 1 >= ionum >= 0
+        assert isinstance(ionum, int) and (1 >= ionum >= 0 or 4 >= ionum >= 3)
         assert fault_tolerance_radius >= 0, 'The value of parameter fault_tolerance_radius must be greater than or equal to 0.'
-        ret = self.arm_cmd.tgpio_position_set_digital(ionum, value, xyz, fault_tolerance_radius)
+        ret = self.arm_cmd.tgpio_position_set_digital(ionum - 1 if ionum >= 3 else ionum, value, xyz, fault_tolerance_radius)
         self.log_api_info('API -> set_tgpio_digital_with_xyz(ionum={}, value={}, xyz={}, fault_tolerance_radius={}) -> code={}'.format(ionum, value, xyz, fault_tolerance_radius, ret[0]), code=ret[0])
         return ret[0]
 

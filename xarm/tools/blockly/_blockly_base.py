@@ -224,6 +224,24 @@ class _BlocklyBase(_BlocklyNode):
             addr = int(fields[0].text.replace(' ', '').replace('0x', '').replace(',', '').replace('\xa0', ''), 16)
             return "list(map(lambda x: hex(x).split('0x')[1].upper().zfill(4)[:2] + ' ' + hex(x).split('0x')[1]." \
                    "upper().zfill(4)[2:], self._arm.read_holding_registers({}, 1)[1]))[0]".format(str(addr))
+        elif block.attrib['type'] == 'get_position':
+            direction_li = ['X', 'Y', 'Z', 'R', 'P', 'Y']
+            fields = self._get_nodes('field', root=block)
+            is_axis = True if fields[0].text == 'axis' else False
+            direction = int(fields[1].text)
+            if is_axis:
+                return 'round(self._arm.position_aa[{}], 2)'.format(direction-1)
+            else:
+                return 'round(self._arm.position[{}], 2)'.format(direction-1)
+        elif block.attrib['type'] == 'get_joint_angle':
+            angle_li = ['J1', 'J2', 'J3', 'J4', 'J5', 'J6']
+            fields = self._get_nodes('field', root=block)
+            servo_angle = fields[0].text
+            return 'round(self._arm.get_servo_angle(servo_id={})[1], 2)'.format(servo_angle)
+        elif block.attrib['type'] == 'check_bio_g2_gripper_is_catch':
+            fields = self._get_nodes('field', root=block)
+            timeout = float(fields[0].text)
+            return 'self._arm.arm.check_bio_gripper_is_catch(timeout={})'.format(timeout)
 
 
     def __get_logic_compare(self, block, arg_map=None):

@@ -241,8 +241,6 @@ def compute_real_world_coordinates(curr_averages, center, pose, mtx, frame):
     irl_coords = []
     
     for (x, y, _) in curr_averages:
-        distance = calculate_distance(center, (x, y))
-
         # Get the translation and rotation of the AprilTag
         x_tag, y_tag, z_tag = pose.translation()
         roll, pitch, yaw = pose.rotation().x, pose.rotation().y, pose.rotation().z
@@ -261,6 +259,8 @@ def compute_real_world_coordinates(curr_averages, center, pose, mtx, frame):
         p_item = p_camera + t * r_dir
         irl_coords.append(p_item)
 
+        distance = np.linalg.norm(p_item - np.array([x_tag, y_tag, z_tag]))
+
         # Display the calculated distance
         midpoint = ((center[0] + x) // 2, (center[1] + y) // 2)
         cv2.putText(frame, f"Dist: {100*distance:.3f} cm", midpoint, 
@@ -277,7 +277,7 @@ def compute_real_world_coordinates(curr_averages, center, pose, mtx, frame):
     return irl_coords
 
 def main():
-    num_circles = 2   # Number of circles being tracked
+    num_circles = 1   # Number of circles being tracked
     max_history = 10  # Maximum number of past detections to store
     cap = initialize_camera()
     _, mtx, _, _, _ = calibrate(cap)

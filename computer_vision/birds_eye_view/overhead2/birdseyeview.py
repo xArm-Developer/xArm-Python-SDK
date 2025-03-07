@@ -84,7 +84,7 @@ def calculate_distance(point1, point2):
 
 def initialize_camera() -> cv2.VideoCapture:
     """Initialize the default webcam and return the capture object."""
-    cap: cv2.VideoCapture = cv2.VideoCapture(0)
+    cap: cv2.VideoCapture = cv2.VideoCapture(1)
     if not cap.isOpened():
         print("Camera not found or not accessible")
         exit()
@@ -109,7 +109,7 @@ def initialize_detector_and_estimator(mtx, tagFamily: str = "tag25h9"):
     
     # Configure the AprilTag pose estimator with camera intrinsic parameters
     config = robotpy_apriltag.AprilTagPoseEstimator.Config(
-        tagSize=0.1,  # Size of the AprilTag in meters
+        tagSize=0.106,  # Size of the AprilTag in meters
         fx=mtx[0, 0],  # Camera's focal length in the x-direction (pixels)
         fy=mtx[1, 1],  # Camera's focal length in the y-direction (pixels)
         cx=mtx[0, 2],  # Camera's principal point X-coordinate (pixels)
@@ -276,14 +276,42 @@ def compute_real_world_coordinates(curr_averages, center, pose, mtx, frame):
 
     return irl_coords
 
+def finding_the_angle(frame, tuple_april, list_beaker):
+    
+    x_april = tuple_april[0]
+    y_april = tuple_april[1]
+    x_beaker = list_beaker[0][0]
+    y_beaker = list_beaker[0][1]
+    
+    perpendicular = abs(y_beaker - y_april)
+    base = abs(x_beaker - x_april)
+
+
+    # Draw base (horizontal line)
+    cv2.line(frame, (x_april, y_april), (x_beaker, y_april), (0, 255, 0), 2)  # Green line
+
+    # Draw perpendicular (vertical line)
+    cv2.line(frame, (x_beaker, y_april), (x_beaker, y_beaker), (255, 0, 0), 2)  # Blue line
+
+
+    # Draw hypotenuse (optional, for visualization)
+    #cv2.line(frame, (x_april, y_april), (x_beaker, y_beaker), (0, 0, 255), 2)  # Red line
+
+    # Display angle information
+    cv2.putText(frame, f"Base: {base}px", (x_april, y_april), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+    cv2.putText(frame, f"Perp: {perpendicular}px", (x_beaker, y_april), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+    
+    print(f"This is perpendicular: {perpendicular}")
+    print(f"This is base: {base}")
+
 def main():
-    num_circles = 2   # Number of circles being tracked
+    num_circles = 1   # Number of circles being tracked
     max_history = 10  # Maximum number of past detections to store
     cap = initialize_camera()
     _, mtx, _, _, _ = calibrate(cap)
     detector, estimator, mtx = initialize_detector_and_estimator(mtx)
 
-    # Lists to store detected positions of multiple circles (e.g., beakers)
+    # Lists to store detected poqsitions of multiple circles (e.g., beakers)
     x_positions = [deque(maxlen=max_history) for _ in range(num_circles)]
     y_positions = [deque(maxlen=max_history) for _ in range(num_circles)]
     r_positions = [deque(maxlen=max_history) for _ in range(num_circles)]
@@ -306,6 +334,7 @@ def main():
             # Calculate distances from the tag to detected circles
             if center and curr_averages:
                 irl_coords = compute_real_world_coordinates(curr_averages, center, pose, mtx, frame)
+                finding_the_angle(frame, center, curr_averages)
 
             cv2.imshow('Video Feed', frame)
 

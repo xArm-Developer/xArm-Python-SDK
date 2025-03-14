@@ -747,15 +747,15 @@ class _BlocklyHandler(_BlocklyBase):
 
     def _handle_gripper_set(self, block, indent=0, arg_map=None):
         fields = self._get_nodes('field', root=block)
-        if fields is not None and len(fields) >= 4:
+        if fields is not None and len(fields) >= 3:
             pos = fields[0].text
             speed = fields[1].text
-            wait = fields[3].text == 'TRUE'
+            wait = fields[2].text == 'TRUE'
         else:
             values = self._get_nodes('value', root=block)
             pos = self._get_nodes('field', root=values[0], descendant=True)[0].text
             speed = self._get_nodes('field', root=values[1], descendant=True)[0].text
-            wait = self._get_nodes('field', root=values[3], descendant=True)[0].text == 'TRUE'
+            wait = self._get_nodes('field', root=values[2], descendant=True)[0].text == 'TRUE'
         self._append_main_code('code = self._arm.set_gripper_position({}, wait={}, speed={}, auto_enable=True)'.format(pos, wait, speed), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_gripper_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)

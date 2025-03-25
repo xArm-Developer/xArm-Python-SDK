@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.14.11): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -1576,7 +1576,16 @@ xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrappe
 
 > Get the digital value of the specified Tool GPIO  
 >   
-> :param ionum: 0 or 1 or None(both 0 and 1), default is None  
+> :param ionum: 0 or 1 or or 2 or 3 or 4 (both 0 and 4), default is None  
+> :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __get_tool_digital_input__(self, ionum=None):
+
+> Get the digital value of the specified Tool GPIO, Compared with the "get_tgpio_digital" interface, the value of TI2 is obtained when the ionum is not transmitted. 
+>   
+> :param ionum: 0 or 1 or or 2 or 3 or 4 (both 0 and 4), default is None  
 > :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

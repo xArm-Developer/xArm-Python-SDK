@@ -1888,6 +1888,17 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.get_tgpio_digital(ionum)
+    
+    def get_tool_digital_input(self, ionum=None):
+        """
+        Get the digital value of the specified Tool GPIO,Compared with the "get_tgpio_digital" interface,
+            the value of TI2 is obtained when the ionum is not transmitted.
+
+        :param ionum: 0 or 1 or or 2 or 3 or 4 (both 0 and 4), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.get_tool_digital_input(ionum)
 
     def set_tgpio_digital(self, ionum, value, delay_sec=None, sync=True):
         """

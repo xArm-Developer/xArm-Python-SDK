@@ -230,9 +230,9 @@ class _BlocklyBase(_BlocklyNode):
             is_axis = True if fields[0].text == 'axis' else False
             direction = int(fields[1].text)
             if is_axis:
-                return 'round(self._arm.position_aa[{}], 2)'.format(direction-1)
+                return 'round(self._arm.get_position_aa()[1][{}], 2)'.format(direction-1)
             else:
-                return 'round(self._arm.position[{}], 2)'.format(direction-1)
+                return 'round(self._arm.get_position()[1][{}], 2)'.format(direction-1)
         elif block.attrib['type'] == 'get_joint_angle':
             angle_li = ['J1', 'J2', 'J3', 'J4', 'J5', 'J6']
             fields = self._get_nodes('field', root=block)

@@ -97,6 +97,9 @@ class BlocklyTool(_BlocklyHandler):
             self._append_main_code('            # Event Loop', indent=-1)
             self._append_main_code('            while self.is_alive:', indent=-1)
             self._append_main_code('                time.sleep(0.5)', indent=-1)
+        
+        if self._is_main_run_code and (self._main_run_code_list[-1] == '        try:' or '            # ' in self._main_run_code_list[-1]):
+            self._append_main_code('            pass', indent=-1)
         # catch exception and release callback
         self._append_main_code('        except Exception as e:', indent=-1)
         self._append_main_code('            self.pprint(\'MainException: {}\'.format(e))', indent=-1)

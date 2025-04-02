@@ -81,7 +81,7 @@ class GPIO(Base):
     def get_tgpio_digital(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
         if self.check_is_simulation_robot():
-            return 0, [0, 0] if ionum is None else 0
+            return 0, [0, 0, 0, 0] if ionum is None else 0
         if ionum == 2:
             # Only available for Lite6 and 850
             ret = self.arm_cmd.tgpio_addr_r16(0x0A12)
@@ -96,7 +96,7 @@ class GPIO(Base):
     def get_tool_digital_input(self, ionum=None):
         assert ionum is None or ionum == 0 or ionum == 1 or ionum == 2 or ionum == 3 or ionum == 4, 'The value of parameter ionum can only be 0 or 1 or None.'
         if self.check_is_simulation_robot():
-            return 0, [0, 0] if ionum is None else 0
+            return 0, [0, 0, 0, 0, 0] if ionum is None else 0
         if ionum == 2:
             # Only available for Lite6 and 850
             ret = self.arm_cmd.tgpio_addr_r16(0x0A12)

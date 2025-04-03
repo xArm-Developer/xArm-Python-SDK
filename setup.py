@@ -1,59 +1,34 @@
 #!/usr/bin/env python3
-# Software License Agreement (BSD License)
-#
-# Copyright (c) 2017, UFactory, Inc.
-# All rights reserved.
-#
+# BSD License (c) 2017, UFactory, Inc.
 # Author: Vinman <vinman.wen@ufactory.cc>
 
 import os
-from distutils.util import convert_path
+
+# Prefer setuptools but fall back to distutils if needed
 try:
-    from setuptools import setup, find_packages
+    from setuptools import setup
 except ImportError:
     from distutils.core import setup
-
-    def find_packages(base_path='.'):
-        base_path = convert_path(base_path)
-        found = []
-        for root, dirs, files in os.walk(base_path, followlinks=True):
-            dirs[:] = [d for d in dirs if d[0] != '.' and d not in ('ez_setup', '__pycache__')]
-            relpath = os.path.relpath(root, base_path)
-            parent = relpath.replace(os.sep, '.').lstrip('.')
-            if relpath != '.' and parent not in found:
-                # foo.bar package but no foo package, skip
-                continue
-            for dir in dirs:
-                if os.path.isfile(os.path.join(root, dir, '__init__.py')):
-                    package = '.'.join((parent, dir)) if parent else dir
-                    found.append(package)
-        return found
-
+    
+# Load version from xarm/version.py
 main_ns = {}
-ver_path = convert_path('xarm/version.py')
-with open(os.path.join(os.getcwd(), ver_path)) as ver_file:
-    exec(ver_file.read(), main_ns)
-
+with open(os.path.join(os.getcwd(), 'xarm/version.py')) as f:
+    exec(f.read(), main_ns)
 version = main_ns['__version__']
 
-long_description = open('README.rst').read()
-# long_description = 'long description for xArm-Python-SDK'
-
-try:
-    with open(os.path.join(os.getcwd(), 'requirements.txt')) as f:
-        requirements = f.read().splitlines()
-except:
-    requirements = []
+# Read README.rst and requirements.txt
+with open('README.rst', encoding='utf-8') as f:
+    long_description = f.read()
+with open(os.path.join(os.getcwd(), 'requirements.txt'), encoding='utf-8') as f:
+    requirements = f.read().splitlines()
 
 setup(
-    name='xArm-Python-SDK',
+    name="xarm-python-sdk",
     version=version,
-    author='Vinman',
-    description='Python SDK for xArm',
-    packages=find_packages(),
-    author_email='vinman@ufactory.cc',
+    packages=['xarm'],
     install_requires=requirements,
+    author="Vinman <vinman.wen@ufactory.cc>",
+    description="Python SDK for xArm Robotics",
     long_description=long_description,
-    license='MIT',
-    zip_safe=False
+    python_requires=">=3.0",
 )

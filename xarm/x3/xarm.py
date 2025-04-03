@@ -1555,13 +1555,19 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
             x = kwargs.get('x') if 'x' in kwargs else args[0]
             y = kwargs.get('y') if 'y' in kwargs else args[1]
             z = kwargs.get('z') if 'z' in kwargs else args[2]
-            params = [x, y, z]
+            x_offset = kwargs.get('x_offset') if 'x_offset' in kwargs else args[3] if len(args) >= 4 else 0
+            y_offset = kwargs.get('y_offset') if 'y_offset' in kwargs else args[4] if len(args) >= 5 else 0
+            z_offset = kwargs.get('z_offset') if 'z_offset' in kwargs else args[5] if len(args) >= 6 else 0
+            params = [x, y, z, x_offset, y_offset, z_offset]
         elif tool_type == XCONF.CollisionToolType.CYLINDER:
             assert ('radius' in kwargs or len(args) >= 2) \
                    and ('height' in kwargs or len(args) >= 1), 'params error, must specify radius,height parameter'
             radius = kwargs.get('radius') if 'radius' in kwargs else args[0]
             height = kwargs.get('height') if 'height' in kwargs else args[1]
-            params = [radius, height]
+            x_offset = kwargs.get('x_offset') if 'x_offset' in kwargs else args[2] if len(args) >= 3 else 0
+            y_offset = kwargs.get('y_offset') if 'y_offset' in kwargs else args[3] if len(args) >= 4 else 0
+            z_offset = kwargs.get('z_offset') if 'z_offset' in kwargs else args[4] if len(args) >= 5 else 0
+            params = [radius, height, x_offset, y_offset, z_offset]
         else:
             params = [] if tool_type < XCONF.CollisionToolType.USE_PRIMITIVES else list(args)
         ret = self.arm_cmd.set_collision_tool_model(tool_type, params)
@@ -1756,19 +1762,21 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         return ret[0], ret[1][0]
 
     @xarm_is_connected(_type='set')
-    def get_max_joint_velocity(self, eveloc, joint_pos, is_radian=None):
+    def get_max_joint_velocity(self, eveloc, joint_pos, is_radian=None, return_is_radian=True):
         """
         Obtain maximum joint angular velocity
         :param eveloc: Maximum TCP speed
         :param joint_pos: joint angle list (unit: rad if is_radian is True else °), angle should be a list of values
-            whose length is the number of joints like [axis-1, axis-2, axis-3, axis-3, axis-4, axis-5, axis-6, axis-7]
-        :param is_radian: the max_joint_speed of the states is in radians or not, default is self.default_is_radian
+            whose length is the number of joints like [axis-1, axis-2, axis-3, axis-4, axis-5, axis-6, axis-7]
+        :param is_radian: the param angles value is in radians or not, default is self.default_is_radian
+        :param return_is_radian: the returned value is in radians or not, default is True
         """
         is_radian = self._default_is_radian if is_radian is None else is_radian
         joints = [0] * 7
         for i in range(min(len(joint_pos), 7)):
             joints[i] = to_radian(joint_pos[i], is_radian)
-        return self.arm_cmd.get_max_joint_velocity(eveloc, joints)
+        ret = self.arm_cmd.get_max_joint_velocity(eveloc, joints)
+        return ret if return_is_radian else math.radians(ret)
 
     @xarm_is_connected(_type='get')
     def iden_tcp_load(self, estimated_mass=0):
@@ -1855,7 +1863,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
     @xarm_is_ready(_type='set')
     def send_hex_cmd(self, datas, timeout=10):
         ret = self.arm_cmd.send_hex_cmd(datas, timeout)
-        return ret[1:]
+        return self._check_code(ret[0]), ret[1:]
         # ret = self.arm_cmd.send_hex_request(datas)
         # if ret == -1:
         #     return [XCONF.UxbusState.ERR_NOTTCP]

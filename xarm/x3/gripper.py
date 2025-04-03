@@ -628,7 +628,9 @@ class Gripper(GPIO):
             return code, ''
         else:
             self._bio_gripper_version = 2
-            return code, ''.join(list(map(chr, ret[5:])))
+            # return code, ''.join(list(map(chr, ret[5:])))
+            ret_list = [int(str(ret[i]) + str(ret[i+1])) for i in range(3, 31, 2)]
+            return code, ''.join(list(map(chr, ret_list)))
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -695,7 +697,8 @@ class Gripper(GPIO):
         if self._bio_gripper_version == 2:
             code, mode = self.get_bio_gripper_control_mode()
             if mode == 1:
-                pos = int(pos * 3.798 - 269.620)
+                # pos = int(pos * 3.798 - 269.620)
+                pos = int(pos * 3.7342 - 265.13)
             self.set_bio_gripper_force(force)
 
         data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04]
@@ -703,7 +706,9 @@ class Gripper(GPIO):
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
         if code == 0 and wait:
             code = self.__bio_gripper_wait_motion_completed(timeout=timeout)
-        self.log_api_info('API -> set_bio_gripper_position(pos={}, wait={}, timeout={}) ->code={}'.format(pos, wait, timeout, code), code=code)
+        self.log_api_info(
+            'API -> set_bio_gripper_position(pos={}, wait={}, timeout={}) ->code={}'.format(pos, wait, timeout, code),
+            code=code)
         return code
 
     @xarm_is_connected(_type='set')
@@ -775,6 +780,28 @@ class Gripper(GPIO):
             versions[1] = convert.bytes_to_u16(ret[5:7])
             versions[2] = convert.bytes_to_u16(ret[7:9])
         return code, '.'.join(map(str, versions))
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
+    def get_bio_gripper_position(self):
+        code, ret = self.get_bio_gripper_register(address=0x0702, number_of_registers=2)
+        bio_position = (ret[-4] * 256**3 + ret[-3] * 256**2 + ret[-2] * 256 + ret[-1]) if code == 0 else -1
+        bio_position = round((bio_position + 265.13) / 3.7342, 0)
+        return code, bio_position
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
+    def get_bio_gripper_speed(self):
+        code, ret = self.get_bio_gripper_register(address=0x0303)
+        bio_speed = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
+        return code, bio_speed
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=(0, 0))
+    def get_bio_gripper_force(self):
+        code, ret = self.get_bio_gripper_register(address=0x0506)
+        bio_force = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
+        return code, bio_force
 
     @xarm_is_connected(_type='set')
     def clean_bio_gripper_error(self):

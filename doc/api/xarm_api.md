@@ -1196,6 +1196,16 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __get_tool_digital_input__(self, ionum=None):
+
+> Get the digital value of the specified Tool GPIO,Compared with the "get_tgpio_digital" interface,  
+> &ensp;&ensp;&ensp;&ensp;the value of TI2 is obtained when the ionum is not transmitted.  
+>   
+> :param ionum: 0 or 1 or or 2 or 3 or 4 (both 0 and 4), default is None  
+> :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __get_traj_speeding__(self, rate):
 
 > Obtain the joint and velocity values of joint overspeed during trajectory recording  
@@ -2049,11 +2059,12 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_bio_gripper_control_mode__(self, mode):
 
-> Set the mode of the bio gripper  
+> Set the bio gripper control mode  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
 >   
-> :param mode: mode  
+> :param mode: 0: bio gripper opening and closing mode  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: position loop mode  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2073,11 +2084,11 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_bio_gripper_force__(self, force):
 
-> Set the force of the bio gripper  
+> Set the bio gripper force  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
 >   
-> :param force: force (1-100)  
+> :param force: gripper force between 10 and 100  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2085,18 +2096,17 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_bio_gripper_position__(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
 
-> Set the position of the bio gripper  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
+> Set the bio gripper position  
 >   
-> :param pos: position(70-150)  
-> :param speed: speed value, default is 0 (not set the speed)  
-> :param force: force value, default is 100  
-> :param wait: whether to wait for the bio gripper motion complete, default is True  
+> :param pos: gripper pos between 71 and 150  
+> :param speed: gripper speed between 0 and 4500  
+> :param force: gripper force between 10 and 100  
+> :param wait: whether to wait for the robotiq motion to complete, default is True  
 > :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True  
 >   
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+> :return: tuple((code, robotiq_response))  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;robotiq_response: See the robotiq documentation
 
 
 #### def __set_bio_gripper_speed__(self, speed):

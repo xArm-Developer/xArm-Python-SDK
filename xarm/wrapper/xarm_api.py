@@ -1889,6 +1889,17 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.get_tgpio_digital(ionum)
+    
+    def get_tool_digital_input(self, ionum=None):
+        """
+        Get the digital value of the specified Tool GPIO,Compared with the "get_tgpio_digital" interface,
+            the value of TI2 is obtained when the ionum is not transmitted.
+
+        :param ionum: 0 or 1 or or 2 or 3 or 4 (both 0 and 4), default is None
+        :return: tuple((code, value or value list)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.get_tool_digital_input(ionum)
 
     def set_tgpio_digital(self, ionum, value, delay_sec=None, sync=True):
         """
@@ -2805,44 +2816,47 @@ class XArmAPI(object):
 
     def set_bio_gripper_control_mode(self, mode):
         """
-        Set the mode of the bio gripper
+        Set the bio gripper control mode
         Note:
             1. Only available in the new version of BIO Gripper
 
         :param mode: mode
-        
+            0: bio gripper opening and closing mode
+            1: position loop mode
+
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
+        
         return self._arm.set_bio_gripper_control_mode(mode)
 
     def set_bio_gripper_force(self, force):
         """
-        Set the force of the bio gripper
+        Set the bio gripper force
         Note:
             1. Only available in the new version of BIO Gripper
 
-        :param force: force (1-100)
-        
+        :param force: gripper force between 10 and 100
+
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
+
         return self._arm.set_bio_gripper_force(force)
 
     def set_bio_gripper_position(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
         """
-        Set the position of the bio gripper
-        Note:
-            1. Only available in the new version of BIO Gripper
-        
-        :param pos: position(70-150)
-        :param speed: speed value, default is 0 (not set the speed)
-        :param force: force value, default is 100
-        :param wait: whether to wait for the bio gripper motion complete, default is True
+        Set the bio gripper position
+
+        :param pos: gripper pos between 71 and 150
+        :param speed: gripper speed between 0 and 4500
+        :param force: gripper force between 10 and 100
+        :param wait: whether to wait for the robotiq motion to complete, default is True
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
-        
-        :return: code
+
+        :return: tuple((code, robotiq_response))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            robotiq_response: See the robotiq documentation
         """
         return self._arm.set_bio_gripper_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 

@@ -62,7 +62,7 @@ arm.set_impedance_config(ref_frame, c_axis)
 # enable ft sensor communication
 arm.ft_sensor_enable(1)
 # will overwrite previous sensor zero and payload configuration
-arm.ft_sensor_set_zero() # remove this if zero_offset and payload already identified & compensated!
+# arm.ft_sensor_set_zero() # remove this if zero_offset and payload already identified & compensated!
 time.sleep(0.2) # wait for writing zero operation to take effect, do not remove
 
 arm.ft_sensor_app_set(1)    #1: impedance control mode

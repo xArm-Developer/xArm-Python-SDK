@@ -47,7 +47,7 @@ time.sleep(0.1)
 # set pid parameters for force control
 Kp = 0.005  # range: 0 ~ 0.05
 Ki = 0.00005 # range: 0 ~ 0.0005
-Kd = 0.05  # range: 0 ~ 0.1
+Kd = 0.05  # range: 0 ~ 0.05
 linear_v_max = 200.0 # max adjust velocity(mm/s), range: 0 ~ 200
 rot_v_max = 0.35 # rad/s range: 0~pi/4
 arm.set_force_control_pid([Kp]*6, [Ki]*6, [Kd]*6, [linear_v_max, linear_v_max, linear_v_max, rot_v_max, rot_v_max, rot_v_max])

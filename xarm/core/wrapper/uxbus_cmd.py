@@ -1397,9 +1397,12 @@ class UxbusCmd(object):
         txdata = bytes([param_type])
         if param_type == 1:
             txdata += convert.fp32_to_bytes(param_val)
+        elif param_type == 12 or param_type == 14:
+            txdata += convert.fp32s_to_bytes(param_val, 6)
         else:
+            # 2/3/6/11/13
             txdata += convert.int32_to_bytes(param_val)
-        return self.set_nu8(XCONF.UxbusReg.SET_COMMON_PARAM, txdata, 5)
+        return self.set_nu8(XCONF.UxbusReg.SET_COMMON_PARAM, txdata, len(txdata))
     
     def get_common_param(self, param_type):
         txdata = bytes([param_type])
@@ -1409,7 +1412,10 @@ class UxbusCmd(object):
         if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
             if param_type == 1:
                 data[1] = convert.bytes_to_fp32(ret[1:])
+            elif param_type == 12 or param_type == 14:
+                data[1] = convert.bytes_to_fp32s(ret[1:], 6)
             else:
+                # 2/3/6/11/13
                 data[1] = convert.bytes_to_u32(ret[1:])
         return data
 

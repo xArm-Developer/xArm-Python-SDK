@@ -14,6 +14,7 @@ import uuid
 import queue
 import struct
 import threading
+from collections.abc import Iterable
 try:
     from multiprocessing.pool import ThreadPool
 except:
@@ -2602,3 +2603,36 @@ class Base(BaseObject, Events):
         ret = self.arm_cmd.get_traj_speeding(rate)
         ret[0] = self._check_code(ret[0])
         return ret[0], ret[1:]
+    
+    def set_ft_collision_detection(self, on_off):
+        return self.set_common_param(11, int(on_off))
+
+    def set_ft_collision_rebound(self, on_off):
+        return self.set_common_param(13, int(on_off))
+
+    def set_ft_collision_threshold(self, thresholds):
+        assert isinstance(thresholds, Iterable) and len(thresholds) >= 6
+        return self.set_common_param(12, thresholds)
+
+    def set_ft_collision_reb_distance(self, distances, is_radian=None):
+        assert isinstance(distances, Iterable) and len(distances) >= 6
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        if not is_radian:
+            distances[3:6] = list(map(lambda x: float('{}'.format(math.radians(x))), distances[3:6]))
+        return self.set_common_param(14, distances)
+
+    def get_ft_collision_detection(self):
+        return self.get_common_param(11)
+
+    def get_ft_collision_rebound(self):
+        return self.get_common_param(13)
+
+    def get_ft_collision_threshold(self):
+        return self.get_common_param(12)
+
+    def get_ft_collision_reb_distance(self, is_radian=None):
+        ret = self.get_common_param(14)
+        is_radian = self._default_is_radian if is_radian is None else is_radian
+        if ret[0] == 0 and not is_radian:
+            ret[1][3:6] = list(map(lambda x: float('{:.6f}'.format(math.degrees(x))), ret[1][3:6]))
+        return ret

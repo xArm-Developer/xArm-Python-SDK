@@ -1678,16 +1678,17 @@ class XArmAPI(object):
 
     def set_gravity_direction(self, direction, wait=True):
         """
-        Set the direction of gravity
+        Set the gravity direction for proper torque compensation and collision detection.
 
         Note:
-            1. Do not use if not required
-            2. If not saved, it will be lost after reboot
-            3. The save_conf interface can record the current settings and will not be lost after the restart.
+            1. Use only if necessary. Incorrect settings may affect torque compensation.
+            2. Changes are not saved automatically. Call save_conf() to save the settings, 
+           otherwise, they will be lost after a reboot.
+            3. Use clean_conf() to restore the system default settings.
             4. The clean_conf interface can restore system default settings
 
-        :param direction: direction of gravity, such as [x(mm), y(mm), z(mm)]
-        :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting
+        :param direction: Gravity direction vector [x, y, z], e.g., [0, 0, -1] for a floor-mounted arm.
+        :param wait: Whether to wait for the robotic arm to stop or clear all previous queued commands before applying the setting.
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -2801,6 +2802,49 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.set_bio_gripper_speed(speed)
+
+    def set_bio_gripper_control_mode(self, mode):
+        """
+        Set the mode of the bio gripper
+        Note:
+            1. Only available in the new version of BIO Gripper
+
+        :param mode: mode
+        
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_bio_gripper_control_mode(mode)
+
+    def set_bio_gripper_force(self, force):
+        """
+        Set the force of the bio gripper
+        Note:
+            1. Only available in the new version of BIO Gripper
+
+        :param force: force (1-100)
+        
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_bio_gripper_force(force)
+
+    def set_bio_gripper_position(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
+        """
+        Set the position of the bio gripper
+        Note:
+            1. Only available in the new version of BIO Gripper
+        
+        :param pos: position(70-150)
+        :param speed: speed value, default is 0 (not set the speed)
+        :param force: force value, default is 100
+        :param wait: whether to wait for the bio gripper motion complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
+        
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_bio_gripper_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
     def open_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
         """
@@ -4222,8 +4266,125 @@ class XArmAPI(object):
         :return: tuple((code, speed_info)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             speed_info: [result_code, servo_id, servo_speed]
-                        result_code: 0：Pass, -1: Fail, >0: abnormal(1:Trajectory not loaded or incorrect status;2:The input magnification is incorrect)
+                        result_code: 0: Pass, -1: Fail, >0: abnormal(1:Trajectory not loaded or incorrect status;2:The input magnification is incorrect)
                         servo_id: Effective only when result_code is -1
                         servo_speed: Effective only when result_code is -1
         """
         return self._arm.get_traj_speeding(rate)
+    
+    def set_ft_collision_detection(self, on_off):
+        """
+        Set whether to enable collision detection with the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.5.109
+            2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
+            3. the Six-axis Force Torque Sensor needs to be enabled and set force mode
+        
+        :param on_off: enable or not
+        
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_ft_collision_detection(on_off)
+
+    def set_ft_collision_rebound(self, on_off):
+        """
+        Set whether to enable collision rebound with the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.5.109
+        
+        :param on_off: enable or not
+        
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_ft_collision_rebound(on_off)
+
+    def set_ft_collision_threshold(self, thresholds):
+        """
+        Set the threshold of the collision detection with the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.5.109
+
+        :param thresholds: collision detection thresholds, [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
+            x: [5, 200] (N)
+            y: [5, 200] (N)
+            z: [5, 200] (N)
+            Rx: [0.1, 4] (Nm)
+            Ry: [0.1, 4] (Nm)
+            Rz: [0.1, 4] (Nm)
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_ft_collision_threshold(thresholds)
+
+    def set_ft_collision_reb_distance(self, distances, is_radian=None):
+        """
+        Set the rebound distance of the collision rebound with the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.5.109
+
+        :param distances: collision rebound distance, [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]
+            x: [2, 200] (mm)
+            y: [2, 200] (mm)
+            z: [2, 200] (mm)
+            Rx: [0.2, 50] (°)
+            Ry: [0.2, 50] (°)
+            Rz: [0.2, 50] (°)
+        :param is_radian: the value of distance (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_ft_collision_reb_distance(distances, is_radian=is_radian)
+    
+    def get_ft_collision_detection(self):
+        """
+        Get the collision detection with the Six-axis Force Torque Sensor is enable or not
+        Note:
+            1. only available if firmware_version >= 2.5.109
+
+        :return: tuple((code, on_off)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            on_off: enable or not
+        """
+        return self._arm.get_ft_collision_detection()
+
+    def get_ft_collision_rebound(self):
+        """
+        Get the collision rebound with the Six-axis Force Torque Sensor is enable or not
+        Note:
+            1. only available if firmware_version >= 2.5.109
+
+        :return: tuple((code, on_off)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            on_off: enable or not
+        """
+        return self._arm.get_ft_collision_rebound()
+
+    def get_ft_collision_threshold(self):
+        """
+        Get the collision threshold with the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.5.109
+
+        :return: tuple((code, threshold)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
+        """
+        return self._arm.get_ft_collision_threshold()
+
+    def get_ft_collision_reb_distance(self, is_radian=None):
+        """
+        Get the collision rebound distance with the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.5.109
+
+        :param is_radian: the returned value (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian
+
+        :return: tuple((code, threshold)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            distance: [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]
+        """
+        return self._arm.get_ft_collision_reb_distance(is_radian=is_radian)

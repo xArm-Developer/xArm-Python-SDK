@@ -1,478 +1,9 @@
-xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
 
 >   
-
-### __Attributes__
-****************************************
-#### __angles__
-
-> Servo angles  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
->   
-> :return: [angle1(° or rad), angle2(° or rad), ..., anglen7(° or rad)]  
-
-
-#### __arm__
-
-> XArm interface implementation class instance, do not use (compatibility is not guaranteed)  
-
-
-#### __axis__
-
-> Axis number, only available in socket way and enable_report is True and report_type is 'rich'  
-
-
-#### __cgpio_states__
-
-> Controller gpio state  
->   
-> :return: states  
-> &ensp;&ensp;&ensp;&ensp;states[0]: contorller gpio module state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 0: normal  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 1: wrong  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 6: communication failure  
-> &ensp;&ensp;&ensp;&ensp;states[1]: controller gpio module error code  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] == 0: normal  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] != 0: error code  
-> &ensp;&ensp;&ensp;&ensp;states[2]: digital input functional gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input functional gpio state = states[2] >> i & 0x01  
-> &ensp;&ensp;&ensp;&ensp;states[3]: digital input configuring gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input configuring gpio state = states[3] >> i & 0x01  
-> &ensp;&ensp;&ensp;&ensp;states[4]: digital output functional gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output functional gpio state = states[4] >> i & 0x01  
-> &ensp;&ensp;&ensp;&ensp;states[5]: digital output configuring gpio state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output configuring gpio state = states[5] >> i & 0x01  
-> &ensp;&ensp;&ensp;&ensp;states[6]: analog-0 input value  
-> &ensp;&ensp;&ensp;&ensp;states[7]: analog-1 input value  
-> &ensp;&ensp;&ensp;&ensp;states[8]: analog-0 output value  
-> &ensp;&ensp;&ensp;&ensp;states[9]: analog-1 output value  
-> &ensp;&ensp;&ensp;&ensp;states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]  
-> &ensp;&ensp;&ensp;&ensp;states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]  
-
-
-#### __cmd_num__
-
-> Number of command caches in the controller  
-
-
-#### __collision_sensitivity__
-
-> The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'  
->   
-> :return: 0~5  
-
-
-#### __connected__
-
-> Connection status  
-
-
-#### __control_box_sn__
-
-> Control box sn  
-
-
-#### __core__
-
-> Core layer API, set only for advanced developers, please do not use  
-> Ex:  
-> &ensp;&ensp;&ensp;&ensp;self.core.move_line(...)  
-> &ensp;&ensp;&ensp;&ensp;self.core.move_lineb(...)  
-> &ensp;&ensp;&ensp;&ensp;self.core.move_joint(...)  
-> &ensp;&ensp;&ensp;&ensp;...  
-
-
-#### __count__
-
-> Counter val  
-
-
-#### __currents__
-
-> Servos electric current  
->   
-> :return: [servo-1-current, ..., servo-7-current]  
-
-
-#### __default_is_radian__
-
-> The default unit is radians or not  
-
-
-#### __device_type__
-
-> Device type, only available in socket way and  enable_report is True and report_type is 'rich'  
-
-
-#### __error_code__
-
-> Controller error code. See the [Controller Error Code Documentation](./xarm_api_code.md#controller-error-code) for details.  
-
-
-#### __ft_ext_force__
-
-> The external force detection value of the Six-axis Force Torque Sensor after filtering, load and offset compensation  
-
-
-#### __ft_raw_force__
-
-> The direct reading of the Six-axis Force Torque Sensor at the end, without any processing  
-
-
-#### __gpio_reset_config__
-
-> The gpio reset enable config  
-> :return: [cgpio_reset_enable, tgpio_reset_enable]  
-
-
-#### __gravity_direction__
-
-> gravity direction, only available in socket way and enable_report is True and report_type is 'rich'  
-> :return:  
-
-
-#### __has_err_warn__
-
-> Contorller have an error or warning or not  
->   
-> :return: True/False  
-
-
-#### __has_error__
-
-> Controller have an error or not  
-
-
-#### __has_warn__
-
-> Controller have an warnning or not  
-
-
-#### __is_simulation_robot__
-
-> Is simulation robot not not  
-
-
-#### __joint_acc_limit__
-
-> Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
->   
-> :return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]  
-
-
-#### __joint_jerk__
-
-> Joint jerk  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
->   
-> :return: jerk (°/s^3 or rad/s^3)  
-
-
-#### __joint_speed_limit__
-
-> Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
->   
-> :return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]  
-
-
-#### __joints_torque__
-
-> Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'  
->   
-> :return: [joint-1, ....]  
-
-
-#### __last_used_angles__
-
-> The last used servo angles, default value of parameter angle of interface set_servo_angle  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
-> &ensp;&ensp;&ensp;&ensp;2. self.set_servo_angle(servo_id=1, angle=75) < == > self.set_servo_angle(angle=[75] + self.last_used_angles[1:])  
-> &ensp;&ensp;&ensp;&ensp;3. self.set_servo_angle(servo_id=5, angle=30) < == > self.set_servo_angle(angle=self.last_used_angles[:4] + [30] + self.last_used_angles[5:])  
->   
-> :return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]  
-
-
-#### __last_used_joint_acc__
-
-> The last used joint acceleration, default value of parameter mvacc of interface set_servo_angle  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
->   
-> :return: acceleration (°/s^2 or rad/s^2)  
-
-
-#### __last_used_joint_speed__
-
-> The last used joint speed, default value of parameter speed of interface set_servo_angle  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
->   
-> :return: speed (°/s or rad/s)  
-
-
-#### __last_used_position__
-
-> The last used cartesion position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians  
-> &ensp;&ensp;&ensp;&ensp;2. self.set_position(x=300) < == > self.set_position(x=300, *last_used_position[1:])  
-> &ensp;&ensp;&ensp;&ensp;2. self.set_position(roll=-180) < == > self.set_position(x=self.last_used_position[:3], roll=-180, *self.last_used_position[4:])  
->   
-> :return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]  
-
-
-#### __last_used_tcp_acc__
-
-> The last used cartesion acceleration, default value of parameter mvacc of interface set_position/move_circle  
->   
-> :return: acceleration (mm/s^2)  
-
-
-#### __last_used_tcp_speed__
-
-> The last used cartesion speed, default value of parameter speed of interface set_position/move_circle  
->   
-> :return: speed (mm/s)  
-
-
-#### __master_id__
-
-> Master id, only available in socket way and enable_report is True and report_type is 'rich'  
-
-
-#### __mode__
-
-> xArm mode, only available in socket way and  enable_report is True  
->   
-> :return:  
-> &ensp;&ensp;&ensp;&ensp;0: position control mode  
-> &ensp;&ensp;&ensp;&ensp;1: servo motion mode  
-> &ensp;&ensp;&ensp;&ensp;2: joint teaching mode  
-> &ensp;&ensp;&ensp;&ensp;3: cartesian teaching mode (invalid)  
-> &ensp;&ensp;&ensp;&ensp;4: joint velocity control mode  
-> &ensp;&ensp;&ensp;&ensp;5: cartesian velocity control mode  
-> &ensp;&ensp;&ensp;&ensp;6: joint online trajectory planning mode   
-> &ensp;&ensp;&ensp;&ensp;7: cartesian online trajectory planning mode  
-
-
-#### __motor_brake_states__
-
-> Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.  
->   
-> :return: [motor-1-brake-state, ..., motor-7-brake-state, reserved]  
-> &ensp;&ensp;&ensp;&ensp;motor-{i}-brake-state:  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: enable  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: disable  
-
-
-#### __motor_enable_states__
-
-> Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.  
->   
-> :return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]  
-> &ensp;&ensp;&ensp;&ensp;motor-{i}-enable-state:  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: disable  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: enable  
-
-
-#### __only_check_result__
-
-#### __position__
-
-> Cartesion position  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians  
->   
-> return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]  
-
-
-#### __position_aa__
-
-> The pose represented by the axis angle pose  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians  
->   
-> :return: [x(mm), y(mm), z(mm), rx(° or rad), ry(° or rad), rz(° or rad)]  
-
-
-#### __realtime_joint_speeds__
-
-> The real time speed of joint motion, only available if version > 1.2.11  
->   
-> :return: [joint-1-speed(°/s or rad/s), ...., joint-7-speed(°/s or rad/s)]  
-
-
-#### __realtime_tcp_speed__
-
-> The real time speed of tcp motion, only available if version > 1.2.11  
->   
-> :return: real time speed (mm/s)  
-
-
-#### __robotiq_status__
-
-> The last state value obtained  
->   
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. Successfully call the robotiq related interface with wait parameter (when the parameter wait = True is set) will update this value  
-> &ensp;&ensp;&ensp;&ensp;2. Successfully calling interface robotiq_get_status will partially or completely update this value  
->   
-> :return status dict  
-> &ensp;&ensp;&ensp;&ensp;{  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gOBJ': 0,  # Object detection status, is a built-in feature that provides information on possible object pick-up  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gSTA': 0,  # Gripper status, returns the current status & motion of the Gripper fingers  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gGTO': 0,  # Action status, echo of the rGTO bit(go to bit)  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gACT': 0,  # Activation status, echo of the rACT bit(activation bit)  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'kFLT': 0,  # Echo of the requested position for the Gripper  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gFLT': 0,  # Fault status  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gPR': 0,  # Echo of the requested position for the Gripper  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gPO': 0,  # Actual position of the Gripper obtained via the encoders  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gCU': 0,  # The current is read instantaneously from the motor drive  
-> &ensp;&ensp;&ensp;&ensp;}  
-> &ensp;&ensp;&ensp;&ensp;Note: -1 means never updated  
-
-
-#### __self_collision_params__
-
-> Self collision params  
->   
-> :return: params  
-> &ensp;&ensp;&ensp;&ensp;params[0]: self collision detection or not  
-> &ensp;&ensp;&ensp;&ensp;params[1]: self collision tool type  
-> &ensp;&ensp;&ensp;&ensp;params[2]: self collision model params  
-
-
-#### __servo_codes__
-
-> Servos status and error_code  
-> :return: [  
-> &ensp;&ensp;&ensp;&ensp;[servo-1-status, servo-1-code],  
-> &ensp;&ensp;&ensp;&ensp;...,  
-> &ensp;&ensp;&ensp;&ensp;[servo-7-status, servo-7-code],   
-> &ensp;&ensp;&ensp;&ensp;[tool-gpio-status, tool-gpio-code]  
-> ]  
-
-
-#### __slave_id__
-
-> Slave id, only available in socket way and enable_report is True and report_type is 'rich'  
-
-
-#### __sn__
-
-> xArm sn  
-
-
-#### __state__
-
-> xArm state  
->   
-> :return:  
-> &ensp;&ensp;&ensp;&ensp;1: in motion  
-> &ensp;&ensp;&ensp;&ensp;2: sleeping  
-> &ensp;&ensp;&ensp;&ensp;3: suspended  
-> &ensp;&ensp;&ensp;&ensp;4: stopping  
-
-
-#### __tcp_acc_limit__
-
-> Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'   
->   
-> :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]  
-
-
-#### __tcp_jerk__
-
-> Tcp jerk  
->   
-> :return: jerk (mm/s^3)  
-
-
-#### __tcp_load__
-
-> xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'  
->   
-> :return: [weight, center of gravity]  
-> &ensp;&ensp;&ensp;&ensp;such as: [weight(kg), [x(mm), y(mm), z(mm)]]  
-
-
-#### __tcp_offset__
-
-> Cartesion position offset, only available in socket way and enable_report is True  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians  
->   
-> :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]  
-
-
-#### __tcp_speed_limit__
-
-> Tcp speed limit, only available in socket way and enable_report is True and report_type is 'rich'  
->   
-> :return: [min_tcp_speed(mm/s), max_tcp_speed(mm/s)]  
-
-
-#### __teach_sensitivity__
-
-> The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'  
->   
-> :return: 1~5  
-
-
-#### __temperatures__
-
-> Motor temperature, only available if version > 1.2.11  
->   
-> :return: [motor-1-temperature, ..., motor-7-temperature]  
-
-
-#### __version__
-
-> xArm version  
-
-
-#### __version_number__
-
-> Frimware version number  
->   
-> :return: (major_version_number, minor_version_number, revision_version_number)  
-
-
-#### __voltages__
-
-> Servos voltage  
->   
-> :return: [servo-1-voltage, ..., servo-7-voltage]  
-
-
-#### __warn_code__
-
-> Controller warn code. See the [Controller Warn Code Documentation](./xarm_api_code.md#controller-warn-code) for details.  
-
-
-#### __world_offset__
-
-> Base coordinate offset, only available if version > 1.2.11  
->   
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians  
->   
-> :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]  
-
 
 ****************************************
 ### __Methods__
@@ -1095,6 +626,52 @@ xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
 
 
+#### def __get_ft_collision_detection__(self):
+
+> Get the collision detection with the Six-axis Force Torque Sensor is enable or not  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :return: tuple((code, on_off)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;on_off: enable or not
+
+
+#### def __get_ft_collision_reb_distance__(self, is_radian=None):
+
+> Get the collision rebound distance with the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :param is_radian: the returned value (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian  
+>   
+> :return: tuple((code, threshold)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;distance: [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]
+
+
+#### def __get_ft_collision_rebound__(self):
+
+> Get the collision rebound with the Six-axis Force Torque Sensor is enable or not  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :return: tuple((code, on_off)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;on_off: enable or not
+
+
+#### def __get_ft_collision_threshold__(self):
+
+> Get the collision threshold with the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :return: tuple((code, threshold)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
+
+
 #### def __get_ft_sensor_config__(self):
 
 > Get the config of the Six-axis Force Torque Sensor  
@@ -1627,7 +1204,7 @@ xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrappe
 > :return: tuple((code, speed_info)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;speed_info: [result_code, servo_id, servo_speed]  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;result_code: 0：Pass, -1: Fail, >0: abnormal(1:Trajectory not loaded or incorrect status;2:The input magnification is incorrect)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;result_code: 0: Pass, -1: Fail, >0: abnormal(1:Trajectory not loaded or incorrect status;2:The input magnification is incorrect)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;servo_id: Effective only when result_code is -1  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;servo_speed: Effective only when result_code is -1
 
@@ -2470,6 +2047,18 @@ xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_bio_gripper_control_mode__(self, mode):
+
+> Set the mode of the bio gripper  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
+>   
+> :param mode: mode  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __set_bio_gripper_enable__(self, enable=True, wait=True, timeout=3):
 
 > If not already enabled. Enable the bio gripper  
@@ -2477,6 +2066,34 @@ xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrappe
 > :param enable: enable or not  
 > :param wait: whether to wait for the bio gripper enable complete, default is True  
 > :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_bio_gripper_force__(self, force):
+
+> Set the force of the bio gripper  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
+>   
+> :param force: force (1-100)  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_bio_gripper_position__(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
+
+> Set the position of the bio gripper  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
+>   
+> :param pos: position(70-150)  
+> :param speed: speed value, default is 0 (not set the speed)  
+> :param force: force value, default is 100  
+> :param wait: whether to wait for the bio gripper motion complete, default is True  
+> :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2770,18 +2387,82 @@ xArm-Python-SDK API Documentation (V1.14.7): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_ft_collision_detection__(self, on_off):
+
+> Set whether to enable collision detection with the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+> &ensp;&ensp;&ensp;&ensp;3. the Six-axis Force Torque Sensor needs to be enabled and set force mode  
+>   
+> :param on_off: enable or not  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_collision_reb_distance__(self, distances, is_radian=None):
+
+> Set the rebound distance of the collision rebound with the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :param distances: collision rebound distance, [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]  
+> &ensp;&ensp;&ensp;&ensp;x: [2, 200] (mm)  
+> &ensp;&ensp;&ensp;&ensp;y: [2, 200] (mm)  
+> &ensp;&ensp;&ensp;&ensp;z: [2, 200] (mm)  
+> &ensp;&ensp;&ensp;&ensp;Rx: [0.2, 50] (°)  
+> &ensp;&ensp;&ensp;&ensp;Ry: [0.2, 50] (°)  
+> &ensp;&ensp;&ensp;&ensp;Rz: [0.2, 50] (°)  
+> :param is_radian: the value of distance (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_collision_rebound__(self, on_off):
+
+> Set whether to enable collision rebound with the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :param on_off: enable or not  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_collision_threshold__(self, thresholds):
+
+> Set the threshold of the collision detection with the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+>   
+> :param thresholds: collision detection thresholds, [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]  
+> &ensp;&ensp;&ensp;&ensp;x: [5, 200] (N)  
+> &ensp;&ensp;&ensp;&ensp;y: [5, 200] (N)  
+> &ensp;&ensp;&ensp;&ensp;z: [5, 200] (N)  
+> &ensp;&ensp;&ensp;&ensp;Rx: [0.1, 4] (Nm)  
+> &ensp;&ensp;&ensp;&ensp;Ry: [0.1, 4] (Nm)  
+> &ensp;&ensp;&ensp;&ensp;Rz: [0.1, 4] (Nm)  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __set_gravity_direction__(self, direction, wait=True):
 
-> Set the direction of gravity  
+> Set the gravity direction for proper torque compensation and collision detection.  
 >   
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. Do not use if not required  
-> &ensp;&ensp;&ensp;&ensp;2. If not saved, it will be lost after reboot  
-> &ensp;&ensp;&ensp;&ensp;3. The save_conf interface can record the current settings and will not be lost after the restart.  
+> &ensp;&ensp;&ensp;&ensp;1. Use only if necessary. Incorrect settings may affect torque compensation.  
+> &ensp;&ensp;&ensp;&ensp;2. Changes are not saved automatically. Call save_conf() to save the settings,   
+> &ensp;&ensp;&ensp;otherwise, they will be lost after a reboot.  
+> &ensp;&ensp;&ensp;&ensp;3. Use clean_conf() to restore the system default settings.  
 > &ensp;&ensp;&ensp;&ensp;4. The clean_conf interface can restore system default settings  
 >   
-> :param direction: direction of gravity, such as [x(mm), y(mm), z(mm)]  
-> :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
+> :param direction: Gravity direction vector [x, y, z], e.g., [0, 0, -1] for a floor-mounted arm.  
+> :param wait: Whether to wait for the robotic arm to stop or clear all previous queued commands before applying the setting.  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

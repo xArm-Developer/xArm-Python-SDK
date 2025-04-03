@@ -2,6 +2,10 @@
 
 ## Update Summary
 
+- > ### 1.15.0
+  - Added the Six-axis Force Torque Sensor collision detection related interfaces
+  - Added support for the new version of BIO Gripper control interface
+
 - > ### 1.14.7
   - Fixed the problem that single joint or direction movement fails in some cases (valid from firmware 2.5.0)
   - Added standard ModbusTcp client and Gcode client

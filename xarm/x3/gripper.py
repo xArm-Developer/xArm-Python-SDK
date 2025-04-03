@@ -20,6 +20,7 @@ class Gripper(GPIO):
     def __init__(self):
         super(Gripper, self).__init__()
         self._gripper_error_code = 0
+        self._bio_gripper_version = 0  # 0表示未曾获取SN判别，1表示旧的(获取SN失败), 2表示新的(获取SN成功)
 
     @property
     def gripper_error_code(self):
@@ -612,6 +613,56 @@ class Gripper(GPIO):
             code = self.__bio_gripper_wait_enable_completed(timeout=timeout)
         self.log_api_info('API -> set_bio_gripper_enable(enable={}, wait={}, timeout={}) ->code={}'.format(enable, wait, timeout, code), code=code)
         # self.bio_gripper_is_enabled = True if code == 0 else self.bio_gripper_is_enabled
+        self.get_bio_gripper_sn()
+        return code
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=0)
+    def get_bio_gripper_sn(self):
+        code, ret = self.get_bio_gripper_register(address=0x0B10, number_of_registers=16)
+        if code == APIState.MODBUS_ERR_LENG:
+            self._bio_gripper_version = 1
+            return code, ret
+        elif code != 0:
+            self._bio_gripper_version = 0
+            return code, ''
+        else:
+            self._bio_gripper_version = 2
+            return code, ''.join(list(map(chr, ret[5:])))
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    def set_bio_gripper_control_mode(self, mode):
+        data_frame = [0x08, 0x06, 0x11, 0x0A, 0x00, mode]
+        code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        # reset mcu
+        data_frame = [0x08, 0x06, 0x06, 0x07, 0x00, 0x01]
+        self.__bio_gripper_send_modbus(data_frame, 6)
+        # wait mcu reboot
+        time.sleep(0.6)
+        self.bio_gripper_speed = 0
+        return code
+
+    @xarm_is_connected(_type='get')
+    @xarm_is_not_simulation_mode(ret=0)
+    def get_bio_gripper_control_mode(self):
+        code, ret = self.get_bio_gripper_register(address=0x010A, number_of_registers=1)
+        mode = (ret[-2] * 256 + ret[-1]) if code == 0 else -1
+        return code, mode
+
+    # @xarm_is_connected(_type='set')
+    # @xarm_is_not_simulation_mode(ret=0)
+    # def set_bio_gripper_zero(self):
+    #     data_frame = [0x08, 0x06, 0x08, 0x0C, 0x00, 0x01]
+    #     code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+    #     return code
+
+    @xarm_is_connected(_type='set')
+    @xarm_is_not_simulation_mode(ret=0)
+    def set_bio_gripper_force(self, force):
+        force = 1 if force < 1 else 100 if force > 100 else force
+        data_frame = [0x08, 0x06, 0x05, 0x06, 0x00, force]
+        code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
         return code
 
     @xarm_is_connected(_type='set')
@@ -624,7 +675,7 @@ class Gripper(GPIO):
         return code
 
     @xarm_is_connected(_type='set')
-    def set_bio_gripper_position(self, pos, speed=0, wait=True, timeout=5, **kwargs):
+    def set_bio_gripper_position(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
@@ -638,6 +689,15 @@ class Gripper(GPIO):
             self.set_bio_gripper_enable(True)
         if speed > 0 and speed != self.bio_gripper_speed:
             self.set_bio_gripper_speed(speed)
+
+        if self._bio_gripper_version == 0:
+            self.get_bio_gripper_sn()
+        if self._bio_gripper_version == 2:
+            code, mode = self.get_bio_gripper_control_mode()
+            if mode == 1:
+                pos = int(pos * 3.798 - 269.620)
+            self.set_bio_gripper_force(force)
+
         data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04]
         data_frame.extend(list(struct.pack('>i', pos)))
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)

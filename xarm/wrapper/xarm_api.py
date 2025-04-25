@@ -4263,6 +4263,18 @@ class XArmAPI(object):
             # ret[1][1] = ret[1][1] if is_rad else math.degrees(ret[1][1])
         return ret
     
+    def get_c54_error_info(self):
+        """
+        Get (Six-axis Force Torque Sensor) collision error (C54) info
+        Note:
+            Only available if firmware_version >= 2.6.103
+
+        :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            err_info: [dir, tau threshold, actual tau]
+        """
+        return self._arm.get_common_info(107, return_val=False)
+
     def run_gcode_app(self, path, **kwargs):
         """
         Run gcode project file by xArmStudio software
@@ -4290,7 +4302,7 @@ class XArmAPI(object):
         """
         Set whether to enable collision detection with the Six-axis Force Torque Sensor
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
             3. the Six-axis Force Torque Sensor needs to be enabled and set force mode
         
@@ -4305,7 +4317,7 @@ class XArmAPI(object):
         """
         Set whether to enable collision rebound with the Six-axis Force Torque Sensor
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
         
         :param on_off: enable or not
         
@@ -4318,7 +4330,7 @@ class XArmAPI(object):
         """
         Set the threshold of the collision detection with the Six-axis Force Torque Sensor
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
 
         :param thresholds: collision detection thresholds, [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
             x: [5, 200] (N)
@@ -4337,12 +4349,12 @@ class XArmAPI(object):
         """
         Set the rebound distance of the collision rebound with the Six-axis Force Torque Sensor
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
 
         :param distances: collision rebound distance, [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]
-            x: [2, 200] (mm)
-            y: [2, 200] (mm)
-            z: [2, 200] (mm)
+            x: [2, 500] (mm)
+            y: [2, 500] (mm)
+            z: [2, 500] (mm)
             Rx: [0.2, 50] (°)
             Ry: [0.2, 50] (°)
             Rz: [0.2, 50] (°)
@@ -4357,7 +4369,7 @@ class XArmAPI(object):
         """
         Get the collision detection with the Six-axis Force Torque Sensor is enable or not
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
 
         :return: tuple((code, on_off)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4369,7 +4381,7 @@ class XArmAPI(object):
         """
         Get the collision rebound with the Six-axis Force Torque Sensor is enable or not
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
 
         :return: tuple((code, on_off)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4381,7 +4393,7 @@ class XArmAPI(object):
         """
         Get the collision threshold with the Six-axis Force Torque Sensor
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
 
         :return: tuple((code, threshold)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -4393,7 +4405,7 @@ class XArmAPI(object):
         """
         Get the collision rebound distance with the Six-axis Force Torque Sensor
         Note:
-            1. only available if firmware_version >= 2.5.109
+            1. only available if firmware_version >= 2.6.103
 
         :param is_radian: the returned value (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian
 

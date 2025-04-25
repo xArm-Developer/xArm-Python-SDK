@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.15.1): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -485,6 +485,17 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;err_info: [(servo_id, angle), ...]
 
 
+#### def __get_c54_error_info__(self):
+
+> Get (Six-axis Force Torque Sensor) collision error (C54) info  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.6.103  
+>   
+> :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;err_info: [dir, tau threshold, actual tau]
+
+
 #### def __get_c60_error_info__(self):
 
 > Get linear speed limit error (C60) info  
@@ -630,7 +641,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Get the collision detection with the Six-axis Force Torque Sensor is enable or not  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :return: tuple((code, on_off)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -641,7 +652,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Get the collision rebound distance with the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :param is_radian: the returned value (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian  
 >   
@@ -654,7 +665,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Get the collision rebound with the Six-axis Force Torque Sensor is enable or not  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :return: tuple((code, on_off)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -665,7 +676,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Get the collision threshold with the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :return: tuple((code, threshold)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -2063,8 +2074,9 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. Only available in the new version of BIO Gripper  
 >   
-> :param mode: 0: bio gripper opening and closing mode  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: position loop mode  
+> :param mode: mode  
+> &ensp;&ensp;&ensp;&ensp;0: bio gripper opening and closing mode  
+> &ensp;&ensp;&ensp;&ensp;1: position loop mode  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2401,7 +2413,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Set whether to enable collision detection with the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 > &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
 > &ensp;&ensp;&ensp;&ensp;3. the Six-axis Force Torque Sensor needs to be enabled and set force mode  
 >   
@@ -2415,12 +2427,12 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Set the rebound distance of the collision rebound with the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :param distances: collision rebound distance, [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]  
-> &ensp;&ensp;&ensp;&ensp;x: [2, 200] (mm)  
-> &ensp;&ensp;&ensp;&ensp;y: [2, 200] (mm)  
-> &ensp;&ensp;&ensp;&ensp;z: [2, 200] (mm)  
+> &ensp;&ensp;&ensp;&ensp;x: [2, 500] (mm)  
+> &ensp;&ensp;&ensp;&ensp;y: [2, 500] (mm)  
+> &ensp;&ensp;&ensp;&ensp;z: [2, 500] (mm)  
 > &ensp;&ensp;&ensp;&ensp;Rx: [0.2, 50] (°)  
 > &ensp;&ensp;&ensp;&ensp;Ry: [0.2, 50] (°)  
 > &ensp;&ensp;&ensp;&ensp;Rz: [0.2, 50] (°)  
@@ -2434,7 +2446,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Set whether to enable collision rebound with the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :param on_off: enable or not  
 >   
@@ -2446,7 +2458,7 @@ xArm-Python-SDK API Documentation (V1.15.0): class XArmAPI in module xarm.wrappe
 
 > Set the threshold of the collision detection with the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.5.109  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
 > :param thresholds: collision detection thresholds, [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]  
 > &ensp;&ensp;&ensp;&ensp;x: [5, 200] (N)  

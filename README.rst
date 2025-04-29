@@ -67,4 +67,4 @@ Bug Reports: support@ufactory.cc
 License
 -------
 
-MIT License. See `LICENSE <https://github.com/xArm-Developer/xArm-Python-SDK/blob/main/LICENSE>`_ for details.
+MIT License. See `LICENSE <https://github.com/xArm-Developer/xArm-Python-SDK/blob/master/LICENSE>`_ for details.

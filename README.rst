@@ -60,8 +60,6 @@ https://github.com/xArm-Developer/xArm-Python-SDK
 
 Website: https://www.ufactory.cc/
 
-GitHub: https://github.com/xArm-Developer/xArm-Python-SDK
-
 Release Note: https://github.com/xArm-Developer/xArm-Python-SDK/blob/master/README.md#update-summary
 
 Bug Reports: support@ufactory.cc

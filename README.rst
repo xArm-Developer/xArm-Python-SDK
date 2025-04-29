@@ -19,6 +19,11 @@ Supported Products
 - UFACTORY 850
 - UFACTORY Lite 6
 
+Compatibility
+-------------
+
+- Python 3.6 – 3.13
+
 Installation
 ------------
 

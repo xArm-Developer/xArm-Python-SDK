@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.15.1): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.15.2): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************

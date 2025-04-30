@@ -46,6 +46,6 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://www.ufactory.cc"
-Documentation = "https://github.com/xArm-Developer/xArm-Python-SDK/doc/api/xarm_api.md"
+Documentation = "https://github.com/xArm-Developer/xArm-Python-SDK/blob/master/doc/api/xarm_api.md"
 Repository = "https://github.com/xArm-Developer/xArm-Python-SDK.git"
 Issues = "https://github.com/xArm-Developer/xArm-Python-SDK/issues"

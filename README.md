@@ -14,7 +14,7 @@ xArm Python SDK
   - download
     ```bash
     git clone https://github.com/xArm-Developer/xArm-Python-SDK.git
-    cd cd xArm-Python-SDK
+    cd xArm-Python-SDK
     ```
   - install
     - install with build

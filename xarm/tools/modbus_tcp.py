@@ -13,28 +13,39 @@ import struct
 import logging
 import threading
 
-logger = logging.Logger('modbus_tcp')
-logger_fmt = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d] - - %(message)s'
-logger_date_fmt = '%Y-%m-%d %H:%M:%S'
-stream_handler = logging.StreamHandler(sys.stdout)
-stream_handler.setLevel(logging.DEBUG)
-stream_handler.setFormatter(logging.Formatter(logger_fmt, logger_date_fmt))
-logger.addHandler(stream_handler)
-logger.setLevel(logging.INFO)
+def create_logger(name):
+    logger = logging.Logger(name)
+    logger_fmt = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d] - - %(message)s'
+    logger_date_fmt = '%Y-%m-%d %H:%M:%S'
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(logging.Formatter(logger_fmt, logger_date_fmt))
+    logger.handlers.clear()
+    logger.addHandler(stream_handler)
+    logger.setLevel(logging.INFO)
+    return logger
 
 
 class ModbusTcpClient(object):
-    def __init__(self, ip, port=502, unit_id=0x01):
+    def __init__(self, ip, port=502, unit_id=0x01, logger=None):
+        if isinstance(logger, logging.Logger):
+            self.logger = logger
+        else:
+            self.logger = create_logger('modbus_tcp')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setblocking(True)
         self.sock.connect((ip, port))
+        self.logger.info('Connetc to ModbusTcpServer({}) success'.format(ip))
         self._transaction_id = 0
         self._protocol_id = 0x00
         self._unit_id = unit_id
         self._func_code = 0x00
         self._lock = threading.Lock()
-    
+
+    def close(self):
+        self.sock.close()
+
     def __wait_to_response(self, transaction_id=None, unit_id=None, func_code=None, timeout=3):
         expired = time.monotonic() + timeout
         recv_data = b''
@@ -59,22 +70,22 @@ class ModbusTcpClient(object):
             unit_id = recv_data[6]
             func_code = recv_data[7]
             if transaction_id != send_transaction_id:
-                logger.warning('Receive a reply with a mismatched transaction id (S: {}, R: {}), discard it and continue waiting.'.format(send_transaction_id, transaction_id))
+                self.logger.warning('Receive a reply with a mismatched transaction id (S: {}, R: {}), discard it and continue waiting.'.format(send_transaction_id, transaction_id))
                 length = 0
                 recv_data = b''
                 continue
             elif protocol_id != self._protocol_id:
-                logger.warning('Receive a reply with a mismatched protocol id (S: {}, R: {}), discard it and continue waiting.'.format(self._protocol_id, protocol_id))
+                self.logger.warning('Receive a reply with a mismatched protocol id (S: {}, R: {}), discard it and continue waiting.'.format(self._protocol_id, protocol_id))
                 length = 0
                 recv_data = b''
                 continue
             elif unit_id != send_unit_id:
-                logger.warning('Receive a reply with a mismatched unit id (S: {}, R: {}), discard it and continue waiting.'.format(send_unit_id, unit_id))
+                self.logger.warning('Receive a reply with a mismatched unit id (S: {}, R: {}), discard it and continue waiting.'.format(send_unit_id, unit_id))
                 length = 0
                 recv_data = b''
                 continue
             elif func_code != send_func_code and func_code != send_func_code + 0x80:
-                logger.warning('Receive a reply with a mismatched func code (S: {}, R: {}), discard it and continue waiting.'.format(send_func_code, func_code))
+                self.logger.warning('Receive a reply with a mismatched func code (S: {}, R: {}), discard it and continue waiting.'.format(send_func_code, func_code))
                 length = 0
                 recv_data = b''
                 continue
@@ -82,10 +93,10 @@ class ModbusTcpClient(object):
                 code = 0
                 break
         if code == 0 and len(recv_data) == 9:
-            logger.error('modbus tcp data exception, exp={}, res={}'.format(recv_data[8], recv_data))
+            self.logger.error('modbus tcp data exception, exp={}, res={}'.format(recv_data[8], recv_data))
             return recv_data[8], recv_data
         elif code != 0:
-            logger.error('recv timeout, len={}, res={}'.format(len(recv_data), recv_data))
+            self.logger.error('recv timeout, len={}, res={}'.format(len(recv_data), recv_data))
         return code, recv_data
 
     def __pack_to_send(self, pdu_data, unit_id=None):

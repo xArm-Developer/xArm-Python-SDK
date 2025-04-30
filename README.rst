@@ -22,7 +22,7 @@ Supported Products
 Compatibility
 -------------
 
-- Python 3.6 – 3.13
+- Python 3.5 - 3.13
 
 Installation
 ------------

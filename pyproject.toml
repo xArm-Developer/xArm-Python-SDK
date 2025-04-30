@@ -1,0 +1,51 @@
+[build-system]
+requires = [
+  "hatchling; python_full_version >= '3.8'",
+  "setuptools >= 40.8.0; python_full_version < '3.8'",
+]
+build-backend = "build_backend"
+backend-path = ["xarm"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["xarm"]
+
+[tool.hatch.version]
+path = "xarm/version.py"
+
+[project]
+name = "xarm-python-sdk"
+dynamic = ["version"]
+authors = [
+  { name="Vinman", email="vinman.wen@ufactory.cc" },
+]
+maintainers = [
+  { name="Vinman", email="vinman.wen@ufactory.cc" },
+  { name="Minna", email="minna.zhong@ufactory.cc" },
+]
+description = "Python SDK for UFACTORY robotic arm 850, xArm 5/6/7, and Lite6."
+readme = "README.rst"
+requires-python = ">=3.5"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+]
+# license = "BSD-3-Clause"
+# license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://www.ufactory.cc"
+Documentation = "https://github.com/xArm-Developer/xArm-Python-SDK/doc/api/xarm_api.md"
+Repository = "https://github.com/xArm-Developer/xArm-Python-SDK.git"
+Issues = "https://github.com/xArm-Developer/xArm-Python-SDK/issues"

@@ -39,21 +39,21 @@ arm.motion_enable(True)
 arm.set_mode(0)
 arm.set_state(0)
 
-ret = arm.core.set_modbus_timeout(20)
-print('set modbus timeout, ret = %d' % (ret[0]))
+code = arm.set_tgpio_modbus_timeout(20)
+print('set_tgpio_modbus_timeout, code={}'.format(code))
 
-ret = arm.core.set_modbus_baudrate(115200)
-print('set modbus baudrate, ret = %d' % (ret[0]))
+code = arm.set_tgpio_modbus_baudrate(115200)
+print('set_tgpio_modbus_baudrate, code={}'.format(code))
 time.sleep(2)
 
 while arm.connected:
     # yinshi open/close test
     data_frame = [0x01, 0x06, 0x00, 0x0A, 0x00, 0x03]
-    ret = arm.core.tgpio_set_modbus(data_frame, len(data_frame))
-    print('set modbus, ret = %d' % (ret[0]))
+    code, res_data = arm.getset_tgpio_modbus_data(data_frame)
+    print('getset_tgpio_modbus_data, code={}, res_data={}'.format(code, res_data))
     time.sleep(2)
 
     data_frame = [0x01, 0x06, 0x00, 0x0A, 0x03, 0x60]
-    ret = arm.core.tgpio_set_modbus(data_frame, len(data_frame))
-    print('set modbus, ret = %d' % (ret[0]))
+    code, res_data = arm.getset_tgpio_modbus_data(data_frame)
+    print('getset_tgpio_modbus_data, code={}, res_data={}'.format(code, res_data))
     time.sleep(1)

@@ -2089,6 +2089,7 @@ class Base(BaseObject, Events):
     @xarm_is_connected(_type='get')
     def get_joint_states(self, is_radian=None, num=3):
         is_radian = self._default_is_radian if is_radian is None else is_radian
+        num = num if self.version_is_ge(2, 6, 107) else (num & 0x0F)
         ret = self.arm_cmd.get_joint_states(num=num)
         ret[0] = self._check_code(ret[0])
         positon = ret[1:8]

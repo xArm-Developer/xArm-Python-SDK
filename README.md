@@ -40,6 +40,11 @@ xArm Python SDK
 - #### [UFACTORY ModbusTCP Manual](doc/UF_ModbusTCP_Manual.md)
 
 ## Update Summary
+- > ### 1.16.0
+  - Added an interface to control xArm Gripper G2
+  - Optimize the interface for controlling BIO Gripper G2
+  - Extend the get_joint_states interface
+
 - > ### 1.15.0
   - Added the Six-axis Force Torque Sensor collision detection related interfaces
   - Added support for the new version of BIO Gripper control interface

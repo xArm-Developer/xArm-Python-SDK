@@ -625,7 +625,7 @@ class UxbusCmd(object):
         return self.get_nfp32(XCONF.UxbusReg.GET_JOINT_POS, 7)
 
     def get_joint_states(self, num=3):
-        return self.get_nfp32_with_datas(XCONF.UxbusReg.GET_JOINT_POS, [num], 1, 7 * num)
+        return self.get_nfp32_with_datas(XCONF.UxbusReg.GET_JOINT_POS, [num], 1, 7 * (num & 0x0F))
 
     def get_tcp_pose(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_TCP_POSE, 6)
@@ -874,21 +874,21 @@ class UxbusCmd(object):
         txdata = [io_type, on_off]
         return self.set_nu8(XCONF.UxbusReg.SET_IO_STOP_RESET, txdata, 2)
 
-    def gripper_modbus_w16s(self, addr, value, length):
+    def gripper_modbus_w16s(self, addr, value, count):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += bytes([0x10])
         txdata += convert.u16_to_bytes(addr)
-        txdata += convert.u16_to_bytes(length)
-        txdata += bytes([length * 2])
+        txdata += convert.u16_to_bytes(count)
+        txdata += bytes([count * 2])
         txdata += value
-        ret = self.tgpio_set_modbus(txdata, length * 2 + 7)
+        ret = self.tgpio_set_modbus(txdata, count * 2 + 7)
         return ret
 
-    def gripper_modbus_r16s(self, addr, length):
+    def gripper_modbus_r16s(self, addr, count):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += bytes([0x03])
         txdata += convert.u16_to_bytes(addr)
-        txdata += convert.u16_to_bytes(length)
+        txdata += convert.u16_to_bytes(count)
         ret = self.tgpio_set_modbus(txdata, 6)
         return ret
 

@@ -677,7 +677,7 @@ class Gripper(GPIO):
         return code
 
     @xarm_is_connected(_type='set')
-    def set_bio_gripper_position(self, pos, speed=0, force=100, wait=True, timeout=5, **kwargs):
+    def set_bio_gripper_position(self, pos, speed=0, force=50, wait=True, timeout=5, **kwargs):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
@@ -687,8 +687,10 @@ class Gripper(GPIO):
                 return code
         if self.check_is_simulation_robot():
             return 0
-        if kwargs.get('auto_enable', False) and not self.bio_gripper_is_enabled:
+        self.get_bio_gripper_status()
+        if not self.bio_gripper_is_enabled:
             self.set_bio_gripper_enable(True)
+        speed = min(speed, 4500)
         if speed > 0 and speed != self.bio_gripper_speed:
             self.set_bio_gripper_speed(speed)
 
@@ -699,7 +701,9 @@ class Gripper(GPIO):
             if mode == 1:
                 # pos = int(pos * 3.798 - 269.620)
                 pos = int(pos * 3.7342 - 265.13)
-            self.set_bio_gripper_force(force)
+            force = min(force, 100)
+            if force >= 10:
+                self.set_bio_gripper_force(force)
 
         data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04]
         data_frame.extend(list(struct.pack('>i', pos)))
@@ -828,3 +832,43 @@ class Gripper(GPIO):
         code1 = self.set_tgpio_digital(0, 0, sync=sync)
         code2 = self.set_tgpio_digital(1, 0, sync=sync)
         return code1 if code2 == 0 else code2
+
+    @xarm_is_connected(_type='set')
+    def set_gripper_g2_position(self, pos, speed=2000, force=50, wait=False, timeout=5, **kwargs):
+        if kwargs.get('wait_motion', True):
+            has_error = self.error_code != 0
+            is_stop = self.is_stop
+            code = self.wait_move()
+            if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
+                    or (has_error and code == APIState.HAS_ERROR)):
+                return code
+        if self.check_is_simulation_robot():
+            return 0
+        code = self.checkset_modbus_baud(self._default_gripper_baud)
+        if code != 0:
+            return code
+        force = min(max(1, force), 100)
+        data_frame = [0x08, 0x10, 0x0C, 0x00, 0x00, 0x05, 0x0A, 0x00, 0x01]
+        data_frame.extend(list(struct.pack('>h', speed))) # speed // 256 % 256, speed % 256
+        data_frame.extend(list(struct.pack('>h', force))) # force // 256 % 256, force % 256
+        data_frame.extend(list(struct.pack('>i', pos)))
+        ret = self.getset_tgpio_modbus_data(data_frame, min_res_len=6, ignore_log=True)
+        self.log_api_info('API -> set_g2_gripper_position(pos={}, speed={}, force={}) -> code={}'.format(pos, speed, force, ret[0]), code=ret[0])
+        _, err = self._get_modbus_gripper_err_code()
+        if self._gripper_error_code != 0:
+            print('xArm Gripper G2 ErrorCode: {}'.format(self._gripper_error_code))
+            return APIState.END_EFFECTOR_HAS_FAULT
+        if wait and ret[0] == 0:
+            if self.gripper_is_support_status:
+                return self.__check_gripper_status(timeout=timeout)
+            else:
+                return self.__check_gripper_position(pos, timeout=timeout)
+        return ret[0]
+
+    # @xarm_is_connected(_type='set')
+    # def set_bio_gripper_g2_position(self, pos, speed=0, force=50, wait=True, timeout=5, **kwargs):
+    #     return self.set_bio_gripper_position(pos, speed, force, wait, timeout, **kwargs)
+    #     # code = self.checkset_modbus_baud(self._default_bio_baud)
+    #     # if code != 0:
+    #     #     return code
+    #     # return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)

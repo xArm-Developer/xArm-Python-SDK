@@ -103,6 +103,7 @@ class XArmAPI(object):
             'set_suction_cup': self.set_vacuum_gripper,
             'get_ft_senfor_config': self.get_ft_sensor_config,
             'shutdown_system': self.system_control,
+            'set_bio_gripper_position': self.set_bio_gripper_g2_position,
         }
 
     def __getattr__(self, item):
@@ -1841,13 +1842,13 @@ class XArmAPI(object):
         """
         return self._arm.set_gripper_position(pos, wait=wait, speed=speed, auto_enable=auto_enable, timeout=timeout, **kwargs)
     
-    def set_gripper_g2_position(self, pos, speed=2000, force=50, wait=False, timeout=None, **kwargs):
+    def set_gripper_g2_position(self, pos, speed=100, force=50, wait=False, timeout=None, **kwargs):
         """
         Set the position of xArm Gripper G2
 
-        :param pos: gripper pos between 0 and 850
-        :param speed: gripper speed between 0 and 65535, default is 2000
-        :param force: gripper force between 10 and 100, default is 50
+        :param pos: gripper pos between 0 and 84, (unit: mm)
+        :param speed: gripper speed between 15 and 225, default is 100, (unit: mm/s)
+        :param force: gripper force between 1 and 100, default is 50
         :param wait: whether to wait for the bio gripper motion complete, default is False
         :param timeout: maximum waiting time(unit: second), default is 10s, only valid if wait is True
         :return: code
@@ -2858,13 +2859,13 @@ class XArmAPI(object):
 
         return self._arm.set_bio_gripper_force(force)
 
-    def set_bio_gripper_position(self, pos, speed=0, force=50, wait=True, timeout=5, **kwargs):
+    def set_bio_gripper_g2_position(self, pos, speed=2000, force=100, wait=True, timeout=5, **kwargs):
         """
-        Set the bio gripper position
+        Set the position of BIO Gripper G2
 
-        :param pos: gripper pos between 71 and 150
-        :param speed: gripper speed between 0 and 4500, default is 0 (not set the speed)
-        :param force: gripper force between 10 and 100
+        :param pos: gripper pos between 71 and 150, (unit: mm)
+        :param speed: gripper speed between 500 and 4500, default is 2000, (unit: pulse/s)
+        :param force: gripper force between 1 and 100, default is 100
         :param wait: whether to wait for the robotiq motion to complete, default is True
         :param timeout: maximum waiting time(unit: second), default is 5, only available if wait=True
 
@@ -2872,7 +2873,7 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             robotiq_response: See the robotiq documentation
         """
-        return self._arm.set_bio_gripper_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
+        return self._arm.set_bio_gripper_g2_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
     def open_bio_gripper(self, speed=0, wait=True, timeout=5, **kwargs):
         """

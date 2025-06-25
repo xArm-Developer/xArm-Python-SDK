@@ -6,6 +6,7 @@
 #
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
+import math
 import time
 import struct
 from ..core.config.x_config import XCONF
@@ -678,6 +679,8 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_position(self, pos, speed=0, force=50, wait=True, timeout=5, **kwargs):
+        if kwargs.get('is_g2', True):
+            return self.set_bio_gripper_g2_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
@@ -834,7 +837,7 @@ class Gripper(GPIO):
         return code1 if code2 == 0 else code2
 
     @xarm_is_connected(_type='set')
-    def set_gripper_g2_position(self, pos, speed=2000, force=50, wait=False, timeout=5, **kwargs):
+    def set_gripper_g2_position(self, pos, speed=100, force=50, wait=False, timeout=5, **kwargs):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
@@ -847,7 +850,13 @@ class Gripper(GPIO):
         code = self.checkset_modbus_baud(self._default_gripper_baud)
         if code != 0:
             return code
+        pos = min(max(0, pos), 84)
+        speed = min(max(15, speed), 225)
         force = min(max(1, force), 100)
+
+        pos = int((math.degrees(math.asin((pos - 16) / 110)) + 8.33) * 18.28)
+        speed = int(((speed * 60) / 9.88235 + 140) / 0.4)
+
         data_frame = [0x08, 0x10, 0x0C, 0x00, 0x00, 0x05, 0x0A, 0x00, 0x01]
         data_frame.extend(list(struct.pack('>h', speed))) # speed // 256 % 256, speed % 256
         data_frame.extend(list(struct.pack('>h', force))) # force // 256 % 256, force % 256
@@ -865,10 +874,34 @@ class Gripper(GPIO):
                 return self.__check_gripper_position(pos, timeout=timeout)
         return ret[0]
 
-    # @xarm_is_connected(_type='set')
-    # def set_bio_gripper_g2_position(self, pos, speed=0, force=50, wait=True, timeout=5, **kwargs):
-    #     return self.set_bio_gripper_position(pos, speed, force, wait, timeout, **kwargs)
-    #     # code = self.checkset_modbus_baud(self._default_bio_baud)
-    #     # if code != 0:
-    #     #     return code
-    #     # return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)
+    @xarm_is_connected(_type='set')
+    def set_bio_gripper_g2_position(self, pos, speed=2000, force=100, wait=True, timeout=5, **kwargs):
+        if kwargs.get('wait_motion', True):
+            has_error = self.error_code != 0
+            is_stop = self.is_stop
+            code = self.wait_move()
+            if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
+                    or (has_error and code == APIState.HAS_ERROR)):
+                return code
+        if self.check_is_simulation_robot():
+            return 0
+        code = self.checkset_modbus_baud(self._default_bio_baud)
+        if code != 0:
+            return code
+        pos = min(max(71, pos), 150)
+        speed = min(max(500, speed), 4000)
+        force = min(max(1, force), 100)
+        data_frame = [0x08, 0x10, 0x0C, 0x00, 0x00, 0x05, 0x0A, 0x00, 0x01]
+        data_frame.extend(list(struct.pack('>h', speed))) # speed // 256 % 256, speed % 256
+        data_frame.extend(list(struct.pack('>h', force))) # force // 256 % 256, force % 256
+        data_frame.extend(list(struct.pack('>i', pos)))
+        code, res = self.__bio_gripper_send_modbus(data_frame, 6)
+        if code == 0 and wait:
+            code = self.__bio_gripper_wait_motion_completed(timeout=timeout)
+        elif code == APIState.MODBUS_ERR_LENG and len(res) >= 3 and res[2] == 2:
+            # res[2] == 2: Illegal data address, BIO version does not support
+            return self.set_bio_gripper_position(pos, speed, force, wait, timeout, wait_motion=False, is_g2=False, **kwargs)
+        self.log_api_info(
+            'API -> set_bio_gripper_g2_position(pos={}, speed={}, force={}, wait={}, timeout={}) -> code={}'.format(pos, speed, force, wait, timeout, code),
+            code=code)
+        return code

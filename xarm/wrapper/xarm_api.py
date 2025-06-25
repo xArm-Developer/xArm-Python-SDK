@@ -3365,6 +3365,7 @@ class XArmAPI(object):
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
         :param is_raw: get the raw data or not.
+            1. only available if firmware_version >= 2.6.109
         :return: tuple((code, exe_ft))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             ft_data: only when code is 0, the returned result is correct.

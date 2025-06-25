@@ -732,6 +732,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
 >   
 > :param is_raw: get the raw data or not.  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.109  
 > :return: tuple((code, exe_ft))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;ft_data: only when code is 0, the returned result is correct.  

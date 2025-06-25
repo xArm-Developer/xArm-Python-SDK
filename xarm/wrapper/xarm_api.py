@@ -3357,19 +3357,20 @@ class XArmAPI(object):
         """
         return self._arm.ft_sensor_app_get()
 
-    def get_ft_sensor_data(self):
+    def get_ft_sensor_data(self, is_raw=False):
         """
         Get the data of the Six-axis Force Torque Sensor
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
 
+        :param is_raw: get the raw data or not.
         :return: tuple((code, exe_ft))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             ft_data: only when code is 0, the returned result is correct.
                 Note: The external force detection value of the Six-axis Force Torque Sensor after filtering, load and offset compensation
         """
-        return self._arm.get_ft_sensor_data()
+        return self._arm.get_ft_sensor_data(is_raw=is_raw)
 
     def get_ft_sensor_config(self):
         """

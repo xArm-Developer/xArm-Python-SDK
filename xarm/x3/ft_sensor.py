@@ -190,8 +190,9 @@ class FtSensor(Base):
         return self._check_code(ret[0]), ret[1]
 
     @xarm_is_connected(_type='get')
-    def get_ft_sensor_data(self):
-        ret = self.arm_cmd.ft_sensor_get_data(self.version_is_ge(1, 8, 3))
+    def get_ft_sensor_data(self, is_raw=False):
+        is_raw = is_raw if self.version_is_ge(2, 6, 109) else False
+        ret = self.arm_cmd.ft_sensor_get_data(self.version_is_ge(1, 8, 3), is_raw)
         return self._check_code(ret[0]), ret[1:7]
 
     @xarm_is_connected(_type='get')

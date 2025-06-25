@@ -724,13 +724,14 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[21] xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
 
 
-#### def __get_ft_sensor_data__(self):
+#### def __get_ft_sensor_data__(self, is_raw=False):
 
 > Get the data of the Six-axis Force Torque Sensor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
 > &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
 >   
+> :param is_raw: get the raw data or not.  
 > :return: tuple((code, exe_ft))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;ft_data: only when code is 0, the returned result is correct.  

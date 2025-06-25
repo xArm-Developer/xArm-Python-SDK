@@ -1207,8 +1207,11 @@ class UxbusCmd(object):
     def ft_sensor_app_get(self):
         return self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_APP, 1)
 
-    def ft_sensor_get_data(self, is_new=True):
-        return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_GET_DATA if is_new else XCONF.UxbusReg.FTSENSOR_GET_DATA_OLD, 6)
+    def ft_sensor_get_data(self, is_new=True, is_raw=False):
+        if is_new and is_raw:
+            return self.get_nfp32_with_datas(XCONF.UxbusReg.FTSENSOR_GET_DATA, [1], 1, 6)
+        else:
+            return self.get_nfp32(XCONF.UxbusReg.FTSENSOR_GET_DATA if is_new else XCONF.UxbusReg.FTSENSOR_GET_DATA_OLD, 6)
 
     def ft_sensor_get_config(self):
         ret = self.get_nu8(XCONF.UxbusReg.FTSENSOR_GET_CONFIG, 280)

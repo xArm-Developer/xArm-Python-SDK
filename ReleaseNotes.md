@@ -3,6 +3,7 @@
 ## Update Summary
 
 - > ### 1.16.0
+  - Added parameter to support get raw data of the Six-axis Force Torque Sensor
   - Added an interface to control xArm Gripper G2
   - Optimize the interface for controlling BIO Gripper G2
   - Extend the get_joint_states interface

@@ -693,7 +693,7 @@ class Gripper(GPIO):
         self.get_bio_gripper_status()
         if not self.bio_gripper_is_enabled:
             self.set_bio_gripper_enable(True)
-        speed = min(speed, 4500)
+        speed = min(speed, 4000)
         if speed > 0 and speed != self.bio_gripper_speed:
             self.set_bio_gripper_speed(speed)
 
@@ -702,10 +702,9 @@ class Gripper(GPIO):
         if self._bio_gripper_version == 2:
             code, mode = self.get_bio_gripper_control_mode()
             if mode == 1:
-                # pos = int(pos * 3.798 - 269.620)
                 pos = int(pos * 3.7342 - 265.13)
             force = min(force, 100)
-            if force >= 10:
+            if force >= 1:
                 self.set_bio_gripper_force(force)
 
         data_frame = [0x08, 0x10, 0x07, 0x00, 0x00, 0x02, 0x04]
@@ -891,10 +890,19 @@ class Gripper(GPIO):
         pos = min(max(71, pos), 150)
         speed = min(max(500, speed), 4000)
         force = min(max(1, force), 100)
+
+        if self._bio_gripper_version == 0:
+            self.get_bio_gripper_sn()
+        pos_pluse = pos
+        if self._bio_gripper_version == 2:
+            code, mode = self.get_bio_gripper_control_mode()
+            if mode == 1:
+                pos_pluse = int(pos * 3.7342 - 265.13)
+
         data_frame = [0x08, 0x10, 0x0C, 0x00, 0x00, 0x05, 0x0A, 0x00, 0x01]
         data_frame.extend(list(struct.pack('>h', speed))) # speed // 256 % 256, speed % 256
         data_frame.extend(list(struct.pack('>h', force))) # force // 256 % 256, force % 256
-        data_frame.extend(list(struct.pack('>i', pos)))
+        data_frame.extend(list(struct.pack('>i', pos_pluse)))
         code, res = self.__bio_gripper_send_modbus(data_frame, 6)
         if code == 0 and wait:
             code = self.__bio_gripper_wait_motion_completed(timeout=timeout)

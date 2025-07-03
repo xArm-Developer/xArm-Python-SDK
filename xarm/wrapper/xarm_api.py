@@ -104,6 +104,7 @@ class XArmAPI(object):
             'get_ft_senfor_config': self.get_ft_sensor_config,
             'shutdown_system': self.system_control,
             'set_bio_gripper_position': self.set_bio_gripper_g2_position,
+            'get_bio_gripper_position': self.get_bio_gripper_g2_position,
         }
 
     def __getattr__(self, item):
@@ -1821,12 +1822,21 @@ class XArmAPI(object):
 
     def get_gripper_position(self, **kwargs):
         """
-        Get the gripper position
+        Get the gripper position (pulse)
 
         :return: tuple((code, pos)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.get_gripper_position(**kwargs)
+
+    def get_gripper_g2_position(self, **kwargs):
+        """
+        Get the position (mm) of the xArm Gripper G2
+
+        :return: tuple((code, pos)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.get_gripper_g2_position(**kwargs)
 
     def set_gripper_position(self, pos, wait=False, speed=None, auto_enable=False, timeout=None, **kwargs):
         """
@@ -1834,7 +1844,7 @@ class XArmAPI(object):
 
         :param pos: pos
         :param wait: wait or not, default is False
-        :param speed: speed,unit:r/min
+        :param speed: speed, unit:r/min
         :param auto_enable: auto enable or not, default is False
         :param timeout: wait time, unit:second, default is 10s
         :return: code
@@ -1844,7 +1854,7 @@ class XArmAPI(object):
     
     def set_gripper_g2_position(self, pos, speed=100, force=50, wait=False, timeout=None, **kwargs):
         """
-        Set the position of xArm Gripper G2
+        Set the position of the xArm Gripper G2
 
         :param pos: gripper pos between 0 and 84, (unit: mm)
         :param speed: gripper speed between 15 and 225, default is 100, (unit: mm/s)
@@ -2859,6 +2869,15 @@ class XArmAPI(object):
 
         return self._arm.set_bio_gripper_force(force)
 
+    def get_bio_gripper_g2_position(self, **kwargs):
+        """
+        Get the position (mm) of the BIO Gripper G2
+
+        :return: tuple((code, pos)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.get_bio_gripper_g2_position(**kwargs)
+
     def set_bio_gripper_g2_position(self, pos, speed=2000, force=100, wait=True, timeout=5, **kwargs):
         """
         Set the position of BIO Gripper G2
@@ -2990,7 +3009,7 @@ class XArmAPI(object):
         :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
         :param host_id: host_id, default is 9 (TGPIO_HOST_ID)
             9: END RS485
-            10: CONTROLLER RS485
+            11: CONTROLLER RS485
         :param is_transparent_transmission: whether to choose transparent transmission, default is False
             Note: only available if firmware_version >= 1.11.0
         :param use_503_port: whether to use port 503 for communication, default is False
@@ -3054,11 +3073,17 @@ class XArmAPI(object):
                 self.set_collision_tool_model(21, radius=45, height=137)
                 :param radius: the radius of cylinder, (unit: mm)
                 :param height: the height of cylinder, (unit: mm)
+                :param x_offset: offset in the x direction, (unit: mm)
+                :param y_offset: offset in the y direction, (unit: mm)
+                :param z_offset: offset in the z direction, (unit: mm)
             22: Cuboid, need additional parameters x, y, z
                 self.set_collision_tool_model(22, x=234, y=323, z=23)
                 :param x: the length of the cuboid in the x coordinate direction, (unit: mm)
                 :param y: the length of the cuboid in the y coordinate direction, (unit: mm)
                 :param z: the length of the cuboid in the z coordinate direction, (unit: mm)
+                :param x_offset: offset in the x direction, (unit: mm)
+                :param y_offset: offset in the y direction, (unit: mm)
+                :param z_offset: offset in the z direction, (unit: mm)
         :param args: additional parameters
         :param kwargs: additional parameters
         :return: code

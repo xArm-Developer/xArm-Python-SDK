@@ -4,6 +4,9 @@ xarm-python-sdk
 .. image:: https://badge.fury.io/py/xarm-python-sdk.svg
     :target: https://pypi.org/project/xarm-python-sdk/
 
+.. image:: https://static.pepy.tech/badge/xarm-python-sdk
+    :target: https://pepy.tech/projects/xarm-python-sdk
+
 .. image:: https://img.shields.io/github/license/xArm-Developer/xArm-Python-SDK.svg
     :target: https://github.com/xArm-Developer/xArm-Python-SDK/blob/main/LICENSE
 

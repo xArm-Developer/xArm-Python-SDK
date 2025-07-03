@@ -206,6 +206,7 @@ class Base(BaseObject, Events):
 
             self.bio_gripper_is_enabled = False
             self.bio_gripper_speed = 0
+            self.bio_gripper_force = 0
             self.bio_gripper_error_code = 0
 
             self.robotiq_is_activated = False
@@ -334,6 +335,7 @@ class Base(BaseObject, Events):
 
         self.bio_gripper_is_enabled = False
         self.bio_gripper_speed = 0
+        self.bio_gripper_force = 0
         self.bio_gripper_error_code = 0
 
         self.robotiq_is_activated = False
@@ -1343,6 +1345,7 @@ class Base(BaseObject, Events):
                 self.gripper_is_enabled = False
                 self.bio_gripper_is_enabled = False
                 self.bio_gripper_speed = 0
+                self.bio_gripper_force = 0
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
@@ -1357,6 +1360,7 @@ class Base(BaseObject, Events):
             #     self.gripper_is_enabled = False
             #     self.bio_gripper_is_enabled = False
             #     self.bio_gripper_speed = 0
+            #     self.bio_gripper_force = 0
             #     self.gripper_is_enabled = False
             #     self.gripper_speed = 0
             #     self.gripper_version_numbers = [-1, -1, -1]
@@ -1547,6 +1551,7 @@ class Base(BaseObject, Events):
                 self.gripper_is_enabled = False
                 self.bio_gripper_is_enabled = False
                 self.bio_gripper_speed = 0
+                self.bio_gripper_force = 0
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
@@ -1561,6 +1566,7 @@ class Base(BaseObject, Events):
             #     self.gripper_is_enabled = False
             #     self.bio_gripper_is_enabled = False
             #     self.bio_gripper_speed = -1
+            #     self.bio_gripper_force = -1
             #     self.gripper_speed = -1
             #     self.gripper_version_numbers = [-1, -1, -1]
             #     self.linear_track_is_enabled = False

@@ -1,5 +1,7 @@
 # xArm-Python-SDK
 
+[![PyPI Downloads](https://static.pepy.tech/badge/xarm-python-sdk)](https://pepy.tech/projects/xarm-python-sdk)
+
 ## Overview
 xArm Python SDK
 
@@ -21,7 +23,7 @@ xArm Python SDK
       ```bash
       pip install build
       python -m build
-      pip install dist/xarm_python_sdk-1.15.1-py3-none-any.whl
+      pip install dist/xarm_python_sdk-1.16.0-py3-none-any.whl
       ```
     - install with source code
       ```bash

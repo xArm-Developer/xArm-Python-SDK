@@ -414,6 +414,14 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;error_code: See the [Bio Gripper Error Code Documentation](./xarm_api_code.md#bio-gripper-error-code) for details.
 
 
+#### def __get_bio_gripper_g2_position__(self, **kwargs):
+
+> Get the position (mm) of the BIO Gripper G2  
+>   
+> :return: tuple((code, pos)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __get_bio_gripper_status__(self):
 
 > Get the status of the bio gripper  
@@ -760,9 +768,17 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;err_code: See the [Gripper Error Code Documentation](./xarm_api_code.md#gripper-error-code) for details.
 
 
+#### def __get_gripper_g2_position__(self, **kwargs):
+
+> Get the position (mm) of the xArm Gripper G2  
+>   
+> :return: tuple((code, pos)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __get_gripper_position__(self, **kwargs):
 
-> Get the gripper position  
+> Get the gripper position (pulse)  
 >   
 > :return: tuple((code, pos)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -1294,7 +1310,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check  
 > :param host_id: host_id, default is 9 (TGPIO_HOST_ID)  
 > &ensp;&ensp;&ensp;&ensp;9: END RS485  
-> &ensp;&ensp;&ensp;&ensp;10: CONTROLLER RS485  
+> &ensp;&ensp;&ensp;&ensp;11: CONTROLLER RS485  
 > :param is_transparent_transmission: whether to choose transparent transmission, default is False  
 > &ensp;&ensp;&ensp;&ensp;Note: only available if firmware_version >= 1.11.0  
 > :param use_503_port: whether to use port 503 for communication, default is False  
@@ -2299,11 +2315,17 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;self.set_collision_tool_model(21, radius=45, height=137)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param radius: the radius of cylinder, (unit: mm)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param height: the height of cylinder, (unit: mm)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param x_offset: offset in the x direction, (unit: mm)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param y_offset: offset in the y direction, (unit: mm)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param z_offset: offset in the z direction, (unit: mm)  
 > &ensp;&ensp;&ensp;&ensp;22: Cuboid, need additional parameters x, y, z  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;self.set_collision_tool_model(22, x=234, y=323, z=23)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param x: the length of the cuboid in the x coordinate direction, (unit: mm)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param y: the length of the cuboid in the y coordinate direction, (unit: mm)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param z: the length of the cuboid in the z coordinate direction, (unit: mm)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param x_offset: offset in the x direction, (unit: mm)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param y_offset: offset in the y direction, (unit: mm)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param z_offset: offset in the z direction, (unit: mm)  
 > :param args: additional parameters  
 > :param kwargs: additional parameters  
 > :return: code  
@@ -2503,7 +2525,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_gripper_g2_position__(self, pos, speed=100, force=50, wait=False, timeout=None, **kwargs):
 
-> Set the position of xArm Gripper G2  
+> Set the position of the xArm Gripper G2  
 >   
 > :param pos: gripper pos between 0 and 84, (unit: mm)  
 > :param speed: gripper speed between 15 and 225, default is 100, (unit: mm/s)  
@@ -2530,7 +2552,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 >   
 > :param pos: pos  
 > :param wait: wait or not, default is False  
-> :param speed: speed,unit:r/min  
+> :param speed: speed, unit:r/min  
 > :param auto_enable: auto enable or not, default is False  
 > :param timeout: wait time, unit:second, default is 10s  
 > :return: code  

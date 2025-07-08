@@ -2510,19 +2510,27 @@ class Base(BaseObject, Events):
         self.log_api_info('API -> set_control_modbus_baudrate -> code={}'.format(code), code=code)
         return code
     
+    def set_tgpio_modbus_use_503_port(self, use_503_port=True):
+        if use_503_port:
+            if not self.connected_503 and self.connect_503() != 0:
+                self.arm_cmd.tgpio_set_modbus_func = self.arm_cmd.tgpio_set_modbus
+                self.log_api_info('API -> set_tgpio_modbus_use_503_port -> code={}'.format(APIState.RET_IS_INVALID), code=APIState.RET_IS_INVALID)
+                return APIState.RET_IS_INVALID
+            self.arm_cmd.tgpio_set_modbus_func = self.arm_cmd_503.tgpio_set_modbus
+        else:
+            self.arm_cmd.tgpio_set_modbus_func = self.arm_cmd.tgpio_set_modbus
+        return 0
+
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False, host_id=XCONF.TGPIO_HOST_ID, is_transparent_transmission=False, use_503_port=False, **kwargs):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
         is_tt = kwargs.get('is_tt', is_transparent_transmission)
-        if is_tt:
-            if use_503_port:
-                if not self.connected_503 and self.connect_503() != 0:
-                    return APIState.NOT_CONNECTED, []
-                ret = self.arm_cmd_503.tgpio_set_modbus(datas, len(datas), host_id=host_id, is_transparent_transmission=True)
-            else:
-                ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id, is_transparent_transmission=True)
+        if use_503_port:
+            if not self.connected_503 and self.connect_503() != 0:
+                return APIState.NOT_CONNECTED, []
+            ret = self.arm_cmd_503.tgpio_set_modbus_func(datas, len(datas), host_id=host_id, is_transparent_transmission=is_tt)
         else:
-            ret = self.arm_cmd.tgpio_set_modbus(datas, len(datas), host_id=host_id)
+            ret = self.arm_cmd.tgpio_set_modbus_func(datas, len(datas), host_id=host_id, is_transparent_transmission=is_tt)
         ret[0] = self._check_modbus_code(ret, min_res_len + 2, host_id=host_id)
         if not ignore_log:
             self.log_api_info('API -> getset_tgpio_modbus_data -> code={}, response={}'.format(ret[0], ret[2:]), code=ret[0])

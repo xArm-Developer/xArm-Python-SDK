@@ -3001,6 +3001,9 @@ class XArmAPI(object):
         """
         return self._arm.set_control_modbus_baudrate(baud)
 
+    def set_tgpio_modbus_use_503_port(self, use_503_port=True):
+        return self._arm.set_tgpio_modbus_use_503_port(use_503_port)
+
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
         """
         Send the modbus data to the tool gpio

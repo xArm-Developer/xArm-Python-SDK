@@ -87,6 +87,8 @@ class Base(BaseObject, Events):
             self._default_bio_baud = kwargs.get('default_bio_baud', 2000000)
             self._default_gripper_baud = kwargs.get('default_gripper_baud', 2000000)
             self._default_robotiq_baud = kwargs.get('default_robotiq_baud', 115200)
+            self._default_dhpgc_gripper_baud = kwargs.get('default_dhpgc_gripper_baud', 115200)
+            self._default_rh56_finger_baud = kwargs.get('default_rh56_finger_baud', 115200)
             self._default_linear_track_baud = kwargs.get('default_linear_track_baud', 2000000)
 
             self._max_callback_thread_count = kwargs.get('max_callback_thread_count', 0)
@@ -251,6 +253,15 @@ class Base(BaseObject, Events):
             self._fb_key_transid_map = {}
             self._fb_transid_type_map = {}
             self._fb_transid_result_map = {}
+            
+            self.dhpgc_is_activated = False
+            self.dhpgc_gripper_speed = 0
+            self.dhpgc_picked_status = False
+
+            self.rh56_finger_status = [2, 2, 2, 2, 2, 2]
+            self.rh56_finger_pos = [0, 0, 0, 0, 0, 0]
+            self.rh56_finger_speed = [0, 0, 0, 0, 0, 0]
+            self.rh56_finger_force = [0, 0, 0, 0, 0, 0]
 
             if not do_not_open:
                 self.connect()
@@ -374,6 +385,15 @@ class Base(BaseObject, Events):
         self._need_sync = False
         self._only_check_result = 0
         self._keep_heart = True
+        
+        self.dhpgc_is_activated = False
+        self.dhpgc_gripper_speed = 0
+        self.dhpgc_picked_status = False
+
+        self.rh56_finger_status = [2, 2, 2, 2, 2, 2]
+        self.rh56_finger_pos = [0, 0, 0, 0, 0, 0]
+        self.rh56_finger_speed = [0, 0, 0, 0, 0, 0]
+        self.rh56_finger_force = [0, 0, 0, 0, 0, 0]
 
     @staticmethod
     def log_api_info(msg, *args, code=0, **kwargs):
@@ -1555,6 +1575,13 @@ class Base(BaseObject, Events):
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
+                self.dhpgc_is_activated = False
+                self.dhpgc_gripper_speed = 0
+                self.dhpgc_picked_status = False
+                self.rh56_finger_status = [2, 2, 2, 2, 2, 2]
+                self.rh56_finger_pos = [0, 0, 0, 0, 0, 0]
+                self.rh56_finger_speed = [0, 0, 0, 0, 0, 0]
+                self.rh56_finger_force = [0, 0, 0, 0, 0, 0]
             if reset_linear_track_params:
                 self.linear_track_baud = -1
                 self.linear_track_is_enabled = False

@@ -399,9 +399,10 @@ class _BlocklyHandler(_BlocklyBase):
                 self._append_main_code('print(\'{{}}\'.format({}))'.format(expression), indent + 2)
 
     def _handle_wait(self, block, indent=0, arg_map=None):
-        value = self._get_node('value', root=block)
-        value = float(self._get_nodes('field', root=value, descendant=True)[0].text)
-        self._append_main_code('for i in range({}):'.format(int(value / 0.1)), indent + 2)
+        val_node = self._get_node('value', root=block)
+        # value = float(self._get_nodes('field', root=value, descendant=True)[-1].text)
+        value = self._get_condition_expression(val_node, arg_map=arg_map)
+        self._append_main_code('for i in range(int({}/ 0.1)):'.format(value), indent + 2)
         self._append_main_code('    time.sleep(0.1)', indent + 2)
         self._append_main_code('    if not self.is_alive:', indent=indent + 2)
         self._append_main_code('        return', indent=indent + 2)
@@ -812,7 +813,76 @@ class _BlocklyHandler(_BlocklyBase):
         force = fields[2].text
         wait = fields[3].text == 'TRUE'
         self._append_main_code('code = self._arm.set_bio_gripper_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
-        self._append_main_code('if not self._check_code(code, \'open_bio_gripper\'):', indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_bio_gripper_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_set_dhpgc_gripper_init(self, block, indent=0, arg_map=None):
+        self._append_main_code('code = self._arm.set_dhpgc_gripper_activate(wait=True)', indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_dhpgc_gripper_activate\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_set_dhpgc_gripper_position(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        pos = fields[0].text
+        speed = fields[1].text
+        force = fields[2].text
+        wait = fields[3].text == 'TRUE'
+        self._append_main_code('code = self._arm.set_dhpgc_gripper_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_dhpgc_gripper_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_set_rh56_finger_position(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        finger_id = fields[0].text
+        pos = fields[1].text
+        speed = fields[2].text
+        force = fields[3].text
+        wait = fields[4].text == 'TRUE'
+        # self._append_main_code(
+        #     'code = self._arm.set_rh56_finger_speed(finger_id={}, speed={})'.format(finger_id, speed), indent + 2)
+        # self._append_main_code('if not self._check_code(code, \'set_rh56_finger_speed\'):', indent + 2)
+        # self._append_main_code('    return', indent + 2)
+        # self._append_main_code(
+        #     'code = self._arm.set_rh56_finger_force(finger_id={}, force={})'.format(finger_id, force), indent + 2)
+        # self._append_main_code('if not self._check_code(code, \'set_rh56_finger_force\'):', indent + 2)
+        # self._append_main_code('    return', indent + 2)
+        self._append_main_code(
+            'code = self._arm.set_rh56_finger_position(finger_id={}, pos={}, speed={}, force={}, wait={})'.format(
+                finger_id, pos, speed, force, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_rh56_finger_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_set_rh56_hand_position(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        pos = fields[0].text
+        speed = fields[1].text
+        force = fields[2].text
+        wait = fields[3].text == 'TRUE'
+        self._append_main_code(
+            'code = self._arm.arm.set_rh56_hand_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force,
+                                                                                                  wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_rh56_hand_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_gripper_g2_set(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        pos = fields[0].text
+        speed = fields[1].text
+        force = fields[2].text
+        wait = fields[3].text == 'TRUE'
+        self._append_main_code('code = self._arm.set_gripper_g2_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_gripper_g2_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_gripper_g2_set_variable(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        wait = fields[0].text == 'TRUE'
+        values = self._get_nodes('value', root=block)
+        pos = self._get_block_val(values[0], arg_map)
+        speed = self._get_block_val(values[1], arg_map)
+        force = self._get_block_val(values[2], arg_map)
+        self._append_main_code('code = self._arm.set_gripper_g2_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_gripper_g2_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
     def _handle_set_robotiq_init(self, block, indent=0, arg_map=None):
@@ -1276,6 +1346,26 @@ class _BlocklyHandler(_BlocklyBase):
         cmd_li = cmd_li.strip().split(' ')
         int_li = [int(da, 16) for da in cmd_li]
         self._append_main_code('code, ret = self._arm.getset_tgpio_modbus_data({}, host_id={})'.format(int_li, host_id), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_tgpio_modbus\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+
+    def _handle_set_modbus_rtu_transparent(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        host_id = fields[0].text
+        cmd = fields[1].text
+        cmd_li = re.sub(',', ' ', cmd)
+        is_run_cmd = ''.join(cmd_li.split()).isalnum()
+        if not is_run_cmd:
+            self._append_main_code('if not self._check_code(-1, \'set_tgpio_modbus\'):', indent + 2)
+            self._append_main_code('    return', indent + 2)
+            return
+        cmd_li = re.sub(' +', ' ', cmd_li)
+        cmd_li = re.sub('\xa0', ' ', cmd_li)
+        cmd_li = re.sub('\s+', ' ', cmd_li)
+        cmd_li = cmd_li.strip().split(' ')
+        int_li = [int(da, 16) for da in cmd_li]
+        self._append_main_code('code, ret = self._arm.getset_tgpio_modbus_data({}, host_id={}, '
+                               'is_transparent_transmission=True)'.format(int_li, host_id), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_tgpio_modbus\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 

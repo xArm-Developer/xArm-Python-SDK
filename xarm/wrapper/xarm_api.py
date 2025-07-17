@@ -2955,7 +2955,49 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.clean_bio_gripper_error()
+        
+    def set_dhpgc_gripper_activate(self, wait=True, timeout=3):
+        """
+        If not already activated. Activate the DH-PGC-140-50 gripper
 
+        :param wait: whether to wait for the DH-PGC-140-50  gripper activate complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_dhpgc_gripper_activate(wait=wait, timeout=timeout)
+        
+    def set_dhpgc_gripper_position(self, pos, speed=50, force=50, wait=True, timeout=5, **kwargs):
+        """
+        Set the position of the DH-PGC-140-50 gripper
+
+        :param pos: gripper pos between 0 and 1000
+        :param speed: gripper speed between 1 and 100
+        :param force: gripper force between 20 and 100
+        :param wait: whether to wait for the DH-PGC-140-50 gripper motion to complete, default is True
+        :param timeout: maximum waiting time(unit: second), default is 5s, only available if wait=True
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_dhpgc_gripper_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
+
+    def set_rh56_finger_position(self, finger_id, pos, speed=500, force=500, wait=False, timeout=None, **kwargs):
+        """
+        Set the position of the INS-RH56DFX finger
+
+        :param finger_id: INS-RH56DFX finger_id between 1 and 6
+        :param pos: INS-RH56DFX pos between 0 and 1000
+        :param speed: INS-RH56DFX speed between 0 and 1000, default is 500
+        :param force: INS-RH56DFX force between 0 and 1000, default is 500
+        :param wait: whether to wait for the INS-RH56DFX finger motion complete, default is False
+        :param timeout: maximum waiting time(unit: second), default is 5s, only valid if wait is True
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_rh56_finger_position(finger_id, pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
+    
     def set_tgpio_modbus_timeout(self, timeout, is_transparent_transmission=False, **kwargs):
         """
         Set the modbus timeout of the tool gpio

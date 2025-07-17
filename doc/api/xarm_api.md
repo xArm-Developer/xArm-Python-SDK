@@ -161,6 +161,30 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_dhpgc_gripper_activate__(self):
+
+> If not already activated. Activate the DH-PGC-140-50 gripper  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_dhpgc_gripper_position__(self):
+
+> Set the position of the DH-PGC-140-50 gripper 
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_rh56_finger_position__(self):
+
+> Set the position of the INS-RH56DFX finger 
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __clean_conf__(self):
 
 > Clean current config and restore system default settings  

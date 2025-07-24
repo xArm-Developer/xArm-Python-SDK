@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -187,9 +187,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __clean_linear_track_error__(self):
+#### def __clean_linear_motor_error__(self):
 
-> Clean the linear track error  
+> Clean the linear motor error  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -235,21 +235,6 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > Config the Controller GPIO reset the digital output when the robot is in stop state  
 >   
 > :param on_off: True/False  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __config_force_control__(self, coord, c_axis, f_ref, limits, **kwargs):
-
-> Set force control parameters through the Six-axis Force Torque Sensor.  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :param coord:  task frame. 0: base frame. 1: tool frame.  
-> :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.  
-> :param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.  
-> :param limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -303,87 +288,6 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > Emergency stop (set_state(4) -> motion_enable(True) -> set_state(0))  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. This interface does not automatically clear the error. If there is an error, you need to handle it according to the error code.
-
-
-#### def __ft_sensor_app_get__(self):
-
-> Get force mode  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :return: tuple((code, app_code))  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;app_code:   
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: non-force mode  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: impedance control mode  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2: force control mode
-
-
-#### def __ft_sensor_app_set__(self, app_code):
-
-> Set robot to be controlled in force mode. (Through the Six-axis Force Torque Sensor)  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :param app_code: force mode.  
-> &ensp;&ensp;&ensp;&ensp;0: non-force mode  
-> &ensp;&ensp;&ensp;&ensp;1: impendance control  
-> &ensp;&ensp;&ensp;&ensp;2: force control  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __ft_sensor_cali_load__(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
-
-> Write the load offset parameters identified by the Six-axis Force Torque Sensor  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
-> &ensp;&ensp;&ensp;&ensp;3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)  
->   
-> :param iden_result_list:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]  
-> :param association_setting_tcp_load: whether to convert the parameter to the corresponding tcp load and set, default is False  
-> &ensp;&ensp;&ensp;&ensp;Note: If True, the value of tcp load will be modified  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __ft_sensor_enable__(self, on_off):
-
-> Used for enabling and disabling the use of the Six-axis Force Torque Sensor measurements in the controller.  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :param on_off: enable or disable F/T data sampling.  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __ft_sensor_iden_load__(self):
-
-> Identification the tcp load with the the Six-axis Force Torque Sensor  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
-> &ensp;&ensp;&ensp;&ensp;3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)  
->   
-> :return: tuple((code, load)) only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;load:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
-
-
-#### def __ft_sensor_set_zero__(self):
-
-> Set the current state to the zero point of the Six-axis Force Torque Sensor  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
 #### def __get_allow_approx_motion__(self):
@@ -570,7 +474,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;1: xarm gripper  
 > &ensp;&ensp;&ensp;&ensp;2: bio gripper  
 > &ensp;&ensp;&ensp;&ensp;3: robotiq gripper  
-> &ensp;&ensp;&ensp;&ensp;4: linear track  
+> &ensp;&ensp;&ensp;&ensp;4: linear motor  
 > :return: tuple((code, baud))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;baud: the checkset baud value
@@ -645,6 +549,17 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: the roll/pitch/yaw value is radians if return_is_radian is True, else °
 
 
+#### def __get_ft_admittance_ctrl_threshold__(self):
+
+> Get the reaction thresholds in each direction under the admittance control mode of the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.110  
+>   
+> :return: tuple((code, thresholds)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
+
+
 #### def __get_ft_collision_detection__(self):
 
 > Get the collision detection with the Six-axis Force Torque Sensor is enable or not  
@@ -664,7 +579,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 >   
 > :param is_radian: the returned value (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian  
 >   
-> :return: tuple((code, threshold)), only when code is 0, the returned result is correct.  
+> :return: tuple((code, distance)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;distance: [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]
 
@@ -682,11 +597,11 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 
 #### def __get_ft_collision_threshold__(self):
 
-> Get the collision threshold with the Six-axis Force Torque Sensor  
+> Get the collision thresholds with the Six-axis Force Torque Sensor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
-> :return: tuple((code, threshold)), only when code is 0, the returned result is correct.  
+> :return: tuple((code, thresholds)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
 
@@ -701,9 +616,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > :return: tuple((code, config))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;config: [...], the config of the Six-axis Force Torque Sensor, only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[0] ft_app_status: force mode  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[0] ft_mode: force mode  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: non-force mode  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: impendance control  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: admittance control  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2: force control  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[1] ft_is_started: ft sensor is enable or not  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[2] ft_type: ft sensor type  
@@ -713,17 +628,17 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[6] ft_dir_bias: reversed  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[7] ft_centroid: [x_centroid, y_centroid, z_centroid]  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[8] ft_zero: [Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[9] imp_coord: task frame of impendance control mode.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[9] imp_coord: task frame of admittance control mode.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: base frame.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: tool frame.  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[10] imp_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[10] imp_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be admittance in the corresponding axis of the task frame.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[11] M: mass. (kg)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[12] K: stiffness coefficient.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[13] B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[14] f_coord: task frame of force control mode.   
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: base frame.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: tool frame.  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[15] f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[15] f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[16] f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[17] f_limits: reversed.  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;[18] kp: proportional gain  
@@ -759,6 +674,21 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;error: See the [Six-axis Force Torque Sensor Error Code Documentation](./xarm_api_code.md#six-axis-force-torque-sensor-error-code) for details.
 
 
+#### def __get_ft_sensor_mode__(self):
+
+> Get force mode  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+>   
+> :return: tuple((code, app_code))  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;app_code:   
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: non-force mode  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: admittance control mode  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;2: force control mode
+
+
 #### def __get_gripper_err_code__(self, **kwargs):
 
 > Get the gripper error code  
@@ -782,6 +712,20 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 >   
 > :return: tuple((code, pos)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __get_gripper_status__(self):
+
+> Get the status of the xArm Gripper  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;only available if gripper_version >= 3.4.3  
+>   
+> :return: tuple((code, status)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;status:  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x03 == 0: stop state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x03 == 1: move state   
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x03 == 2: grasp state
 
 
 #### def __get_gripper_version__(self):
@@ -871,20 +815,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;joints_torque: joints torque
 
 
-#### def __get_linear_spd_limit_factor__(self):
+#### def __get_linear_motor_error__(self):
 
-> Get linear speed limit factor  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
->   
-> :return: tuple((code, factor)), only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;factor: linear speed limit factor
-
-
-#### def __get_linear_track_error__(self):
-
-> Get the error code of the linear track  
+> Get the error code of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -893,35 +826,35 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;error: See the [Linear Motor Error Code Documentation](./xarm_api_code.md#linear-motor-error-code) for details.
 
 
-#### def __get_linear_track_is_enabled__(self):
+#### def __get_linear_motor_is_enabled__(self):
 
-> Get the linear track is enabled or not  
+> Get the linear motor is enabled or not  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
 > :return: tuple((code, status)) only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;status:   
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: linear track is not enabled  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: linear track is enabled
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: linear motor is not enabled  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: linear motor is enabled
 
 
-#### def __get_linear_track_on_zero__(self):
+#### def __get_linear_motor_on_zero__(self):
 
-> Get the linear track is on zero positon or not  
+> Get the linear motor is on zero positon or not  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
 > :return: tuple((code, status)) only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;status:   
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: linear track is not on zero  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: linear track is on zero
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: linear motor is not on zero  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: linear motor is on zero
 
 
-#### def __get_linear_track_pos__(self):
+#### def __get_linear_motor_pos__(self):
 
-> Get the pos of the linear track  
+> Get the pos of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -930,9 +863,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;position: position
 
 
-#### def __get_linear_track_registers__(self, **kwargs):
+#### def __get_linear_motor_registers__(self, **kwargs):
 
-> Get the status of the linear track  
+> Get the status of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -950,9 +883,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;}
 
 
-#### def __get_linear_track_sci__(self):
+#### def __get_linear_motor_sci__(self):
 
-> Get the sci1 value of the linear track  
+> Get the sci1 value of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -960,9 +893,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __get_linear_track_sco__(self):
+#### def __get_linear_motor_sco__(self):
 
-> Get the sco value of the linear track  
+> Get the sco value of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -971,9 +904,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;sco: [sco0, sco1]
 
 
-#### def __get_linear_track_status__(self):
+#### def __get_linear_motor_status__(self):
 
-> Get the status of the linear track  
+> Get the status of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -983,6 +916,17 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x00: motion finish  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x01: in motion  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;status & 0x02: has stop
+
+
+#### def __get_linear_spd_limit_factor__(self):
+
+> Get linear speed limit factor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
+>   
+> :return: tuple((code, factor)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;factor: linear speed limit factor
 
 
 #### def __get_mount_direction__(self):
@@ -1049,7 +993,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 >   
 > :return: tuple((code, seconds)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;seconds: The actual duration of the recorded track
+> &ensp;&ensp;&ensp;&ensp;seconds: The actual duration of the recorded trajectory
 
 
 #### def __get_reduced_mode__(self):
@@ -1111,15 +1055,6 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 >   
 > :return: tuple((code, sn)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __get_safe_level__(self):
-
-> Get safe level  
->   
-> :return: tuple((code, safe_level))  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;safe_level: safe level
 
 
 #### def __get_servo_angle__(self, servo_id=None, is_radian=None, is_real=False):
@@ -1282,16 +1217,17 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 
 #### def __get_vacuum_gripper__(self, hardware_version=1):
 
-> Get vacuum gripper state  
+> Get the state of the Vacuum Gripper  
 >   
 > :param hardware_version: hardware version  
 > &ensp;&ensp;&ensp;&ensp;1: Plug-in Connection, default  
 > &ensp;&ensp;&ensp;&ensp;2: Contact Connection  
 > :return: tuple((code, state)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;state: vacuum gripper state  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: vacuum gripper is off  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: vacuum gripper is on
+> &ensp;&ensp;&ensp;&ensp;state: state of the Vacuum Gripper  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;-1: Vacuum Gripper is off    
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: Object not picked by vacuum gripper   
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: Object picked by vacuum gripper
 
 
 #### def __get_version__(self):
@@ -1320,6 +1256,19 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > :return: tuple((code, modbus_response))  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;modbus_response: modbus response data
+
+
+#### def __iden_ft_sensor_load_offset__(self):
+
+> Identification the tcp load and offset with the the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+> &ensp;&ensp;&ensp;&ensp;3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)  
+>   
+> :return: tuple((code, load_offset)) only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;load:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
 
 
 #### def __iden_joint_friction__(self, sn=None):
@@ -1508,7 +1457,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;1. This interface relies on Firmware 1.2.0 or above  
 >   
 > :param times: Number of playbacks,  
-> &ensp;&ensp;&ensp;&ensp;1. Only valid when the current position of the arm is the end position of the track, otherwise it will only be played once.  
+> &ensp;&ensp;&ensp;&ensp;1. Only valid when the current position of the arm is the end position of the trajectory, otherwise it will only be played once.  
 > :param filename: The name of the trajectory to play back  
 > &ensp;&ensp;&ensp;&ensp;1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.  
 > :param wait: whether to wait for the arm to complete, default is False  
@@ -2079,7 +2028,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 
 > Enable auto checkset the baudrate of the end IO board or not  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;only available in the API of gripper/bio/robotiq/linear_track.  
+> &ensp;&ensp;&ensp;&ensp;only available in the API of gripper/bio/robotiq/linear_motor.  
 > &ensp;&ensp;&ensp;&ensp;  
 > :param enable: True/False  
 > :return: code  
@@ -2255,7 +2204,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;1: xarm gripper  
 > &ensp;&ensp;&ensp;&ensp;2: bio gripper  
 > &ensp;&ensp;&ensp;&ensp;3: robotiq gripper  
-> &ensp;&ensp;&ensp;&ensp;4: linear track  
+> &ensp;&ensp;&ensp;&ensp;4: linear motor  
 > :param baud: checkset baud value, less than or equal to 0 means disable checkset  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2311,6 +2260,13 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;3: xArm Bio Gripper, no additional parameters required  
 > &ensp;&ensp;&ensp;&ensp;4: Robotiq-2F-85 Gripper, no additional parameters required  
 > &ensp;&ensp;&ensp;&ensp;5: Robotiq-2F-140 Gripper, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;7: Lite Gripper, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;8: Lite Vacuum Gripper, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;9: xArm Gripper G2, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;10: PGC-140-50 of the DH-ROBOTICS, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;11: RH56DFX-2L of the INSPIRE-ROBOTS, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;12: RH56DFX-2R of the INSPIRE-ROBOTS, no additional parameters required  
+> &ensp;&ensp;&ensp;&ensp;13: xArm Bio Gripper G2, no additional parameters required  
 > &ensp;&ensp;&ensp;&ensp;21: Cylinder, need additional parameters radius, height  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;self.set_collision_tool_model(21, radius=45, height=137)  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;:param radius: the radius of cylinder, (unit: mm)  
@@ -2418,17 +2374,20 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_force_control_pid__(self, kp, ki, kd, xe_limit, **kwargs):
+#### def __set_ft_admittance_ctrl_threshold__(self, thresholds):
 
-> Set force control pid parameters through the Six-axis Force Torque Sensor.  
+> Set the reaction thresholds in each direction under the admittance control mode of the Six-axis Force Torque Sensor  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.110  
 >   
-> :param kp: proportional gain.  
-> :param ki: integral gain.  
-> :param kd: differential gain.  
-> :param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s  
+> :param thresholds: thresholds, [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]  
+> &ensp;&ensp;&ensp;&ensp;x: [0.1, 50] (N)  
+> &ensp;&ensp;&ensp;&ensp;y: [0.1, 50] (N)  
+> &ensp;&ensp;&ensp;&ensp;z: [0.1, 50] (N)  
+> &ensp;&ensp;&ensp;&ensp;Rx: [0.01, 2] (Nm)  
+> &ensp;&ensp;&ensp;&ensp;Ry: [0.01, 2] (Nm)  
+> &ensp;&ensp;&ensp;&ensp;Rz: [0.01, 2] (Nm)  
+>   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2480,7 +2439,7 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_ft_collision_threshold__(self, thresholds):
 
-> Set the threshold of the collision detection with the Six-axis Force Torque Sensor  
+> Set the thresholds of the collision detection with the Six-axis Force Torque Sensor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.6.103  
 >   
@@ -2491,6 +2450,107 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;Rx: [0.1, 4] (Nm)  
 > &ensp;&ensp;&ensp;&ensp;Ry: [0.1, 4] (Nm)  
 > &ensp;&ensp;&ensp;&ensp;Rz: [0.1, 4] (Nm)  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_sensor_admittance_parameters__(self, coord=None, c_axis=None, M=None, K=None, B=None, **kwargs):
+
+> Set the parameters of admittance control through the Six-axis Force Torque Sensor.  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+> &ensp;&ensp;&ensp;&ensp;3. parameters coord and c_axis must be specified at the same time, either as an integer(only coord) and array or None (not set)  
+> &ensp;&ensp;&ensp;&ensp;4. parameters M, K, and B must be specified at the same time, either as an array or None (not set)  
+> &ensp;&ensp;&ensp;&ensp;5. supports multiple parameter combinations and sequences  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;- set_ft_sensor_admittance_parameters(coord, c_axis)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;- set_ft_sensor_admittance_parameters(M, K, B)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;- set_ft_sensor_admittance_parameters(coord, c_axis, M, K, B)  
+>   
+> :param coord: task frame (0: base frame. 1: tool frame)  
+> :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be admittance in the corresponding axis of the task frame.  
+> :param M: 6d vector, mass. (kg)  
+> :param K: 6d vector, stiffness coefficient.  
+> :param B: 6d vector, damping coefficient.  
+> &ensp;&ensp;&ensp;&ensp;Note: the value is set to 2*sqrt(M*K) in controller.  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_sensor_enable__(self, on_off):
+
+> Used for enabling and disabling the use of the Six-axis Force Torque Sensor measurements in the controller.  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+>   
+> :param on_off: enable or disable F/T data sampling.  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_sensor_force_parameters__(self, coord=None, c_axis=None, f_ref=None, limits=None, kp=None, ki=None, kd=None, xe_limit=None, **kwargs):
+
+> Set the parameters of force control through the Six-axis Force Torque Sensor.  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+> &ensp;&ensp;&ensp;&ensp;3. parameters coord, c_axis, f_ref and limits must be specified at the same time, either as an integer(only coord) and array or None (not set)  
+> &ensp;&ensp;&ensp;&ensp;4. parameters kp, ki, kd, and xe_limit must be specified at the same time, either as an array or None (not set)  
+> &ensp;&ensp;&ensp;&ensp;5. supports multiple parameter combinations and sequences  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;- set_ft_sensor_force_parameters(coord, c_axis, f_ref, limits)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;- set_ft_sensor_force_parameters(kp, ki, kd, xe_limit)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;- set_ft_sensor_force_parameters(coord, c_axis, f_ref, limits, kp, ki, kd, xe_limit)  
+>   
+> :param coord: task frame (0: base frame. 1: tool frame)  
+> :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.  
+> :param f_ref: 6d vector, the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.  
+> :param limits: 6d vector, for compliant axes, these values are the maximum allowed tcp speed along/about the axis.  
+> :param kp: 6d vector, proportional gain.  
+> :param ki: 6d vector, integral gain.  
+> :param kd: 6d vector, differential gain.  
+> :param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_sensor_load_offset__(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
+
+> Write the load offset parameters identified by the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+> &ensp;&ensp;&ensp;&ensp;3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)  
+>   
+> :param iden_result_list:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]  
+> :param association_setting_tcp_load: whether to convert the parameter to the corresponding tcp load and set, default is False  
+> &ensp;&ensp;&ensp;&ensp;Note: If True, the value of tcp load will be modified  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_sensor_mode__(self, mode, **kwargs):
+
+> Set robot to be controlled in force mode. (Through the Six-axis Force Torque Sensor)  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
+>   
+> :param app_code: force mode.  
+> &ensp;&ensp;&ensp;&ensp;0: non-force mode  
+> &ensp;&ensp;&ensp;&ensp;1: admittance control  
+> &ensp;&ensp;&ensp;&ensp;2: force control  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_ft_sensor_zero__(self):
+
+> Set the current state to the zero point of the Six-axis Force Torque Sensor  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
+> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
 >   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2568,51 +2628,6 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_impedance__(self, coord, c_axis, M, K, B, **kwargs):
-
-> Set all parameters of impedance control through the Six-axis Force Torque Sensor.  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :param coord: task frame. 0: base frame. 1: tool frame.  
-> :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.  
-> :param M: mass. (kg)  
-> :param K: stiffness coefficient.  
-> :param B: damping coefficient. invalid.  
-> &ensp;&ensp;&ensp;&ensp;Note: the value is set to 2*sqrt(M*K) in controller.  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __set_impedance_config__(self, coord, c_axis):
-
-> Set impedance control parameters of impedance control through the Six-axis Force Torque Sensor.  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :param coord: task frame. 0: base frame. 1: tool frame.  
-> :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __set_impedance_mbk__(self, M, K, B, **kwargs):
-
-> Set mbk parameters of impedance control through the Six-axis Force Torque Sensor.  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
-> &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
->   
-> :param M: mass. (kg)  
-> :param K: stiffness coefficient.  
-> :param B: damping coefficient. invalid.  
-> &ensp;&ensp;&ensp;&ensp;Note: the value is set to 2*sqrt(M*K) in controller.  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
 #### def __set_initial_point__(self, point):
 
 > Set the initial point  
@@ -2654,21 +2669,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_linear_spd_limit_factor__(self, factor):
+#### def __set_linear_motor_back_origin__(self, wait=True, **kwargs):
 
-> Set linear speed limit factor (default is 1.2)  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.3.0  
-> &ensp;&ensp;&ensp;&ensp;2. only available in mode 1  
->   
-> :param factor: speed limit factor  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __set_linear_track_back_origin__(self, wait=True, **kwargs):
-
-> Set the linear track go back to the origin position  
+> Set the linear motor go back to the origin position  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 > &ensp;&ensp;&ensp;&ensp;2. only useful when powering on for the first time  
@@ -2681,9 +2684,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_linear_track_enable__(self, enable):
+#### def __set_linear_motor_enable__(self, enable):
 
-> Set the linear track enable/disable  
+> Set the linear motor enable/disable  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -2692,9 +2695,9 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_linear_track_pos__(self, pos, speed=None, wait=True, timeout=100, **kwargs):
+#### def __set_linear_motor_pos__(self, pos, speed=None, wait=True, timeout=100, **kwargs):
 
-> Set the position of the linear track  
+> Set the position of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -2702,16 +2705,16 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;If SN start with AL1300 the position range is 0~700mm.  
 > &ensp;&ensp;&ensp;&ensp;If SN start with AL1301 the position range is 0~1000mm.  
 > &ensp;&ensp;&ensp;&ensp;If SN start with AL1302 the position range is 0~1500mm.  
-> :param speed: speed of the linear track. Integer between 1 and 1000mm/s. default is not set  
+> :param speed: speed of the linear motor. Integer between 1 and 1000mm/s. default is not set  
 > :param wait: wait to motion finish or not, default is True  
 > :param timeout: wait timeout, seconds, default is 100s.  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_linear_track_speed__(self, speed):
+#### def __set_linear_motor_speed__(self, speed):
 
-> Set the speed of the linear track  
+> Set the speed of the linear motor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -2720,12 +2723,24 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_linear_track_stop__(self):
+#### def __set_linear_motor_stop__(self):
 
-> Set the linear track to stop  
+> Set the linear motor to stop  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_linear_spd_limit_factor__(self, factor):
+
+> Set linear speed limit factor (default is 1.2)  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.3.0  
+> &ensp;&ensp;&ensp;&ensp;2. only available in mode 1  
+>   
+> :param factor: speed limit factor  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -2993,15 +3008,6 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_safe_level__(self, level=4):
-
-> Set safe level,  
->   
-> :param level: safe level, default is 4  
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
 #### def __set_self_collision_detection__(self, on_off):
 
 > Set whether to enable self-collision detection   
@@ -3143,9 +3149,10 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > Set the xArm state  
 >   
 > :param state: default is 0  
-> &ensp;&ensp;&ensp;&ensp;0: sport state  
+> &ensp;&ensp;&ensp;&ensp;0: motion state  
 > &ensp;&ensp;&ensp;&ensp;3: pause state  
 > &ensp;&ensp;&ensp;&ensp;4: stop state  
+> &ensp;&ensp;&ensp;&ensp;6: deceleration stop state  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3276,6 +3283,10 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_tgpio_modbus_use_503_port__(self, use_503_port=True):
+
+
+
 #### def __set_timeout__(self, timeout):
 
 > Set the timeout of cmd response  
@@ -3331,12 +3342,12 @@ xArm-Python-SDK API Documentation (V1.16.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_vacuum_gripper__(self, on, wait=False, timeout=3, delay_sec=None, sync=True, hardware_version=1):
 
-> Set vacuum gripper state  
+> Set the Vacuum Gripper ON/OFF  
 >   
 > :param on: open or not  
 > &ensp;&ensp;&ensp;&ensp;on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`  
 > &ensp;&ensp;&ensp;&ensp;on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`  
-> :param wait: wait or not, default is False  
+> :param wait: wait the object picked by the vacuum gripper or not, default is False  
 > :param timeout: wait time, unit:second, default is 3s  
 > :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)  
 > :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)  

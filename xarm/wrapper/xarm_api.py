@@ -105,12 +105,32 @@ class XArmAPI(object):
             'shutdown_system': self.system_control,
             'set_bio_gripper_position': self.set_bio_gripper_g2_position,
             'get_bio_gripper_position': self.get_bio_gripper_g2_position,
+            'set_impedance': self.set_ft_sensor_admittance_parameters,
+            'set_impedance_mbk': self.set_ft_sensor_admittance_parameters,
+            'set_impedance_config': self.set_ft_sensor_admittance_parameters,
+            'set_force_control_pid': self.set_ft_sensor_force_parameters,
+            'config_force_control': self.set_ft_sensor_force_parameters,
+            'ft_sensor_set_zero': self.set_ft_sensor_zero,
+            'ft_sensor_iden_load': self.iden_ft_sensor_load_offset,
+            'ft_sensor_cali_load': self.set_ft_sensor_load_offset,
+            'ft_sensor_enable': self.set_ft_sensor_enable,
+            'ft_sensor_app_set': self.set_ft_sensor_mode,
+            'ft_sensor_app_get': self.get_ft_sensor_mode,
+            'get_linear_track_registers': self.get_linear_motor_registers,
+            'get_linear_track_pos': self.get_linear_motor_pos,
+            'get_linear_track_status': self.get_linear_motor_status,
+            'get_linear_track_error': self.get_linear_motor_error,
+            'get_linear_track_is_enabled': self.get_linear_motor_is_enabled,
+            'get_linear_track_on_zero': self.get_linear_motor_on_zero,
+            'get_linear_track_sci': self.get_linear_motor_sci,
+            'get_linear_track_sco': self.get_linear_motor_sco,
+            'clean_linear_track_error': self.clean_linear_motor_error,
+            'set_linear_track_enable': self.set_linear_motor_enable,
+            'set_linear_track_speed': self.set_linear_motor_speed,
+            'set_linear_track_back_origin': self.set_linear_motor_back_origin,
+            'set_linear_track_pos': self.set_linear_motor_pos,
+            'set_linear_track_stop': self.set_linear_motor_stop,
         }
-
-    def __getattr__(self, item):
-        if item in self.__attr_alias_map.keys():
-            return self.__attr_alias_map[item]
-        raise AttributeError('\'{}\' has not attribute \'{}\''.format(self.__class__.__name__, item))
 
     @property
     def arm(self):
@@ -1175,7 +1195,7 @@ class XArmAPI(object):
 
         :return: tuple((code, seconds)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            seconds: The actual duration of the recorded track
+            seconds: The actual duration of the recorded trajectory
         """
         ret = self._arm.get_common_info(50, return_val=True)
         return ret
@@ -1222,7 +1242,7 @@ class XArmAPI(object):
             1. This interface relies on Firmware 1.2.0 or above
 
         :param times: Number of playbacks,
-            1. Only valid when the current position of the arm is the end position of the track, otherwise it will only be played once.
+            1. Only valid when the current position of the arm is the end position of the trajectory, otherwise it will only be played once.
         :param filename: The name of the trajectory to play back
             1. If filename is None, you need to manually call the `load_trajectory` to load the trajectory.
         :param wait: whether to wait for the arm to complete, default is False
@@ -1431,9 +1451,10 @@ class XArmAPI(object):
         Set the xArm state
 
         :param state: default is 0
-            0: sport state
+            0: motion state
             3: pause state
             4: stop state
+            6: deceleration stop state
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -1876,6 +1897,21 @@ class XArmAPI(object):
         """
         return self._arm.set_gripper_speed(speed, **kwargs)
 
+    def get_gripper_status(self):
+        """
+        Get the status of the xArm Gripper
+        Note:
+            only available if gripper_version >= 3.4.3
+
+        :return: tuple((code, status)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            status:
+                status & 0x03 == 0: stop state
+                status & 0x03 == 1: move state 
+                status & 0x03 == 2: grasp state
+        """
+        return self._arm.get_gripper_status()
+
     def get_gripper_err_code(self, **kwargs):
         """
         Get the gripper error code
@@ -1952,27 +1988,28 @@ class XArmAPI(object):
 
     def get_vacuum_gripper(self, hardware_version=1):
         """
-        Get vacuum gripper state
+        Get the state of the Vacuum Gripper
 
         :param hardware_version: hardware version
             1: Plug-in Connection, default
             2: Contact Connection
         :return: tuple((code, state)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            state: vacuum gripper state
-                0: vacuum gripper is off
-                1: vacuum gripper is on
+            state: state of the Vacuum Gripper
+                -1: Vacuum Gripper is off  
+                0: Object not picked by vacuum gripper 
+                1: Object picked by vacuum gripper
         """
-        return self._arm.get_suction_cup(hardware_version=hardware_version)
+        return self._arm.get_vacuum_gripper(hardware_version=hardware_version, check_on=True)
 
     def set_vacuum_gripper(self, on, wait=False, timeout=3, delay_sec=None, sync=True, hardware_version=1):
         """
-        Set vacuum gripper state
+        Set the Vacuum Gripper ON/OFF
 
         :param on: open or not
             on=True: equivalent to calling `set_tgpio_digital(0, 1)` and `set_tgpio_digital(1, 0)`
             on=False: equivalent to calling `set_tgpio_digital(0, 0)` and `set_tgpio_digital(1, 1)`
-        :param wait: wait or not, default is False
+        :param wait: wait the object picked by the vacuum gripper or not, default is False
         :param timeout: wait time, unit:second, default is 3s
         :param delay_sec: delay effective time from the current start, in seconds, default is None(effective immediately)
         :param sync: whether to execute in the motion queue, set to False to execute immediately(default is True)
@@ -1984,7 +2021,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_suction_cup(on, wait=wait, timeout=timeout, delay_sec=delay_sec, sync=sync, hardware_version=hardware_version)
+        return self._arm.set_vacuum_gripper(on, wait=wait, timeout=timeout, delay_sec=delay_sec, sync=sync, hardware_version=hardware_version)
 
     def get_cgpio_digital(self, ionum=None):
         """
@@ -2632,25 +2669,25 @@ class XArmAPI(object):
     #     """
     #     return self._arm.set_joints_torque(joints_torque)
 
-    def get_safe_level(self):
-        """
-        Get safe level
+    # def get_safe_level(self):
+    #     """
+    #     Get safe level
         
-        :return: tuple((code, safe_level))
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            safe_level: safe level
-        """
-        return self._arm.get_safe_level()
+    #     :return: tuple((code, safe_level))
+    #         code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+    #         safe_level: safe level
+    #     """
+    #     return self._arm.get_safe_level()
 
-    def set_safe_level(self, level=4):
-        """
-        Set safe level,
+    # def set_safe_level(self, level=4):
+    #     """
+    #     Set safe level,
 
-        :param level: safe level, default is 4
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.set_safe_level(level=level)
+    #     :param level: safe level, default is 4
+    #     :return: code
+    #         code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+    #     """
+    #     return self._arm.set_safe_level(level=level)
 
     def set_timeout(self, timeout):
         """
@@ -2664,7 +2701,7 @@ class XArmAPI(object):
         """
         Enable auto checkset the baudrate of the end IO board or not
         Note:
-            only available in the API of gripper/bio/robotiq/linear_track.
+            only available in the API of gripper/bio/robotiq/linear_motor.
             
         :param enable: True/False
         :return: code
@@ -2680,7 +2717,7 @@ class XArmAPI(object):
             1: xarm gripper
             2: bio gripper
             3: robotiq gripper
-            4: linear track
+            4: linear motor
         :param baud: checkset baud value, less than or equal to 0 means disable checkset
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
@@ -2695,7 +2732,7 @@ class XArmAPI(object):
             1: xarm gripper
             2: bio gripper
             3: robotiq gripper
-            4: linear track
+            4: linear motor
         :return: tuple((code, baud))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             baud: the checkset baud value
@@ -3072,6 +3109,13 @@ class XArmAPI(object):
             3: xArm Bio Gripper, no additional parameters required
             4: Robotiq-2F-85 Gripper, no additional parameters required
             5: Robotiq-2F-140 Gripper, no additional parameters required
+            7: Lite Gripper, no additional parameters required
+            8: Lite Vacuum Gripper, no additional parameters required
+            9: xArm Gripper G2, no additional parameters required
+            10:	PGC-140-50 of the DH-ROBOTICS, no additional parameters required
+            11: RH56DFX-2L of the INSPIRE-ROBOTS, no additional parameters required
+            12: RH56DFX-2R of the INSPIRE-ROBOTS, no additional parameters required
+            13: xArm Bio Gripper G2, no additional parameters required
             21: Cylinder, need additional parameters radius, height
                 self.set_collision_tool_model(21, radius=45, height=137)
                 :param radius: the radius of cylinder, (unit: mm)
@@ -3217,88 +3261,58 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         return self._arm.get_base_board_version(board_id)
-
-    def set_impedance(self, coord, c_axis, M, K, B, **kwargs):
+    
+    def set_ft_sensor_admittance_parameters(self, coord=None, c_axis=None, M=None, K=None, B=None, **kwargs):
         """
-        Set all parameters of impedance control through the Six-axis Force Torque Sensor.
+        Set the parameters of admittance control through the Six-axis Force Torque Sensor.
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
+            3. parameters coord and c_axis must be specified at the same time, either as an integer(only coord) and array or None (not set)
+            4. parameters M, K, and B must be specified at the same time, either as an array or None (not set)
+            5. supports multiple parameter combinations and sequences
+                - set_ft_sensor_admittance_parameters(coord, c_axis)
+                - set_ft_sensor_admittance_parameters(M, K, B)
+                - set_ft_sensor_admittance_parameters(coord, c_axis, M, K, B)
 
-        :param coord: task frame. 0: base frame. 1: tool frame.
-        :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
-        :param M: mass. (kg)
-        :param K: stiffness coefficient.
-        :param B: damping coefficient. invalid.
+        :param coord: task frame (0: base frame. 1: tool frame)
+        :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be admittance in the corresponding axis of the task frame.
+        :param M: 6d vector, mass. (kg)
+        :param K: 6d vector, stiffness coefficient.
+        :param B: 6d vector, damping coefficient.
             Note: the value is set to 2*sqrt(M*K) in controller.
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_impedance(coord, c_axis, M, K, B, **kwargs)
+        return self._arm.set_ft_sensor_admittance_parameters(coord=coord, c_axis=c_axis, M=M, K=K, B=B, **kwargs)
 
-    def set_impedance_mbk(self, M, K, B, **kwargs):
+    def set_ft_sensor_force_parameters(self, coord=None, c_axis=None, f_ref=None, limits=None, kp=None, ki=None, kd=None, xe_limit=None, **kwargs):
         """
-        Set mbk parameters of impedance control through the Six-axis Force Torque Sensor.
+        Set the parameters of force control through the Six-axis Force Torque Sensor.
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
+            3. parameters coord, c_axis, f_ref and limits must be specified at the same time, either as an integer(only coord) and array or None (not set)
+            4. parameters kp, ki, kd, and xe_limit must be specified at the same time, either as an array or None (not set)
+            5. supports multiple parameter combinations and sequences
+                - set_ft_sensor_force_parameters(coord, c_axis, f_ref, limits)
+                - set_ft_sensor_force_parameters(kp, ki, kd, xe_limit)
+                - set_ft_sensor_force_parameters(coord, c_axis, f_ref, limits, kp, ki, kd, xe_limit)
 
-        :param M: mass. (kg)
-        :param K: stiffness coefficient.
-        :param B: damping coefficient. invalid.
-            Note: the value is set to 2*sqrt(M*K) in controller.
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.set_impedance_mbk(M, K, B, **kwargs)
-
-    def set_impedance_config(self, coord, c_axis):
-        """
-        Set impedance control parameters of impedance control through the Six-axis Force Torque Sensor.
-        Note:
-            1. only available if firmware_version >= 1.8.3
-            2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
-
-        :param coord: task frame. 0: base frame. 1: tool frame.
-        :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.set_impedance_config(coord, c_axis)
-
-    def config_force_control(self, coord, c_axis, f_ref, limits, **kwargs):
-        """
-        Set force control parameters through the Six-axis Force Torque Sensor.
-        Note:
-            1. only available if firmware_version >= 1.8.3
-            2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
-
-        :param coord:  task frame. 0: base frame. 1: tool frame.
+        :param coord: task frame (0: base frame. 1: tool frame)
         :param c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
-        :param f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
-        :param limits:  for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.config_force_control(coord, c_axis, f_ref, limits, **kwargs)
-
-    def set_force_control_pid(self, kp, ki, kd, xe_limit, **kwargs):
-        """
-        Set force control pid parameters through the Six-axis Force Torque Sensor.
-        Note:
-            1. only available if firmware_version >= 1.8.3
-            2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
-
-        :param kp: proportional gain.
-        :param ki: integral gain.
-        :param kd: differential gain.
+        :param f_ref: 6d vector, the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
+        :param limits: 6d vector, for compliant axes, these values are the maximum allowed tcp speed along/about the axis.
+        :param kp: 6d vector, proportional gain.
+        :param ki: 6d vector, integral gain.
+        :param kd: 6d vector, differential gain.
         :param xe_limit: 6d vector. for compliant axes, these values are the maximum allowed tcp speed along/about the axis. mm/s
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_force_control_pid(kp, ki, kd, xe_limit, **kwargs)
+        return self._arm.set_ft_sensor_force_parameters(coord=coord, c_axis=c_axis, f_ref=f_ref, limits=limits, kp=kp, ki=ki, kd=kd, xe_limit=xe_limit, **kwargs)
 
-    def ft_sensor_set_zero(self):
+    def set_ft_sensor_zero(self):
         """
         Set the current state to the zero point of the Six-axis Force Torque Sensor
         Note:
@@ -3308,23 +3322,23 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.ft_sensor_set_zero()
+        return self._arm.set_ft_sensor_zero()
 
-    def ft_sensor_iden_load(self):
+    def iden_ft_sensor_load_offset(self):
         """
-        Identification the tcp load with the the Six-axis Force Torque Sensor
+        Identification the tcp load and offset with the the Six-axis Force Torque Sensor
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
             3. starting from SDK v1.11.0, the centroid unit is millimeters (originally meters)
 
-        :return: tuple((code, load)) only when code is 0, the returned result is correct.
+        :return: tuple((code, load_offset)) only when code is 0, the returned result is correct.
             code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             load:  [mass(kg), x_centroid(mm), y_centroid(mm), z_centroid(mm), Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
         """
-        return self._arm.ft_sensor_iden_load()
+        return self._arm.iden_ft_sensor_load_offset()
 
-    def ft_sensor_cali_load(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
+    def set_ft_sensor_load_offset(self, iden_result_list, association_setting_tcp_load=False, **kwargs):
         """
         Write the load offset parameters identified by the Six-axis Force Torque Sensor
         Note:
@@ -3338,9 +3352,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.ft_sensor_cali_load(iden_result_list, association_setting_tcp_load=association_setting_tcp_load, **kwargs)
+        return self._arm.set_ft_sensor_load_offset(iden_result_list, association_setting_tcp_load=association_setting_tcp_load, **kwargs)
 
-    def ft_sensor_enable(self, on_off):
+    def set_ft_sensor_enable(self, on_off):
         """
         Used for enabling and disabling the use of the Six-axis Force Torque Sensor measurements in the controller.
         Note:
@@ -3351,9 +3365,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.ft_sensor_enable(on_off)
+        return self._arm.set_ft_sensor_enable(on_off)
 
-    def ft_sensor_app_set(self, app_code):
+    def set_ft_sensor_mode(self, mode, **kwargs):
         """
         Set robot to be controlled in force mode. (Through the Six-axis Force Torque Sensor)
         Note:
@@ -3362,14 +3376,14 @@ class XArmAPI(object):
 
         :param app_code: force mode.
             0: non-force mode
-            1: impendance control
+            1: admittance control
             2: force control
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.ft_sensor_app_set(app_code)
+        return self._arm.set_ft_sensor_mode(mode, **kwargs)
 
-    def ft_sensor_app_get(self):
+    def get_ft_sensor_mode(self):
         """
         Get force mode
         Note:
@@ -3380,10 +3394,10 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             app_code: 
                 0: non-force mode
-                1: impedance control mode
+                1: admittance control mode
                 2: force control mode
         """
-        return self._arm.ft_sensor_app_get()
+        return self._arm.get_ft_sensor_mode()
 
     def get_ft_sensor_data(self, is_raw=False):
         """
@@ -3411,9 +3425,9 @@ class XArmAPI(object):
         :return: tuple((code, config))
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             config: [...], the config of the Six-axis Force Torque Sensor, only when code is 0, the returned result is correct.
-                [0] ft_app_status: force mode
+                [0] ft_mode: force mode
                     0: non-force mode
-                    1: impendance control
+                    1: admittance control
                     2: force control
                 [1] ft_is_started: ft sensor is enable or not
                 [2] ft_type: ft sensor type
@@ -3423,17 +3437,17 @@ class XArmAPI(object):
                 [6] ft_dir_bias: reversed
                 [7] ft_centroid: [x_centroid, y_centroid, z_centroid]
                 [8] ft_zero: [Fx_offset, Fy_offset, Fz_offset, Tx_offset, Ty_offset, Tz_ffset]
-                [9] imp_coord: task frame of impendance control mode.
+                [9] imp_coord: task frame of admittance control mode.
                     0: base frame.
                     1: tool frame.
-                [10] imp_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+                [10] imp_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be admittance in the corresponding axis of the task frame.
                 [11] M: mass. (kg)
                 [12] K: stiffness coefficient.
                 [13] B: damping coefficient. invalid.   Note: the value is set to 2*sqrt(M*K) in controller.
                 [14] f_coord: task frame of force control mode. 
                     0: base frame.
                     1: tool frame.
-                [15] f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be impedance in the corresponding axis of the task frame.
+                [15] f_c_axis: a 6d vector of 0s and 1s. 1 means that robot will be compliant in the corresponding axis of the task frame.
                 [16] f_ref:  the forces/torques the robot will apply to its environment. The robot adjusts its position along/about compliant axis in order to achieve the specified force/torque.
                 [17] f_limits: reversed.
                 [18] kp: proportional gain
@@ -3470,9 +3484,9 @@ class XArmAPI(object):
         """
         return self._arm.iden_tcp_load(estimated_mass)
 
-    def get_linear_track_registers(self, **kwargs):
+    def get_linear_motor_registers(self, **kwargs):
         """
-        Get the status of the linear track
+        Get the status of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
         
@@ -3489,11 +3503,11 @@ class XArmAPI(object):
                     'sco': [0, 0],
                 }
         """
-        return self._arm.get_linear_track_registers(**kwargs)
+        return self._arm.get_linear_motor_registers(**kwargs)
 
-    def get_linear_track_pos(self):
+    def get_linear_motor_pos(self):
         """
-        Get the pos of the linear track
+        Get the pos of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
 
@@ -3501,11 +3515,11 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             position: position
         """
-        return self._arm.get_linear_track_pos()
+        return self._arm.get_linear_motor_pos()
 
-    def get_linear_track_status(self):
+    def get_linear_motor_status(self):
         """
-        Get the status of the linear track
+        Get the status of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
 
@@ -3516,11 +3530,11 @@ class XArmAPI(object):
                 status & 0x01: in motion
                 status & 0x02: has stop
         """
-        return self._arm.get_linear_track_status()
+        return self._arm.get_linear_motor_status()
 
-    def get_linear_track_error(self):
+    def get_linear_motor_error(self):
         """
-        Get the error code of the linear track
+        Get the error code of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
 
@@ -3528,50 +3542,50 @@ class XArmAPI(object):
             code:  See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             error: See the [Linear Motor Error Code Documentation](./xarm_api_code.md#linear-motor-error-code) for details.
         """
-        return self._arm.get_linear_track_error()
+        return self._arm.get_linear_motor_error()
 
-    def get_linear_track_is_enabled(self):
+    def get_linear_motor_is_enabled(self):
         """
-        Get the linear track is enabled or not
+        Get the linear motor is enabled or not
         Note:
             1. only available if firmware_version >= 1.8.0
 
         :return: tuple((code, status)) only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             status: 
-                0: linear track is not enabled
-                1: linear track is enabled
+                0: linear motor is not enabled
+                1: linear motor is enabled
         """
-        return self._arm.get_linear_track_is_enabled()
+        return self._arm.get_linear_motor_is_enabled()
 
-    def get_linear_track_on_zero(self):
+    def get_linear_motor_on_zero(self):
         """
-        Get the linear track is on zero positon or not
+        Get the linear motor is on zero positon or not
         Note:
             1. only available if firmware_version >= 1.8.0
         
         :return: tuple((code, status)) only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             status: 
-                0: linear track is not on zero
-                1: linear track is on zero
+                0: linear motor is not on zero
+                1: linear motor is on zero
         """
-        return self._arm.get_linear_track_on_zero()
+        return self._arm.get_linear_motor_on_zero()
 
-    def get_linear_track_sci(self):
+    def get_linear_motor_sci(self):
         """
-        Get the sci1 value of the linear track
+        Get the sci1 value of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
 
         :return: tuple((code, sci1)) only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.get_linear_track_sci()
+        return self._arm.get_linear_motor_sci()
 
-    def get_linear_track_sco(self):
+    def get_linear_motor_sco(self):
         """
-        Get the sco value of the linear track
+        Get the sco value of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
 
@@ -3579,22 +3593,22 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             sco: [sco0, sco1]
         """
-        return self._arm.get_linear_track_sco()
+        return self._arm.get_linear_motor_sco()
 
-    def clean_linear_track_error(self):
+    def clean_linear_motor_error(self):
         """
-        Clean the linear track error
+        Clean the linear motor error
         Note:
             1. only available if firmware_version >= 1.8.0
         
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.clean_linear_track_error()
+        return self._arm.clean_linear_motor_error()
 
-    def set_linear_track_enable(self, enable):
+    def set_linear_motor_enable(self, enable):
         """
-        Set the linear track enable/disable
+        Set the linear motor enable/disable
         Note:
             1. only available if firmware_version >= 1.8.0
 
@@ -3602,11 +3616,11 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_linear_track_enable(enable)
+        return self._arm.set_linear_motor_enable(enable)
 
-    def set_linear_track_speed(self, speed):
+    def set_linear_motor_speed(self, speed):
         """
-        Set the speed of the linear track
+        Set the speed of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
         
@@ -3614,11 +3628,11 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_linear_track_speed(speed)
+        return self._arm.set_linear_motor_speed(speed)
 
-    def set_linear_track_back_origin(self, wait=True, **kwargs):
+    def set_linear_motor_back_origin(self, wait=True, **kwargs):
         """
-        Set the linear track go back to the origin position
+        Set the linear motor go back to the origin position
         Note:
             1. only available if firmware_version >= 1.8.0
             2. only useful when powering on for the first time
@@ -3630,11 +3644,11 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_linear_track_back_origin(wait=wait, **kwargs)
+        return self._arm.set_linear_motor_back_origin(wait=wait, **kwargs)
 
-    def set_linear_track_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
+    def set_linear_motor_pos(self, pos, speed=None, wait=True, timeout=100, **kwargs):
         """
-        Set the position of the linear track
+        Set the position of the linear motor
         Note:
             1. only available if firmware_version >= 1.8.0
         
@@ -3642,24 +3656,24 @@ class XArmAPI(object):
             If SN start with AL1300 the position range is 0~700mm.
             If SN start with AL1301 the position range is 0~1000mm.
             If SN start with AL1302 the position range is 0~1500mm.
-        :param speed: speed of the linear track. Integer between 1 and 1000mm/s. default is not set
+        :param speed: speed of the linear motor. Integer between 1 and 1000mm/s. default is not set
         :param wait: wait to motion finish or not, default is True
         :param timeout: wait timeout, seconds, default is 100s.
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_linear_track_pos(pos, speed=speed, wait=wait, timeout=timeout, **kwargs)
+        return self._arm.set_linear_motor_pos(pos, speed=speed, wait=wait, timeout=timeout, **kwargs)
 
-    def set_linear_track_stop(self):
+    def set_linear_motor_stop(self):
         """
-        Set the linear track to stop
+        Set the linear motor to stop
         Note:
             1. only available if firmware_version >= 1.8.0
         
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_linear_track_stop()
+        return self._arm.set_linear_motor_stop()
 
     def delete_blockly_app(self, name):
         """
@@ -4373,7 +4387,7 @@ class XArmAPI(object):
 
     def set_ft_collision_threshold(self, thresholds):
         """
-        Set the threshold of the collision detection with the Six-axis Force Torque Sensor
+        Set the thresholds of the collision detection with the Six-axis Force Torque Sensor
         Note:
             1. only available if firmware_version >= 2.6.103
 
@@ -4410,6 +4424,25 @@ class XArmAPI(object):
         """
         return self._arm.set_ft_collision_reb_distance(distances, is_radian=is_radian)
     
+    def set_ft_admittance_ctrl_threshold(self, thresholds):
+        """
+        Set the reaction thresholds in each direction under the admittance control mode of the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.6.110
+
+        :param thresholds: thresholds, [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
+            x: [0.1, 50] (N)
+            y: [0.1, 50] (N)
+            z: [0.1, 50] (N)
+            Rx: [0.01, 2] (Nm)
+            Ry: [0.01, 2] (Nm)
+            Rz: [0.01, 2] (Nm)
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_ft_admittance_ctrl_threshold(thresholds)
+    
     def get_ft_collision_detection(self):
         """
         Get the collision detection with the Six-axis Force Torque Sensor is enable or not
@@ -4436,11 +4469,11 @@ class XArmAPI(object):
 
     def get_ft_collision_threshold(self):
         """
-        Get the collision threshold with the Six-axis Force Torque Sensor
+        Get the collision thresholds with the Six-axis Force Torque Sensor
         Note:
             1. only available if firmware_version >= 2.6.103
 
-        :return: tuple((code, threshold)), only when code is 0, the returned result is correct.
+        :return: tuple((code, thresholds)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
         """
@@ -4454,8 +4487,25 @@ class XArmAPI(object):
 
         :param is_radian: the returned value (only Rx/Ry/Rz) is in radians or not, default is self.default_is_radian
 
-        :return: tuple((code, threshold)), only when code is 0, the returned result is correct.
+        :return: tuple((code, distance)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             distance: [x(mm), y(mm), z(mm), Rx(° or rad), Ry(° or rad), Rz(° or rad)]
         """
         return self._arm.get_ft_collision_reb_distance(is_radian=is_radian)
+    
+    def get_ft_admittance_ctrl_threshold(self):
+        """
+        Get the reaction thresholds in each direction under the admittance control mode of the Six-axis Force Torque Sensor
+        Note:
+            1. only available if firmware_version >= 2.6.110
+
+        :return: tuple((code, thresholds)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
+        """
+        return self._arm.get_ft_admittance_ctrl_threshold()
+
+    def __getattr__(self, item):
+        if item in self.__attr_alias_map.keys():
+            return self.__attr_alias_map[item]
+        raise AttributeError('\'{}\' has not attribute \'{}\''.format(self.__class__.__name__, item))

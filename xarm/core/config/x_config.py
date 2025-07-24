@@ -13,11 +13,13 @@ class XCONF(object):
     ARM_AXIS_NUM = 7
     MAX_CMD_NUM = 1024
 
-    TRACK_ID = 1
+    LINEAR_MOTOR_ID = 1
+    TRACK_ID = LINEAR_MOTOR_ID # old
     GRIPPER_ID = 8
 
     TGPIO_HOST_ID = 9
-    LINEER_TRACK_HOST_ID = 11
+    LINEAR_MOTOR_HOST_ID = 11
+    LINEER_TRACK_HOST_ID = LINEAR_MOTOR_HOST_ID # old
 
     def __init__(self):
         pass
@@ -404,16 +406,16 @@ class XCONF(object):
         FTSENSOR_GET_DATA_OLD = 150  # only available in firmware version < 1.8.3
         FTSENSOR_GET_DATA = 200
         FTSENSOR_ENABLE = 201
-        FTSENSOR_SET_APP = 202
-        FTSENSOR_GET_APP = 203
+        FTSENSOR_SET_MODE = 202
+        FTSENSOR_GET_MODE = 203
         IDEN_LOAD = 204
-        FTSENSOR_CALI_LOAD_OFFSET = 205
+        FTSENSOR_SET_LOAD_OFFSET = 205
         FTSENSOR_SET_ZERO = 206
-        IMPEDANCE_CONFIG = 207
+        ADMITTANCE_CONFIG = 207
         FORCE_CTRL_PID = 208
         FORCE_CTRL_CONFIG = 209
-        IMPEDANCE_CTRL_MBK = 210
-        IMPEDANCE_CTRL_CONFIG = 211
+        ADMITTANCE_CTRL_MKB = 210
+        ADMITTANCE_CTRL_CONFIG = 211
         FTSENSOR_GET_CONFIG = 212
         
         GET_TRAJ_SPEEDING = 230
@@ -491,7 +493,7 @@ class XCONF(object):
         ANALOG_IO2 = 0x0A17
 
         BACK_ORIGIN = 0x0A0A
-        STOP_TRACK = 0x0A0E
+        STOP_LINEAR_MOTOR = 0x0A0E
 
     class UxbusState:
         ERR_CODE = 1  # 有尚未清除的错误

@@ -35,13 +35,13 @@ else:
 
 arm = XArmAPI(ip, enable_report=True)
 arm.motion_enable(enable=True)
-arm.ft_sensor_enable(0)
+arm.set_ft_sensor_enable(0)
 
 arm.clean_error()
 arm.clean_warn()
-arm.ft_sensor_enable(1)
+arm.set_ft_sensor_enable(1)
 time.sleep(0.5)
-arm.ft_sensor_set_zero()
+arm.set_ft_sensor_zero()
 
 while arm.connected and arm.error_code == 0:
     # ft_raw_force and ft_ext_force will update by reporting socket
@@ -54,5 +54,5 @@ while arm.connected and arm.error_code == 0:
     #     print('exe_force: {}'.format(ext_force))
     time.sleep(0.2)
 
-arm.ft_sensor_enable(0)
+arm.set_ft_sensor_enable(0)
 arm.disconnect()

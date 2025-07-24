@@ -39,7 +39,7 @@ except:
     SerialPort = None 
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, pretty_print
-from ..core.utils import convert
+from ..core.utils import convert, crc16
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
 from .utils import compare_time, compare_version, filter_invaild_number
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max, xarm_wait_until_not_pause
@@ -87,7 +87,7 @@ class Base(BaseObject, Events):
             self._default_bio_baud = kwargs.get('default_bio_baud', 2000000)
             self._default_gripper_baud = kwargs.get('default_gripper_baud', 2000000)
             self._default_robotiq_baud = kwargs.get('default_robotiq_baud', 115200)
-            self._default_linear_track_baud = kwargs.get('default_linear_track_baud', 2000000)
+            self._default_linear_motor_baud = kwargs.get('default_linear_motor_baud', kwargs.get('default_linear_track_baud', 2000000))
 
             self._max_callback_thread_count = kwargs.get('max_callback_thread_count', 0)
             self._asyncio_loop = None
@@ -234,9 +234,9 @@ class Base(BaseObject, Events):
             self._arm_type_is_1300 = False
             self._control_box_type_is_1300 = False
 
-            self.linear_track_baud = -1
-            self.linear_track_speed = 1
-            self.linear_track_is_enabled = False
+            self.linear_motor_baud = -1
+            self.linear_motor_speed = 1
+            self.linear_motor_is_enabled = False
             self._ft_ext_force = [0, 0, 0, 0, 0, 0]
             self._ft_raw_force = [0, 0, 0, 0, 0, 0]
             self._only_check_result = 0
@@ -363,9 +363,9 @@ class Base(BaseObject, Events):
         self._arm_type_is_1300 = False
         self._control_box_type_is_1300 = False
 
-        self.linear_track_baud = -1
-        self.linear_track_speed = 1
-        self.linear_track_is_enabled = False
+        self.linear_motor_baud = -1
+        self.linear_motor_speed = 1
+        self.linear_motor_is_enabled = False
 
         self._ft_ext_force = [0, 0, 0, 0, 0, 0]
         self._ft_raw_force = [0, 0, 0, 0, 0, 0]
@@ -1066,7 +1066,7 @@ class Base(BaseObject, Events):
         elif type_ == 3:
             self._default_robotiq_baud = baud
         elif type_ == 4:
-            self._default_linear_track_baud = baud
+            self._default_linear_motor_baud = baud
         else:
             return APIState.API_EXCEPTION
         return 0
@@ -1079,7 +1079,7 @@ class Base(BaseObject, Events):
         elif type_ == 3:
             return 0, self._default_robotiq_baud
         elif type_ == 4:
-            return 0, self._default_linear_track_baud
+            return 0, self._default_linear_motor_baud
         return APIState.API_EXCEPTION, 0
 
     def _connect_report(self):
@@ -1331,14 +1331,14 @@ class Base(BaseObject, Events):
                 self._sleep_finish_time = 0
 
             reset_tgpio_params = False
-            reset_linear_track_params = False
+            reset_linear_motor_params = False
             if 0 < error_code <= 17:
                 reset_tgpio_params = True
-                reset_linear_track_params = True
+                reset_linear_motor_params = True
             elif error_code in [19, 28]:
                 reset_tgpio_params = True
             elif error_code == 111:
-                reset_linear_track_params = True
+                reset_linear_motor_params = True
             if reset_tgpio_params:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
@@ -1349,10 +1349,10 @@ class Base(BaseObject, Events):
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
-            if reset_linear_track_params:
-                self.linear_track_baud = -1
-                self.linear_track_is_enabled = False
-                self.linear_track_speed = 1
+            if reset_linear_motor_params:
+                self.linear_motor_baud = -1
+                self.linear_motor_is_enabled = False
+                self.linear_motor_speed = 1
 
             # if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
             #     self.modbus_baud = -1
@@ -1364,8 +1364,8 @@ class Base(BaseObject, Events):
             #     self.gripper_is_enabled = False
             #     self.gripper_speed = 0
             #     self.gripper_version_numbers = [-1, -1, -1]
-            #     self.linear_track_is_enabled = False
-            #     self.linear_track_speed = 0
+            #     self.linear_motor_is_enabled = False
+            #     self.linear_motor_speed = 0
 
             self._error_code = error_code
             self._warn_code = warn_code
@@ -1537,14 +1537,14 @@ class Base(BaseObject, Events):
             self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
 
             reset_tgpio_params = False
-            reset_linear_track_params = False
+            reset_linear_motor_params = False
             if 0 < error_code <= 17:
                 reset_tgpio_params = True
-                reset_linear_track_params = True
+                reset_linear_motor_params = True
             elif error_code in [19, 28]:
                 reset_tgpio_params = True
             elif error_code == 111:
-                reset_linear_track_params = True
+                reset_linear_motor_params = True
             if reset_tgpio_params:
                 self.modbus_baud = -1
                 self.robotiq_is_activated = False
@@ -1555,10 +1555,10 @@ class Base(BaseObject, Events):
                 self.gripper_is_enabled = False
                 self.gripper_speed = 0
                 self.gripper_version_numbers = [-1, -1, -1]
-            if reset_linear_track_params:
-                self.linear_track_baud = -1
-                self.linear_track_is_enabled = False
-                self.linear_track_speed = 0
+            if reset_linear_motor_params:
+                self.linear_motor_baud = -1
+                self.linear_motor_is_enabled = False
+                self.linear_motor_speed = 0
 
             # if error_code in [1, 10, 11, 12, 13, 14, 15, 16, 17, 19, 28]:
             #     self.modbus_baud = -1
@@ -1569,8 +1569,8 @@ class Base(BaseObject, Events):
             #     self.bio_gripper_force = -1
             #     self.gripper_speed = -1
             #     self.gripper_version_numbers = [-1, -1, -1]
-            #     self.linear_track_is_enabled = False
-            #     self.linear_track_speed = -1
+            #     self.linear_motor_is_enabled = False
+            #     self.linear_motor_speed = -1
 
             # print('torque: {}'.format(torque))
             # print('tcp_load: {}'.format(tcp_load))
@@ -2411,7 +2411,7 @@ class Base(BaseObject, Events):
     def checkset_modbus_baud(self, baudrate, check=True, host_id=XCONF.TGPIO_HOST_ID):
         if check and (not self._baud_checkset or baudrate <= 0):
             return 0
-        if check and ((host_id == XCONF.TGPIO_HOST_ID and self.modbus_baud == baudrate) or (host_id == XCONF.LINEER_TRACK_HOST_ID and self.linear_track_baud == baudrate)):
+        if check and ((host_id == XCONF.TGPIO_HOST_ID and self.modbus_baud == baudrate) or (host_id == XCONF.LINEAR_MOTOR_HOST_ID and self.linear_motor_baud == baudrate)):
             return 0
         if baudrate not in self.arm_cmd.BAUDRATES:
             return APIState.MODBUS_BAUD_NOT_SUPPORT
@@ -2426,7 +2426,7 @@ class Base(BaseObject, Events):
                     # self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.MODBUS_BAUDRATE, baud_inx)
                     self.arm_cmd.tgpio_addr_w16(0x1A0B, baud_inx, bid=host_id)
                     time.sleep(0.3)
-                    if host_id != XCONF.LINEER_TRACK_HOST_ID:
+                    if host_id != XCONF.LINEAR_MOTOR_HOST_ID:
                         self.arm_cmd.tgpio_addr_w16(XCONF.ServoConf.SOFT_REBOOT, 1, bid=host_id)
                     if host_id == XCONF.TGPIO_HOST_ID:
                         if self.error_code != 19 and self.error_code != 28:
@@ -2457,8 +2457,8 @@ class Base(BaseObject, Events):
             #     self.modbus_baud = self.arm_cmd.BAUDRATES[cur_baud_inx]
         if host_id == XCONF.TGPIO_HOST_ID:
             return 0 if self.modbus_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
-        elif host_id == XCONF.LINEER_TRACK_HOST_ID:
-            return 0 if self.linear_track_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
+        elif host_id == XCONF.LINEAR_MOTOR_HOST_ID:
+            return 0 if self.linear_motor_baud == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
         else:
             if ret == 0 and 0 <= cur_baud_inx < len(self.arm_cmd.BAUDRATES):
                 return 0 if self.arm_cmd.BAUDRATES[cur_baud_inx] == baudrate else APIState.MODBUS_BAUD_NOT_CORRECT
@@ -2481,8 +2481,8 @@ class Base(BaseObject, Events):
         if ret[0] == 0 and 0 <= ret[1] < len(self.arm_cmd.BAUDRATES):
             if host_id == XCONF.TGPIO_HOST_ID:
                 self.modbus_baud = self.arm_cmd.BAUDRATES[ret[1]]
-            elif host_id == XCONF.LINEER_TRACK_HOST_ID:
-                self.linear_track_baud = self.arm_cmd.BAUDRATES[ret[1]]
+            elif host_id == XCONF.LINEAR_MOTOR_HOST_ID:
+                self.linear_motor_baud = self.arm_cmd.BAUDRATES[ret[1]]
         return ret[0], ret[1]
 
     @xarm_is_connected(_type='set')
@@ -2506,7 +2506,7 @@ class Base(BaseObject, Events):
     
     @xarm_is_connected(_type='set')
     def set_control_modbus_baudrate(self, baud):
-        code = self.checkset_modbus_baud(baud, check=False, host_id=XCONF.LINEER_TRACK_HOST_ID)
+        code = self.checkset_modbus_baud(baud, check=False, host_id=XCONF.LINEAR_MOTOR_HOST_ID)
         self.log_api_info('API -> set_control_modbus_baudrate -> code={}'.format(code), code=code)
         return code
     
@@ -2520,11 +2520,23 @@ class Base(BaseObject, Events):
         else:
             self.arm_cmd.tgpio_set_modbus_func = self.arm_cmd.tgpio_set_modbus
         return 0
+    
+    @staticmethod
+    def _hexstr_to_ints(strs):
+        tmp_list = strs.split(' ')
+        datas = []
+        for item in tmp_list:
+            datas.append(int('0x{}'.format(item), 16) if not item.startswith('0x') else int(item, 16))
+        return datas
 
     def getset_tgpio_modbus_data(self, datas, min_res_len=0, ignore_log=False, host_id=XCONF.TGPIO_HOST_ID, is_transparent_transmission=False, use_503_port=False, **kwargs):
         if not self.connected:
             return APIState.NOT_CONNECTED, []
         is_tt = kwargs.get('is_tt', is_transparent_transmission)
+        if isinstance(datas, str):
+            datas = self._hexstr_to_ints(datas)
+        if is_tt and kwargs.get('auto_crc', False):
+            datas.extend(list(crc16.crc_modbus(datas)))
         if use_503_port:
             if not self.connected_503 and self.connect_503() != 0:
                 return APIState.NOT_CONNECTED, []
@@ -2635,6 +2647,10 @@ class Base(BaseObject, Events):
         if not is_radian:
             distances[3:6] = list(map(lambda x: float('{}'.format(math.radians(x))), distances[3:6]))
         return self.set_common_param(14, distances)
+    
+    def set_ft_admittance_ctrl_threshold(self, thresholds):
+        assert isinstance(thresholds, Iterable) and len(thresholds) >= 6
+        return self.set_common_param(6, thresholds)
 
     def get_ft_collision_detection(self):
         return self.get_common_param(11)
@@ -2651,3 +2667,8 @@ class Base(BaseObject, Events):
         if ret[0] == 0 and not is_radian:
             ret[1][3:6] = list(map(lambda x: float('{:.6f}'.format(math.degrees(x))), ret[1][3:6]))
         return ret
+    
+    def get_ft_admittance_ctrl_threshold(self):
+        code, params = self.get_common_param(6)
+        params = list(map(lambda x: float('{:.6f}'.format(x)), params))
+        return code, params

@@ -19,7 +19,7 @@ from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
 from .gripper import Gripper
-from .track import Track
+from .linear_motor import LinearMotor
 from .base_board import BaseBoard
 from .servo import Servo
 from .record import Record
@@ -40,7 +40,7 @@ except:
 gcode_p = GcodeParser()
 
 
-class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTcp):
+class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, LinearMotor, FtSensor, ModbusTcp):
 
     def __init__(self, port=None, is_radian=False, do_not_open=False, instance=None, **kwargs):
         super(XArm, self).__init__()
@@ -861,16 +861,16 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, Track, FtSensor, ModbusTc
         else:
             return ret[0], self._joints_torque[servo_id - 1]
 
-    @xarm_is_connected(_type='get')
-    def get_safe_level(self):
-        ret = self.arm_cmd.get_safe_level()
-        return ret[0], ret[1]
+    # @xarm_is_connected(_type='get')
+    # def get_safe_level(self):
+    #     ret = self.arm_cmd.get_safe_level()
+    #     return ret[0], ret[1]
 
-    @xarm_is_connected(_type='set')
-    def set_safe_level(self, level=4):
-        ret = self.arm_cmd.set_safe_level(level)
-        self.log_api_info('API -> set_safe_level -> code={}, level={}'.format(ret[0], level), code=ret[0])
-        return ret[0]
+    # @xarm_is_connected(_type='set')
+    # def set_safe_level(self, level=4):
+    #     ret = self.arm_cmd.set_safe_level(level)
+    #     self.log_api_info('API -> set_safe_level -> code={}, level={}'.format(ret[0], level), code=ret[0])
+    #     return ret[0]
 
     @xarm_wait_until_not_pause
     @xarm_wait_until_cmdnum_lt_max

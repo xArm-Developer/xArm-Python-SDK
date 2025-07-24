@@ -95,7 +95,7 @@ class _BlocklyBase(_BlocklyNode):
             self._define_bin_matchs_func = True
             return 'self._cgpio_digitals_is_matchs_bin(\'{}\')'.format(bin_val)
         elif block.attrib['type'] == 'get_suction_cup':
-            return 'self._arm.get_suction_cup(hardware_version={})[{}]'.format(self._vacuum_version, 1)
+            return 'self._arm.get_vacuum_gripper(hardware_version={})[{}]'.format(self._vacuum_version, 1)
         elif block.attrib['type'] == 'check_air_pump_state':
             fields = self._get_nodes('field', root=block)
             state = 1 if fields[0].text == 'ON' else 0

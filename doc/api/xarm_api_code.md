@@ -46,9 +46,9 @@
 - 33: playback trajectory timeout
 - 34: playback trajectory failed
 - 41: wait to set suction cup timeout
-- 80: linear track has error
-- 81: linear track sci is low
-- 82: linear track is not init
+- 80: linear motor has error
+- 81: linear motor sci is low
+- 82: linear motor is not init
 - 100: wait finish timeout
 - 101: too many consecutive failed tests
 - 102: end effector has error

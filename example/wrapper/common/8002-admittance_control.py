@@ -7,7 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 """
-Description: impedance control with the end force sensor
+Description: admittance control with the end force sensor
 """
 
 import os
@@ -44,7 +44,7 @@ arm.set_mode(0)
 arm.set_state(0)
 time.sleep(0.1)
 
-# set tool impedance parameters:
+# set tool admittance parameters:
 K_pos = 300         #  x/y/z linear stiffness coefficient, range: 0 ~ 2000 (N/m)
 K_ori = 4           #  Rx/Ry/Rz rotational stiffness coefficient, range: 0 ~ 20 (Nm/rad)
 
@@ -55,24 +55,24 @@ J = M * 0.01     #  Rx/Ry/Rz equivalent moment of inertia, range: 1e-4 ~ 0.01 (K
 c_axis = [0,0,1,0,0,0] # set z axis as compliant axis
 ref_frame = 0         # 0 : base , 1 : tool
 
-arm.set_impedance_mbk([M, M, M, J, J, J], [K_pos, K_pos, K_pos, K_ori, K_ori, K_ori], [0]*6) # B(damping) is reserved, give zeros
-arm.set_impedance_config(ref_frame, c_axis)
+arm.set_ft_sensor_admittance_parameters([M, M, M, J, J, J], [K_pos, K_pos, K_pos, K_ori, K_ori, K_ori], [0]*6) # B(damping) is reserved, give zeros
+arm.set_ft_sensor_admittance_parameters(ref_frame, c_axis)
 
 # enable ft sensor communication
-arm.ft_sensor_enable(1)
+arm.set_ft_sensor_enable(1)
 # will overwrite previous sensor zero and payload configuration
-# arm.ft_sensor_set_zero() # remove this if zero_offset and payload already identified & compensated!
+# arm.set_ft_sensor_zero() # remove this if zero_offset and payload already identified & compensated!
 time.sleep(0.2) # wait for writing zero operation to take effect, do not remove
 
-# move robot in impedance control application
-arm.ft_sensor_app_set(1)
+# move robot in admittance control application
+arm.set_ft_sensor_mode(1)
 # will start after set_state(0)
 arm.set_state(0)
 
 # compliance effective for 10 secs, you may send position command to robot, or just keep it still
 time.sleep(10)
 
-# remember to reset ft_sensor_app when finished
-arm.ft_sensor_app_set(0)
-arm.ft_sensor_enable(0)
+# remember to reset ft_mode when finished
+arm.set_ft_sensor_mode(0)
+arm.set_ft_sensor_enable(0)
 arm.disconnect()

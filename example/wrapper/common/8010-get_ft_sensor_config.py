@@ -44,9 +44,9 @@ arm = XArmAPI(ip)
 # arm.set_state(0)
 # time.sleep(0.1)
 
-code, config = arm.get_ft_senfor_config()
+code, config = arm.get_ft_sensor_config()
 if code == 0:
-    print('ft_app_status: {}'.format(config[0]))
+    print('ft_mode: {}'.format(config[0]))
     print('ft_is_started: {}'.format(config[1]))
     print('ft_type: {}'.format(config[2]))
     print('ft_id: {}'.format(config[3]))

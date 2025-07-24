@@ -696,9 +696,9 @@ class BlocklyToolOld(object):
 
     def _handle_get_suction_cup(self, block, prefix='', arg_map=None):
         if self._show_comment:
-            self._append_to_file('{}# get suction cup status'.format(prefix))
+            self._append_to_file('{}# get vacuum gripper status'.format(prefix))
         self._append_to_file('{}if not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    arm.get_suction_cup()'.format(prefix))
+        self._append_to_file('{}    arm.get_vacuum_gripper()'.format(prefix))
 
     def _handle_check_air_pump_state(self, block, prefix='', arg_map=None):
         if self._show_comment:
@@ -740,12 +740,12 @@ class BlocklyToolOld(object):
         # value = self.get_node('value', root=block)
         # value = self.get_nodes('field', root=value, descendant=True)[0].text
         if self._show_comment:
-            self._append_to_file('{}# set_suction_cup({}, wait={}, delay_sec={})'.format(prefix, on, wait, delay_sec))
+            self._append_to_file('{}# set_vacuum_gripper({}, wait={}, delay_sec={})'.format(prefix, on, wait, delay_sec))
         self._append_to_file('{}if arm.error_code == 0 and not params[\'quit\']:'.format(prefix))
-        self._append_to_file('{}    code = arm.set_suction_cup({}, wait={}, delay_sec={})'.format(prefix, on, wait, delay_sec))
+        self._append_to_file('{}    code = arm.set_vacuum_gripper({}, wait={}, delay_sec={})'.format(prefix, on, wait, delay_sec))
         self._append_to_file('{}    if code != 0:'.format(prefix))
         self._append_to_file('{}        params[\'quit\'] = True'.format(prefix))
-        self._append_to_file('{}        pprint(\'set_suction_cup, code={{}}\'.format(code))'.format(prefix))
+        self._append_to_file('{}        pprint(\'set_vacuum_gripper, code={{}}\'.format(code))'.format(prefix))
 
     def _handle_gpio_get_controller_digital(self, block, prefix='', arg_map=None):
         io = self.get_node('field', block).text
@@ -1616,7 +1616,7 @@ class BlocklyToolOld(object):
                 bin_val)
 
         elif block.attrib['type'] == 'get_suction_cup':
-            return 'arm.get_suction_cup()[{}]'.format(1)
+            return 'arm.get_vacuum_gripper()[{}]'.format(1)
         elif block.attrib['type'] == 'check_air_pump_state':
             fields = self.get_nodes('field', root=block)
             state = 1 if fields[0].text == 'ON' else 0

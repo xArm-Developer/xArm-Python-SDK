@@ -784,7 +784,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    def get_bio_gripper_g2_position(self):
+    def get_bio_gripper_g2_position(self, **kwargs):
         self.__check_bio_gripper_version()
         code, ret = self.get_bio_gripper_register(address=(0x0702 if self._bio_gripper_version == 2 else 0x0700), number_of_registers=2)
         bio_position = convert.bytes_to_int32(ret[3:])

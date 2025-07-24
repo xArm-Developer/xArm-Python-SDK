@@ -42,6 +42,9 @@ xArm Python SDK
 - #### [UFACTORY ModbusTCP Manual](doc/UF_ModbusTCP_Manual.md)
 
 ## Update Summary
+- > ### 1.17.0 
+  - Change some API names
+
 - > ### 1.16.0
   - Added parameter to support get raw data of the Six-axis Force Torque Sensor
   - Added an interface to control xArm Gripper G2
@@ -60,7 +63,7 @@ xArm Python SDK
   - Support the studio-2.5.0 blockly project conversion to python
 
 - > ### 1.13.30
-  - Supports obtaining unsaved track recording duration
+  - Supports obtaining unsaved trajectory recording duration
   - Fix the abnormal path of running blockly program in some cases
   - Fix the return format of getting C23 and C38 errors
   - Supports obtaining identification status
@@ -83,7 +86,45 @@ xArm Python SDK
   - Add common motion api (Enabled after firmware version 1.11.100)
   - The Cartesian motion-related interface adds the motion_type parameter to determine the planning method (Enabled after firmware version 1.11.100)
 
-- >### [More](ReleaseNotes.md)
+- > ### [More](ReleaseNotes.md)
+
+## API Change List
+  | OLD API NAME   | NEW API NAME  |
+  | -------------- | ------------- |
+  | set_impedance  |  set_ft_sensor_admittance_parameters  |
+  | set_impedance_mbk  |  set_ft_sensor_admittance_parameters  |
+  | set_impedance_config  |  set_ft_sensor_admittance_parameters  |
+  | set_force_control_pid  |  set_ft_sensor_force_parameters  |
+  | config_force_control  |  set_ft_sensor_force_parameters  |
+  | ft_sensor_set_zero  |  set_ft_sensor_zero  |
+  | ft_sensor_iden_load  |  iden_ft_sensor_load_offset  |
+  | ft_sensor_cali_load  |  set_ft_sensor_load_offset  |
+  | ft_sensor_enable  |  set_ft_sensor_enable  |
+  | ft_sensor_app_set  |  set_ft_sensor_mode  |
+  | ft_sensor_app_get  |  get_ft_sensor_mode  |
+  | get_linear_track_registers  |  get_linear_motor_registers  |
+  | get_linear_track_pos  |  get_linear_motor_pos  |
+  | get_linear_track_status  |  get_linear_motor_status  |
+  | get_linear_track_error  |  get_linear_motor_error  |
+  | get_linear_track_is_enabled  |  get_linear_motor_is_enabled  |
+  | get_linear_track_on_zero  |  get_linear_motor_on_zero  |
+  | get_linear_track_sci  |  get_linear_motor_sci  |
+  | get_linear_track_sco  |  get_linear_motor_sco  |
+  | clean_linear_track_error  |  clean_linear_motor_error  |
+  | set_linear_track_enable  |  set_linear_motor_enable  |
+  | set_linear_track_speed  |  set_linear_motor_speed  |
+  | set_linear_track_back_origin  |  set_linear_motor_back_origin  |
+  | set_linear_track_pos  |  set_linear_motor_pos  |
+  | set_linear_track_stop  |  set_linear_motor_stop  |
+  | get_suction_cup  |  get_vacuum_gripper  |
+  | set_suction_cup  |  set_vacuum_gripper  |
+  | shutdown_system  |  system_control  |
+  | get_ik  |  get_inverse_kinematics  |
+  | get_fk  |  get_forward_kinematics  |
+  | set_sleep_time  |  set_pause_time  |
+  | get_gpio_digital  |  get_tgpio_digital  |
+  | set_gpio_digital  |  set_tgpio_digital  |
+  | get_gpio_analog  |  get_tgpio_analog  |
 
 
 ## [Example](example/wrapper/)
@@ -180,7 +221,7 @@ xArm Python SDK
 
 - ##### [8001-force_tech](example/wrapper/common/8001-force_tech.py)
 
-- ##### [8002-impedance](example/wrapper/common/8002-impedance.py)
+- ##### [8002-admittance-control](example/wrapper/common/8002-admittance_control.py)
 
 - ##### [8003-force_control](example/wrapper/common/8003-force_control.py)
 
@@ -192,7 +233,7 @@ xArm Python SDK
 
 - ##### [8010-get_ft_sensor_config](example/wrapper/common/8010-get_ft_sensor_config.py)
 
-- ##### [9000-set_linear_track](example/wrapper/common/9000-set_linear_track.py)
+- ##### [9000-set_linear_motor](example/wrapper/common/9000-set_linear_motor.py)
 
 - ##### [blockly_to_python](example/wrapper/tool/blockly_to_python.py)
 
@@ -273,7 +314,7 @@ xArm Python SDK
   arm.save_conf()
   ```
 
-- #### Gripper
+- #### Gripper/Gripper G2
   ```python
   arm.set_gripper_enable(...)
   arm.set_gripper_mode(...)
@@ -282,6 +323,10 @@ xArm Python SDK
   arm.get_gripper_position()
   arm.get_gripper_err_code()
   arm.clean_gripper_error()
+  
+  # only Gripper G2
+  arm.get_gripper_g2_position()
+  arm.set_gripper_g2_position(...)
   ```
 
 - #### BIO Gripper
@@ -294,6 +339,10 @@ xArm Python SDK
   arm.get_bio_gripper_status()
   arm.get_bio_gripper_error()
   arm.clean_bio_gripper_error()
+
+  # only BIO Gripper G2
+  arm.get_bio_gripper_g2_position()
+  arm.set_bio_gripper_g2_position(...)
   ```
 
 - #### RobotIQ Gripper
@@ -311,6 +360,7 @@ xArm Python SDK
 
   ```python
   arm.set_tgpio_modbus_timeout(...)
+  arm.get_tgpio_modbus_timeout(...)
   arm.set_tgpio_modbus_baudrate(...)
   arm.get_tgpio_modbus_baudrate(...)
   arm.getset_tgpio_modbus_data(...)
@@ -336,38 +386,35 @@ xArm Python SDK
   arm.set_cgpio_analog_with_xyz(...)
   ```
 
-- #### Linear Track
+- #### Linear Motor
   
   ```python
-  arm.get_linear_track_pos()
-  arm.get_linear_track_status()
-  arm.get_linear_track_error()
-  arm.get_linear_track_is_enabled()
-  arm.get_linear_track_on_zero()
-  arm.get_linear_track_sci()
-  arm.get_linear_track_sco()
+  arm.get_linear_motor_pos()
+  arm.get_linear_motor_status()
+  arm.get_linear_motor_error()
+  arm.get_linear_motor_is_enabled()
+  arm.get_linear_motor_on_zero()
+  arm.get_linear_motor_sci()
+  arm.get_linear_motor_sco()
 
-  arm.clean_linear_track_error(...)
-  arm.set_linear_track_enable(...)
-  arm.set_linear_track_speed(...)
-  arm.set_linear_track_back_origin(...)
-  arm.set_linear_track_pos(...)
-  arm.set_linear_track_stop(...)
+  arm.clean_linear_motor_error(...)
+  arm.set_linear_motor_enable(...)
+  arm.set_linear_motor_speed(...)
+  arm.set_linear_motor_back_origin(...)
+  arm.set_linear_motor_pos(...)
+  arm.set_linear_motor_stop(...)
   ```
 
 - #### FT Sensor
   ```python
-  arm.set_impedance(...)
-  arm.set_impedance_mbk(...)
-  arm.set_impedance_config(...)
-  arm.config_force_control(...)
-  arm.set_force_control_pid(...)
-  arm.ft_sensor_set_zero(...)
-  arm.ft_sensor_iden_load(...)
-  arm.ft_sensor_cali_load(...)
-  arm.ft_sensor_enable(...)
-  arm.ft_sensor_app_set(...)
-  arm.ft_sensor_app_get(...)
+  arm.set_ft_sensor_enable(...)
+  arm.set_ft_sensor_mode(...)
+  arm.get_ft_sensor_mode(...)
+  arm.set_ft_sensor_zero(...)
+  arm.iden_ft_sensor_load_offset(...)
+  arm.set_ft_sensor_load_offset(...)
+  arm.set_ft_sensor_admittance_parameters(...)
+  arm.set_ft_sensor_force_parameters(...)
   arm.get_ft_sensor_data(...)
   arm.get_ft_senfor_config(...)
   arm.get_ft_sensor_error(...)

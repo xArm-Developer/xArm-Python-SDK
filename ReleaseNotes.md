@@ -2,6 +2,9 @@
 
 ## Update Summary
 
+- > ### 1.17.0 
+  - Change some API names
+
 - > ### 1.16.0
   - Added parameter to support get raw data of the Six-axis Force Torque Sensor
   - Added an interface to control xArm Gripper G2
@@ -20,7 +23,7 @@
   - Support the studio-2.5.0 blockly project conversion to python
 
 - > ### 1.13.30
-  - Supports obtaining unsaved track recording duration
+  - Supports obtaining unsaved trajectory recording duration
   - Fix the abnormal path of running blockly program in some cases
   - Fix the return format of getting C23 and C38 errors
   - Supports obtaining identification status
@@ -81,7 +84,7 @@
   - Support for blocky code conversion and operation of xArmStudio-1.8.0
   - The Velocity interface supports the duration parameter (requires firmware 1.8.0 or higher)
   - Added identification interface (current identification and torque identification)
-  - Support linear track interface
+  - Support linear motor interface
   - Support calling some studio APIs
 
 - > ### 1.6.9

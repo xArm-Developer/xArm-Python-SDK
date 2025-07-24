@@ -44,9 +44,9 @@ arm.set_mode(0)
 arm.set_state(0)
 time.sleep(0.1)
 
-arm.ft_sensor_enable(1)
+arm.set_ft_sensor_enable(1)
 time.sleep(0.1)
-arm.ft_sensor_set_zero()
+arm.set_ft_sensor_zero()
 time.sleep(0.2)
 
 #If you save the force sensor zero offset, you don't need to call ft_sensor_set_zero() every time you start

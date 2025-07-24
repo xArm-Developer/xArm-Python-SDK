@@ -36,25 +36,25 @@ arm.set_mode(0)
 arm.set_state(0)
 time.sleep(1)
 
-code = arm.set_linear_track_back_origin(wait=True)
-print('set linear track back origin, code={}'.format(code))
+code = arm.set_linear_motor_back_origin(wait=True)
+print('set linear motor back origin, code={}'.format(code))
 
 # status = 1 is go back on zero successful,
-code, status = arm.get_linear_track_on_zero()
-print('get linear track on zero point, code={}, status={}'.format(code, status))
+code, status = arm.get_linear_motor_on_zero()
+print('get linear motor on zero point, code={}, status={}'.format(code, status))
 
-code = arm.set_linear_track_enable(True)
-print('set linear track enable, code={}'.format(code))
+code = arm.set_linear_motor_enable(True)
+print('set linear motor enable, code={}'.format(code))
 
 # set speed 500mm/s
-code = arm.set_linear_track_speed(500)
-print('set linear track speed, code={}'.format(code))
+code = arm.set_linear_motor_speed(500)
+print('set linear motor speed, code={}'.format(code))
 
 # set position 300mm
-code = arm.set_linear_track_pos(300, wait=True)
-print('[wait]set linear track pos, code={}'.format(code))
+code = arm.set_linear_motor_pos(300, wait=True)
+print('[wait]set linear motor pos, code={}'.format(code))
 
 # set position 700mm
-code = arm.set_linear_track_pos(700, wait=False)
-print('[no wait]set linear track track pos, code={}'.format(code))
+code = arm.set_linear_motor_pos(700, wait=False)
+print('[no wait]set linear motor pos, code={}'.format(code))
 

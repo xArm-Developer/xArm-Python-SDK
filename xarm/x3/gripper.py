@@ -921,14 +921,6 @@ class Gripper(GPIO):
         return code, force
     
     @xarm_is_connected(_type='set')
-    @xarm_is_not_simulation_mode(ret=False)
-    def check_gripper_g2_is_catch(self, timeout=3):
-        if self.gripper_is_support_status:
-            return self.__check_gripper_status(timeout=timeout) == 0
-        else:
-            return self.__check_gripper_position(pos, timeout=timeout) == 0
-    
-    @xarm_is_connected(_type='set')
     def set_gripper_g2_position(self, pos, speed=100, force=50, wait=False, timeout=5, **kwargs):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
@@ -1016,7 +1008,7 @@ class Gripper(GPIO):
         return self.__dhpgc_gripper_send_modbus(data_frame, 3 + 2 * number_of_registers)
     
     @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
+    @xarm_is_not_simulation_mode(ret=(0, [0]))
     def get_dhpgc_gripper_status(self, address, get_status_type):
         code, ret = self.get_dhpgc_gripper_register(address=address)
         if code == 0 and len(ret) >= 5:
@@ -1166,7 +1158,7 @@ class Gripper(GPIO):
         return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=False)
 
     @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
+    @xarm_is_not_simulation_mode(ret=(0, [0]))
     def get_rh56_finger_status(self, finger_id, data_frame, get_status_type):
         code, ret = self.__rh56_finger_send_modbus(data_frame, 5)
         if code == 0 and len(ret) >= 5:
@@ -1244,7 +1236,7 @@ class Gripper(GPIO):
         if wait and code == 0:
             status_addr = FINGER_STATUS_ADDR[finger_id]
             data_frame = [HAND_ID, 0x03, (status_addr >> 8) & 0xFF, status_addr & 0xFF, 0x00, 0x01]
-            self.__rh56_finger_wait_motion_completed(data_frame, timeout=timeout, check_detected=True)
+            self.__rh56_finger_wait_motion_completed(finger_id, data_frame, timeout=timeout, check_detected=True)
         self.log_api_info('API -> set_rh56_finger_position(finger_id={}, pos={}, wait={}, timeout={}) ->code={}'.format(
             finger_id, pos, wait, timeout, code), code=code)
         return code
@@ -1274,7 +1266,7 @@ class Gripper(GPIO):
         return code, self.rh56_finger_speed[finger_id-1]
 
     @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
+    @xarm_is_not_simulation_mode(ret=(0, [0]))
     def get_rh56_finger_force(self, finger_id):
         force_addr = FORCE_ADDR[finger_id]
         data_frame = [HAND_ID, 0x03, (force_addr >> 8) & 0xFF, force_addr & 0xFF, 0x00, 0x01]
@@ -1286,7 +1278,7 @@ class Gripper(GPIO):
         return code, self.rh56_finger_force[finger_id-1]
 
     @xarm_is_connected(_type='get')
-    @xarm_is_not_simulation_mode(ret=(0, 0))
+    @xarm_is_not_simulation_mode(ret=(0, [0]))
     def get_rh56_hand_position(self):
         finger_pos_list = []
         for finger_id in range(1, 7):
@@ -1318,5 +1310,5 @@ class Gripper(GPIO):
             for finger_id in finger_order:
                 status_addr = FINGER_STATUS_ADDR[finger_id]
                 data_frame = [HAND_ID, 0x03, (status_addr >> 8) & 0xFF, status_addr & 0xFF, 0x00, 0x01]
-                self.rh56_finger_wait_motion_completed(data_frame, timeout=timeout, check_detected=True)
+                self.__rh56_finger_wait_motion_completed(finger_id, data_frame, timeout=timeout, check_detected=True)
         return code

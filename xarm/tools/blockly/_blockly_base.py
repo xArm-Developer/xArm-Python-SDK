@@ -265,7 +265,7 @@ class _BlocklyBase(_BlocklyNode):
         elif block.attrib['type'] == 'check_gripper_g2_is_catch':
             fields = self._get_nodes('field', root=block)
             timeout = float(fields[0].text)
-            return 'self._arm.arm.check_gripper_g2_is_catch(timeout={})'.format(timeout)
+            return '0 == self._arm.arm.check_catch_gripper_status(timeout={})'.format(timeout)
 
 
     def __get_logic_compare(self, block, arg_map=None):

@@ -446,7 +446,7 @@ class _BlocklyHandler(_BlocklyBase):
         xyz_li = [x, y, z]
         xyz = []
         for i in range(3):
-            if re.match('\d+(\.\d+)*$', xyz_li[i]) is not None:
+            if re.match('-*\d+(\.\d+)*$', xyz_li[i]) is not None:
                 xyz.append(float(xyz_li[i]))
             else:
                 xyz.append(math.log2(3) if i == 0 else math.log2(5) if i == 1 else math.log2(7))
@@ -564,7 +564,7 @@ class _BlocklyHandler(_BlocklyBase):
         xyz_li = [x, y, z]
         xyz = []
         for i in range(3):
-            if re.match('\d+(\.\d+)*$', xyz_li[i]) is not None:
+            if re.match('-*\d+(\.\d+)*$', xyz_li[i]) is not None:
                 xyz.append(float(xyz_li[i]))
             else:
                 xyz.append(math.log2(3) if i == 0 else math.log2(5) if i == 1 else math.log2(7))
@@ -587,14 +587,14 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('    return', indent + 2)
 
     def _handle_gpio_set_controller_digital_with_xyz_do(self, block, indent=0, arg_map=None):
-        value_nodes = self._get_nodes('value', root=block)
-        x = self._get_block_val(value_nodes[0], arg_map)
-        y = self._get_block_val(value_nodes[1], arg_map)
-        z = self._get_block_val(value_nodes[2], arg_map)
+        fields = self._get_nodes('field', root=block)
+        x = fields[0].text
+        y = fields[1].text
+        z = fields[2].text
         xyz = list(map(float, [x, y, z]))
-        tol_r = self._get_block_val(value_nodes[3], arg_map)
-        io = self._get_block_val(value_nodes[4], arg_map)
-        value = 0 if self._get_block_val(value_nodes[5], arg_map) == 'LOW' else 1
+        tol_r = fields[3].text
+        io = fields[4].text
+        value = 0 if fields[5].text == 'LOW' else 1
         self._append_main_code(
             'code = self._arm.set_cgpio_digital_with_xyz({}, {}, {}, {})'.format(io, value, xyz, tol_r), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_cgpio_digital_with_xyz\'):', indent + 2)
@@ -611,7 +611,7 @@ class _BlocklyHandler(_BlocklyBase):
         xyz_li = [x, y, z]
         xyz = []
         for i in range(3):
-            if re.match('\d+(\.\d+)*$', xyz_li[i]) is not None:
+            if re.match('-*\d+(\.\d+)*$', xyz_li[i]) is not None:
                 xyz.append(float(xyz_li[i]))
             else:
                 xyz.append(math.log2(3) if i == 0 else math.log2(5) if i == 1 else math.log2(7))
@@ -643,7 +643,7 @@ class _BlocklyHandler(_BlocklyBase):
         xyz_li = [x, y, z]
         xyz = []
         for i in range(3):
-            if re.match('\d+(\.\d+)*$', xyz_li[i]) is not None:
+            if re.match('-*\d+(\.\d+)*$', xyz_li[i]) is not None:
                 xyz.append(float(xyz_li[i]))
             else:
                 xyz.append(math.log2(3) if i == 0 else math.log2(5) if i == 1 else math.log2(7))
@@ -812,8 +812,8 @@ class _BlocklyHandler(_BlocklyBase):
         speed = fields[1].text
         force = fields[2].text
         wait = fields[3].text == 'TRUE'
-        self._append_main_code('code = self._arm.set_bio_gripper_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
-        self._append_main_code('if not self._check_code(code, \'set_bio_gripper_position\'):', indent + 2)
+        self._append_main_code('code = self._arm.set_bio_gripper_g2_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_bio_gripper_g2_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
     def _handle_set_dhpgc_gripper_init(self, block, indent=0, arg_map=None):
@@ -838,17 +838,9 @@ class _BlocklyHandler(_BlocklyBase):
         speed = fields[2].text
         force = fields[3].text
         wait = fields[4].text == 'TRUE'
-        # self._append_main_code(
-        #     'code = self._arm.set_rh56_finger_speed(finger_id={}, speed={})'.format(finger_id, speed), indent + 2)
-        # self._append_main_code('if not self._check_code(code, \'set_rh56_finger_speed\'):', indent + 2)
-        # self._append_main_code('    return', indent + 2)
-        # self._append_main_code(
-        #     'code = self._arm.set_rh56_finger_force(finger_id={}, force={})'.format(finger_id, force), indent + 2)
-        # self._append_main_code('if not self._check_code(code, \'set_rh56_finger_force\'):', indent + 2)
-        # self._append_main_code('    return', indent + 2)
         self._append_main_code(
-            'code = self._arm.set_rh56_finger_position(finger_id={}, pos={}, speed={}, force={}, wait={})'.format(
-                finger_id, pos, speed, force, wait), indent + 2)
+            'code = self._arm.set_rh56_finger_position(finger_id={}, pos={}, speed={}, force={}, wait={}, timeout=440)'.
+                                                                format(finger_id, pos, speed, force, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_rh56_finger_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 
@@ -859,8 +851,8 @@ class _BlocklyHandler(_BlocklyBase):
         force = fields[2].text
         wait = fields[3].text == 'TRUE'
         self._append_main_code(
-            'code = self._arm.arm.set_rh56_hand_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force,
-                                                                                                  wait), indent + 2)
+            'code = self._arm.arm.set_rh56_hand_position(pos={}, speed={}, force={}, wait={}, timeout=440)'.format(pos, 
+                                                                                   speed, force, wait), indent + 2)                         
         self._append_main_code('if not self._check_code(code, \'set_rh56_hand_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
 

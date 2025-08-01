@@ -1225,9 +1225,13 @@ class Gripper(GPIO):
         if self.check_is_simulation_robot():
             return 0
         if speed != self.rh56_finger_speed[finger_id-1]:
-            self.set_rh56_finger_speed(finger_id, speed)
+            code = self.set_rh56_finger_speed(finger_id, speed)
+            if code != 0 :
+                return code
 
-        self.set_rh56_finger_force(finger_id, force)
+        code = self.set_rh56_finger_force(finger_id, force)
+        if code != 0:
+            return code
 
         pos = min(max(round(pos), 0), 1000) if pos > -1 else 0xFFFF
         addr = FINGER_ADDR[finger_id]
@@ -1308,6 +1312,8 @@ class Gripper(GPIO):
             time.sleep(0.01)
         if wait:
             for finger_id in finger_order:
+                if self.error_code != 0:
+                    return self.error_code
                 status_addr = FINGER_STATUS_ADDR[finger_id]
                 data_frame = [HAND_ID, 0x03, (status_addr >> 8) & 0xFF, status_addr & 0xFF, 0x00, 0x01]
                 self.__rh56_finger_wait_motion_completed(finger_id, data_frame, timeout=timeout, check_detected=True)

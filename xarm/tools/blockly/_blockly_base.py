@@ -204,8 +204,24 @@ class _BlocklyBase(_BlocklyNode):
             cmd_li = re.sub('\s+', ' ', cmd_li)
             cmd_li = cmd_li.strip().split(' ')
             int_li = [int(da, 16) for da in cmd_li]
-            return '[" ".join([hex(da).split("0x")[1].upper().zfill(2) for da in data]) if isinstance(data, list) else data for ' \
-                   'data in self._arm.getset_tgpio_modbus_data({}, host_id={})][-1]'.format(int_li, host_id)
+            return '[" ".join([hex(da).split("0x")[1].upper().zfill(2) for da in data]) if isinstance(data, list' \
+                   ') else data for data in self._arm.getset_tgpio_modbus_data({}, host_id={})][-1]'.format(int_li, host_id)
+        elif block.attrib['type'] == 'get_modbus_rtu_transparent':
+            fields = self._get_nodes('field', root=block)
+            host_id = fields[0].text
+            cmd = fields[1].text
+            cmd_li = re.sub(',', ' ', cmd)
+            is_run_cmd = ''.join(cmd_li.split()).isalnum()
+            if not is_run_cmd:
+                self._append_main_code('-1', indent + 2)
+            cmd_li = re.sub(' +', ' ', cmd_li)
+            cmd_li = re.sub('\xa0', ' ', cmd_li)
+            cmd_li = re.sub('\s+', ' ', cmd_li)
+            cmd_li = cmd_li.strip().split(' ')
+            int_li = [int(da, 16) for da in cmd_li]
+            return '[" ".join([hex(da).split("0x")[1].upper().zfill(2) for da in data]) if isinstance(data, list' \
+                   ') else data for data in self._arm.getset_tgpio_modbus_data({}, host_id={}, ' \
+                   'is_transparent_transmission=True)][-1]'.format(int_li, host_id)
         elif block.attrib['type'] == 'get_gripper_status':
             fields = self._get_nodes('field', root=block)
             timeout = fields[0].text
@@ -242,6 +258,14 @@ class _BlocklyBase(_BlocklyNode):
             fields = self._get_nodes('field', root=block)
             timeout = float(fields[0].text)
             return 'self._arm.arm.check_bio_gripper_is_catch(timeout={})'.format(timeout)
+        elif block.attrib['type'] == 'check_dhpgc_gripper_is_catch':
+            fields = self._get_nodes('field', root=block)
+            timeout = float(fields[0].text)
+            return 'self._arm.arm.check_dhpgc_gripper_is_catch(timeout={})'.format(timeout)
+        elif block.attrib['type'] == 'check_gripper_g2_is_catch':
+            fields = self._get_nodes('field', root=block)
+            timeout = float(fields[0].text)
+            return '0 == self._arm.arm.check_catch_gripper_status(timeout={})'.format(timeout)
 
 
     def __get_logic_compare(self, block, arg_map=None):

@@ -1431,6 +1431,8 @@ class UxbusCmd(object):
             if param_type == 1:
                 data[1] = convert.bytes_to_fp32(ret[1:])
             elif param_type in [6, 12, 14]:
+                if len(ret[1:]) < 24:
+                    return [XCONF.UxbusState.INVALID, 0]
                 data[1] = convert.bytes_to_fp32s(ret[1:], 6)
             else:
                 # 2/3/4/5/11/13/24/25

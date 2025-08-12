@@ -2339,6 +2339,31 @@ xArm-Python-SDK API Documentation (V1.17.1): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_dhpgc_gripper_activate__(self, wait=True, timeout=3):
+
+> If not already activated. Activate the DH-PGC-140-50 gripper  
+>   
+> :param wait: whether to wait for the DH-PGC-140-50  gripper activate complete, default is True  
+> :param timeout: maximum waiting time(unit: second), default is 3, only available if wait=True  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_dhpgc_gripper_position__(self, pos, speed=50, force=50, wait=True, timeout=5, **kwargs):
+
+> Set the position of the DH-PGC-140-50 gripper  
+>   
+> :param pos: gripper pos between 0 and 1000  
+> :param speed: gripper speed between 1 and 100  
+> :param force: gripper force between 20 and 100  
+> :param wait: whether to wait for the DH-PGC-140-50 gripper motion to complete, default is True  
+> :param timeout: maximum waiting time(unit: second), default is 5s, only available if wait=True  
+>   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
 #### def __set_fdb_mat_history_num__(self, num):
 
 > Set fdb mat history num  
@@ -3010,6 +3035,20 @@ xArm-Python-SDK API Documentation (V1.17.1): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;0: torque  
 > &ensp;&ensp;&ensp;&ensp;1: electric current  
 >   
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_rh56_finger_position__(self, finger_id, pos, speed=500, force=500, wait=False, timeout=None, **kwargs):
+
+> Set the position of the INS-RH56DFX finger  
+>   
+> :param finger_id: INS-RH56DFX finger_id between 1 and 6  
+> :param pos: INS-RH56DFX pos between 0 and 1000  
+> :param speed: INS-RH56DFX speed between 0 and 1000, default is 500  
+> :param force: INS-RH56DFX force between 0 and 1000, default is 500  
+> :param wait: whether to wait for the INS-RH56DFX finger motion complete, default is False  
+> :param timeout: maximum waiting time(unit: second), default is 5s, only valid if wait is True  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

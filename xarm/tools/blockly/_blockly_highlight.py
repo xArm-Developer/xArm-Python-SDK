@@ -90,5 +90,12 @@ HIGHLIGHT_BLOCKS = [
     'python_expression',
     'gpio_get_controller_ci_li',
     'gpio_get_controller_di_li',
-    'gpio_get_tgpio_li'
+    'gpio_get_tgpio_li',
+    
+    'set_dhpgc_gripper_position',
+    'set_dhpgc_gripper_init',
+    'set_rh56_hand_position',
+    'set_rh56_finger_position',
+    'gripper_g2_set',
+    'gripper_g2_set_variable'
 ]

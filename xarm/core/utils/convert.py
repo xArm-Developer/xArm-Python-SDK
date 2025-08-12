@@ -12,12 +12,21 @@ import struct
 
 
 def fp32_to_bytes(data, is_big_endian=False):
-    """小端字节序"""
+    """默认小端字节序"""
     return bytes(struct.pack('>f' if is_big_endian else '<f', data))
 
 
-def int32_to_bytes(data, is_big_endian=False):
+def fp32s_to_bytes(data, n):
     """小端字节序"""
+    assert n > 0
+    ret = fp32_to_bytes(data[0])
+    for i in range(1, n):
+        ret += fp32_to_bytes(data[i])
+    return ret
+
+
+def int32_to_bytes(data, is_big_endian=False):
+    """默认小端字节序"""
     return bytes(struct.pack('>i' if is_big_endian else '<i', data))
 
 
@@ -32,21 +41,8 @@ def int32s_to_bytes(data, n):
 
 def bytes_to_fp32(data):
     """小端字节序"""
-    byte = bytes([data[0]])
-    byte += bytes([data[1]])
-    byte += bytes([data[2]])
-    byte += bytes([data[3]])
-    ret = struct.unpack('<f', byte)
+    ret = struct.unpack('<f', bytes(data[:4]))
     return ret[0]
-
-
-def fp32s_to_bytes(data, n):
-    """小端字节序"""
-    assert n > 0
-    ret = fp32_to_bytes(data[0])
-    for i in range(1, n):
-        ret += fp32_to_bytes(data[i])
-    return ret
 
 
 def bytes_to_fp32s(data, n):
@@ -103,22 +99,21 @@ def bytes_to_u32(data):
 
 
 def bytes_to_u64(data):
+    """大端字节序"""
     data_u64 = data[0] << 56 | data[1] << 48 | data[2] << 40 | data[3] << 32 | data[4] << 24 | data[5] << 16 | data[6] << 8 | data[7]
     return data_u64
 
 
-def bytes_to_num32(data, fmt='>l'):
-    byte = bytes([data[0]])
-    byte += bytes([data[1]])
-    byte += bytes([data[2]])
-    byte += bytes([data[3]])
-    ret = struct.unpack(fmt, byte)
+def bytes_to_num32(data, fmt='>i'):
+    ret = struct.unpack(fmt, bytes(data[:4]))
     return ret[0]
 
 
 def bytes_to_long_big(data):
     """大端字节序"""
-    return bytes_to_num32(data, '>l')
+    return bytes_to_int32(data, is_big_endian=True)
 
-def bytes_to_int32(data):
-    return int.from_bytes(data, byteorder='big', signed=True)
+
+def bytes_to_int32(data, is_big_endian=True):
+    return bytes_to_num32(data, fmt='>i' if is_big_endian else '<i')
+    # return int.from_bytes(data, byteorder='big', signed=True)

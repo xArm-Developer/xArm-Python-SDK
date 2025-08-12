@@ -2,7 +2,7 @@
 
 ## Update Summary
 
-- > ### 1.17.0 
+- > ### 1.17.0/1.7.1 
   - Change some API names
 
 - > ### 1.16.0

@@ -74,10 +74,10 @@ class UxbusCmd(object):
     def set_debug(self, debug):
         self._debug = debug
     
-    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None):
+    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None, debug=False):
         raise NotImplementedError
     
-    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False):
+    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False, debug=False):
         raise NotImplementedError
 
     @lock_require
@@ -685,7 +685,7 @@ class UxbusCmd(object):
         return self.gripper_addr_w16(XCONF.ServoConf.RESET_ERR, 1)
 
     @lock_require
-    def tgpio_addr_w16(self, addr, value, bid=XCONF.TGPIO_HOST_ID, additional_bytes=None):
+    def tgpio_addr_w16(self, addr, value, bid=XCONF.ROBOT_RS485_HOST_ID, additional_bytes=None):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -701,7 +701,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r16(self, addr, bid=XCONF.TGPIO_HOST_ID, fmt='>l'):
+    def tgpio_addr_r16(self, addr, bid=XCONF.ROBOT_RS485_HOST_ID, fmt='>i'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
@@ -712,7 +712,7 @@ class UxbusCmd(object):
         return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
 
     @lock_require
-    def tgpio_addr_w32(self, addr, value, bid=XCONF.TGPIO_HOST_ID):
+    def tgpio_addr_w32(self, addr, value, bid=XCONF.ROBOT_RS485_HOST_ID):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.fp32_to_bytes(value)
@@ -724,7 +724,7 @@ class UxbusCmd(object):
         return ret
 
     @lock_require
-    def tgpio_addr_r32(self, addr, bid=XCONF.TGPIO_HOST_ID, fmt='>l'):
+    def tgpio_addr_r32(self, addr, bid=XCONF.ROBOT_RS485_HOST_ID, fmt='>i'):
         txdata = bytes([bid])
         txdata += convert.u16_to_bytes(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
@@ -805,19 +805,19 @@ class UxbusCmd(object):
         return ret[:2]
 
     @lock_require
-    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.TGPIO_HOST_ID, limit_sec=0.0, is_transparent_transmission=False):
+    def tgpio_set_modbus(self, modbus_t, len_t, host_id=XCONF.ROBOT_RS485_HOST_ID, limit_sec=0.0, is_transparent_transmission=False, debug=False):
         txdata = bytes([host_id])
         txdata += bytes(modbus_t)
         if limit_sec > 0:
             diff_time = time.monotonic() - self._last_modbus_comm_time
             if diff_time < limit_sec:
                 time.sleep(limit_sec - diff_time)
-        ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_COM_DATA if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MODBUS, txdata, len_t + 1)
+        ret = self.send_modbus_request(XCONF.UxbusReg.RS485_AGENT if is_transparent_transmission else XCONF.UxbusReg.RS485_RTU, txdata, len_t + 1, debug=debug)
         if ret == -1:
             self._last_modbus_comm_time = time.monotonic()
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
-        ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_COM_DATA if is_transparent_transmission else XCONF.UxbusReg.TGPIO_MODBUS, ret, -1, self._G_TOUT)
+        ret = self.recv_modbus_response(XCONF.UxbusReg.RS485_AGENT if is_transparent_transmission else XCONF.UxbusReg.RS485_RTU, ret, -1, self._G_TOUT, debug=debug)
         self._last_modbus_comm_time = time.monotonic()
         return ret
 
@@ -910,7 +910,7 @@ class UxbusCmd(object):
         ret1 = [0] * 2
         ret1[0] = ret[0]
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) == 9:
-            ret1[1] = convert.bytes_to_long_big(ret[5:9])
+            ret1[1] = convert.bytes_to_int32(ret[5:9])
         else:
             if ret1[0] == 0:
                 ret1[0] = XCONF.UxbusState.ERR_LENG
@@ -976,8 +976,7 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R16B, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
-        # return [ret[0], convert.bytes_to_long_big(ret[1:5])[0]]
+        return [ret[0], convert.bytes_to_int32(ret[1:5])]
 
     @lock_require
     def servo_addr_w32(self, axis_id, addr, value):
@@ -1000,8 +999,7 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R32B, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
-        # return [ret[0], convert.bytes_to_long_big(ret[1:5])[0]]
+        return [ret[0], convert.bytes_to_int32(ret[1:5])]
 
     # -----------------------------------------------------
     # controler gpio
@@ -1266,7 +1264,7 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R16B, ret, 4, self._G_TOUT)
         if ret[0] in [0, 1, 2]:
-            if convert.bytes_to_long_big(ret[1:5]) == 27:
+            if convert.bytes_to_int32(ret[1:5]) == 27:
                 return [ret[0], 0]
             else:
                 return [ret[0], ret[3]]
@@ -1321,7 +1319,7 @@ class UxbusCmd(object):
         txdata += convert.u16_to_bytes(length)
         txdata += bytes([length * 2])
         txdata += value
-        ret = self.tgpio_set_modbus_func(txdata, length * 2 + 7, host_id=XCONF.LINEAR_MOTOR_HOST_ID, limit_sec=0.001)
+        ret = self.tgpio_set_modbus_func(txdata, length * 2 + 7, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID, limit_sec=0.001)
         return ret
 
     def linear_motor_modbus_r16s(self, addr, length, fcode=0x03):
@@ -1329,7 +1327,7 @@ class UxbusCmd(object):
         txdata += bytes([fcode])
         txdata += convert.u16_to_bytes(addr)
         txdata += convert.u16_to_bytes(length)
-        ret = self.tgpio_set_modbus_func(txdata, 6, host_id=XCONF.LINEAR_MOTOR_HOST_ID, limit_sec=0.001)
+        ret = self.tgpio_set_modbus_func(txdata, 6, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID, limit_sec=0.001)
         return ret
 
     def iden_tcp_load(self, estimated_mass=0):
@@ -1344,7 +1342,7 @@ class UxbusCmd(object):
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_ERROR, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_long_big(ret[1:5])]
+        return [ret[0], convert.bytes_to_int32(ret[1:5])]
 
     def get_dh_params(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_DH, 28)
@@ -1372,6 +1370,23 @@ class UxbusCmd(object):
         ret = self.set_nu8(XCONF.UxbusReg.FEEDBACK_CHECK, [], 0, feedback_key=feedback_key, feedback_type=XCONF.FeedbackType.MOTION_FINISH)
         return ret
     
+    @lock_require
+    def set_modbus_tcp_data(self, datas, raw=True, debug=False):
+        trans_id = convert.bytes_to_u16(datas[0:2]) if raw else None
+        prot_id = convert.bytes_to_u16(datas[2:4]) if raw else -1
+        pdu_len = convert.bytes_to_u16(datas[4:6]) - 1 if raw else len(datas) - 1
+        unit_id = datas[6] if raw else datas[0]
+        pdu_data = datas[7:] if raw else datas[1:]
+
+        if raw and prot_id not in [0, 2, 3]:
+            return [XCONF.UxbusState.ERR_PARAM]  # param error
+        if len(pdu_data) != pdu_len:
+            return [XCONF.UxbusState.ERR_PARAM]  # param error
+        ret = self.send_modbus_request(unit_id, pdu_data, len(pdu_data), prot_id=prot_id, t_id=trans_id, debug=debug)
+        if ret == -1:
+            return [XCONF.UxbusState.ERR_NOTTCP]
+        return self.recv_modbus_response(unit_id, ret, -1, self._G_TOUT, t_prot_id=prot_id, ret_raw=True, debug=debug)
+
     @lock_require
     def send_hex_cmd(self, datas, timeout=10):
         if len(datas) < 7:
@@ -1418,7 +1433,7 @@ class UxbusCmd(object):
             elif param_type in [6, 12, 14]:
                 data[1] = convert.bytes_to_fp32s(ret[1:], 6)
             else:
-                # 2/3/4/5/11/13
+                # 2/3/4/5/11/13/24/25
                 data[1] = convert.bytes_to_u32(ret[1:])
         return data
 

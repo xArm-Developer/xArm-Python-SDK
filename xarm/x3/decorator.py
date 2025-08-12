@@ -15,7 +15,7 @@ from .code import APIState
 from ..core.config.x_config import XCONF
 
 
-def check_modbus_baud(baud=2000000, _type='set', default=None, host_id=XCONF.TGPIO_HOST_ID):
+def check_modbus_baud(baud=2000000, _type='set', default=None, host_id=XCONF.ROBOT_RS485_HOST_ID):
     def _check_modbus_baud(func):
         @functools.wraps(func)
         def decorator(self, *args, **kwargs):

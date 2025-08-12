@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.17.1): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -1057,6 +1057,33 @@ xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __get_rs485_baudrate__(self, target='robot', **kwargs):
+
+> Get the baudrate of the target RS485  
+>   
+> :param target: 'robot' or 'control_box'  
+> &ensp;&ensp;&ensp;&ensp;robot: Robot RS485  
+> &ensp;&ensp;&ensp;&ensp;control_box: ControlBox RS485  
+> :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;baudrate: the modbus baudrate of the target RS485
+
+
+#### def __get_rs485_timeout__(self, target='robot', protocol='modbus_rtu', **kwargs):
+
+> Get the timeout of the target RS485  
+>   
+> :param target: 'robot' or 'control_box'  
+> &ensp;&ensp;&ensp;&ensp;robot: Robot RS485  
+> &ensp;&ensp;&ensp;&ensp;control_box: ControlBox RS485  
+> :param protocol: 'modbus_rtu' or 'transparent'  
+> &ensp;&ensp;&ensp;&ensp;modbus_rtu: Modbus RTU  
+> &ensp;&ensp;&ensp;&ensp;transparent: Transparent Transmission  
+> :return: tuple((code, timeout)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;timeout: timeout of the target RS485, milliseconds
+
+
 #### def __get_servo_angle__(self, servo_id=None, is_radian=None, is_real=False):
 
 > Get the servo angle  
@@ -1124,23 +1151,12 @@ xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrappe
 
 #### def __get_tgpio_modbus_baudrate__(self):
 
-> Get the modbus baudrate of the tool gpio  
->   
-> :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;baudrate: the modbus baudrate of the tool gpio
+> Set the baudrate of the Robot RS485 (please use get_rs485_baudrate)
 
 
-#### def __get_tgpio_modbus_timeout__(self, is_transparent_transmission=False):
+#### def __get_tgpio_modbus_timeout__(self, is_transparent_transmission=False, **kwargs):
 
-> Get tgpio modbus timeout  
-> Note:  
-> &ensp;&ensp;&ensp;&ensp;Only available if firmware_version >= 2.3.0  
->   
-> :param is_transparent_transmission: is transparent transmission or not  
-> :return: tuple((code, timeout)), only when code is 0, the returned result is correct.  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;timeout: timeout of the tgpio modbus, milliseconds
+> Get the timeout of the Robot RS485 (please use get_rs485_timeout replace)
 
 
 #### def __get_tgpio_output_digital__(self, ionum=None):
@@ -1240,12 +1256,12 @@ xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrappe
 
 #### def __getset_tgpio_modbus_data__(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
 
-> Send the modbus data to the tool gpio  
+> Send the modbus data to the RS485 (please use set_rs485_data replace)  
 >   
 > :param datas: data_list  
 > :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check  
-> :param host_id: host_id, default is 9 (TGPIO_HOST_ID)  
-> &ensp;&ensp;&ensp;&ensp;9: END RS485  
+> :param host_id: host_id, default is 9 (ROBOT_RS485_HOST_ID)  
+> &ensp;&ensp;&ensp;&ensp;9: Robot RS485  
 > &ensp;&ensp;&ensp;&ensp;11: CONTROLLER RS485  
 > :param is_transparent_transmission: whether to choose transparent transmission, default is False  
 > &ensp;&ensp;&ensp;&ensp;Note: only available if firmware_version >= 1.11.0  
@@ -2288,16 +2304,6 @@ xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_control_modbus_baudrate__(self, baud):
-
-> Set the modbus baudrate of the control box  
->   
-> :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000  
->   
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
 #### def __set_counter_increase__(self, val=1):
 
 > Set counter plus value, only support plus 1  
@@ -3008,6 +3014,59 @@ xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __set_rs485_baudrate__(self, baud, target='robot', **kwargs):
+
+> Set the baudrate of the target RS485  
+>   
+> :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000  
+> :param target: 'robot' or 'control_box'  
+> &ensp;&ensp;&ensp;&ensp;robot: Robot RS485  
+> &ensp;&ensp;&ensp;&ensp;control_box: ControlBox RS485  
+> :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;baudrate: the modbus baudrate of the target RS485
+
+
+#### def __set_rs485_data__(self, datas, min_res_len=0, target='robot', protocol='modbus_rtu', use_503_port=False, **kwargs):
+
+> Send the modbus data to the target RS485  
+>   
+> :param datas: data_list  
+> :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check  
+> :param target: 'robot' or 'control_box'  
+> &ensp;&ensp;&ensp;&ensp;robot: Robot RS485  
+> &ensp;&ensp;&ensp;&ensp;control_box: ControlBox RS485  
+> :param protocol: 'modbus_rtu' or 'transparent'  
+> &ensp;&ensp;&ensp;&ensp;modbus_rtu: Modbus RTU  
+> &ensp;&ensp;&ensp;&ensp;transparent: Transparent Transmission  
+> :param use_503_port: whether to use port 503 for communication, default is False  
+> &ensp;&ensp;&ensp;&ensp;Note: if it is True, it will connect to 503 port for communication when it is used for the first time, which is generally only useful for transparent transmission.  
+> &ensp;&ensp;&ensp;&ensp;Note: only available if firmware_version >= 1.11.0  
+>   
+> :return: tuple((code, modbus_response))  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;modbus_response: modbus response data
+
+
+#### def __set_rs485_timeout__(self, timeout, target='robot', protocol='modbus_rtu', **kwargs):
+
+> Set the timeout of the target RS485  
+>   
+> :param timeout: timeout, milliseconds  
+> :param target: 'robot' or 'control_box'  
+> &ensp;&ensp;&ensp;&ensp;robot: Robot RS485  
+> &ensp;&ensp;&ensp;&ensp;control_box: ControlBox RS485  
+> :param protocol: 'modbus_rtu' or 'transparent'  
+> &ensp;&ensp;&ensp;&ensp;modbus_rtu: Modbus RTU  
+> &ensp;&ensp;&ensp;&ensp;transparent: Transparent Transmission  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_rs485_use_503_port__(self, use_503_port=True):
+
+
+
 #### def __set_self_collision_detection__(self, on_off):
 
 > Set whether to enable self-collision detection   
@@ -3263,28 +3322,12 @@ xArm-Python-SDK API Documentation (V1.17.0): class XArmAPI in module xarm.wrappe
 
 #### def __set_tgpio_modbus_baudrate__(self, baud):
 
-> Set the modbus baudrate of the tool gpio  
->   
-> :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000  
->   
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+> Set the baudrate of the Robot RS485 (please use set_rs485_baudrate)
 
 
 #### def __set_tgpio_modbus_timeout__(self, timeout, is_transparent_transmission=False, **kwargs):
 
-> Set the modbus timeout of the tool gpio  
->   
-> :param timeout: timeout, milliseconds  
-> :param is_transparent_transmission: whether the set timeout is the timeout of transparent transmission  
-> &ensp;&ensp;&ensp;&ensp;Note: only available if firmware_version >= 1.11.0  
->   
-> :return: code  
-> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-
-
-#### def __set_tgpio_modbus_use_503_port__(self, use_503_port=True):
-
+> Set the timeout of the Robot RS485 (please use set_rs485_timeout)
 
 
 #### def __set_timeout__(self, timeout):

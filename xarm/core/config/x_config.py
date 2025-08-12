@@ -17,9 +17,10 @@ class XCONF(object):
     TRACK_ID = LINEAR_MOTOR_ID # old
     GRIPPER_ID = 8
 
-    TGPIO_HOST_ID = 9
-    LINEAR_MOTOR_HOST_ID = 11
-    LINEER_TRACK_HOST_ID = LINEAR_MOTOR_HOST_ID # old
+    ROBOT_RS485_HOST_ID = 9
+    CONTROL_BOX_RS485_HOST_ID = 11
+    TGPIO_HOST_ID = ROBOT_RS485_HOST_ID # old
+    LINEER_TRACK_HOST_ID = CONTROL_BOX_RS485_HOST_ID # old
 
     def __init__(self):
         pass
@@ -377,7 +378,7 @@ class XCONF(object):
         IDEN_FRIC = 115
 
         TGPIO_MB_TIOUT = 123
-        TGPIO_MODBUS = 124
+        RS485_RTU = 124
         TGPIO_ERR = 125
         TGPIO_W16B = 127
         TGPIO_R16B = 128
@@ -425,7 +426,7 @@ class XCONF(object):
         GET_COMMON_INFO = 234
 
         TGPIO_COM_TIOUT = 240
-        TGPIO_COM_DATA = 241
+        RS485_AGENT = 241
 
         FEEDBACK_CHECK = 253
         SET_FEEDBACK_TYPE = 254

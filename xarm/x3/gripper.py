@@ -149,7 +149,7 @@ class Gripper(GPIO):
         if is_modbus:
             return self._get_modbus_gripper_err_code()
         else:
-            return self._get_gripper_position()
+            return self._get_gripper_err_code()
 
     @xarm_is_connected(_type='set')
     @xarm_is_not_simulation_mode(ret=0)
@@ -639,6 +639,7 @@ class Gripper(GPIO):
     def set_bio_gripper_control_mode(self, mode):
         data_frame = [0x08, 0x06, 0x11, 0x0A, 0x00, mode]
         code, _ = self.__bio_gripper_send_modbus(data_frame, 6)
+        time.sleep(0.2)
         # reset mcu
         data_frame = [0x08, 0x06, 0x06, 0x07, 0x00, 0x01]
         self.__bio_gripper_send_modbus(data_frame, 6)

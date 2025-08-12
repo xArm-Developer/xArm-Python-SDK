@@ -87,7 +87,7 @@ class UxbusCmdTcp(UxbusCmd):
         self._has_err_warn = False
         return 0
     
-    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None):
+    def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None, debug=False):
         trans_id = self._transaction_id if t_id is None else t_id
         prot_id = self._protocol_identifier if prot_id < 0 else prot_id
         send_data = convert.u16_to_bytes(trans_id)
@@ -97,7 +97,7 @@ class UxbusCmdTcp(UxbusCmd):
         for i in range(pdu_len):
             send_data += bytes([pdu_data[i]])
         self.arm_port.flush()
-        if self._debug:
+        if self._debug or debug:
             debug_log_datas(send_data, label='send({})'.format(unit_id))
         ret = self.arm_port.write(send_data)
         if ret != 0:
@@ -106,7 +106,7 @@ class UxbusCmdTcp(UxbusCmd):
             self._transaction_id = self._transaction_id % TRANSACTION_ID_MAX + 1
         return trans_id
     
-    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False):
+    def recv_modbus_response(self, t_unit_id, t_trans_id, num, timeout, t_prot_id=-1, ret_raw=False, debug=False):
         prot_id = self._protocol_identifier if t_prot_id < 0 else t_prot_id
         ret = [0] * 320 if num == -1 else [0] * (num + 1)
         ret[0] = XCONF.UxbusState.ERR_TOUT
@@ -118,7 +118,7 @@ class UxbusCmdTcp(UxbusCmd):
                 time.sleep(0.001)
                 continue
             self._last_comm_time = time.monotonic()
-            if self._debug:
+            if self._debug or debug:
                 debug_log_datas(rx_data, label='recv({})'.format(t_unit_id))
             code = self.check_protocol_header(rx_data, t_trans_id, prot_id, t_unit_id)
             if code != 0:

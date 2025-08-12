@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 
 import math
+from functools import partial
 from ..x3 import XArm, Studio
 
 
@@ -130,6 +131,11 @@ class XArmAPI(object):
             'set_linear_track_back_origin': self.set_linear_motor_back_origin,
             'set_linear_track_pos': self.set_linear_motor_pos,
             'set_linear_track_stop': self.set_linear_motor_stop,
+            # 'set_tgpio_modbus_timeout': self.set_rs485_timeout,
+            # 'get_tgpio_modbus_timeout': self.get_rs485_timeout,
+            # 'set_tgpio_modbus_baudrate': self.set_rs485_baudrate,
+            # 'get_tgpio_modbus_baudrate': self.get_rs485_baudrate,
+            'set_control_modbus_baudrate': partial(self.set_rs485_baudrate, target='control_box')
         }
 
     @property
@@ -2993,65 +2999,77 @@ class XArmAPI(object):
         """
         return self._arm.clean_bio_gripper_error()
 
-    def set_tgpio_modbus_timeout(self, timeout, is_transparent_transmission=False, **kwargs):
+    def set_rs485_baudrate(self, baud, target='robot', **kwargs):
         """
-        Set the modbus timeout of the tool gpio
-        
-        :param timeout: timeout, milliseconds
-        :param is_transparent_transmission: whether the set timeout is the timeout of transparent transmission
-            Note: only available if firmware_version >= 1.11.0
-        
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.set_tgpio_modbus_timeout(timeout, is_transparent_transmission=is_transparent_transmission, **kwargs)
+        Set the baudrate of the target RS485
 
-    def set_tgpio_modbus_baudrate(self, baud):
-        """
-        Set the modbus baudrate of the tool gpio
-        
         :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000
-        
-        :return: code
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-        """
-        return self._arm.set_tgpio_modbus_baudrate(baud)
-
-    def get_tgpio_modbus_baudrate(self):
-        """
-        Get the modbus baudrate of the tool gpio
-
+        :param target: 'robot' or 'control_box'
+            robot: Robot RS485
+            control_box: ControlBox RS485
         :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            baudrate: the modbus baudrate of the tool gpio
+            baudrate: the modbus baudrate of the target RS485
         """
-        return self._arm.get_tgpio_modbus_baudrate()
+        return self._arm.set_rs485_baudrate(baud, target=target, **kwargs)
+
+    def get_rs485_baudrate(self, target='robot', **kwargs):
+        """
+        Get the baudrate of the target RS485
+
+        :param target: 'robot' or 'control_box'
+            robot: Robot RS485
+            control_box: ControlBox RS485
+        :return: tuple((code, baudrate)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            baudrate: the modbus baudrate of the target RS485
+        """
+        return self._arm.get_rs485_baudrate(target=target, **kwargs)
+
+    def set_rs485_timeout(self, timeout, target='robot', protocol='modbus_rtu', **kwargs):
+        """
+        Set the timeout of the target RS485
         
-    def set_control_modbus_baudrate(self, baud):
-        """
-        Set the modbus baudrate of the control box
-
-        :param baud: 4800/9600/19200/38400/57600/115200/230400/460800/921600/1000000/1500000/2000000/2500000
-
+        :param timeout: timeout, milliseconds
+        :param target: 'robot' or 'control_box'
+            robot: Robot RS485
+            control_box: ControlBox RS485
+        :param protocol: 'modbus_rtu' or 'transparent'
+            modbus_rtu: Modbus RTU
+            transparent: Transparent Transmission
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_control_modbus_baudrate(baud)
+        return self._arm.set_rs485_timeout(timeout, target=target, protocol=protocol, **kwargs)
 
-    def set_tgpio_modbus_use_503_port(self, use_503_port=True):
-        return self._arm.set_tgpio_modbus_use_503_port(use_503_port)
-
-    def getset_tgpio_modbus_data(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
+    def get_rs485_timeout(self, target='robot', protocol='modbus_rtu', **kwargs):
         """
-        Send the modbus data to the tool gpio
+        Get the timeout of the target RS485
+
+        :param target: 'robot' or 'control_box'
+            robot: Robot RS485
+            control_box: ControlBox RS485
+        :param protocol: 'modbus_rtu' or 'transparent'
+            modbus_rtu: Modbus RTU
+            transparent: Transparent Transmission
+        :return: tuple((code, timeout)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            timeout: timeout of the target RS485, milliseconds
+        """
+        return self._arm.get_rs485_timeout(target=target, protocol=protocol, **kwargs)
+
+    def set_rs485_data(self, datas, min_res_len=0, target='robot', protocol='modbus_rtu', use_503_port=False, **kwargs):
+        """
+        Send the modbus data to the target RS485
         
         :param datas: data_list
         :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
-        :param host_id: host_id, default is 9 (TGPIO_HOST_ID)
-            9: END RS485
-            11: CONTROLLER RS485
-        :param is_transparent_transmission: whether to choose transparent transmission, default is False
-            Note: only available if firmware_version >= 1.11.0
+        :param target: 'robot' or 'control_box'
+            robot: Robot RS485
+            control_box: ControlBox RS485
+        :param protocol: 'modbus_rtu' or 'transparent'
+            modbus_rtu: Modbus RTU
+            transparent: Transparent Transmission
         :param use_503_port: whether to use port 503 for communication, default is False
             Note: if it is True, it will connect to 503 port for communication when it is used for the first time, which is generally only useful for transparent transmission.
             Note: only available if firmware_version >= 1.11.0
@@ -3060,7 +3078,10 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             modbus_response: modbus response data
         """
-        return self._arm.getset_tgpio_modbus_data(datas, min_res_len=min_res_len, host_id=host_id, is_transparent_transmission=is_transparent_transmission, use_503_port=use_503_port, **kwargs)
+        return self._arm.set_rs485_data(datas, min_res_len=min_res_len, target=target, protocol=protocol, use_503_port=use_503_port, **kwargs)
+
+    def set_rs485_use_503_port(self, use_503_port=True):
+        return self._arm.set_rs485_use_503_port(use_503_port)
 
     def set_report_tau_or_i(self, tau_or_i=0):
         """
@@ -4181,22 +4202,6 @@ class XArmAPI(object):
         """
         return self._arm.get_common_param(3)
 
-    def get_tgpio_modbus_timeout(self, is_transparent_transmission=False):
-        """
-        Get tgpio modbus timeout
-        Note:
-            Only available if firmware_version >= 2.3.0
-
-        :param is_transparent_transmission: is transparent transmission or not
-        :return: tuple((code, timeout)), only when code is 0, the returned result is correct.
-            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            timeout: timeout of the tgpio modbus, milliseconds
-        """
-        if is_transparent_transmission:
-            return self._arm.get_common_param(5)
-        else:
-            return self._arm.get_common_param(4)
-
     def get_poe_status(self):
         """
         Get poe status
@@ -4504,6 +4509,51 @@ class XArmAPI(object):
             threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
         """
         return self._arm.get_ft_admittance_ctrl_threshold()
+
+    ############################ OLD API #############################
+
+    def set_tgpio_modbus_timeout(self, timeout, is_transparent_transmission=False, **kwargs):
+        """
+        Set the timeout of the Robot RS485 (please use set_rs485_timeout)
+        """
+        is_tt = kwargs.get('is_tt', is_transparent_transmission)
+        return self.set_rs485_timeout(timeout, target='robot', protocol='transparent' if is_tt else 'modbus_rtu', **kwargs)
+
+    def get_tgpio_modbus_timeout(self, is_transparent_transmission=False, **kwargs):
+        """
+        Get the timeout of the Robot RS485 (please use get_rs485_timeout replace)
+        """
+        is_tt = kwargs.get('is_tt', is_transparent_transmission)
+        return self.get_rs485_timeout(target='robot', protocol='transparent' if is_tt else 'modbus_rtu', **kwargs)
+
+    def set_tgpio_modbus_baudrate(self, baud):
+        """Set the baudrate of the Robot RS485 (please use set_rs485_baudrate)"""
+        return self.set_rs485_baudrate(baud)
+
+    def get_tgpio_modbus_baudrate(self):
+        """Set the baudrate of the Robot RS485 (please use get_rs485_baudrate)"""
+        return self.get_rs485_baudrate()
+
+    def getset_tgpio_modbus_data(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
+        """
+        Send the modbus data to the RS485 (please use set_rs485_data replace)
+
+        :param datas: data_list
+        :param min_res_len: the minimum length of modbus response data. Used to check the data length, if not specified, no check
+        :param host_id: host_id, default is 9 (ROBOT_RS485_HOST_ID)
+            9: Robot RS485
+            11: CONTROLLER RS485
+        :param is_transparent_transmission: whether to choose transparent transmission, default is False
+            Note: only available if firmware_version >= 1.11.0
+        :param use_503_port: whether to use port 503 for communication, default is False
+            Note: if it is True, it will connect to 503 port for communication when it is used for the first time, which is generally only useful for transparent transmission.
+            Note: only available if firmware_version >= 1.11.0
+
+        :return: tuple((code, modbus_response))
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            modbus_response: modbus response data
+        """
+        return self.set_rs485_data(datas, min_res_len, host_id, is_transparent_transmission, use_503_port, **kwargs)
 
     def __getattr__(self, item):
         if item in self.__attr_alias_map.keys():

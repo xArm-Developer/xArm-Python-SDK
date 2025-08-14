@@ -44,7 +44,7 @@ class RobotIQ(Base):
         code = self.checkset_modbus_baud(self._default_robotiq_baud)
         if code != 0:
             return code, []
-        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)
+        return self.set_rs485_data(data_frame, min_res_len=min_res_len, ignore_log=True)
 
     @xarm_is_connected(_type='get')
     def __robotiq_set(self, params):

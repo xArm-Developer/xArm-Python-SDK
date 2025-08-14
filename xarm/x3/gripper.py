@@ -604,7 +604,7 @@ class Gripper(GPIO):
         code = self.checkset_modbus_baud(self._default_bio_baud)
         if code != 0:
             return code, []
-        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)
+        return self.set_rs485_data(data_frame, min_res_len=min_res_len, ignore_log=True)
 
     def __bio_gripper_wait_motion_completed(self, timeout=5, **kwargs):
         failed_cnt = 0
@@ -885,7 +885,7 @@ class Gripper(GPIO):
         code = self.checkset_modbus_baud(self._default_gripper_baud)
         if code != 0:
             return code, []
-        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)
+        return self.set_rs485_data(data_frame, min_res_len=min_res_len, ignore_log=True)
     
     @xarm_is_connected(_type='get')
     def get_gripper_g2_register(self, address, number_of_registers=1):
@@ -946,7 +946,7 @@ class Gripper(GPIO):
         data_frame.extend(list(struct.pack('>h', speed))) # speed // 256 % 256, speed % 256
         data_frame.extend(list(struct.pack('>h', force))) # force // 256 % 256, force % 256
         data_frame.extend(list(struct.pack('>i', pos)))
-        ret = self.getset_tgpio_modbus_data(data_frame, min_res_len=6, ignore_log=True)
+        ret = self.set_rs485_data(data_frame, min_res_len=6, ignore_log=True)
         self.log_api_info('API -> set_g2_gripper_position(pos={}, speed={}, force={}) -> code={}'.format(pos, speed, force, ret[0]), code=ret[0])
         _, err = self._get_modbus_gripper_err_code()
         if self._gripper_error_code != 0:
@@ -999,7 +999,7 @@ class Gripper(GPIO):
         code = self.checkset_modbus_baud(self._default_dhpgc_gripper_baud)
         if code != 0:
             return code, []
-        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=True)
+        return self.set_rs485_data(data_frame, min_res_len=min_res_len, ignore_log=True)
 
     @xarm_is_connected(_type='get')
     def get_dhpgc_gripper_register(self, address=0x00, number_of_registers=1):
@@ -1156,7 +1156,7 @@ class Gripper(GPIO):
         code = self.checkset_modbus_baud(self._default_rh56_finger_baud)
         if code != 0:
             return code, []
-        return self.getset_tgpio_modbus_data(data_frame, min_res_len=min_res_len, ignore_log=False)
+        return self.set_rs485_data(data_frame, min_res_len=min_res_len, ignore_log=False)
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, [0]))

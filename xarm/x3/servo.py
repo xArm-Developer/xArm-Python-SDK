@@ -412,11 +412,15 @@ class Servo(Base):
             count = 7 if servo_id == 8 else self.axis
             errcodes = [0] * count
             for i in range(count):
-                ret = self.get_servo_addr_32(i + 1, XCONF.ServoConf.CURR_POS)
+                # ret = self.get_servo_addr_32(i + 1, XCONF.ServoConf.CURR_POS)
+                if self.version_is_ge(2, 7, 100):
+                    ret = self.get_servo_addr_16(i + 1, 0x000F)
+                else:
+                    ret = self.get_servo_addr_32(i + 1, 0x000F)
                 if ret[0] == XCONF.UxbusState.ERR_CODE:
                     _, err_warn = self.get_err_warn_code()
                     if _ == 0:
-                        if i + 11 == err_warn[0]:
+                        if i + 11 >= err_warn[0]:
                             errcodes[i] = ret[1]
                         else:
                             errcodes[i] = 0
@@ -426,11 +430,15 @@ class Servo(Base):
                         errcodes[i] = ret[1]
         else:
             errcodes = 0
-            ret = self.get_servo_addr_32(servo_id, XCONF.ServoConf.CURR_POS)
+            # ret = self.get_servo_addr_32(servo_id, XCONF.ServoConf.CURR_POS)
+            if self.version_is_ge(2, 7, 100):
+                ret = self.get_servo_addr_16(servo_id, 0x000F)
+            else:
+                ret = self.get_servo_addr_32(servo_id, 0x000F)
             if ret[0] == XCONF.UxbusState.ERR_CODE:
                 _, err_warn = self.get_err_warn_code()
                 if _ == 0:
-                    if servo_id + 10 == err_warn[0]:
+                    if servo_id + 10 >= err_warn[0]:
                         errcodes = ret[1]
                     else:
                         errcodes = 0

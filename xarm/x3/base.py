@@ -2386,7 +2386,7 @@ class Base(BaseObject, Events):
             time.sleep(0.05)
         return APIState.WAIT_FINISH_TIMEOUT, -1
     
-    def wait_move(self, timeout=None, trans_id=-1, set_cnt=2):
+    def wait_move(self, timeout=None, trans_id=-1, set_cnt=2, is_stop=False):
         if self._support_feedback and trans_id > 0:
             return self._wait_feedback(timeout, trans_id)[0]
         if timeout is not None:
@@ -2414,7 +2414,8 @@ class Base(BaseObject, Events):
                 if state == 5:
                     state5_cnt += 1
                 if state != 5 or state5_cnt >= 20:
-                    self.log_api_info('wait_move, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
+                    if not is_stop:
+                        self.log_api_info('wait_move, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
                     return APIState.EMERGENCY_STOP
             else:
                 state5_cnt = 0
@@ -2805,3 +2806,9 @@ class Base(BaseObject, Events):
         code, params = self.get_common_param(6)
         params = list(map(lambda x: float('{:.6f}'.format(x)), params))
         return code, params
+
+    def set_external_device_monitor_params(self, dev_type, frequency):
+        return self.set_common_param(15, [dev_type, frequency])
+
+    def get_external_device_monitor_params(self):
+        return self.get_common_param(15) 

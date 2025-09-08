@@ -97,6 +97,13 @@ def bytes_to_u32(data):
     data_u32 = data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3]
     return data_u32
 
+def bytes_to_u32s(data, n):
+    """大端字节序"""
+    ret = [0] * n
+    for i in range(n):
+        ret[i] = bytes_to_u32(data[i * 4: i * 4 + 4])
+    return ret
+
 
 def bytes_to_u64(data):
     """大端字节序"""

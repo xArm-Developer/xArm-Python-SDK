@@ -273,7 +273,7 @@ class Gripper(GPIO):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
-            code = self.wait_move()
+            code = self.wait_move(is_stop=is_stop)
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code
@@ -533,7 +533,7 @@ class Gripper(GPIO):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
-            code = self.wait_move()
+            code = self.wait_move(is_stop=is_stop)
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code
@@ -741,7 +741,7 @@ class Gripper(GPIO):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
-            code = self.wait_move()
+            code = self.wait_move(is_stop=is_stop)
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code
@@ -926,7 +926,7 @@ class Gripper(GPIO):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
-            code = self.wait_move()
+            code = self.wait_move(is_stop=is_stop)
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code
@@ -961,10 +961,10 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_g2_position(self, pos, speed=2000, force=100, wait=True, timeout=5, **kwargs):
-        if kwargs.get('wait_motion', True):
+        if kwargs.pop('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
-            code = self.wait_move()
+            code = self.wait_move(is_stop=is_stop)
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code
@@ -1118,7 +1118,7 @@ class Gripper(GPIO):
         if kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
-            code = self.wait_move()
+            code = self.wait_move(is_stop=is_stop)
             if not (code == 0 or (is_stop and code == APIState.EMERGENCY_STOP)
                     or (has_error and code == APIState.HAS_ERROR)):
                 return code

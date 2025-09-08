@@ -1418,8 +1418,11 @@ class UxbusCmd(object):
         elif param_type in [6, 12, 14]:
             txdata += convert.fp32s_to_bytes(param_val, 6)
         else:
-            # 2/3/11/13
-            txdata += convert.int32_to_bytes(param_val)
+            # 2/3/4/5/11/13/15/24/25
+            if isinstance(param_val, list):
+                txdata += convert.int32s_to_bytes(param_val, len(param_val))
+            else:
+                txdata += convert.int32_to_bytes(param_val)
         return self.set_nu8(XCONF.UxbusReg.SET_COMMON_PARAM, txdata, len(txdata))
     
     def get_common_param(self, param_type):
@@ -1435,8 +1438,10 @@ class UxbusCmd(object):
                     return [XCONF.UxbusState.INVALID, 0]
                 data[1] = convert.bytes_to_fp32s(ret[1:], 6)
             else:
-                # 2/3/4/5/11/13/24/25
-                data[1] = convert.bytes_to_u32(ret[1:])
+                # 2/3/4/5/11/13/15/24/25
+                tmp = convert.bytes_to_u32s(ret[1:], len(ret[1:]) // 4)
+                data[1] = tmp if len(tmp) > 1 else tmp[0]
+                # data[1] = convert.bytes_to_u32(ret[1:])
         return data
 
     def get_common_info(self, param_type):

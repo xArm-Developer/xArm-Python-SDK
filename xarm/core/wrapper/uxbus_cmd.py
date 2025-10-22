@@ -439,9 +439,10 @@ class UxbusCmd(object):
 
     def move_servo_cart_aa(self, mvpose, mvvelo, mvacc, tool_coord, relative):
         float_data = [mvpose[i] for i in range(6)]
-        float_data += [mvvelo, mvacc, tool_coord]
-        byte_data = bytes([relative])
-        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_SERVO_CART_AA, float_data, 9, byte_data)
+        float_data += [mvvelo, mvacc]
+        byte_data = convert.int32_to_bytes(tool_coord)
+        byte_data += bytes([relative])
+        return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_SERVO_CART_AA, float_data, 8, byte_data)
 
     def move_relative(self, pose, mvvelo, mvacc, mvtime, radius, is_joint_motion=False, is_angle_axis=False, only_check_type=0, motion_type=0, feedback_key=None):
         float_data = [0] * 7

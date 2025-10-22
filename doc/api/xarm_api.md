@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.17.2): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -527,6 +527,13 @@ xArm-Python-SDK API Documentation (V1.17.2): class XArmAPI in module xarm.wrappe
 
 #### def __get_external_device_monitor_params__(self):
 
+> Get the monitor params of the external device  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.110  
+>   
+> :return: tuple((code, params)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;params: [dev_type, frequency]
 
 
 #### def __get_fdb_mat_history_num__(self):
@@ -2368,6 +2375,23 @@ xArm-Python-SDK API Documentation (V1.17.2): class XArmAPI in module xarm.wrappe
 
 #### def __set_external_device_monitor_params__(self, dev_type, frequency):
 
+> Set the monitor params of the external device  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.110  
+> &ensp;&ensp;&ensp;&ensp;2. after it is turned on, the position/speed/current information of the external device will be reported through port 30000  
+> &ensp;&ensp;&ensp;&ensp;3. once an error occurs, you need to restart to monitor  
+>   
+> :param dev_type: the type of the external device  
+> &ensp;&ensp;&ensp;&ensp;0: Turn off monitoring  
+> &ensp;&ensp;&ensp;&ensp;1: xArm Gripper  
+> &ensp;&ensp;&ensp;&ensp;2: xArm Gripper G2  
+> &ensp;&ensp;&ensp;&ensp;3: BIO Gripper G2  
+> &ensp;&ensp;&ensp;&ensp;4: Robotiq 2F-85  
+> &ensp;&ensp;&ensp;&ensp;5: Robotiq 2F-140  
+> :param frequency: the frequency of communication with the external device  
+>   
+> :return code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
 #### def __set_fdb_mat_history_num__(self, num):

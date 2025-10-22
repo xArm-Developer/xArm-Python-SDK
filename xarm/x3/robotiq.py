@@ -57,24 +57,6 @@ class RobotIQ(Base):
         data_frame = [0x09, 0x03]
         data_frame.extend(params)
         code, ret = self.__robotiq_send_modbus(data_frame, 3 + 2 * params[-1])
-        if code == 0 and len(ret) >= 5:
-            gripper_status_reg = ret[3]
-            self._robotiq_status['gOBJ'] = (gripper_status_reg & 0xC0) >> 6
-            self._robotiq_status['gSTA'] = (gripper_status_reg & 0x30) >> 4
-            self._robotiq_status['gGTO'] = (gripper_status_reg & 0x08) >> 3
-            self._robotiq_status['gACT'] = gripper_status_reg & 0x01
-            if len(ret) >= 7:
-                fault_status_reg = ret[5]
-                self._robotiq_status['kFLT'] = (fault_status_reg & 0xF0) >> 4
-                self._robotiq_status['gFLT'] = fault_status_reg & 0x0F
-                self._robotiq_status['gPR'] = ret[6]
-            if len(ret) >= 9:
-                self._robotiq_status['gPO'] = ret[7]
-                self._robotiq_status['gCU'] = ret[8]
-            if self._robotiq_status['gSTA'] == 3 and (self._robotiq_status['gFLT'] == 0 or self._robotiq_status['gFLT'] == 9):
-                self.robotiq_is_activated = True
-            else:
-                self.robotiq_is_activated = False
         return code, ret
 
     @xarm_is_connected(_type='get')
@@ -131,7 +113,53 @@ class RobotIQ(Base):
         params = [0x07, 0xD0, 0x00, number_of_registers]
         # params = [0x07, 0xD0, 0x00, 0x01]
         # params = [0x07, 0xD0, 0x00, 0x03]
-        return self.__robotiq_get(params)
+        code, ret = self.__robotiq_get(params)
+        if code == 0 and len(ret) >= 5:
+            # GRIPPER STATUS
+            # gOBJ: 物体检测状态(如果gGTO==0则忽略)
+            #   0表示手指正朝着请求位置移动(未检测到物体)
+            #   1表示手指在请求位置之前打开时因接触而停止(检测到物体)
+            #   2表示手指在请求位置之前关闭时因接触而停止(检测到物体)
+            #   2表示手指处于请求位置(未检测到物体或物体已丢失/掉落)
+            # gSTA: 夹爪状态, 0表示处于复位或自动释放状态, 1表示激活正在进行中, 2未使用, 3表示激活已完成
+            # gGTO: 动作状态, 0表示已停止或正在执行激活/自动释放, 1表示转到位置请求
+            # gACT: 激活状态, 0表示夹爪复位, 1表示夹爪激活
+            gripper_status_reg = ret[3]
+            self._robotiq_status['gOBJ'] = (gripper_status_reg & 0xC0) >> 6
+            self._robotiq_status['gSTA'] = (gripper_status_reg & 0x30) >> 4
+            self._robotiq_status['gGTO'] = (gripper_status_reg & 0x08) >> 3
+            self._robotiq_status['gACT'] = gripper_status_reg & 0x01
+            if len(ret) >= 7:
+                # FAULT STATUS
+                # gFLT: 故障状态
+                #   0x00表示无故障
+                #   0x05表示操作延迟, 必须在执行操作之前完成激活(重新激活)
+                #   0x07表示必须在操作之前设置激活位
+                #   0x08表示超过最高温度, 等待冷却
+                #   0x09表示至少1秒内没通信
+                #   0x0A表示低于最低工作电压
+                #   0x0B表示自动释放正在进行中
+                #   0x0C表示内部故障
+                #   0x0D表示激活故障, 请确认未发生干扰或其它错误
+                #   0x0E表示过流触发
+                #   0x0F表示自动释放完成
+                fault_status_reg = ret[5]
+                self._robotiq_status['kFLT'] = (fault_status_reg & 0xF0) >> 4
+                self._robotiq_status['gFLT'] = fault_status_reg & 0x0F
+                # POSITION REQUEST ECHO
+                # gPR: 夹爪指令位置, 值介于 0x00 和 0xFF 之间 (可以通过百分比计算距离)
+                self._robotiq_status['gPR'] = ret[6]
+            if len(ret) >= 9:
+                # POSITION REQUEST ECHO
+                # gPO: 夹爪实际位置, 值介于 0x00 和 0xFF 之间 (可以通过百分比计算距离)
+                # gCU: 夹爪电流瞬时值, 介于 0x00 和 0xFF 之间, 近似10*读取值(mA)
+                self._robotiq_status['gPO'] = ret[7]
+                self._robotiq_status['gCU'] = ret[8]
+            if self._robotiq_status['gSTA'] == 3 and (self._robotiq_status['gFLT'] == 0 or self._robotiq_status['gFLT'] == 9):
+                self.robotiq_is_activated = True
+            else:
+                self.robotiq_is_activated = False
+        return code, ret
 
     def robotiq_wait_activation_completed(self, timeout=3):
         failed_cnt = 0

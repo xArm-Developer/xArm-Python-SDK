@@ -4549,9 +4549,37 @@ class XArmAPI(object):
         return self._arm.get_ft_admittance_ctrl_threshold()
 
     def set_external_device_monitor_params(self, dev_type, frequency):
+        """
+        Set the monitor params of the external device
+        Note:
+            1. only available if firmware_version >= 2.7.110
+            2. after it is turned on, the position/speed/current information of the external device will be reported through port 30000
+            3. once an error occurs, you need to restart to monitor
+
+        :param dev_type: the type of the external device
+            0: Turn off monitoring
+            1: xArm Gripper
+            2: xArm Gripper G2
+            3: BIO Gripper G2
+            4: Robotiq 2F-85
+            5: Robotiq 2F-140
+        :param frequency: the frequency of communication with the external device
+
+        :return code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
         return self._arm.set_external_device_monitor_params(dev_type, frequency)
 
     def get_external_device_monitor_params(self):
+        """
+        Get the monitor params of the external device
+        Note:
+            1. only available if firmware_version >= 2.7.110
+
+        :return: tuple((code, params)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            params: [dev_type, frequency]
+        """
         return self._arm.get_external_device_monitor_params() 
 
     ############################ OLD API #############################

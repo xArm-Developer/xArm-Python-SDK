@@ -88,6 +88,13 @@ colors = {
     'light_cyan': '\033[96m{}\033[0m',
 }
 
+origin_logger = logging.getLogger("origin.print")
+origin_logger.handlers.clear()
+stream_handler = logging.StreamHandler(sys.stdout)
+stream_handler.setLevel(logging.INFO)
+origin_logger.addHandler(stream_handler)
+origin_logger.setLevel(logging.INFO)
+
 
 def pretty_print(*args, sep=' ', end='\n', file=None, color='none'):
     msg = ''

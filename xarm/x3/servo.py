@@ -8,7 +8,7 @@
 
 from ..core.config.x_config import XCONF
 from ..core.config.x_code import ServoError
-from ..core.utils.log import logger, pretty_print
+from ..core.utils.log import logger, origin_logger
 from .base import Base
 from .decorator import xarm_is_connected
 
@@ -35,21 +35,20 @@ class Servo(Base):
                     'desc': servo_error.description[lang]
                 })
         if show:
-            pretty_print('************* {}, {}: {} **************'.format(
+            origin_logger.info('************* {}, {}: {} **************'.format(
                 '获取伺服信息' if lang == 'cn' else 'GetServoDebugMsg',
                 '状态' if lang == 'cn' else 'Status',
-                ret[0]), color='light_blue')
+                ret[0]))
             for servo_info in dbmsg:
-                color = 'red' if servo_info['code'] != 0 or servo_info['status'] != 0 else 'white'
-                pretty_print('* {}, {}: {}, {}: {}, {}: {}'.format(
+                origin_logger.info('* {}, {}: {}, {}: {}, {}: {}'.format(
                     servo_info['name'],
                     '状态' if lang == 'cn' else 'Status',
                     servo_info['status'],
                     '错误码' if lang == 'cn' else 'Code',
                     servo_info['code'],
                     '信息' if lang == 'cn' else 'Info',
-                    servo_info['title']), color=color)
-            pretty_print('*' * 50, color='light_blue')
+                    servo_info['title']))
+            origin_logger.info('*' * 50)
         return ret[0], dbmsg
 
     @xarm_is_connected(_type='set')

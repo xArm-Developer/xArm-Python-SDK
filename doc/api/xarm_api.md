@@ -2379,7 +2379,7 @@ xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrappe
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.110  
 > &ensp;&ensp;&ensp;&ensp;2. after it is turned on, the position/speed/current information of the external device will be reported through port 30000  
-> &ensp;&ensp;&ensp;&ensp;3. once an error occurs, you need to restart to monitor  
+> &ensp;&ensp;&ensp;&ensp;3. once an error occurs, you need to re call to monitor  
 >   
 > :param dev_type: the type of the external device  
 > &ensp;&ensp;&ensp;&ensp;0: Turn off monitoring  

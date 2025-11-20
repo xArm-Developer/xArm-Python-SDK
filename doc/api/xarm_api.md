@@ -529,7 +529,7 @@ xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrappe
 
 > Get the monitor params of the external device  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.110  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.100  
 >   
 > :return: tuple((code, params)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
@@ -1168,6 +1168,17 @@ xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrappe
 #### def __get_tgpio_modbus_timeout__(self, is_transparent_transmission=False, **kwargs):
 
 > Get the timeout of the Robot RS485 (please use get_rs485_timeout replace)
+
+
+#### def __get_tgpio_monitor_params__(self):
+
+> Get the monitor params of the TGPIO  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.101  
+>   
+> :return: tuple((code, params)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;params: [io_type, frequency]
 
 
 #### def __get_tgpio_output_digital__(self, ionum=None):
@@ -2377,7 +2388,7 @@ xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrappe
 
 > Set the monitor params of the external device  
 > Note:  
-> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.110  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.100  
 > &ensp;&ensp;&ensp;&ensp;2. after it is turned on, the position/speed/current information of the external device will be reported through port 30000  
 > &ensp;&ensp;&ensp;&ensp;3. once an error occurs, you need to re call to monitor  
 >   
@@ -2386,8 +2397,7 @@ xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;1: xArm Gripper  
 > &ensp;&ensp;&ensp;&ensp;2: xArm Gripper G2  
 > &ensp;&ensp;&ensp;&ensp;3: BIO Gripper G2  
-> &ensp;&ensp;&ensp;&ensp;4: Robotiq 2F-85  
-> &ensp;&ensp;&ensp;&ensp;5: Robotiq 2F-140  
+> &ensp;&ensp;&ensp;&ensp;4: Robotiq 2F-85/Robotiq 2F-140  
 > :param frequency: the frequency of communication with the external device  
 >   
 > :return code  
@@ -3395,6 +3405,22 @@ xArm-Python-SDK API Documentation (V1.17.3): class XArmAPI in module xarm.wrappe
 #### def __set_tgpio_modbus_timeout__(self, timeout, is_transparent_transmission=False, **kwargs):
 
 > Set the timeout of the Robot RS485 (please use set_rs485_timeout)
+
+
+#### def __set_tgpio_monitor_params__(self, io_type, frequency):
+
+> Set the monitor params of the TGPIO  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.101  
+> &ensp;&ensp;&ensp;&ensp;2. after it is turned on, the information of the TGPIO will be reported through port 30000  
+>   
+> :param io_type: the type of the TGPIO  
+> &ensp;&ensp;&ensp;&ensp;0: Turn off monitoring  
+> &ensp;&ensp;&ensp;&ensp;1: Turn on monitoring  
+> :param frequency: the frequency of communication with the TGPIO  
+>   
+> :return code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
 #### def __set_timeout__(self, timeout):

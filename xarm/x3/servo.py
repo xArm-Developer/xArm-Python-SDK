@@ -347,18 +347,31 @@ class Servo(Base):
         def _get_servo_version(id_num):
             versions = ['*', '*', '*']
             ret1 = self.get_servo_addr_16(id_num, 0x0801)
-            ret2 = self.get_servo_addr_16(id_num, 0x0802)
-            ret3 = self.get_servo_addr_16(id_num, 0x0803)
+            ret = self.get_servo_debug_msg()
+            if ret[1][id_num-1]['code'] != 0:
+                ret1 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0801)
+                ret2 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0802)
+                ret3 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0803)
+                if len(ret1) > 1:
+                    ret1[1] = ret1[1] >> 16
+                if len(ret2) > 1:
+                    ret2[1] = ret2[1] >> 16
+                if len(ret3) > 1:
+                    ret3[1] = ret3[1] >> 16
+            else:
+                ret2 = self.get_servo_addr_16(id_num, 0x0802)
+                ret3 = self.get_servo_addr_16(id_num, 0x0803)
+            
             code = 0
-            if ret1[0] == 0:
+            if ret1[0] in [0, 1, 2] and len(ret1) > 1 and ret1[1] < 1000:
                 versions[0] = ret1[1]
             else:
                 code = ret1[0]
-            if ret2[0] == 0:
+            if ret2[0] in [0, 1, 2] and len(ret2) > 1 and ret2[1] < 1000:
                 versions[1] = ret2[1]
             else:
                 code = ret2[0]
-            if ret3[0] == 0:
+            if ret3[0] in [0, 1, 2] and len(ret3) > 1 and ret3[1] < 1000:
                 versions[2] = ret3[1]
             else:
                 code = ret3[0]

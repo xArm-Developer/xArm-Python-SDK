@@ -2809,4 +2809,10 @@ class Base(BaseObject, Events):
         return self.set_common_param(15, [dev_type, frequency])
 
     def get_external_device_monitor_params(self):
-        return self.get_common_param(15) 
+        return self.get_common_param(15)
+
+    def set_tgpio_monitor_params(self, io_type, frequency):
+        return self.set_common_param(16, [io_type, frequency])
+
+    def get_tgpio_monitor_params(self):
+        return self.get_common_param(16)

@@ -4552,7 +4552,7 @@ class XArmAPI(object):
         """
         Set the monitor params of the external device
         Note:
-            1. only available if firmware_version >= 2.7.110
+            1. only available if firmware_version >= 2.7.100
             2. after it is turned on, the position/speed/current information of the external device will be reported through port 30000
             3. once an error occurs, you need to re call to monitor
 
@@ -4561,8 +4561,7 @@ class XArmAPI(object):
             1: xArm Gripper
             2: xArm Gripper G2
             3: BIO Gripper G2
-            4: Robotiq 2F-85
-            5: Robotiq 2F-140
+            4: Robotiq 2F-85/Robotiq 2F-140
         :param frequency: the frequency of communication with the external device
 
         :return code
@@ -4574,13 +4573,42 @@ class XArmAPI(object):
         """
         Get the monitor params of the external device
         Note:
-            1. only available if firmware_version >= 2.7.110
+            1. only available if firmware_version >= 2.7.100
 
         :return: tuple((code, params)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             params: [dev_type, frequency]
         """
-        return self._arm.get_external_device_monitor_params() 
+        return self._arm.get_external_device_monitor_params()
+
+    def set_tgpio_monitor_params(self, io_type, frequency):
+        """
+        Set the monitor params of the TGPIO
+        Note:
+            1. only available if firmware_version >= 2.7.101
+            2. after it is turned on, the information of the TGPIO will be reported through port 30000
+
+        :param io_type: the type of the TGPIO
+            0: Turn off monitoring
+            1: Turn on monitoring
+        :param frequency: the frequency of communication with the TGPIO
+
+        :return code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_tgpio_monitor_params(io_type, frequency)
+
+    def get_tgpio_monitor_params(self):
+        """
+        Get the monitor params of the TGPIO
+        Note:
+            1. only available if firmware_version >= 2.7.101
+
+        :return: tuple((code, params)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            params: [io_type, frequency]
+        """
+        return self._arm.get_tgpio_monitor_params()
 
     ############################ OLD API #############################
 

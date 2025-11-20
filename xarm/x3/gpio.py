@@ -55,18 +55,18 @@ class GPIO(Base):
 
         code = 0
 
-        if ret1[0] == 0 and len(ret1) == 2:
-            versions[0] = ret1[1]
+        if ret1[0] in [0, 1, 2] and len(ret1) > 1:
+            versions[0] = ret1[1] if abs(ret1[1]) < 1000 else 0
         else:
             code = ret1[0]
 
-        if ret2[0] == 0 and len(ret2) == 2:
-            versions[1] = ret2[1]
+        if ret2[0] in [0, 1, 2] and len(ret2) > 1:
+            versions[1] = ret2[1] if abs(ret2[1]) < 1000 else 0
         else:
             code = ret2[0]
 
-        if ret3[0] == 0 and len(ret3) == 2:
-            versions[2] = ret3[1]
+        if ret3[0] in [0, 1, 2] and len(ret3) > 1:
+            versions[2] = ret3[1] if abs(ret3[1]) < 1000 else 0
         else:
             code = ret3[0]
         # if code != 0:

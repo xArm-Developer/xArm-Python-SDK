@@ -2353,6 +2353,8 @@ class Base(BaseObject, Events):
             expired = time.monotonic() + timeout + (self._sleep_finish_time if self._sleep_finish_time > time.monotonic() else 0)
         else:
             expired = 0
+        cnt = 0
+        max_cnt = 10
         state5_cnt = 0
         while timeout is None or time.monotonic() < expired:
             if not self.connected:
@@ -2381,6 +2383,21 @@ class Base(BaseObject, Events):
                 state5_cnt = 0
             if trans_id in self._fb_transid_result_map:
                 return 0, self._fb_transid_result_map.pop(trans_id, -1)
+
+            if time.monotonic() < self._sleep_finish_time or state == 3:
+                cnt = 0
+                max_cnt = 2 if state == 3 else max_cnt
+                time.sleep(0.05)
+                continue
+            if state == 0 or state == 1:
+                cnt = 0
+                max_cnt = 2
+                time.sleep(0.05)
+                continue
+            else:
+                cnt += 1
+                if cnt >= max_cnt:
+                    return 0, -1
             time.sleep(0.05)
         return APIState.WAIT_FINISH_TIMEOUT, -1
     

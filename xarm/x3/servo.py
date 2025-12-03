@@ -348,7 +348,7 @@ class Servo(Base):
             versions = ['*', '*', '*']
             ret1 = self.get_servo_addr_16(id_num, 0x0801)
             ret = self.get_servo_debug_msg()
-            if ret[1][id_num-1]['code'] != 0:
+            if ret[1][id_num-1]['code'] != 0 or ret[1][id_num-1]['status'] == 3:
                 ret1 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0801)
                 ret2 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0802)
                 ret3 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0803)

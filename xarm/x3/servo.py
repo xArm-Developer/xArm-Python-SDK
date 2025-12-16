@@ -348,15 +348,17 @@ class Servo(Base):
             versions = ['*', '*', '*']
             ret1 = self.get_servo_addr_16(id_num, 0x0801)
             ret = self.get_servo_debug_msg()
+            if ret[1][id_num-1]['status'] == 3:
+                return ret1[0], '.'.join(map(str, versions))
             if ret[1][id_num-1]['code'] != 0 or ret[1][id_num-1]['status'] == 3:
                 ret1 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0801)
                 ret2 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0802)
                 ret3 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0803)
-                if len(ret1) > 1 and abs(ret1[1]) < 1000:
+                if len(ret1) > 1:
                     ret1[1] = ret1[1] >> 16
-                if len(ret2) > 1 and abs(ret2[1]) < 1000:
+                if len(ret2) > 1:
                     ret2[1] = ret2[1] >> 16
-                if len(ret3) > 1 and abs(ret3[1]) < 1000:
+                if len(ret3) > 1:
                     ret3[1] = ret3[1] >> 16
             else:
                 ret2 = self.get_servo_addr_16(id_num, 0x0802)

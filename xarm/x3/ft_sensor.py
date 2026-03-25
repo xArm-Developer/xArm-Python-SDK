@@ -482,17 +482,48 @@ class FtSensor(Base):
     def get_ft_sensor_version(self):
         versions = ['*', '*', '*']
         ret1 = self.arm_cmd.servo_addr_r16(8, 0x0801)
-        ret1[0] = self._check_code(ret1[0])
-        ret2 = self.arm_cmd.servo_addr_r16(8, 0x0802)
-        ret2[0] = self._check_code(ret2[0])
-        ret3 = self.arm_cmd.servo_addr_r16(8, 0x0803)
-        ret3[0] = self._check_code(ret3[0])
+        if ret1[1] > 10:
+            ret1 = self.arm_cmd.servo_error_addr_r32(8, 0x0801)
+            ret2 = self.arm_cmd.servo_error_addr_r32(8, 0x0802)
+            ret3 = self.arm_cmd.servo_error_addr_r32(8, 0x0803)
+            if len(ret1) > 1:
+                ret1[1] = ret1[1] >> 16
+            if len(ret2) > 1:
+                ret2[1] = ret2[1] >> 16
+            if len(ret3) > 1:
+                ret3[1] = ret3[1] >> 16
+        else:
+            ret2 = self.arm_cmd.servo_addr_r16(8, 0x0802)
+            ret3 = self.arm_cmd.servo_addr_r16(8, 0x0803)
 
-        if ret1[0] == 0 and ret1[1] < 10:
-            versions[0] = ret1[1]
-        if ret2[0] == 0 and ret1[1] < 100:
-            versions[1] = ret2[1]
-        if ret3[0] == 0 and ret1[1] < 1000:
-            versions[2] = ret3[1]
+        code = 0
+        if ret1[0] in [0, 1, 2] and len(ret1) > 1:
+            versions[0] = ret1[1] if abs(ret1[1]) < 1000 else '*'
+        else:
+            code = ret1[0]
+        if ret2[0] in [0, 1, 2] and len(ret2) > 1:
+            versions[1] = ret2[1] if abs(ret2[1]) < 1000 else '*'
+        else:
+            code = ret2[0]
+        if ret3[0] in [0, 1, 2] and len(ret3) > 1:
+            versions[2] = ret3[1] if abs(ret3[1]) < 1000 else '*'
+        else:
+            code = ret3[0]
+        return code, '.'.join(map(str, versions))
 
-        return ret1[0] or ret2[0] or ret3[0], '.'.join(map(str, versions))
+        # versions = ['*', '*', '*']
+        # ret1 = self.arm_cmd.servo_addr_r16(8, 0x0801)
+        # ret1[0] = self._check_code(ret1[0])
+        # ret2 = self.arm_cmd.servo_addr_r16(8, 0x0802)
+        # ret2[0] = self._check_code(ret2[0])
+        # ret3 = self.arm_cmd.servo_addr_r16(8, 0x0803)
+        # ret3[0] = self._check_code(ret3[0])
+
+        # if ret1[0] == 0 and ret1[1] < 10:
+        #     versions[0] = ret1[1]
+        # if ret2[0] == 0 and ret1[1] < 100:
+        #     versions[1] = ret2[1]
+        # if ret3[0] == 0 and ret1[1] < 1000:
+        #     versions[2] = ret3[1]
+
+        # return ret1[0] or ret2[0] or ret3[0], '.'.join(map(str, versions))

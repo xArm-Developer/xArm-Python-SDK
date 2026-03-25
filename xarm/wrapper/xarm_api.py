@@ -4491,6 +4491,20 @@ class XArmAPI(object):
         """
         return self._arm.set_ft_admittance_ctrl_threshold(thresholds)
     
+    def set_xarm7_ik_redundancy(self, jnt_ref, punish_coeff):
+        """
+        set the redundant solution parameters for xArm7
+        Note:
+            1. only available if firmware_version >= 2.7.107
+
+        :param jnt_ref: reference joint angle, default is all 0. The 7 joint solutions will try to be as close as possible to the set joint angle
+        :param punish_coeff: penalty multiplier, currently set in the range of 1-10. If the deviation is too large, the penalty will increase according to the multiplier, that is, the cost will be higher. Joints with larger multipliers will be given priority to stay near the reference angle.
+
+        :return: code
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+        """
+        return self._arm.set_xarm7_ik_redundancy(jnt_ref, punish_coeff)
+    
     def get_ft_collision_detection(self):
         """
         Get the collision detection with the Six-axis Force Torque Sensor is enable or not
@@ -4552,6 +4566,20 @@ class XArmAPI(object):
             threshold: [x(N), y(N), z(N), Rx(Nm), Ry(Nm), Rz(Nm)]
         """
         return self._arm.get_ft_admittance_ctrl_threshold()
+    
+    def get_xarm7_ik_redundancy(self):
+        """
+        set the redundant solution parameters for xArm7
+        Note:
+            1. only available if firmware_version >= 2.7.107
+
+        :return: tuple((code, params)), only when code is 0, the returned result is correct.
+            code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+            params: [jnt_ref, punish_coeff] 
+                jnt_ref: reference joint angle 
+                punish_coeff: penalty multiplier
+        """
+        return self._arm.get_xarm7_ik_redundancy()
 
     def set_external_device_monitor_params(self, dev_type, frequency):
         """

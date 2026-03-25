@@ -2573,6 +2573,7 @@ class Base(BaseObject, Events):
         if target == 'control_box':
             code = self.set_common_param(25 if is_tt else 24, timeout)
             self.log_api_info('API -> set_rs485_timeout -> code={}'.format(code), code=code)
+            return code
         else:
             ret = self.arm_cmd.set_modbus_timeout(timeout, is_transparent_transmission=is_tt)
             self.log_api_info('API -> set_rs485_timeout -> code={}'.format(ret[0]), code=ret[0])
@@ -2800,6 +2801,11 @@ class Base(BaseObject, Events):
     def set_ft_admittance_ctrl_threshold(self, thresholds):
         assert isinstance(thresholds, Iterable) and len(thresholds) >= 6
         return self.set_common_param(6, thresholds)
+    
+    def set_xarm7_ik_redundancy(self, jnt_ref, punish_coeff):
+        assert isinstance(jnt_ref, Iterable) and len(jnt_ref) == 7
+        assert isinstance(punish_coeff, Iterable) and len(punish_coeff) == 7
+        return self.set_common_param(7, jnt_ref + punish_coeff)
 
     def get_ft_collision_detection(self):
         return self.get_common_param(11)
@@ -2821,6 +2827,11 @@ class Base(BaseObject, Events):
         code, params = self.get_common_param(6)
         params = list(map(lambda x: float('{:.6f}'.format(x)), params))
         return code, params
+    
+    def get_xarm7_ik_redundancy(self):
+        code, params = self.get_common_param(7)
+        params = list(map(lambda x: float('{:.6f}'.format(x)), params))
+        return code, [params[:7], params[7:]]
 
     def set_external_device_monitor_params(self, dev_type, frequency):
         return self.set_common_param(15, [dev_type, frequency])

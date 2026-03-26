@@ -225,9 +225,12 @@ class Base(BaseObject, Events):
             self._is_report_current = 0  # 针对get_report_tau_or_i的结果
             self._is_approx_motion = 0
             self._is_cart_continuous = 0
+            self._is_collision_rebound = 0
 
-            self._reduced_mode_is_on = 0
             self._reduced_tcp_boundary = [9999, -9999, 9999, -9999, 9999, -9999]
+            self._reduced_max_tcp_speed = 0
+            self._reduced_max_joint_speed = 0
+            self._reduced_joint_limits = [[-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360]]
 
             self._last_update_err_time = 0
             self._last_update_state_time = 0
@@ -383,10 +386,13 @@ class Base(BaseObject, Events):
         self._is_report_current = 0  # 针对get_report_tau_or_i的结果
         self._is_approx_motion = 0
         self._is_cart_continuous = 0
+        self._is_collision_rebound = 0
 
-        self._reduced_mode_is_on = 0
         self._reduced_tcp_boundary = [9999, -9999, 9999, -9999, 9999, -9999]
-        
+        self._reduced_max_tcp_speed = 0
+        self._reduced_max_joint_speed = 0
+        self._reduced_joint_limits = [[-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360]]
+
         self._last_update_err_time = 0
         self._last_update_state_time = 0
         self._last_update_cmdnum_time = 0
@@ -804,13 +810,29 @@ class Base(BaseObject, Events):
         return self._is_cart_continuous != 0
     
     @property
+    def is_collision_rebound(self):
+        return self._is_collision_rebound != 0
+    
+    @property
     def reduced_mode_is_on(self):
-        return self._reduced_mode_is_on != 0
+        return self.is_reduced_mode
     
     @property
     def reduced_tcp_boundary(self):
         return self._reduced_tcp_boundary
     
+    @property
+    def reduced_max_tcp_speed(self):
+        return self._reduced_max_tcp_speed
+    
+    @property
+    def reduced_max_joint_speed(self):
+        return self._reduced_max_joint_speed
+    
+    @property
+    def reduced_joint_limits(self):
+        return self._reduced_joint_limits
+
     @property
     def ft_ext_force(self):
         return self._ft_ext_force
@@ -1862,9 +1884,29 @@ class Base(BaseObject, Events):
                 self._is_report_current = (rx_data[494] >> 2) & 0x01  # 针对get_report_tau_or_i的结果
                 self._is_approx_motion = (rx_data[494] >> 3) & 0x01
                 self._is_cart_continuous = (rx_data[494] >> 4) & 0x01
-            if length >= 496:
-                self._reduced_mode_is_on = rx_data[495]
-                self._reduced_tcp_boundary = convert.bytes_to_16s(rx_data[496:508], 6)
+            if length >= 574:
+                self._is_reduced_mode = rx_data[495]
+                reduced_tcp_boundary = convert.bytes_to_16s(rx_data[496:508], 6)
+                for i in range(6):
+                    self._reduced_tcp_boundary[i] = filter_invaild_number(reduced_tcp_boundary[i], 2, default=self._reduced_tcp_boundary[i])
+                self._reduced_max_tcp_speed = filter_invaild_number(convert.bytes_to_fp32(rx_data[508:512]), 2, default=self._reduced_max_tcp_speed)
+                if self._default_is_radian:
+                    reduced_max_joint_speed = filter_invaild_number(convert.bytes_to_fp32(rx_data[512:516]), 6, default=self._reduced_max_joint_speed)
+                else:
+                    reduced_max_joint_speed = filter_invaild_number(math.degrees(convert.bytes_to_fp32(rx_data[512:516])), 2, default=self._reduced_max_joint_speed)
+                self._reduced_max_joint_speed = reduced_max_joint_speed
+                reduced_joint_limits = convert.bytes_to_fp32s(rx_data[516:572], 14)
+                for i in range(7):
+                    if self._default_is_radian:
+                        joint_min = filter_invaild_number(reduced_joint_limits[i * 2], 6, default=self._reduced_joint_limits[i][0])
+                        joint_max = filter_invaild_number(reduced_joint_limits[i * 2 + 1], 6, default=self._reduced_joint_limits[i][1])
+                    else:
+                        joint_min = filter_invaild_number(math.degrees(reduced_joint_limits[i * 2]), 2, default=self._reduced_joint_limits[i][0])
+                        joint_max = filter_invaild_number(math.degrees(reduced_joint_limits[i * 2 + 1]), 2, default=self._reduced_joint_limits[i][1])
+                    self._reduced_joint_limits[i][0] = joint_min
+                    self._reduced_joint_limits[i][1] = joint_max
+                self._is_fence_mode = rx_data[572]
+                self._is_collision_rebound = rx_data[573]
 
         try:
             if self._report_type == 'real':

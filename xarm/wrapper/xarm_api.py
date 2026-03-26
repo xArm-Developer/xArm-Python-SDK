@@ -683,6 +683,76 @@ class XArmAPI(object):
             params[2]: self collision model params
         """
         return self._arm.self_collision_params
+    
+    @property
+    def is_reduced_mode(self):
+        """
+        Reduced mode is on or not
+        """
+        return self._arm.is_reduced_mode
+    
+    @property
+    def is_fence_mode(self):
+        """
+        Fence mode is on or not
+        """
+        return self._arm.is_fence_mode
+    
+    @property
+    def is_report_current(self):
+        """
+        Reported electric current or not
+        """
+        return self._arm.is_report_current
+    
+    @property
+    def is_approx_motion(self):
+        """
+        Approx motion or not
+        """
+        return self._arm.is_approx_motion
+
+    @property
+    def is_cart_continuous(self):
+        """
+        Cartesion motion continuous or not
+        """
+        return self._arm.is_cart_continuous
+    
+    @property
+    def is_collision_rebound(self):
+        """
+        Collision rebound or not
+        """
+        return self._arm.is_collision_rebound
+    
+    @property
+    def reduced_tcp_boundary(self):
+        """
+        Tcp boundary in reduced mode, [x_max, x_min, y_max, y_min, z_max, z_min]
+        """
+        return self._arm.reduced_tcp_boundary
+    
+    @property
+    def reduced_max_tcp_speed(self):
+        """
+        Max tcp speed in reduced mode (mm/s)
+        """
+        return self._arm.reduced_max_tcp_speed
+    
+    @property
+    def reduced_max_joint_speed(self):
+        """
+        Max joint speed in reduced mode
+        """
+        return self._arm.reduced_max_joint_speed
+    
+    @property
+    def reduced_joint_limits(self):
+        """
+        Joint limits in reduced mode, [[J1_min, J1_max], ..., [J7_min, J7_max]]
+        """
+        return self._arm.reduced_joint_limits
 
     @property
     def ft_ext_force(self):

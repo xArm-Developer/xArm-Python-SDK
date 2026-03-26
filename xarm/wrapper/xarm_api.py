@@ -2746,7 +2746,7 @@ class XArmAPI(object):
         """
         return self._arm.get_checkset_default_baud(type_)
 
-    def robotiq_reset(self):
+    def robotiq_reset(self, **kwargs):
         """
         Reset the robotiq gripper (clear previous activation if any)
         
@@ -2754,9 +2754,9 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             robotiq_response: See the robotiq documentation
         """
-        return self._arm.robotiq_reset()
+        return self._arm.robotiq_reset(**kwargs)
 
-    def robotiq_set_activate(self, wait=True, timeout=3):
+    def robotiq_set_activate(self, wait=True, timeout=3, **kwargs):
         """
         If not already activated. Activate the robotiq gripper
         
@@ -2767,7 +2767,7 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             robotiq_response: See the robotiq documentation 
         """
-        return self._arm.robotiq_set_activate(wait=wait, timeout=timeout)
+        return self._arm.robotiq_set_activate(wait=wait, timeout=timeout, **kwargs)
 
     def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
         """
@@ -2815,7 +2815,7 @@ class XArmAPI(object):
         """
         return self._arm.robotiq_close(speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
 
-    def robotiq_get_status(self, number_of_registers=3):
+    def robotiq_get_status(self, number_of_registers=3, **kwargs):
         """
         Reading the status of robotiq gripper
         
@@ -2832,7 +2832,7 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             robotiq_response: See the robotiq documentation
         """
-        return self._arm.robotiq_get_status(number_of_registers=number_of_registers)
+        return self._arm.robotiq_get_status(number_of_registers=number_of_registers, **kwargs)
 
     @property
     def robotiq_status(self):
@@ -2859,7 +2859,7 @@ class XArmAPI(object):
         """
         return self._arm.robotiq_status
 
-    def set_bio_gripper_enable(self, enable=True, wait=True, timeout=3):
+    def set_bio_gripper_enable(self, enable=True, wait=True, timeout=3, **kwargs):
         """
         If not already enabled. Enable the bio gripper
         
@@ -2870,9 +2870,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_bio_gripper_enable(enable, wait=wait, timeout=timeout)
+        return self._arm.set_bio_gripper_enable(enable, wait=wait, timeout=timeout, **kwargs)
 
-    def set_bio_gripper_speed(self, speed):
+    def set_bio_gripper_speed(self, speed, **kwargs):
         """
         Set the speed of the bio gripper
         
@@ -2881,9 +2881,9 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_bio_gripper_speed(speed)
+        return self._arm.set_bio_gripper_speed(speed, **kwargs)
 
-    def set_bio_gripper_control_mode(self, mode):
+    def set_bio_gripper_control_mode(self, mode, **kwargs):
         """
         Set the bio gripper control mode
         Note:
@@ -2897,9 +2897,9 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
         
-        return self._arm.set_bio_gripper_control_mode(mode)
+        return self._arm.set_bio_gripper_control_mode(mode, **kwargs)
 
-    def set_bio_gripper_force(self, force):
+    def set_bio_gripper_force(self, force, **kwargs):
         """
         Set the bio gripper force
         Note:
@@ -2911,7 +2911,7 @@ class XArmAPI(object):
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
 
-        return self._arm.set_bio_gripper_force(force)
+        return self._arm.set_bio_gripper_force(force, **kwargs)
 
     def get_bio_gripper_g2_position(self, **kwargs):
         """
@@ -3000,7 +3000,7 @@ class XArmAPI(object):
         """
         return self._arm.clean_bio_gripper_error()
         
-    def set_dhpgc_gripper_activate(self, wait=True, timeout=3):
+    def set_dhpgc_gripper_activate(self, wait=True, timeout=3, **kwargs):
         """
         If not already activated. Activate the DH-PGC-140-50 gripper
 
@@ -3010,7 +3010,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_dhpgc_gripper_activate(wait=wait, timeout=timeout)
+        return self._arm.set_dhpgc_gripper_activate(wait=wait, timeout=timeout, **kwargs)
         
     def set_dhpgc_gripper_position(self, pos, speed=50, force=50, wait=True, timeout=5, **kwargs):
         """

@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.18.0): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -1290,6 +1290,19 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
+#### def __get_xarm7_ik_redundancy__(self):
+
+> set the redundant solution parameters for xArm7  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.107  
+>   
+> :return: tuple((code, params)), only when code is 0, the returned result is correct.  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
+> &ensp;&ensp;&ensp;&ensp;params: [jnt_ref, punish_coeff]   
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;jnt_ref: reference joint angle   
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;punish_coeff: penalty multiplier
+
+
 #### def __getset_tgpio_modbus_data__(self, datas, min_res_len=0, host_id=9, is_transparent_transmission=False, use_503_port=False, **kwargs):
 
 > Send the modbus data to the RS485 (please use set_rs485_data replace)  
@@ -1868,7 +1881,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;robotiq_response: See the robotiq documentation
 
 
-#### def __robotiq_get_status__(self, number_of_registers=3):
+#### def __robotiq_get_status__(self, number_of_registers=3, **kwargs):
 
 > Reading the status of robotiq gripper  
 >   
@@ -1900,7 +1913,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;robotiq_response: See the robotiq documentation
 
 
-#### def __robotiq_reset__(self):
+#### def __robotiq_reset__(self, **kwargs):
 
 > Reset the robotiq gripper (clear previous activation if any)  
 >   
@@ -1909,7 +1922,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;robotiq_response: See the robotiq documentation
 
 
-#### def __robotiq_set_activate__(self, wait=True, timeout=3):
+#### def __robotiq_set_activate__(self, wait=True, timeout=3, **kwargs):
 
 > If not already activated. Activate the robotiq gripper  
 >   
@@ -2085,7 +2098,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_bio_gripper_control_mode__(self, mode):
+#### def __set_bio_gripper_control_mode__(self, mode, **kwargs):
 
 > Set the bio gripper control mode  
 > Note:  
@@ -2099,7 +2112,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_bio_gripper_enable__(self, enable=True, wait=True, timeout=3):
+#### def __set_bio_gripper_enable__(self, enable=True, wait=True, timeout=3, **kwargs):
 
 > If not already enabled. Enable the bio gripper  
 >   
@@ -2111,7 +2124,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_bio_gripper_force__(self, force):
+#### def __set_bio_gripper_force__(self, force, **kwargs):
 
 > Set the bio gripper force  
 > Note:  
@@ -2138,7 +2151,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;robotiq_response: See the robotiq documentation
 
 
-#### def __set_bio_gripper_speed__(self, speed):
+#### def __set_bio_gripper_speed__(self, speed, **kwargs):
 
 > Set the speed of the bio gripper  
 >   
@@ -2373,7 +2386,7 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
 
-#### def __set_dhpgc_gripper_activate__(self, wait=True, timeout=3):
+#### def __set_dhpgc_gripper_activate__(self, wait=True, timeout=3, **kwargs):
 
 > If not already activated. Activate the DH-PGC-140-50 gripper  
 >   
@@ -3534,6 +3547,19 @@ xArm-Python-SDK API Documentation (V1.17.5): class XArmAPI in module xarm.wrappe
 > :param offset: [x, y, z, roll, pitch, yaw]  
 > :param is_radian: the roll/pitch/yaw in radians or not, default is self.default_is_radian  
 > :param wait: whether to wait for the robotic arm to stop or all previous queue commands to be executed or cleared before setting  
+> :return: code  
+> &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
+
+
+#### def __set_xarm7_ik_redundancy__(self, jnt_ref, punish_coeff):
+
+> set the redundant solution parameters for xArm7  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 2.7.107  
+>   
+> :param jnt_ref: reference joint angle, default is all 0. The 7 joint solutions will try to be as close as possible to the set joint angle  
+> :param punish_coeff: penalty multiplier, currently set in the range of 1-10. If the deviation is too large, the penalty will increase according to the multiplier, that is, the cost will be higher. Joints with larger multipliers will be given priority to stay near the reference angle.  
+>   
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

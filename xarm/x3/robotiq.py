@@ -40,40 +40,41 @@ class RobotIQ(Base):
     def robotiq_status(self):
         return self._robotiq_status
 
-    def __robotiq_send_modbus(self, data_frame, min_res_len=0):
-        code = self.checkset_modbus_baud(self._default_robotiq_baud)
-        if code != 0:
-            return code, []
+    def __robotiq_send_modbus(self, data_frame, min_res_len=0, check_baud=True):
+        if check_baud:
+            code = self.checkset_modbus_baud(self._default_robotiq_baud)
+            if code != 0:
+                return code, []
         return self.set_rs485_data(data_frame, min_res_len=min_res_len, ignore_log=True)
 
     @xarm_is_connected(_type='get')
-    def __robotiq_set(self, params):
+    def __robotiq_set(self, params, check_baud=True):
         data_frame = [0x09, 0x10, 0x03, 0xE8, 0x00, 0x03, len(params)]
         data_frame.extend(params)
-        return self.__robotiq_send_modbus(data_frame, 6)
+        return self.__robotiq_send_modbus(data_frame, 6, check_baud=check_baud)
 
     @xarm_is_connected(_type='get')
-    def __robotiq_get(self, params):
+    def __robotiq_get(self, params, check_baud=True):
         data_frame = [0x09, 0x03]
         data_frame.extend(params)
-        code, ret = self.__robotiq_send_modbus(data_frame, 3 + 2 * params[-1])
+        code, ret = self.__robotiq_send_modbus(data_frame, 3 + 2 * params[-1], check_baud=check_baud)
         return code, ret
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    def robotiq_reset(self):
+    def robotiq_reset(self, check_baud=True):
         params = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        code, ret = self.__robotiq_set(params)
+        code, ret = self.__robotiq_set(params, check_baud=check_baud)
         self.log_api_info('API -> robotiq_reset -> code={}, response={}'.format(code, ret), code=code)
         return code, ret
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    def robotiq_set_activate(self, wait=True, timeout=3):
+    def robotiq_set_activate(self, wait=True, timeout=3, check_baud=True):
         params = [0x01, 0x00, 0x00, 0x00, 0x00, 0x00]
-        code, ret = self.__robotiq_set(params)
+        code, ret = self.__robotiq_set(params, check_baud=check_baud)
         if wait and code == 0:
-            code = self.robotiq_wait_activation_completed(timeout)
+            code = self.robotiq_wait_activation_completed(timeout, check_baud=False)
         self.log_api_info('API -> robotiq_set_activate ->code={}, response={}'.format(code, ret), code=code)
         if code == 0:
             self.robotiq_is_activated = True
@@ -81,7 +82,8 @@ class RobotIQ(Base):
 
     @xarm_is_connected(_type='get')
     def robotiq_set_position(self, pos, speed=0xFF, force=0xFF, wait=True, timeout=5, **kwargs):
-        if kwargs.get('wait_motion', True):
+        no_check = kwargs.get('no_check', True)
+        if not no_check and kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move()
@@ -90,12 +92,14 @@ class RobotIQ(Base):
                 return code, 0
         if self.check_is_simulation_robot():
             return 0, 0
-        if kwargs.get('auto_enable') and not self.robotiq_is_activated:
-            self.robotiq_reset()
-            self.robotiq_set_activate(wait=True)
+        check_baud = no_check and kwargs.get('check_baud', True)
+        if not no_check and kwargs.get('auto_enable', kwargs.get('check_enable', True)) and not self.robotiq_is_activated:
+            self.robotiq_reset(check_baud=check_baud)
+            self.robotiq_set_activate(wait=True, check_baud=check_baud)
         params = [0x09, 0x00, 0x00, pos, speed, force]
-        code, ret = self.__robotiq_set(params)
+        code, ret = self.__robotiq_set(params, check_baud=check_baud)
         if wait and code == 0:
+            kwargs['check_baud'] = False
             code = self.robotiq_wait_motion_completed(timeout, **kwargs)
         self.log_api_info('API -> robotiq_set_position ->code={}, response={}'.format(code, ret), code=code)
         return code, ret
@@ -108,12 +112,12 @@ class RobotIQ(Base):
 
     @xarm_is_connected(_type='get')
     @xarm_is_not_simulation_mode(ret=(0, 0))
-    def robotiq_get_status(self, number_of_registers=3):
+    def robotiq_get_status(self, number_of_registers=3, check_baud=True):
         number_of_registers = 3 if number_of_registers not in [1, 2, 3] else number_of_registers
         params = [0x07, 0xD0, 0x00, number_of_registers]
         # params = [0x07, 0xD0, 0x00, 0x01]
         # params = [0x07, 0xD0, 0x00, 0x03]
-        code, ret = self.__robotiq_get(params)
+        code, ret = self.__robotiq_get(params, check_baud=check_baud)
         if code == 0 and len(ret) >= 5:
             # GRIPPER STATUS
             # gOBJ: 物体检测状态(如果gGTO==0则忽略)
@@ -161,14 +165,15 @@ class RobotIQ(Base):
                 self.robotiq_is_activated = False
         return code, ret
 
-    def robotiq_wait_activation_completed(self, timeout=3):
+    def robotiq_wait_activation_completed(self, timeout=3, check_baud=True):
         failed_cnt = 0
         expired = time.monotonic() + timeout if timeout is not None and timeout > 0 else 0
         code = APIState.WAIT_FINISH_TIMEOUT
         while expired == 0 or time.monotonic() < expired:
-            _, ret = self.robotiq_get_status(number_of_registers=3)
+            _, ret = self.robotiq_get_status(number_of_registers=3, check_baud=check_baud)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
+                check_baud = False
                 gFLT = self._robotiq_status['gFLT']
                 gSTA = self._robotiq_status['gSTA']
                 code = APIState.END_EFFECTOR_HAS_FAULT if gFLT != 0 and not (gFLT == 5 and gSTA == 1) \
@@ -185,10 +190,12 @@ class RobotIQ(Base):
         expired = time.monotonic() + timeout if timeout is not None and timeout > 0 else 0
         code = APIState.WAIT_FINISH_TIMEOUT
         check_detected = kwargs.get('check_detected', False)
+        check_baud = kwargs.get('check_baud', True)
         while expired == 0 or time.monotonic() < expired:
-            _, ret = self.robotiq_get_status(number_of_registers=3)
+            _, ret = self.robotiq_get_status(number_of_registers=3, check_baud=check_baud)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
             if _ == 0:
+                check_baud = False
                 gFLT = self._robotiq_status['gFLT']
                 gSTA = self._robotiq_status['gSTA']
                 gOBJ = self._robotiq_status['gOBJ']

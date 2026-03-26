@@ -10,3 +10,4 @@ example/wrapper/bak/
 example/wrapper/robot.conf
 bak-xarm/
 .vscode/
+xarm/core/utils/bytes_data.py

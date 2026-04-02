@@ -232,6 +232,14 @@ class Base(BaseObject, Events):
             self._reduced_max_joint_speed = 0
             self._reduced_joint_limits = [[-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360]]
 
+            self._cgpio_alarm_code = 0
+            self._ft_sensor_is_enable = False
+            self._monitor_device_type = 0
+            self._monitor_device_state = 0
+            self._monitor_device_pos = 0
+            self._monitor_device_speed =  0
+            self._monitor_device_current = 0
+
             self._last_update_err_time = 0
             self._last_update_state_time = 0
             self._last_update_cmdnum_time = 0
@@ -392,6 +400,14 @@ class Base(BaseObject, Events):
         self._reduced_max_tcp_speed = 0
         self._reduced_max_joint_speed = 0
         self._reduced_joint_limits = [[-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360], [-360, 360]]
+
+        self._cgpio_alarm_code = 0
+        self._ft_sensor_is_enable = False
+        self._monitor_device_type = 0
+        self._monitor_device_state = 0
+        self._monitor_device_pos = 0
+        self._monitor_device_speed =  0
+        self._monitor_device_current = 0
 
         self._last_update_err_time = 0
         self._last_update_state_time = 0
@@ -832,6 +848,34 @@ class Base(BaseObject, Events):
     @property
     def reduced_joint_limits(self):
         return self._reduced_joint_limits
+
+    @property
+    def cgpio_alarm_code(self):
+        return self._cgpio_alarm_code
+
+    @property
+    def ft_sensor_is_enable(self):
+        return self._ft_sensor_is_enable == 1
+
+    @property
+    def monitor_device_type(self):
+        return self._monitor_device_type
+
+    @property
+    def monitor_device_state(self):
+        return self._monitor_device_state
+
+    @property
+    def monitor_device_pos(self):
+        return self._monitor_device_pos
+
+    @property
+    def monitor_device_speed(self):
+        return self._monitor_device_speed
+
+    @property
+    def monitor_device_current(self):
+        return self._monitor_device_current
 
     @property
     def ft_ext_force(self):
@@ -1907,6 +1951,15 @@ class Base(BaseObject, Events):
                     self._reduced_joint_limits[i][1] = joint_max
                 self._is_fence_mode = rx_data[572]
                 self._is_collision_rebound = rx_data[573]
+            if length >= 587:
+                self._cgpio_alarm_code = convert.bytes_to_u32(rx_data[574:578])
+                self._ft_sensor_is_enable = rx_data[578] & 0x01
+                self._monitor_device_type = rx_data[579]
+                self._monitor_device_state = rx_data[580]
+                info = convert.bytes_to_16s(rx_data[581:587])
+                self._monitor_device_pos = info[0]
+                self._monitor_device_speed = info[1]
+                self._monitor_device_current = info[2]
 
         try:
             if self._report_type == 'real':

@@ -777,7 +777,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_position(self, pos, speed=0, force=50, wait=True, timeout=5, **kwargs):
-        no_check = kwargs.get('no_check', True)
+        no_check = kwargs.get('no_check', False)
         if kwargs.get('is_g2', True):
             return self.set_bio_gripper_g2_position(pos, speed=speed, force=force, wait=wait, timeout=timeout, **kwargs)
         if not no_check and kwargs.get('wait_motion', True):
@@ -967,7 +967,7 @@ class Gripper(GPIO):
     
     @xarm_is_connected(_type='set')
     def set_gripper_g2_position(self, pos, speed=100, force=50, wait=False, timeout=5, **kwargs):
-        no_check = kwargs.get('no_check', True)
+        no_check = kwargs.get('no_check', False)
         if not no_check and kwargs.get('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop
@@ -1008,7 +1008,7 @@ class Gripper(GPIO):
 
     @xarm_is_connected(_type='set')
     def set_bio_gripper_g2_position(self, pos, speed=2000, force=100, wait=True, timeout=5, **kwargs):
-        no_check = kwargs.get('no_check', True)
+        no_check = kwargs.get('no_check', False)
         if not no_check and kwargs.pop('wait_motion', True):
             has_error = self.error_code != 0
             is_stop = self.is_stop

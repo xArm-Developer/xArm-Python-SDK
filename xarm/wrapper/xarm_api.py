@@ -197,7 +197,7 @@ class XArmAPI(object):
     @property
     def version_number(self):
         """
-        Frimware version number
+        Firmware version number
         
         :return: (major_version_number, minor_version_number, revision_version_number)
         """
@@ -1468,7 +1468,7 @@ class XArmAPI(object):
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
-        return self._arm.set_fense_mode(on)
+        return self._arm.set_fence_mode(on)
 
     def set_collision_rebound(self, on):
         """
@@ -1968,7 +1968,7 @@ class XArmAPI(object):
         """
         Set the gripper speed
 
-        :param speed:
+        :param speed: gripper speed, unit: r/min
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """

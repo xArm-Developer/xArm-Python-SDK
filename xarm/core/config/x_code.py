@@ -111,7 +111,7 @@ ServoCodeMap = {
     21: {
         'en': {
             'title': 'Driver IC Initialization Error',
-            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.If multiple reboots are invalid, please contact technical support.',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support. If multiple reboots are invalid, please contact technical support.',
         },
         'cn': {
             'title': '驱动IC初始化异常',
@@ -221,7 +221,7 @@ ServoCodeMap = {
     40: {
         'en': {
             'title': 'Joint Voltage Insufficient',
-            'desc': 'Please reduce the acceleration value in the Motion Settings.Please check if the controller emergency stop switch is released.',
+            'desc': 'Please reduce the acceleration value in the Motion Settings. Please check if the controller emergency stop switch is released.',
         },
         'cn': {
             'title': '关节欠压',
@@ -627,7 +627,7 @@ ControllerErrorCodeMap = {
     27: {
         'en': {
             'title': 'Command Reply Error',
-            'desc': 'Pleas retry, or restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.'
+            'desc': 'Please retry, or restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.'
         },
         'cn': {
             'title': '回复指令错误 ',
@@ -924,7 +924,7 @@ RobotiqErrorCodeMap = {
     0x05: {
         'en': {
             'title': 'Robotiq Gripper',
-            'desc': 'Action delayed, activation(reactivation) must be completed prior to perfmoring the action'
+            'desc': 'Action delayed, activation(reactivation) must be completed prior to performing the action'
         },
         'cn': {
             'title': 'Robotiq 机械爪',
@@ -994,7 +994,7 @@ RobotiqErrorCodeMap = {
     0x0D: {
         'en': {
             'title': 'Robotiq Gripper',
-            'desc': 'Activation fault, please verify that no interference or other erroro ccurred'
+            'desc': 'Activation fault, please verify that no interference or other error occurred'
         },
         'cn': {
             'title': 'Robotiq 机械爪',
@@ -1210,7 +1210,7 @@ LinearMotorErrorCodeMap = {
     },
     40: {
         'en': {
-            'title': 'Linear Moter undervoltage',
+            'title': 'Linear Motor undervoltage',
             'desc': 'please contact technical support.',
         },
         'cn': {
@@ -1284,7 +1284,7 @@ FtSensorErrorCodeMap = {
     },
     68: {
         'en': {
-            'title': 'Six-axis Force Torque Sensor Z-direction Torque Exceeds Limitrection',
+            'title': 'Six-axis Force Torque Sensor Z-direction Torque Exceeds Limit',
             'desc': '',
         },
         'cn': {

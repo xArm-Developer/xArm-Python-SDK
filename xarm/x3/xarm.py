@@ -787,10 +787,16 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, LinearMotor, FtSensor, Mo
         return ret[0]
 
     @xarm_is_connected(_type='set')
-    def set_fense_mode(self, on_off):
+    def set_fence_mode(self, on_off):
         ret = self.arm_cmd.set_fense_on(int(on_off))
-        self.log_api_info('API -> set_fense_mode -> code={}, on={}'.format(ret[0], on_off), code=ret[0])
+        self.log_api_info('API -> set_fence_mode -> code={}, on={}'.format(ret[0], on_off), code=ret[0])
         return ret
+    
+    def set_fense_mode(self, on_off):
+        """
+        同set_fence_mode, 仅仅为了兼容旧代码
+        """
+        return self.set_fence_mode(on_off)
 
     @xarm_is_connected(_type='set')
     def set_collision_rebound(self, on_off):

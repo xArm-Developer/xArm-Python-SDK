@@ -14,13 +14,13 @@ class XCONF(object):
     MAX_CMD_NUM = 1024
 
     LINEAR_MOTOR_ID = 1
-    TRACK_ID = LINEAR_MOTOR_ID # old
+    TRACK_ID = LINEAR_MOTOR_ID # 不再使用, 保留只为了兼容旧代码
     GRIPPER_ID = 8
 
     ROBOT_RS485_HOST_ID = 9
     CONTROL_BOX_RS485_HOST_ID = 11
-    TGPIO_HOST_ID = ROBOT_RS485_HOST_ID # old
-    LINEER_TRACK_HOST_ID = CONTROL_BOX_RS485_HOST_ID # old
+    TGPIO_HOST_ID = ROBOT_RS485_HOST_ID # 不再使用, 保留只为了兼容旧代码
+    LINEER_TRACK_HOST_ID = CONTROL_BOX_RS485_HOST_ID # 不再使用, 保留只为了兼容旧代码
 
     def __init__(self):
         pass

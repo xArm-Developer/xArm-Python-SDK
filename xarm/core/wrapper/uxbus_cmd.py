@@ -316,7 +316,7 @@ class UxbusCmd(object):
         msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)  # tcp_speed, joint_speed
         if length == 79:
             msg[5] = convert.bytes_to_fp32s(ret[22:78], 14)  # joint range
-            msg[6:8] = ret[78:80]  # fense_is_on, collision_rebound
+            msg[6:8] = ret[78:80]  # fence_is_on, collision_rebound
         return msg
 
     def set_xyz_limits(self, xyz_list):

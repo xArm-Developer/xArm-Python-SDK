@@ -1112,7 +1112,7 @@ class Base(BaseObject, Events):
         """
         此函数是用于覆盖core.set_modbus_baudrate方法, 主要用于兼容旧代码
         新代码建议直接使用set_tgpio_modbus_baudrate此接口
-        :param baudrate: 
+        :param baudrate: 波特率
         :param use_old: 
             为True时调用原来的core.set_modbus_baudrate方法
             为False时使用新的set_tgpio_modbus_baudrate

@@ -132,7 +132,7 @@ class UxbusCmd(object):
         ret = self.recv_modbus_response(funcode, ret, num * 2, self._G_TOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
-        data[1:num] = convert.bytes_to_u16s(ret[1:num * 2 + 1], num)
+        data[1:num+1] = convert.bytes_to_u16s(ret[1:num * 2 + 1], num)
         return data
 
     @lock_require

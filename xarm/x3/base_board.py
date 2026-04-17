@@ -29,11 +29,11 @@ class BaseBoard(Base):
             code = ret1[0]
         if ret2[0] == 0 and len(ret2) == 2:
             versions[1] = ret2[1]
-        else:
+        elif code == 0:
             code = ret2[0]
         if ret3[0] == 0 and len(ret3) == 2:
             versions[2] = ret3[1]
-        else:
+        elif code == 0:
             code = ret3[0]
 
         return code, '.'.join(map(str, versions))
@@ -59,7 +59,7 @@ class BaseBoard(Base):
         code = 0
         if len(sn) == 14:
             for i in range(0, 14, 2):
-                ret = self.arm_cmd.tgpio_addr_w16(addr=0x1900 + (int(i / 2)), value=ord(sn[i]) | ord(sn[i + 1]) << 8, bid=servo_id)
+                ret = self.arm_cmd.tgpio_addr_w16(addr=0x1900 + (i // 2), value=ord(sn[i]) | ord(sn[i + 1]) << 8, bid=servo_id)
                 code = self._check_code(ret[0])
                 time.sleep(0.1)
                 if code != 0:
@@ -75,12 +75,12 @@ class BaseBoard(Base):
         for i in range(0, 14, 2):
             ret = self.arm_cmd.tgpio_addr_r16(addr=0x0900 + (int(i / 2)), bid=servo_id)
             time.sleep(0.1)
-            rd_sn = ''.join([rd_sn, chr(ret[1] & 0x00FF)])
-            rd_sn = ''.join([rd_sn, chr((ret[1] >> 8) & 0x00FF)])
             ret[0] = self._check_code(ret[0])
             if ret[0] != 0:
-                self.log_api_info('API -> get_sn -> code={}, sn={}'.format(ret[0], rd_sn), code=ret[0])
+                self.log_api_info('API -> get_sn -> code={}'.format(ret[0]), code=ret[0])
                 return ret[0], ''
+            rd_sn = ''.join([rd_sn, chr(ret[1] & 0x00FF)])
+            rd_sn = ''.join([rd_sn, chr((ret[1] >> 8) & 0x00FF)])
         self.log_api_info('API -> get_sn -> code={}, sn={}'.format(ret[0], rd_sn), code=ret[0])
         return ret[0], rd_sn
 

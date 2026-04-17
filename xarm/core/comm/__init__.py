@@ -1,5 +1,5 @@
 try:
     from .serial_port import SerialPort
-except:
+except ImportError:
     SerialPort = None
 from .socket_port import SocketPort

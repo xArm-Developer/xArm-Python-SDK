@@ -23,16 +23,16 @@ def compare_time(time1, time2):
         return False
 
 
-def compare_version(v1, v2):
+def version_is_ge(v1, v2):
     for i in range(3):
         if v1[i] > v2[i]:
             return True
         elif v1[i] < v2[i]:
             return False
-    return False
+    return True
 
 
-def filter_invaild_number(num, ndigits=3, default=0.0):
+def filter_invalid_number(num, ndigits=3, default=0.0):
     if math.isnan(num) or math.isinf(num):
         return round(default, 0) if ndigits < 0 else round(default, ndigits)
     return round(num, 0) if ndigits < 0 else round(num, ndigits)

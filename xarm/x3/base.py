@@ -41,7 +41,7 @@ from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, origin_logger
 from ..core.utils import convert, crc16
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
-from .utils import compare_time, compare_version, filter_invaild_number
+from .utils import compare_time, version_is_ge, filter_invalid_number
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max, xarm_wait_until_not_pause
 from .code import APIState
 from ..tools.threads import ThreadManage
@@ -1494,11 +1494,11 @@ class Base(BaseObject, Events):
             self._last_update_err_time = update_time
 
             for i in range(len(pose)):
-                pose[i] = filter_invaild_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
+                pose[i] = filter_invalid_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
             for i in range(len(angles)):
-                angles[i] = filter_invaild_number(angles[i], 6, default=self._angles[i])
+                angles[i] = filter_invalid_number(angles[i], 6, default=self._angles[i])
             for i in range(len(pose_offset)):
-                pose_offset[i] = filter_invaild_number(pose_offset[i], 3 if i < 3 else 6, default=self._position_offset[i])
+                pose_offset[i] = filter_invalid_number(pose_offset[i], 3 if i < 3 else 6, default=self._position_offset[i])
 
             if not (0 < self._error_code <= 17):
                 self._position = pose
@@ -1587,9 +1587,9 @@ class Base(BaseObject, Events):
                 self._mode = mode
                 self._report_mode_changed_callback()
             for i in range(len(pose)):
-                pose[i] = filter_invaild_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
+                pose[i] = filter_invalid_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
             for i in range(len(angles)):
-                angles[i] = filter_invaild_number(angles[i], 6, default=self._angles[i])
+                angles[i] = filter_invalid_number(angles[i], 6, default=self._angles[i])
 
             if not (0 < self._error_code <= 17):
                 self._position = pose
@@ -1772,7 +1772,7 @@ class Base(BaseObject, Events):
             self._arm_motor_brake_states = mtbrake
             self._arm_motor_enable_states = mtable
             self._joints_torque = torque
-            if compare_version(self.version_number, (0, 2, 0)):
+            if version_is_ge(self.version_number, (0, 2, 1)):
                 self._tcp_load = [float('{:.3f}'.format(tcp_load[0])), [float('{:.3f}'.format(i)) for i in tcp_load[1:]]]
             else:
                 self._tcp_load = [float('{:.3f}'.format(tcp_load[0])), [float('{:.3f}'.format(i * 1000)) for i in tcp_load[1:]]]
@@ -1780,11 +1780,11 @@ class Base(BaseObject, Events):
             self._teach_sensitivity = teach_sens
 
             for i in range(len(pose)):
-                pose[i] = filter_invaild_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
+                pose[i] = filter_invalid_number(pose[i], 3 if i < 3 else 6, default=self._position[i])
             for i in range(len(angles)):
-                angles[i] = filter_invaild_number(angles[i], 6, default=self._angles[i])
+                angles[i] = filter_invalid_number(angles[i], 6, default=self._angles[i])
             for i in range(len(pose_offset)):
-                pose_offset[i] = filter_invaild_number(pose_offset[i], 3 if i < 3 else 6, default=self._position_offset[i])
+                pose_offset[i] = filter_invalid_number(pose_offset[i], 3 if i < 3 else 6, default=self._position_offset[i])
 
             if not (0 < self._error_code <= 17):
                 self._position = pose
@@ -1920,7 +1920,7 @@ class Base(BaseObject, Events):
             if length >= 494:
                 pose_aa = convert.bytes_to_fp32s(rx_data[482:494], 3)
                 for i in range(len(pose_aa)):
-                    pose_aa[i] = filter_invaild_number(pose_aa[i], 6, default=self._pose_aa[i])
+                    pose_aa[i] = filter_invalid_number(pose_aa[i], 6, default=self._pose_aa[i])
                 self._pose_aa = self._position[:3] + pose_aa
             if length >= 495:
                 self._is_reduced_mode = rx_data[494] & 0x01
@@ -1932,21 +1932,21 @@ class Base(BaseObject, Events):
                 self._is_reduced_mode = rx_data[495]
                 reduced_tcp_boundary = convert.bytes_to_16s(rx_data[496:508], 6)
                 for i in range(6):
-                    self._reduced_tcp_boundary[i] = filter_invaild_number(reduced_tcp_boundary[i], 2, default=self._reduced_tcp_boundary[i])
-                self._reduced_max_tcp_speed = filter_invaild_number(convert.bytes_to_fp32(rx_data[508:512]), 2, default=self._reduced_max_tcp_speed)
+                    self._reduced_tcp_boundary[i] = filter_invalid_number(reduced_tcp_boundary[i], 2, default=self._reduced_tcp_boundary[i])
+                self._reduced_max_tcp_speed = filter_invalid_number(convert.bytes_to_fp32(rx_data[508:512]), 2, default=self._reduced_max_tcp_speed)
                 if self._default_is_radian:
-                    reduced_max_joint_speed = filter_invaild_number(convert.bytes_to_fp32(rx_data[512:516]), 6, default=self._reduced_max_joint_speed)
+                    reduced_max_joint_speed = filter_invalid_number(convert.bytes_to_fp32(rx_data[512:516]), 6, default=self._reduced_max_joint_speed)
                 else:
-                    reduced_max_joint_speed = filter_invaild_number(math.degrees(convert.bytes_to_fp32(rx_data[512:516])), 2, default=self._reduced_max_joint_speed)
+                    reduced_max_joint_speed = filter_invalid_number(math.degrees(convert.bytes_to_fp32(rx_data[512:516])), 2, default=self._reduced_max_joint_speed)
                 self._reduced_max_joint_speed = reduced_max_joint_speed
                 reduced_joint_limits = convert.bytes_to_fp32s(rx_data[516:572], 14)
                 for i in range(7):
                     if self._default_is_radian:
-                        joint_min = filter_invaild_number(reduced_joint_limits[i * 2], 6, default=self._reduced_joint_limits[i][0])
-                        joint_max = filter_invaild_number(reduced_joint_limits[i * 2 + 1], 6, default=self._reduced_joint_limits[i][1])
+                        joint_min = filter_invalid_number(reduced_joint_limits[i * 2], 6, default=self._reduced_joint_limits[i][0])
+                        joint_max = filter_invalid_number(reduced_joint_limits[i * 2 + 1], 6, default=self._reduced_joint_limits[i][1])
                     else:
-                        joint_min = filter_invaild_number(math.degrees(reduced_joint_limits[i * 2]), 2, default=self._reduced_joint_limits[i][0])
-                        joint_max = filter_invaild_number(math.degrees(reduced_joint_limits[i * 2 + 1]), 2, default=self._reduced_joint_limits[i][1])
+                        joint_min = filter_invalid_number(math.degrees(reduced_joint_limits[i * 2]), 2, default=self._reduced_joint_limits[i][0])
+                        joint_max = filter_invalid_number(math.degrees(reduced_joint_limits[i * 2 + 1]), 2, default=self._reduced_joint_limits[i][1])
                     self._reduced_joint_limits[i][0] = joint_min
                     self._reduced_joint_limits[i][1] = joint_max
                 self._is_fence_mode = rx_data[572]
@@ -2215,7 +2215,7 @@ class Base(BaseObject, Events):
         ret = self.arm_cmd.get_tcp_pose()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 6:
-            self._position = [filter_invaild_number(ret[i], 6, default=self._position[i-1]) for i in range(1, 7)]
+            self._position = [filter_invalid_number(ret[i], 6, default=self._position[i-1]) for i in range(1, 7)]
         return ret[0], [float(
             '{:.6f}'.format(math.degrees(self._position[i]) if 2 < i < 6 and not is_radian else self._position[i])) for
                         i in range(len(self._position))]
@@ -2229,7 +2229,7 @@ class Base(BaseObject, Events):
             ret = self.arm_cmd.get_joint_pos()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 7:
-            self._angles = [filter_invaild_number(ret[i], 6, default=self._angles[i-1]) for i in range(1, 8)]
+            self._angles = [filter_invalid_number(ret[i], 6, default=self._angles[i-1]) for i in range(1, 8)]
         if servo_id is None or servo_id == 8 or len(self._angles) < servo_id:
             return ret[0], list(
                 map(lambda x: float('{:.6f}'.format(x if is_radian else math.degrees(x))), self._angles))
@@ -2265,7 +2265,7 @@ class Base(BaseObject, Events):
         ret = self.arm_cmd.get_position_aa()
         ret[0] = self._check_code(ret[0])
         if ret[0] == 0 and len(ret) > 6:
-            self._pose_aa = [filter_invaild_number(ret[i], 6, default=self._pose_aa[i - 1]) for i in range(1, 7)]
+            self._pose_aa = [filter_invalid_number(ret[i], 6, default=self._pose_aa[i - 1]) for i in range(1, 7)]
         return ret[0], [float(
             '{:.6f}'.format(math.degrees(self._pose_aa[i]) if 2 < i < 6 and not is_radian else self._pose_aa[i]))
             for i in range(len(self._pose_aa))]
@@ -2804,7 +2804,7 @@ class Base(BaseObject, Events):
     @xarm_wait_until_cmdnum_lt_max
     @xarm_is_ready(_type='set')
     def set_tcp_load(self, weight, center_of_gravity, wait=False, **kwargs):
-        if compare_version(self.version_number, (0, 2, 0)):
+        if version_is_ge(self.version_number, (0, 2, 1)):
             _center_of_gravity = center_of_gravity
         else:
             _center_of_gravity = [item / 1000.0 for item in center_of_gravity]

@@ -12,8 +12,8 @@ def _dump_port(d):
     print('-' * 80)
     print('  device     : {}'.format(d.device))
     print('  hwid       : {}'.format(d.hwid))
-    print('  product    : {}'.format(d.hwid))
-    print('  description: {}'.format(d.hwid))
+    print('  product    : {}'.format(d.product))
+    print('  description: {}'.format(d.description))
     print('-' * 80)
 
 def get_ports(is_dump=True):

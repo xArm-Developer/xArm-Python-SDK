@@ -1956,7 +1956,7 @@ class Base(BaseObject, Events):
                 self._ft_sensor_is_enable = rx_data[578] & 0x01
                 self._monitor_device_type = rx_data[579]
                 self._monitor_device_state = rx_data[580]
-                info = convert.bytes_to_16s(rx_data[581:587])
+                info = convert.bytes_to_16s(rx_data[581:587], 3)
                 self._monitor_device_pos = info[0]
                 self._monitor_device_speed = info[1]
                 self._monitor_device_current = info[2]

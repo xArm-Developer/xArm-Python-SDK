@@ -431,7 +431,7 @@ class Servo(Base):
                     ret = self.get_servo_addr_16(i + 1, 0x000F)
                 else:
                     ret = self.get_servo_addr_32(i + 1, 0x000F)
-                if ret[0] == XCONF.UxbusState.ERR_CODE:
+                if ret[0] == XCONF.UxbusState.ERR_CODE or ret[0] == XCONF.UxbusState.INVALID:
                     _, err_warn = self.get_err_warn_code()
                     if _ == 0:
                         if i + 11 >= err_warn[0]:
@@ -449,7 +449,7 @@ class Servo(Base):
                 ret = self.get_servo_addr_16(servo_id, 0x000F)
             else:
                 ret = self.get_servo_addr_32(servo_id, 0x000F)
-            if ret[0] == XCONF.UxbusState.ERR_CODE:
+            if ret[0] == XCONF.UxbusState.ERR_CODE or ret[0] == XCONF.UxbusState.INVALID:
                 _, err_warn = self.get_err_warn_code()
                 if _ == 0:
                     if servo_id + 10 >= err_warn[0]:

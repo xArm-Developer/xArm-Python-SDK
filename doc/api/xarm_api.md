@@ -1,4 +1,4 @@
-xArm-Python-SDK API Documentation (V1.18.0): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.18.2): class XArmAPI in module xarm.wrapper.xarm_api
 
 ## class __XArmAPI__
 ****************************************
@@ -2720,7 +2720,7 @@ xArm-Python-SDK API Documentation (V1.18.0): class XArmAPI in module xarm.wrappe
 
 > Set the gripper speed  
 >   
-> :param speed:  
+> :param speed: gripper speed, unit: r/min  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 

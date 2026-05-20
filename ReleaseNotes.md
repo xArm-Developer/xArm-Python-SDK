@@ -1,6 +1,11 @@
 # xArm-Python-SDK Release Notes
 
 ## Update Summary
+- > ### 1.18.2
+  - Added BytesData for data conversion
+  - Added data structure for report data
+  - Update the reported data for port 30002
+  - Increase execution speed by adding paramster to reduce the number of checks performed by the gripper apis
 
 - > ### 1.17.0/1.7.1 
   - Change some API names

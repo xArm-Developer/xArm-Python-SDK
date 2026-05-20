@@ -39,7 +39,8 @@ except:
     SerialPort = None 
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, origin_logger
-from ..core.utils.bytes_data import BytesData, crc16
+from ..core.utils.bytes_data import BytesData
+from ..core.utils import crc16
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
 from .utils import compare_time, version_is_ge, filter_invalid_number
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max, xarm_wait_until_not_pause

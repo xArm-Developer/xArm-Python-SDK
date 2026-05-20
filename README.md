@@ -42,7 +42,7 @@ xArm Python SDK
 - #### [UFACTORY ModbusTCP Manual](doc/UF_ModbusTCP_Manual.md)
 
 ## Update Summary
-- > ### 1.18.2
+- > ### 1.18.3
   - Added BytesData for data conversion
   - Added data structure for report data
   - Update the reported data for port 30002

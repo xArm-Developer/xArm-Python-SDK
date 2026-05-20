@@ -1,7 +1,7 @@
 # xArm-Python-SDK Release Notes
 
 ## Update Summary
-- > ### 1.18.2
+- > ### 1.18.3
   - Added BytesData for data conversion
   - Added data structure for report data
   - Update the reported data for port 30002

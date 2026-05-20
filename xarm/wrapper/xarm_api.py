@@ -158,6 +158,10 @@ class XArmAPI(object):
         return self._arm.arm_cmd
 
     @property
+    def report_data(self):
+        return self._arm.report_data
+
+    @property
     def count(self):
         """
         Counter val

@@ -44,6 +44,7 @@ from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErro
 from .utils import compare_time, version_is_ge, filter_invalid_number
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max, xarm_wait_until_not_pause
 from .code import APIState
+from .report import ReportDataStructure
 from ..tools.threads import ThreadManage
 from ..version import __version__
 
@@ -273,6 +274,8 @@ class Base(BaseObject, Events):
             self.rh56_finger_pos = [0, 0, 0, 0, 0, 0]
             self.rh56_finger_speed = [0, 0, 0, 0, 0, 0]
             self.rh56_finger_force = [0, 0, 0, 0, 0, 0]
+
+            self.report_data = None
 
             if not do_not_open:
                 self.connect()
@@ -1201,16 +1204,19 @@ class Base(BaseObject, Events):
                     self._port, XCONF.SocketConf.TCP_REPORT_REAL_PORT,
                     buffer_size=1024 if not self._is_old_protocol else 87,
                     forbid_uds=self._forbid_uds)
+                self.report_data = ReportDataStructure.create(XCONF.SocketConf.TCP_REPORT_REAL_PORT, is_radian=self._default_is_radian)
             elif self._report_type == 'normal':
                 self._stream_report = SocketPort(
                     self._port, XCONF.SocketConf.TCP_REPORT_NORM_PORT,
                     buffer_size=XCONF.SocketConf.TCP_REPORT_NORMAL_BUF_SIZE if not self._is_old_protocol else 87,
                     forbid_uds=self._forbid_uds)
+                self.report_data = ReportDataStructure.create(XCONF.SocketConf.TCP_REPORT_NORM_PORT, is_radian=self._default_is_radian)
             else:
                 self._stream_report = SocketPort(
                     self._port, XCONF.SocketConf.TCP_REPORT_RICH_PORT,
                     buffer_size=1024 if not self._is_old_protocol else 187,
                     forbid_uds=self._forbid_uds)
+                self.report_data = ReportDataStructure.create(XCONF.SocketConf.TCP_REPORT_RICH_PORT, is_radian=self._default_is_radian)
 
     def __report_callback(self, report_id, item, name=''):
         if report_id in self._report_callbacks.keys():
@@ -1349,6 +1355,7 @@ class Base(BaseObject, Events):
                     size = convert.bytes_to_u32(recv_data)
                     if self._is_old_protocol and size > 256:
                         self._is_old_protocol = False
+                    self.report_data.update(recv_data)
                     self._handle_report_data(recv_data)
                 # else:
                 #     if self.connected:
@@ -2245,6 +2252,7 @@ class Base(BaseObject, Events):
         ret[0] = self._check_code(ret[0])
         positon = ret[1:8]
         result = [positon]
+        num = num & 0x0F
         if num >= 2:
             velocity = ret[8:15]
             result.append(velocity)

@@ -256,6 +256,7 @@ class XCONF(object):
 
     class SocketConf:
         TCP_CONTROL_PORT = 502
+        TCP_REPORT_RT_PORT = 30000
         TCP_REPORT_NORM_PORT = 30001
         TCP_REPORT_RICH_PORT = 30002
         TCP_REPORT_REAL_PORT = 30003

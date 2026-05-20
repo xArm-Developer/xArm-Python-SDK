@@ -11,7 +11,7 @@ import time
 import math
 import threading
 import functools
-from ..utils import convert
+from ..utils.bytes_data import BytesData
 from ..config.x_config import XCONF
 
 
@@ -113,7 +113,7 @@ class UxbusCmd(object):
 
     @lock_require
     def set_nu16(self, funcode, datas, num, additional_bytes=None):
-        hexdata = convert.u16s_to_bytes(datas, num)
+        hexdata = BytesData.from_u16_list(datas, num)
         if additional_bytes is not None:
             hexdata += additional_bytes
             ret = self.send_modbus_request(funcode, hexdata, num * 2 + len(additional_bytes))
@@ -132,7 +132,7 @@ class UxbusCmd(object):
         ret = self.recv_modbus_response(funcode, ret, num * 2, self._G_TOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
-        data[1:num+1] = convert.bytes_to_u16s(ret[1:num * 2 + 1], num)
+        data[1:num+1] = BytesData.to_u16_list(ret[1:num * 2 + 1], num)
         return data
 
     @lock_require
@@ -144,7 +144,7 @@ class UxbusCmd(object):
         trans_id = self._get_trans_id()
         if feedback_key and self._set_feedback_key_tranid:
             self._set_feedback_key_tranid(feedback_key, trans_id, self._feedback_type)
-        hexdata = convert.fp32s_to_bytes(datas, num)
+        hexdata = BytesData.from_fp32_list(datas, num)
         ret = self.send_modbus_request(funcode, hexdata, num * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -162,7 +162,7 @@ class UxbusCmd(object):
         trans_id = self._get_trans_id()
         if feedback_key and self._set_feedback_key_tranid:
             self._set_feedback_key_tranid(feedback_key, trans_id, self._feedback_type)
-        hexdata = convert.fp32s_to_bytes(datas, num)
+        hexdata = BytesData.from_fp32_list(datas, num)
         hexdata += additional_bytes
         ret = self.send_modbus_request(funcode, hexdata, num * 4 + len(additional_bytes))
         if ret == -1:
@@ -181,7 +181,7 @@ class UxbusCmd(object):
         trans_id = self._get_trans_id()
         if feedback_key and self._set_feedback_key_tranid:
             self._set_feedback_key_tranid(feedback_key, trans_id, self._feedback_type)
-        hexdata = convert.int32s_to_bytes(datas, num)
+        hexdata = BytesData.from_s32_list(datas, num, is_big_endian=False)
         ret = self.send_modbus_request(funcode, hexdata, num * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -198,7 +198,7 @@ class UxbusCmd(object):
         ret = self.recv_modbus_response(funcode, ret, num * 4, timeout if timeout is not None else self._G_TOUT)
         data = [0] * (1 + num)
         data[0] = ret[0]
-        data[1:num+1] = convert.bytes_to_fp32s(ret[1:num * 4 + 1], num)
+        data[1:num+1] = BytesData.to_fp32_list(ret[1:num * 4 + 1], num)
         return data
 
     @lock_require
@@ -209,12 +209,12 @@ class UxbusCmd(object):
         ret = self.recv_modbus_response(funcode, ret, num_get * 4, timeout if timeout is not None else self._G_TOUT)
         data = [0] * (1 + num_get)
         data[0] = ret[0]
-        data[1:num_get + 1] = convert.bytes_to_fp32s(ret[1:num_get * 4 + 1], num_get)
+        data[1:num_get + 1] = BytesData.to_fp32_list(ret[1:num_get * 4 + 1], num_get)
         return data
 
     @lock_require
     def swop_nfp32(self, funcode, datas, txn, rxn, additional_bytes=None):
-        hexdata = convert.fp32s_to_bytes(datas, txn)
+        hexdata = BytesData.from_fp32_list(datas, txn)
         if additional_bytes is not None:
             hexdata += additional_bytes
             ret = self.send_modbus_request(funcode, hexdata, txn * 4 + len(additional_bytes))
@@ -225,12 +225,12 @@ class UxbusCmd(object):
         ret = self.recv_modbus_response(funcode, ret, rxn * 4, self._G_TOUT)
         data = [0] * (1 + rxn)
         data[0] = ret[0]
-        data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
+        data[1:rxn+1] = BytesData.to_fp32_list(ret[1:rxn * 4 + 1], rxn)
         return data
 
     @lock_require
     def is_nfp32(self, funcode, datas, txn):
-        hexdata = convert.fp32s_to_bytes(datas, txn)
+        hexdata = BytesData.from_fp32_list(datas, txn)
         ret = self.send_modbus_request(funcode, hexdata, txn * 4)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * 2
@@ -312,10 +312,10 @@ class UxbusCmd(object):
         msg = [0] * 8
         msg[0] = ret[0]
         msg[1] = ret[1]  # reduced_mode_is_on
-        msg[2] = convert.bytes_to_16s(ret[2:14], 6)  # tcp_boundary
-        msg[3:5] = convert.bytes_to_fp32s(ret[14:22], 2)  # tcp_speed, joint_speed
+        msg[2] = BytesData.to_s16_list(ret[2:14], 6)  # tcp_boundary
+        msg[3:5] = BytesData.to_fp32_list(ret[14:22], 2)  # tcp_speed, joint_speed
         if length == 79:
-            msg[5] = convert.bytes_to_fp32s(ret[22:78], 14)  # joint range
+            msg[5] = BytesData.to_fp32_list(ret[22:78], 14)  # joint range
             msg[6:8] = ret[78:80]  # fence_is_on, collision_rebound
         return msg
 
@@ -444,7 +444,7 @@ class UxbusCmd(object):
     def move_servo_cart_aa(self, mvpose, mvvelo, mvacc, tool_coord, relative):
         float_data = [mvpose[i] for i in range(6)]
         float_data += [mvvelo, mvacc]
-        byte_data = convert.int32_to_bytes(tool_coord)
+        byte_data = BytesData.from_s32(tool_coord, is_big_endian=False)
         byte_data += bytes([relative])
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.MOVE_SERVO_CART_AA, float_data, 8, byte_data)
 
@@ -470,7 +470,7 @@ class UxbusCmd(object):
         byte_data = bytes([orient_type_in, orient_type_out])
         ret_fp_num = 6
         funcode = XCONF.UxbusReg.CAL_POSE_OFFSET
-        hexdata = convert.fp32s_to_bytes(float_data, 12)
+        hexdata = BytesData.from_fp32_list(float_data, 12)
         hexdata += byte_data
 
         ret = self.send_modbus_request(funcode, hexdata, len(hexdata))
@@ -480,7 +480,7 @@ class UxbusCmd(object):
         ret = self.recv_modbus_response(funcode, ret, ret_fp_num * 4, self._G_TOUT)
         data = [0] * (1 + ret_fp_num)
         data[0] = ret[0]
-        data[1:ret_fp_num+1] = convert.bytes_to_fp32s(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
+        data[1:ret_fp_num+1] = BytesData.to_fp32_list(ret[1:ret_fp_num * 4 + 1], ret_fp_num)
         return data
 
     def move_line_tool(self, mvpose, mvvelo, mvacc, mvtime, only_check_type=0, motion_type=0):
@@ -640,7 +640,7 @@ class UxbusCmd(object):
         if not limited or ref_angles is not None:
             additional_bytes = bytes([1]) if limited else bytes([0])
             if ref_angles is not None:
-                additional_bytes += convert.fp32s_to_bytes(ref_angles, 7)
+                additional_bytes += BytesData.from_fp32_list(ref_angles, 7)
             return self.swop_nfp32(XCONF.UxbusReg.GET_IK, pose, 6, 7, additional_bytes=additional_bytes)
         else:
             return self.swop_nfp32(XCONF.UxbusReg.GET_IK, pose, 6, 7)
@@ -698,8 +698,8 @@ class UxbusCmd(object):
     @lock_require
     def tgpio_addr_w16(self, addr, value, bid=XCONF.ROBOT_RS485_HOST_ID, additional_bytes=None):
         txdata = bytes([bid])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_fp32(value)
         if additional_bytes is not None:
             txdata += additional_bytes
             ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_W16B, txdata, 7 + len(additional_bytes))
@@ -714,19 +714,19 @@ class UxbusCmd(object):
     @lock_require
     def tgpio_addr_r16(self, addr, bid=XCONF.ROBOT_RS485_HOST_ID, fmt='>i'):
         txdata = bytes([bid])
-        txdata += convert.u16_to_bytes(addr)
+        txdata += BytesData.from_u16(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_R16B, txdata, 3)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_R16B, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
+        return [ret[0], BytesData.to_num(ret[1:5], fmt=fmt)]
 
     @lock_require
     def tgpio_addr_w32(self, addr, value, bid=XCONF.ROBOT_RS485_HOST_ID):
         txdata = bytes([bid])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_fp32(value)
         ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_W32B, txdata, 7)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
@@ -737,13 +737,13 @@ class UxbusCmd(object):
     @lock_require
     def tgpio_addr_r32(self, addr, bid=XCONF.ROBOT_RS485_HOST_ID, fmt='>i'):
         txdata = bytes([bid])
-        txdata += convert.u16_to_bytes(addr)
+        txdata += BytesData.from_u16(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.TGPIO_R32B, txdata, 3)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.TGPIO_R32B, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_num32(ret[1:5], fmt=fmt)]
+        return [ret[0], BytesData.to_num(ret[1:5], fmt=fmt)]
 
     def tgpio_get_digital(self):
         ret = self.tgpio_addr_r16(XCONF.ServoConf.DIGITAL_IN)
@@ -835,7 +835,7 @@ class UxbusCmd(object):
     @lock_require
     def tgpio_delay_set_digital(self, ionum, on_off, delay_sec):
         txdata = bytes([ionum, on_off])
-        txdata += convert.fp32_to_bytes(delay_sec)
+        txdata += BytesData.from_fp32(delay_sec)
         ret = self.send_modbus_request(XCONF.UxbusReg.DELAYED_TGPIO_SET, txdata, 6)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -844,7 +844,7 @@ class UxbusCmd(object):
     @lock_require
     def cgpio_delay_set_digital(self, ionum, on_off, delay_sec):
         txdata = bytes([ionum, on_off])
-        txdata += convert.fp32_to_bytes(delay_sec)
+        txdata += BytesData.from_fp32(delay_sec)
         ret = self.send_modbus_request(XCONF.UxbusReg.DELAYED_CGPIO_SET, txdata, 6)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -853,8 +853,8 @@ class UxbusCmd(object):
     @lock_require
     def cgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
         txdata = bytes([ionum, on_off])
-        txdata += convert.fp32s_to_bytes(xyz, 3)
-        txdata += convert.fp32_to_bytes(tol_r)
+        txdata += BytesData.from_fp32_list(xyz, 3)
+        txdata += BytesData.from_fp32(tol_r)
         ret = self.send_modbus_request(XCONF.UxbusReg.POSITION_CGPIO_SET, txdata, 18)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -863,8 +863,8 @@ class UxbusCmd(object):
     @lock_require
     def tgpio_position_set_digital(self, ionum, on_off, xyz, tol_r):
         txdata = bytes([ionum, on_off])
-        txdata += convert.fp32s_to_bytes(xyz, 3)
-        txdata += convert.fp32_to_bytes(tol_r)
+        txdata += BytesData.from_fp32_list(xyz, 3)
+        txdata += BytesData.from_fp32(tol_r)
         ret = self.send_modbus_request(XCONF.UxbusReg.POSITION_TGPIO_SET, txdata, 18)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -873,9 +873,9 @@ class UxbusCmd(object):
     @lock_require
     def cgpio_position_set_analog(self, ionum, value, xyz, tol_r):
         txdata = bytes([ionum])
-        txdata += convert.u16_to_bytes(int(value / 10.0 * 4095.0))
-        txdata += convert.fp32s_to_bytes(xyz, 3)
-        txdata += convert.fp32_to_bytes(tol_r)
+        txdata += BytesData.from_u16(int(value / 10.0 * 4095.0))
+        txdata += BytesData.from_fp32_list(xyz, 3)
+        txdata += BytesData.from_fp32(tol_r)
         ret = self.send_modbus_request(XCONF.UxbusReg.POSITION_CGPIO_SET_ANALOG, txdata, 19)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -889,8 +889,8 @@ class UxbusCmd(object):
     def gripper_modbus_w16s(self, addr, value, count):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += bytes([0x10])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.u16_to_bytes(count)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_u16(count)
         txdata += bytes([count * 2])
         txdata += value
         ret = self.tgpio_set_modbus_func(txdata, count * 2 + 7)
@@ -899,21 +899,21 @@ class UxbusCmd(object):
     def gripper_modbus_r16s(self, addr, count):
         txdata = bytes([XCONF.GRIPPER_ID])
         txdata += bytes([0x03])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.u16_to_bytes(count)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_u16(count)
         ret = self.tgpio_set_modbus_func(txdata, 6)
         return ret
 
     def gripper_modbus_set_en(self, value):
-        value = convert.u16_to_bytes(int(value))
+        value = BytesData.from_u16(int(value))
         return self.gripper_modbus_w16s(XCONF.ServoConf.CON_EN, value, 1)
 
     def gripper_modbus_set_mode(self, value):
-        value = convert.u16_to_bytes(int(value))
+        value = BytesData.from_u16(int(value))
         return self.gripper_modbus_w16s(XCONF.ServoConf.CON_MODE, value, 1)
 
     def gripper_modbus_set_zero(self):
-        value = convert.u16_to_bytes(int(1))
+        value = BytesData.from_u16(int(1))
         return self.gripper_modbus_w16s(XCONF.ServoConf.MT_ZERO, value, 1)
 
     def gripper_modbus_get_pos(self):
@@ -921,7 +921,7 @@ class UxbusCmd(object):
         ret1 = [0] * 2
         ret1[0] = ret[0]
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) == 9:
-            ret1[1] = convert.bytes_to_int32(ret[5:9])
+            ret1[1] = BytesData.to_s32(ret[5:9])
         else:
             if ret1[0] == 0:
                 ret1[0] = XCONF.UxbusState.ERR_LENG
@@ -937,7 +937,7 @@ class UxbusCmd(object):
         return self.gripper_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
 
     def gripper_modbus_set_posspd(self, speed):
-        speed = convert.u16_to_bytes(int(speed))
+        speed = BytesData.from_u16(int(speed))
         return self.gripper_modbus_w16s(XCONF.ServoConf.POS_SPD, speed, 1)
 
     def gripper_modbus_get_errcode(self):
@@ -945,7 +945,7 @@ class UxbusCmd(object):
         ret1 = [0] * 2
         ret1[0] = ret[0]
         if ret[0] in [0, XCONF.UxbusState.ERR_CODE, XCONF.UxbusState.WAR_CODE] and len(ret) == 7:
-            ret1[1] = convert.bytes_to_u16(ret[5:7])
+            ret1[1] = BytesData.to_u16(ret[5:7])
         else:
             if ret1[0] == 0:
                 ret1[0] = XCONF.UxbusState.ERR_LENG
@@ -954,7 +954,7 @@ class UxbusCmd(object):
         return ret1
 
     def gripper_modbus_clean_err(self):
-        value = convert.u16_to_bytes(int(1))
+        value = BytesData.from_u16(int(1))
         return self.gripper_modbus_w16s(XCONF.ServoConf.RESET_ERR, value, 1)
 
     def servo_set_zero(self, axis_id):
@@ -969,8 +969,8 @@ class UxbusCmd(object):
     @lock_require
     def servo_addr_w16(self, axis_id, addr, value):
         txdata = bytes([axis_id])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_fp32(value)
         ret = self.send_modbus_request(XCONF.UxbusReg.SERVO_W16B, txdata, 7)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
@@ -981,19 +981,19 @@ class UxbusCmd(object):
     @lock_require
     def servo_addr_r16(self, axis_id, addr):
         txdata = bytes([axis_id])
-        txdata += convert.u16_to_bytes(addr)
+        txdata += BytesData.from_u16(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.SERVO_R16B, txdata, 3)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R16B, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_int32(ret[1:5])]
+        return [ret[0], BytesData.to_s32(ret[1:5])]
 
     @lock_require
     def servo_addr_w32(self, axis_id, addr, value):
         txdata = bytes([axis_id])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.fp32_to_bytes(value)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_fp32(value)
         ret = self.send_modbus_request(XCONF.UxbusReg.SERVO_W32B, txdata, 7)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
@@ -1004,13 +1004,13 @@ class UxbusCmd(object):
     @lock_require
     def servo_addr_r32(self, axis, addr):
         txdata = bytes([axis])
-        txdata += convert.u16_to_bytes(addr)
+        txdata += BytesData.from_u16(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.SERVO_R32B, txdata, 3)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R32B, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_int32(ret[1:5])]
+        return [ret[0], BytesData.to_s32(ret[1:5])]
 
     # -----------------------------------------------------
     # controler gpio
@@ -1087,7 +1087,7 @@ class UxbusCmd(object):
         msg[1] = ret[1]
         msg[2] = ret[2]
 
-        msg[3:11] = convert.bytes_to_u16s(ret[3:19], 8)
+        msg[3:11] = BytesData.to_u16_list(ret[3:19], 8)
         msg[7] = msg[7] / 4095.0 * 10.0
         msg[8] = msg[8] / 4095.0 * 10.0
         msg[9] = msg[9] / 4095.0 * 10.0
@@ -1124,19 +1124,19 @@ class UxbusCmd(object):
     def vc_set_jointv(self, jnt_v, jnt_sync, duration=-1):
         additional_bytes = bytes([jnt_sync])
         if duration >= 0:
-            additional_bytes += convert.fp32_to_bytes(duration)
+            additional_bytes += BytesData.from_fp32(duration)
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_JOINTV, jnt_v, 7, additional_bytes)
 
     def vc_set_linev(self, line_v, coord, duration=-1):
         additional_bytes = bytes([coord])
         if duration >= 0:
-            additional_bytes += convert.fp32_to_bytes(duration)
+            additional_bytes += BytesData.from_fp32(duration)
         return self.set_nfp32_with_bytes(XCONF.UxbusReg.VC_SET_CARTV, line_v, 6, additional_bytes)
 
     def iden_load(self, iden_type, num_get, timeout=500, estimated_mass=0):
         txdata = bytes([iden_type])
         if estimated_mass > 0:
-            txdata += convert.fp32_to_bytes(estimated_mass)
+            txdata += BytesData.from_fp32(estimated_mass)
         return self.get_nfp32_with_datas(XCONF.UxbusReg.IDEN_LOAD, txdata, 5 if estimated_mass > 0 else 1, num_get, timeout=timeout)
 
     def iden_joint_friction(self, sn, timeout=500):
@@ -1147,9 +1147,9 @@ class UxbusCmd(object):
     def set_admittance(self, coord, c_axis, M, K, B):
         txdata = bytes([coord])
         txdata += bytes(c_axis[:6])
-        txdata += convert.fp32s_to_bytes(M, 6)
-        txdata += convert.fp32s_to_bytes(K, 6)
-        txdata += convert.fp32s_to_bytes(B, 6)
+        txdata += BytesData.from_fp32_list(M, 6)
+        txdata += BytesData.from_fp32_list(K, 6)
+        txdata += BytesData.from_fp32_list(B, 6)
         ret = self.send_modbus_request(XCONF.UxbusReg.ADMITTANCE_CONFIG, txdata, 79)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -1157,9 +1157,9 @@ class UxbusCmd(object):
 
     @lock_require
     def set_admittance_mbk(self, M, K, B):
-        txdata = convert.fp32s_to_bytes(M, 6)
-        txdata += convert.fp32s_to_bytes(K, 6)
-        txdata += convert.fp32s_to_bytes(B, 6)
+        txdata = BytesData.from_fp32_list(M, 6)
+        txdata += BytesData.from_fp32_list(K, 6)
+        txdata += BytesData.from_fp32_list(B, 6)
         ret = self.send_modbus_request(XCONF.UxbusReg.ADMITTANCE_CTRL_MKB, txdata, 72)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -1178,8 +1178,8 @@ class UxbusCmd(object):
     def config_force_control(self, coord, c_axis, f_ref, limits):
         txdata = bytes([coord])
         txdata += bytes(c_axis[:6])
-        txdata += convert.fp32s_to_bytes(f_ref, 6)
-        txdata += convert.fp32s_to_bytes(limits, 6)
+        txdata += BytesData.from_fp32_list(f_ref, 6)
+        txdata += BytesData.from_fp32_list(limits, 6)
         ret = self.send_modbus_request(XCONF.UxbusReg.FORCE_CTRL_CONFIG, txdata, 55)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -1187,10 +1187,10 @@ class UxbusCmd(object):
 
     @lock_require
     def set_force_control_pid(self, kp, ki, kd, xe_limit):
-        txdata = convert.fp32s_to_bytes(kp, 6)
-        txdata += convert.fp32s_to_bytes(ki, 6)
-        txdata += convert.fp32s_to_bytes(kd, 6)
-        txdata += convert.fp32s_to_bytes(xe_limit, 6)
+        txdata = BytesData.from_fp32_list(kp, 6)
+        txdata += BytesData.from_fp32_list(ki, 6)
+        txdata += BytesData.from_fp32_list(kd, 6)
+        txdata += BytesData.from_fp32_list(xe_limit, 6)
         ret = self.send_modbus_request(XCONF.UxbusReg.FORCE_CTRL_PID, txdata, 96)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP]
@@ -1230,26 +1230,26 @@ class UxbusCmd(object):
             ft_started = ret[2]
             ft_type = ret[3]
             ft_id = ret[4]
-            ft_freq = convert.bytes_to_u16(ret[5:7])
-            ft_mass = convert.bytes_to_fp32(ret[7:11])
-            ft_dir_bias = convert.bytes_to_fp32(ret[11:15])
-            ft_centroid = convert.bytes_to_fp32s(ret[15:27], 3)
-            ft_zero = convert.bytes_to_fp32s(ret[27:51], 6)
+            ft_freq = BytesData.to_u16(ret[5:7])
+            ft_mass = BytesData.to_fp32(ret[7:11])
+            ft_dir_bias = BytesData.to_fp32(ret[11:15])
+            ft_centroid = BytesData.to_fp32_list(ret[15:27], 3)
+            ft_zero = BytesData.to_fp32_list(ret[27:51], 6)
 
             imp_coord = ret[51]
             imp_c_axis = ret[52:58]
-            M = convert.bytes_to_fp32s(ret[58:82], 6)
-            K = convert.bytes_to_fp32s(ret[82:106], 6)
-            B = convert.bytes_to_fp32s(ret[106:130], 6)
+            M = BytesData.to_fp32_list(ret[58:82], 6)
+            K = BytesData.to_fp32_list(ret[82:106], 6)
+            B = BytesData.to_fp32_list(ret[106:130], 6)
 
             fc_coord = ret[130]
             fc_c_axis = ret[131:137]
-            force_ref = convert.bytes_to_fp32s(ret[137:161], 6)
-            limits = convert.bytes_to_fp32s(ret[161:185], 6)
-            kp = convert.bytes_to_fp32s(ret[185:209], 6)
-            ki = convert.bytes_to_fp32s(ret[209:233], 6)
-            kd = convert.bytes_to_fp32s(ret[233:257], 6)
-            xe_limit = convert.bytes_to_fp32s(ret[257:281], 6)
+            force_ref = BytesData.to_fp32_list(ret[137:161], 6)
+            limits = BytesData.to_fp32_list(ret[161:185], 6)
+            kp = BytesData.to_fp32_list(ret[185:209], 6)
+            ki = BytesData.to_fp32_list(ret[209:233], 6)
+            kd = BytesData.to_fp32_list(ret[233:257], 6)
+            xe_limit = BytesData.to_fp32_list(ret[257:281], 6)
             return [
                 ret[0],
                 ft_app_status, ft_started, ft_type, ft_id, ft_freq,
@@ -1269,17 +1269,17 @@ class UxbusCmd(object):
     @lock_require
     def ft_sensor_get_error(self, is_new=True):
         txdata = bytes([8])
-        txdata += convert.u16_to_bytes(0x0010)
+        txdata += BytesData.from_u16(0x0010)
         ret = self.send_modbus_request(XCONF.UxbusReg.SERVO_R16B, txdata, 3)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_R16B, ret, 4, self._G_TOUT)
         if ret[0] in [0, 1, 2]:
-            if convert.bytes_to_int32(ret[1:5]) == 27:
+            if BytesData.to_s32(ret[1:5]) == 27:
                 return [ret[0], 0]
             else:
                 if is_new:
-                    return [ret[0], convert.bytes_to_u16(ret[3:5])]
+                    return [ret[0], BytesData.to_u16(ret[3:5])]
                 else:
                     return [ret[0], ret[3]]
         return [ret[0], 0]
@@ -1300,7 +1300,7 @@ class UxbusCmd(object):
         ret = self.set_nfp32_with_bytes(XCONF.UxbusReg.CALI_WRLD_ORIENT, txdata, 18, byte_data, rxn * 4)
         data = [0] * (1 + rxn)
         data[0] = ret[0]
-        data[1:rxn+1] = convert.bytes_to_fp32s(ret[1:rxn * 4 + 1], rxn)
+        data[1:rxn+1] = BytesData.to_fp32_list(ret[1:rxn * 4 + 1], rxn)
         return data
 
     def cali_tcp_orient(self, rpy_be, rpy_bt):
@@ -1318,7 +1318,7 @@ class UxbusCmd(object):
         data = [0] * 2
         ret = self.getset_nu8(XCONF.UxbusReg.GET_TCP_ROTATION_RADIUS, txdata, 1, 4)
         data[0] = ret[0]
-        data[1] = convert.bytes_to_fp32s(ret[1:], 1)
+        data[1] = BytesData.to_fp32_list(ret[1:], 1)
         return data
 
     def get_max_joint_velocity(self, eveloc, joint_pos):
@@ -1329,8 +1329,8 @@ class UxbusCmd(object):
     def linear_motor_modbus_w16s(self, addr, value, length):
         txdata = bytes([XCONF.LINEAR_MOTOR_ID])
         txdata += bytes([0x10])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.u16_to_bytes(length)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_u16(length)
         txdata += bytes([length * 2])
         txdata += value
         ret = self.tgpio_set_modbus_func(txdata, length * 2 + 7, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID, limit_sec=0.001)
@@ -1339,8 +1339,8 @@ class UxbusCmd(object):
     def linear_motor_modbus_r16s(self, addr, length, fcode=0x03):
         txdata = bytes([XCONF.LINEAR_MOTOR_ID])
         txdata += bytes([fcode])
-        txdata += convert.u16_to_bytes(addr)
-        txdata += convert.u16_to_bytes(length)
+        txdata += BytesData.from_u16(addr)
+        txdata += BytesData.from_u16(length)
         ret = self.tgpio_set_modbus_func(txdata, 6, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID, limit_sec=0.001)
         return ret
 
@@ -1350,13 +1350,13 @@ class UxbusCmd(object):
     @lock_require
     def servo_error_addr_r32(self, axis, addr):
         txdata = bytes([axis])
-        txdata += convert.u16_to_bytes(addr)
+        txdata += BytesData.from_u16(addr)
         ret = self.send_modbus_request(XCONF.UxbusReg.SERVO_ERROR, txdata, 3)
         if ret == -1:
             return [XCONF.UxbusState.ERR_NOTTCP] * (7 + 1)
 
         ret = self.recv_modbus_response(XCONF.UxbusReg.SERVO_ERROR, ret, 4, self._G_TOUT)
-        return [ret[0], convert.bytes_to_int32(ret[1:5])]
+        return [ret[0], BytesData.to_s32(ret[1:5])]
 
     def get_dh_params(self):
         return self.get_nfp32(XCONF.UxbusReg.GET_DH, 28)
@@ -1386,9 +1386,9 @@ class UxbusCmd(object):
     
     @lock_require
     def set_modbus_tcp_data(self, datas, raw=True, debug=False):
-        trans_id = convert.bytes_to_u16(datas[0:2]) if raw else None
-        prot_id = convert.bytes_to_u16(datas[2:4]) if raw else -1
-        pdu_len = convert.bytes_to_u16(datas[4:6]) - 1 if raw else len(datas) - 1
+        trans_id = BytesData.to_u16(datas[0:2]) if raw else None
+        prot_id = BytesData.to_u16(datas[2:4]) if raw else -1
+        pdu_len = BytesData.to_u16(datas[4:6]) - 1 if raw else len(datas) - 1
         unit_id = datas[6] if raw else datas[0]
         pdu_data = datas[7:] if raw else datas[1:]
 
@@ -1428,22 +1428,22 @@ class UxbusCmd(object):
     def set_common_param(self, param_type, param_val):
         txdata = bytes([param_type])
         if param_type == 1:
-            txdata += convert.fp32_to_bytes(param_val)
+            txdata += BytesData.from_fp32(param_val)
         elif param_type in [6, 12, 14]:
-            txdata += convert.fp32s_to_bytes(param_val, 6)
+            txdata += BytesData.from_fp32_list(param_val, 6)
         elif param_type in [26]:
             txdata += bytes(param_val) if isinstance(param_val, list) else bytes([param_val])
         elif param_type in [7]:
             if isinstance(param_val, list):
-                txdata += convert.fp32s_to_bytes(param_val, len(param_val))
+                txdata += BytesData.from_fp32_list(param_val, len(param_val))
             else:
-                txdata += convert.fp32_to_bytes(param_val)
+                txdata += BytesData.from_fp32(param_val)
         else:
             # 2/3/4/5/11/13/15/24/25
             if isinstance(param_val, list):
-                txdata += convert.int32s_to_bytes(param_val, len(param_val))
+                txdata += BytesData.from_s32_list(param_val, len(param_val), is_big_endian=False)
             else:
-                txdata += convert.int32_to_bytes(param_val)
+                txdata += BytesData.from_s32(param_val, is_big_endian=False)
         return self.set_nu8(XCONF.UxbusReg.SET_COMMON_PARAM, txdata, len(txdata))
     
     def get_common_param(self, param_type):
@@ -1453,21 +1453,21 @@ class UxbusCmd(object):
         data[0] = ret[0]
         if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
             if param_type == 1:
-                data[1] = convert.bytes_to_fp32(ret[1:])
+                data[1] = BytesData.to_fp32(ret[1:])
             elif param_type in [6, 12, 14]:
                 if len(ret[1:]) < 24:
                     return [XCONF.UxbusState.INVALID, 0]
-                data[1] = convert.bytes_to_fp32s(ret[1:], 6)
+                data[1] = BytesData.to_fp32_list(ret[1:], 6)
             elif param_type in [26]:
                 data[1] = ret[1:]
             elif param_type in [7]:
-                tmp = convert.bytes_to_fp32s(ret[1:], len(ret[1:]) // 4)
+                tmp = BytesData.to_fp32_list(ret[1:], len(ret[1:]) // 4)
                 data[1] = tmp if len(tmp) > 1 else tmp[0]
             else:
                 # 2/3/4/5/11/13/15/24/25
-                tmp = convert.bytes_to_u32s(ret[1:], len(ret[1:]) // 4)
+                tmp = BytesData.to_u32_list(ret[1:], len(ret[1:]) // 4)
                 data[1] = tmp if len(tmp) > 1 else tmp[0]
-                # data[1] = convert.bytes_to_u32(ret[1:])
+                # data[1] = BytesData.to_u32(ret[1:])
         return data
 
     def get_common_info(self, param_type):
@@ -1479,20 +1479,20 @@ class UxbusCmd(object):
             if param_type == 1 or param_type == 2:
                 data[1] = ret[1]
             elif param_type == 50:
-                data[1] = convert.bytes_to_fp32(ret[1:])
+                data[1] = BytesData.to_fp32(ret[1:])
             elif param_type in [101, 107]:
                 data[1] = ret[1]
-                data.append(convert.bytes_to_fp32(ret[2:6]))
-                data.append(convert.bytes_to_fp32(ret[6:10]))
+                data.append(BytesData.to_fp32(ret[2:6]))
+                data.append(BytesData.to_fp32(ret[6:10]))
             elif param_type in [102, 104]:
                 data[1] = ret[1]
-                data.append(convert.bytes_to_fp32(ret[2:]))
+                data.append(BytesData.to_fp32(ret[2:]))
             elif param_type == 105:
-                data[1] = convert.bytes_to_fp32(ret[1:])
-                data.append(convert.bytes_to_fp32(ret[5:]))
+                data[1] = BytesData.to_fp32(ret[1:])
+                data.append(BytesData.to_fp32(ret[5:]))
             elif param_type in [103, 106]:
                 data[1] = ret[1]
-                data.extend(convert.bytes_to_fp32s(ret[2:], 7))
+                data.extend(BytesData.to_fp32_list(ret[2:], 7))
             else:
                 data[0] = XCONF.UxbusState.ERR_PARAM
         return data
@@ -1503,7 +1503,7 @@ class UxbusCmd(object):
         data = [0] * 4
         data[0] = ret[0]
         if ret[0] != XCONF.UxbusState.ERR_NOTTCP:
-            data[1] = convert.bytes_to_int32(ret[1:5])
-            data[2] = convert.bytes_to_int32(ret[5:9])
-            data[3] = round(math.degrees(convert.bytes_to_fp32(ret[9:])),3)
+            data[1] = BytesData.to_s32(ret[1:5])
+            data[2] = BytesData.to_s32(ret[5:9])
+            data[3] = round(math.degrees(BytesData.to_fp32(ret[9:])),3)
         return data

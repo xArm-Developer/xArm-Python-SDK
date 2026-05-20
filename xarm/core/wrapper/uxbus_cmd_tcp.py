@@ -10,7 +10,7 @@
 
 import time
 import struct
-from ..utils import convert
+from ..utils.bytes_data import BytesData
 from .uxbus_cmd import UxbusCmd, lock_require
 from ..config.x_config import XCONF
 
@@ -59,9 +59,9 @@ class UxbusCmdTcp(UxbusCmd):
         return self._transaction_id
 
     def check_protocol_header(self, data, t_trans_id, t_prot_id, t_unit_id):
-        trans_id = convert.bytes_to_u16(data[0:2])
-        prot_id = convert.bytes_to_u16(data[2:4])
-        # length = convert.bytes_to_u16(data[4:6])
+        trans_id = BytesData.to_u16(data[0:2])
+        prot_id = BytesData.to_u16(data[2:4])
+        # length = BytesData.to_u16(data[4:6])
         unit_id = data[6]  # standard(unit_id), private(funcode)
         if trans_id != t_trans_id:
             return XCONF.UxbusState.ERR_NUM
@@ -90,9 +90,9 @@ class UxbusCmdTcp(UxbusCmd):
     def send_modbus_request(self, unit_id, pdu_data, pdu_len, prot_id=-1, t_id=None, debug=False):
         trans_id = self._transaction_id if t_id is None else t_id
         prot_id = self._protocol_identifier if prot_id < 0 else prot_id
-        send_data = convert.u16_to_bytes(trans_id)
-        send_data += convert.u16_to_bytes(prot_id)
-        send_data += convert.u16_to_bytes(pdu_len + 1)
+        send_data = BytesData.from_u16(trans_id)
+        send_data += BytesData.from_u16(prot_id)
+        send_data += BytesData.from_u16(pdu_len + 1)
         send_data += bytes([unit_id])
         for i in range(pdu_len):
             send_data += bytes([pdu_data[i]])
@@ -130,7 +130,7 @@ class UxbusCmdTcp(UxbusCmd):
             if prot_id != STANDARD_MODBUS_TCP_PROTOCOL and not ret_raw:
                 # Private Modbus TCP Protocol
                 ret[0] = self.check_private_protocol(rx_data)
-                num = convert.bytes_to_u16(rx_data[4:6]) - 2
+                num = BytesData.to_u16(rx_data[4:6]) - 2
                 ret = ret[:num + 1] if len(ret) >= num + 1 else [ret[0]] * (num + 1)
                 length = len(rx_data) - 8
                 for i in range(num):
@@ -140,7 +140,7 @@ class UxbusCmdTcp(UxbusCmd):
             else:
                 # Standard Modbus TCP Protocol
                 ret[0] = 0
-                num = convert.bytes_to_u16(rx_data[4:6]) + 6
+                num = BytesData.to_u16(rx_data[4:6]) + 6
                 ret = ret[:num + 1] if len(ret) >= num + 1 else [ret[0]] * (num + 1)
                 length = len(rx_data)
                 for i in range(num):
@@ -261,7 +261,7 @@ class UxbusCmdTcp(UxbusCmd):
         """
         # pdu = struct.pack('>BHH', 0x06, addr, reg_val)
         pdu = struct.pack('>BH', 0x06, addr)
-        pdu += convert.u16_to_bytes(reg_val)
+        pdu += BytesData.from_u16(reg_val)
         return self.__standard_modbus_tcp_request(pdu)[0]
 
     def write_multiple_coil_bits(self, addr, bits):
@@ -281,7 +281,7 @@ class UxbusCmdTcp(UxbusCmd):
         """
         # pdu = struct.pack('>BHHB{}H'.format(len(regs)), 0x10, addr, len(regs), len(regs) * 2, *regs)
         pdu = struct.pack('>BHHB', 0x10, addr, len(regs), len(regs) * 2)
-        pdu += convert.u16s_to_bytes(regs, len(regs))
+        pdu += BytesData.from_u16_list(regs, len(regs))
         return self.__standard_modbus_tcp_request(pdu)[0]
     
     def mask_write_holding_register(self, addr, and_mask, or_mask):
@@ -297,7 +297,7 @@ class UxbusCmdTcp(UxbusCmd):
         """
         # pdu = struct.pack('>BHHHHB{}{}'.format(len(w_regs), 'h' if w_signed else 'H'), 0x17, r_addr, r_quantity, w_addr, len(w_regs), len(w_regs) * 2, *w_regs)
         pdu = struct.pack('>BHHHHB', 0x17, r_addr, r_quantity, w_addr, len(w_regs), len(w_regs) * 2)
-        pdu += convert.u16s_to_bytes(w_regs, len(w_regs))
+        pdu += BytesData.from_u16_list(w_regs, len(w_regs))
         code, res_data = self.__standard_modbus_tcp_request(pdu)
         if code == 0 and len(res_data) == 9 + r_quantity * 2:
             return 0, struct.unpack('>{}{}'.format(r_quantity, 'h' if is_signed else 'H'), res_data[9:])

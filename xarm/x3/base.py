@@ -39,7 +39,7 @@ except:
     SerialPort = None 
 from ..core.wrapper import UxbusCmdSer, UxbusCmdTcp
 from ..core.utils.log import logger, origin_logger
-from ..core.utils import convert, crc16
+from ..core.utils.bytes_data import BytesData, crc16
 from ..core.config.x_code import ControllerWarn, ControllerError, ControllerErrorCodeMap, ControllerWarnCodeMap
 from .utils import compare_time, version_is_ge, filter_invalid_number
 from .decorator import xarm_is_connected, xarm_is_ready, xarm_is_not_simulation_mode, xarm_wait_until_cmdnum_lt_max, xarm_wait_until_not_pause
@@ -1352,7 +1352,7 @@ class Base(BaseObject, Events):
                     continue
                 recv_data = self._stream_report.read(1)
                 if recv_data != -1:
-                    size = convert.bytes_to_u32(recv_data)
+                    size = BytesData.to_u32(recv_data)
                     if self._is_old_protocol and size > 256:
                         self._is_old_protocol = False
                     self.report_data.update(recv_data)
@@ -1386,12 +1386,12 @@ class Base(BaseObject, Events):
             interval = report_time - self._last_report_time
             self._max_report_interval = max(self._max_report_interval, interval)
             self._last_report_time = report_time
-            # print('length:', convert.bytes_to_u32(rx_data[0:4]))
+            # print('length:', BytesData.to_u32(rx_data[0:4]))
             state, mtbrake, mtable, error_code, warn_code = rx_data[4:9]
-            angles = convert.bytes_to_fp32s(rx_data[9:7 * 4 + 9], 7)
-            pose = convert.bytes_to_fp32s(rx_data[37:6 * 4 + 37], 6)
-            cmd_num = convert.bytes_to_u16(rx_data[61:63])
-            pose_offset = convert.bytes_to_fp32s(rx_data[63:6 * 4 + 63], 6)
+            angles = BytesData.to_fp32_list(rx_data[9:7 * 4 + 9], 7)
+            pose = BytesData.to_fp32_list(rx_data[37:6 * 4 + 37], 6)
+            cmd_num = BytesData.to_u16(rx_data[61:63])
+            pose_offset = BytesData.to_fp32_list(rx_data[63:6 * 4 + 63], 6)
 
             if error_code != self._error_code or warn_code != self._warn_code:
                 if error_code != self._error_code:
@@ -1542,7 +1542,7 @@ class Base(BaseObject, Events):
             ver_msg = rx_data[93:122]
             # self._version = str(ver_msg, 'utf-8')
 
-            trs_msg = convert.bytes_to_fp32s(rx_data[123:143], 5)
+            trs_msg = BytesData.to_fp32_list(rx_data[123:143], 5)
             # trs_msg = [i[0] for i in trs_msg]
             (self._tcp_jerk,
              self._min_tcp_acc,
@@ -1553,7 +1553,7 @@ class Base(BaseObject, Events):
             #     self._tcp_jerk, self._min_tcp_acc, self._max_tcp_acc, self._min_tcp_speed, self._max_tcp_speed
             # ))
 
-            p2p_msg = convert.bytes_to_fp32s(rx_data[143:163], 5)
+            p2p_msg = BytesData.to_fp32_list(rx_data[143:163], 5)
             # p2p_msg = [i[0] for i in p2p_msg]
             (self._joint_jerk,
              self._min_joint_acc,
@@ -1565,20 +1565,20 @@ class Base(BaseObject, Events):
             #     self._min_joint_speed, self._max_joint_speed
             # ))
 
-            rot_msg = convert.bytes_to_fp32s(rx_data[163:171], 2)
+            rot_msg = BytesData.to_fp32_list(rx_data[163:171], 2)
             # rot_msg = [i[0] for i in rot_msg]
             self._rot_jerk, self._max_rot_acc = rot_msg
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
 
-            sv3_msg = convert.bytes_to_u16s(rx_data[171:187], 8)
+            sv3_msg = BytesData.to_u16_list(rx_data[171:187], 8)
             self._first_report_over = True
 
         def __handle_report_real(rx_data):
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
-            cmd_num = convert.bytes_to_u16(rx_data[5:7])
-            angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
-            pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
-            torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
+            cmd_num = BytesData.to_u16(rx_data[5:7])
+            angles = BytesData.to_fp32_list(rx_data[7:7 * 4 + 7], 7)
+            pose = BytesData.to_fp32_list(rx_data[35:6 * 4 + 35], 6)
+            torque = BytesData.to_fp32_list(rx_data[59:7 * 4 + 59], 7)
             if cmd_num != self._cmd_num:
                 self._cmd_num = cmd_num
                 self._report_cmdnum_changed_callback()
@@ -1613,32 +1613,32 @@ class Base(BaseObject, Events):
             length = len(rx_data)
             if length >= 135:
                 # FT_SENSOR
-                self._ft_ext_force = convert.bytes_to_fp32s(rx_data[87:111], 6)
-                self._ft_raw_force = convert.bytes_to_fp32s(rx_data[111:135], 6)
+                self._ft_ext_force = BytesData.to_fp32_list(rx_data[87:111], 6)
+                self._ft_raw_force = BytesData.to_fp32_list(rx_data[111:135], 6)
 
         def __handle_report_normal(rx_data):
             report_time = time.monotonic()
             interval = report_time - self._last_report_time
             self._max_report_interval = max(self._max_report_interval, interval)
             self._last_report_time = report_time
-            # print('length:', convert.bytes_to_u32(rx_data[0:4]), len(rx_data))
+            # print('length:', BytesData.to_u32(rx_data[0:4]), len(rx_data))
             state, mode = rx_data[4] & 0x0F, rx_data[4] >> 4
             # if state != self._state or mode != self._mode:
             #     print('mode: {}, state={}, time={}'.format(mode, state, time.monotonic()))
-            cmd_num = convert.bytes_to_u16(rx_data[5:7])
-            angles = convert.bytes_to_fp32s(rx_data[7:7 * 4 + 7], 7)
-            pose = convert.bytes_to_fp32s(rx_data[35:6 * 4 + 35], 6)
-            torque = convert.bytes_to_fp32s(rx_data[59:7 * 4 + 59], 7)
+            cmd_num = BytesData.to_u16(rx_data[5:7])
+            angles = BytesData.to_fp32_list(rx_data[7:7 * 4 + 7], 7)
+            pose = BytesData.to_fp32_list(rx_data[35:6 * 4 + 35], 6)
+            torque = BytesData.to_fp32_list(rx_data[59:7 * 4 + 59], 7)
             mtbrake, mtable, error_code, warn_code = rx_data[87:91]
-            pose_offset = convert.bytes_to_fp32s(rx_data[91:6 * 4 + 91], 6)
-            tcp_load = convert.bytes_to_fp32s(rx_data[115:4 * 4 + 115], 4)
+            pose_offset = BytesData.to_fp32_list(rx_data[91:6 * 4 + 91], 6)
+            tcp_load = BytesData.to_fp32_list(rx_data[115:4 * 4 + 115], 4)
             collis_sens, teach_sens = rx_data[131:133]
             # if (collis_sens not in list(range(6)) or teach_sens not in list(range(6))) \
             #         and ((error_code != 0 and error_code not in controller_error_keys) or (warn_code != 0 and warn_code not in controller_warn_keys)):
             #     self._stream_report.close()
             #     logger.warn('ReportDataException: data={}'.format(rx_data))
             #     return
-            length = convert.bytes_to_u32(rx_data[0:4])
+            length = BytesData.to_u32(rx_data[0:4])
             data_len = len(rx_data)
             if (length != data_len and (length != 233 or data_len != 245)) or collis_sens not in list(range(6)) or teach_sens not in list(range(6)) \
                 or mode not in list(range(12)) or state not in list(range(10)):
@@ -1650,7 +1650,7 @@ class Base(BaseObject, Events):
                     state, mode, collis_sens, teach_sens, error_code, warn_code
                 ))
                 return
-            self._gravity_direction = convert.bytes_to_fp32s(rx_data[133:3*4 + 133], 3)
+            self._gravity_direction = BytesData.to_fp32_list(rx_data[133:3*4 + 133], 3)
 
             reset_tgpio_modbus_params = False
             reset_control_box_modbus_params = False
@@ -1825,7 +1825,7 @@ class Base(BaseObject, Events):
 
             # self._version = str(rx_data[151:180], 'utf-8')
 
-            trs_msg = convert.bytes_to_fp32s(rx_data[181:201], 5)
+            trs_msg = BytesData.to_fp32_list(rx_data[181:201], 5)
             # trs_msg = [i[0] for i in trs_msg]
             (self._tcp_jerk,
              self._min_tcp_acc,
@@ -1836,7 +1836,7 @@ class Base(BaseObject, Events):
             #     self._tcp_jerk, self._min_tcp_acc, self._max_tcp_acc, self._min_tcp_speed, self._max_tcp_speed
             # ))
 
-            p2p_msg = convert.bytes_to_fp32s(rx_data[201:221], 5)
+            p2p_msg = BytesData.to_fp32_list(rx_data[201:221], 5)
             # p2p_msg = [i[0] for i in p2p_msg]
             (self._joint_jerk,
              self._min_joint_acc,
@@ -1848,7 +1848,7 @@ class Base(BaseObject, Events):
             #     self._min_joint_speed, self._max_joint_speed
             # ))
 
-            rot_msg = convert.bytes_to_fp32s(rx_data[221:229], 2)
+            rot_msg = BytesData.to_fp32_list(rx_data[221:229], 2)
             # rot_msg = [i[0] for i in rot_msg]
             self._rot_jerk, self._max_rot_acc = rot_msg
             # print('rot_jerk: {}, mac_acc: {}'.format(self._rot_jerk, self._max_rot_acc))
@@ -1862,7 +1862,7 @@ class Base(BaseObject, Events):
 
             self._first_report_over = True
 
-            # length = convert.bytes_to_u32(rx_data[0:4])
+            # length = BytesData.to_u32(rx_data[0:4])
             length = len(rx_data)
             if length >= 252:
                 temperatures = list(struct.unpack('>7b', struct.pack('>7B', *rx_data[245:252])))
@@ -1871,19 +1871,19 @@ class Base(BaseObject, Events):
                     self._temperatures = temperatures
                     self._report_temperature_changed_callback()
             if length >= 284:
-                speeds = convert.bytes_to_fp32s(rx_data[252:8 * 4 + 252], 8)
+                speeds = BytesData.to_fp32_list(rx_data[252:8 * 4 + 252], 8)
                 self._realtime_tcp_speed = speeds[0]
                 self._realtime_joint_speeds = speeds[1:]
                 # print(speeds[0], speeds[1:])
             if length >= 288:
-                count = convert.bytes_to_u32(rx_data[284:288])
+                count = BytesData.to_u32(rx_data[284:288])
                 # print(count, rx_data[284:288])
                 if self._count != -1 and count != self._count:
                     self._count = count
                     self._report_count_changed_callback()
                 self._count = count
             if length >= 312:
-                world_offset = convert.bytes_to_fp32s(rx_data[288:6 * 4 + 288], 6)
+                world_offset = BytesData.to_fp32_list(rx_data[288:6 * 4 + 288], 6)
                 for i in range(len(world_offset)):
                     if i < 3:
                         world_offset[i] = float('{:.3f}'.format(world_offset[i]))
@@ -1896,18 +1896,18 @@ class Base(BaseObject, Events):
             if length >= 417:
                 self._is_simulation_robot = bool(rx_data[314])
                 self._is_collision_detection, self._collision_tool_type = rx_data[315:317]
-                self._collision_tool_params = convert.bytes_to_fp32s(rx_data[317:341], 6)
+                self._collision_tool_params = BytesData.to_fp32_list(rx_data[317:341], 6)
 
-                voltages = convert.bytes_to_u16s(rx_data[341:355], 7)
+                voltages = BytesData.to_u16_list(rx_data[341:355], 7)
                 voltages = list(map(lambda x: x / 100, voltages))
                 self._voltages = voltages
 
-                currents = convert.bytes_to_fp32s(rx_data[355:383], 7)
+                currents = BytesData.to_fp32_list(rx_data[355:383], 7)
                 self._currents = currents
 
                 cgpio_states = []
                 cgpio_states.extend(rx_data[383:385])
-                cgpio_states.extend(convert.bytes_to_u16s(rx_data[385:401], 8))
+                cgpio_states.extend(BytesData.to_u16_list(rx_data[385:401], 8))
                 cgpio_states[6:10] = list(map(lambda x: x / 4095.0 * 10.0, cgpio_states[6:10]))
                 cgpio_states.append(list(map(int, rx_data[401:409])))
                 cgpio_states.append(list(map(int, rx_data[409:417])))
@@ -1917,15 +1917,15 @@ class Base(BaseObject, Events):
                 self._cgpio_states = cgpio_states
             if length >= 481:
                 # FT_SENSOR
-                self._ft_ext_force = convert.bytes_to_fp32s(rx_data[433:457], 6)
-                self._ft_raw_force = convert.bytes_to_fp32s(rx_data[457:481], 6)
+                self._ft_ext_force = BytesData.to_fp32_list(rx_data[433:457], 6)
+                self._ft_raw_force = BytesData.to_fp32_list(rx_data[457:481], 6)
             if length >= 482:
                 iden_progress = rx_data[481]
                 if iden_progress != self._iden_progress:
                     self._iden_progress = iden_progress
                     self._report_iden_progress_changed_callback()
             if length >= 494:
-                pose_aa = convert.bytes_to_fp32s(rx_data[482:494], 3)
+                pose_aa = BytesData.to_fp32_list(rx_data[482:494], 3)
                 for i in range(len(pose_aa)):
                     pose_aa[i] = filter_invalid_number(pose_aa[i], 6, default=self._pose_aa[i])
                 self._pose_aa = self._position[:3] + pose_aa
@@ -1937,16 +1937,16 @@ class Base(BaseObject, Events):
                 self._is_cart_continuous = (rx_data[494] >> 4) & 0x01
             if length >= 574:
                 self._is_reduced_mode = rx_data[495]
-                reduced_tcp_boundary = convert.bytes_to_16s(rx_data[496:508], 6)
+                reduced_tcp_boundary = BytesData.to_s16_list(rx_data[496:508], 6)
                 for i in range(6):
                     self._reduced_tcp_boundary[i] = filter_invalid_number(reduced_tcp_boundary[i], 2, default=self._reduced_tcp_boundary[i])
-                self._reduced_max_tcp_speed = filter_invalid_number(convert.bytes_to_fp32(rx_data[508:512]), 2, default=self._reduced_max_tcp_speed)
+                self._reduced_max_tcp_speed = filter_invalid_number(BytesData.to_fp32(rx_data[508:512]), 2, default=self._reduced_max_tcp_speed)
                 if self._default_is_radian:
-                    reduced_max_joint_speed = filter_invalid_number(convert.bytes_to_fp32(rx_data[512:516]), 6, default=self._reduced_max_joint_speed)
+                    reduced_max_joint_speed = filter_invalid_number(BytesData.to_fp32(rx_data[512:516]), 6, default=self._reduced_max_joint_speed)
                 else:
-                    reduced_max_joint_speed = filter_invalid_number(math.degrees(convert.bytes_to_fp32(rx_data[512:516])), 2, default=self._reduced_max_joint_speed)
+                    reduced_max_joint_speed = filter_invalid_number(math.degrees(BytesData.to_fp32(rx_data[512:516])), 2, default=self._reduced_max_joint_speed)
                 self._reduced_max_joint_speed = reduced_max_joint_speed
-                reduced_joint_limits = convert.bytes_to_fp32s(rx_data[516:572], 14)
+                reduced_joint_limits = BytesData.to_fp32_list(rx_data[516:572], 14)
                 for i in range(7):
                     if self._default_is_radian:
                         joint_min = filter_invalid_number(reduced_joint_limits[i * 2], 6, default=self._reduced_joint_limits[i][0])
@@ -1959,11 +1959,11 @@ class Base(BaseObject, Events):
                 self._is_fence_mode = rx_data[572]
                 self._is_collision_rebound = rx_data[573]
             if length >= 587:
-                self._cgpio_alarm_code = convert.bytes_to_u32(rx_data[574:578])
+                self._cgpio_alarm_code = BytesData.to_u32(rx_data[574:578])
                 self._ft_sensor_is_enable = rx_data[578] & 0x01
                 self._monitor_device_type = rx_data[579]
                 self._monitor_device_state = rx_data[580]
-                info = convert.bytes_to_16s(rx_data[581:587], 3)
+                info = BytesData.to_s16_list(rx_data[581:587], 3)
                 self._monitor_device_pos = info[0]
                 self._monitor_device_speed = info[1]
                 self._monitor_device_current = info[2]
@@ -2849,7 +2849,7 @@ class Base(BaseObject, Events):
             self._feedback_callback(data)
     
     def _feedback_callback(self, data):
-        trans_id = convert.bytes_to_u16(data[0:2])
+        trans_id = BytesData.to_u16(data[0:2])
         feedback_type = self._fb_transid_type_map.pop(trans_id, -1)
         if feedback_type != -1:
             self._fb_transid_result_map[trans_id] = data[12]  # feedback_code

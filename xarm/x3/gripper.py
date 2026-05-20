@@ -11,7 +11,7 @@ import time
 import struct
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
-from ..core.utils import convert
+from ..core.utils.bytes_data import BytesData
 from .code import APIState
 from .gpio import GPIO
 from .decorator import xarm_is_connected, xarm_wait_until_not_pause, xarm_is_not_simulation_mode
@@ -94,7 +94,7 @@ class Gripper(GPIO):
         ret[0] = self._check_modbus_code(ret, only_check_code=True)
         status = 0
         if ret[0] == 0 and len(ret) == 7:
-            status = convert.bytes_to_u16(ret[5:7])
+            status = BytesData.to_u16(ret[5:7])
         return ret[0], status
 
     @xarm_is_connected(_type='get')
@@ -115,19 +115,19 @@ class Gripper(GPIO):
         code = 0
 
         if ret1[0] == 0 and len(ret1) == 7:
-            versions[0] = convert.bytes_to_u16(ret1[5:7])
+            versions[0] = BytesData.to_u16(ret1[5:7])
             self.gripper_version_numbers[0] = versions[0]
         else:
             code = ret1[0]
 
         if ret2[0] == 0 and len(ret2) == 7:
-            versions[1] = convert.bytes_to_u16(ret2[5:7])
+            versions[1] = BytesData.to_u16(ret2[5:7])
             self.gripper_version_numbers[1] = versions[1]
         else:
             code = ret2[0]
 
         if ret3[0] == 0 and len(ret3) == 7:
-            versions[2] = convert.bytes_to_u16(ret3[5:7])
+            versions[2] = BytesData.to_u16(ret3[5:7])
             self.gripper_version_numbers[2] = versions[2]
         else:
             code = ret3[0]
@@ -865,9 +865,9 @@ class Gripper(GPIO):
         code, ret = self.get_bio_gripper_register(address=0x0801, number_of_registers=0x03, check_baud=check_baud)
         versions = ['*', '*', '*']
         if code == 0:
-            versions[0] = convert.bytes_to_u16(ret[3:5])
-            versions[1] = convert.bytes_to_u16(ret[5:7])
-            versions[2] = convert.bytes_to_u16(ret[7:9])
+            versions[0] = BytesData.to_u16(ret[3:5])
+            versions[1] = BytesData.to_u16(ret[5:7])
+            versions[2] = BytesData.to_u16(ret[7:9])
         return code, '.'.join(map(str, versions))
 
     @xarm_is_connected(_type='get')
@@ -875,7 +875,7 @@ class Gripper(GPIO):
     def get_bio_gripper_g2_position(self, check_baud=True):
         self.__check_bio_gripper_version()
         code, ret = self.get_bio_gripper_register(address=(0x0702 if self._bio_gripper_version == 2 else 0x0700), number_of_registers=2, check_baud=check_baud)
-        bio_position = convert.bytes_to_int32(ret[3:])
+        bio_position = BytesData.to_s32(ret[3:])
         # # bio_position = (ret[-4] * 256**3 + ret[-3] * 256**2 + ret[-2] * 256 + ret[-1]) if code == 0 else -1
         if self._bio_gripper_version == 2:
             bio_position = int(round((bio_position + 265.13) / 3.7342, 0))

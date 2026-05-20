@@ -5,7 +5,7 @@
 import time
 from ..core.config.x_config import XCONF
 from ..core.utils.log import logger
-from ..core.utils import convert
+from ..core.utils.bytes_data import BytesData
 from .code import APIState
 from .gpio import GPIO
 from .decorator import xarm_is_connected, xarm_wait_until_not_pause, xarm_is_not_simulation_mode
@@ -55,26 +55,26 @@ class LinearMotor(GPIO):
         code, data = self._get_linear_motor_registers(addr, number_of_registers=number_of_registers)
         if code == 0:
             if addr == 0x0A20 and number_of_registers >= 2:
-                self._linear_motor_status['pos'] = round(convert.bytes_to_int32(data[4:8]) / 2000)
+                self._linear_motor_status['pos'] = round(BytesData.to_s32(data[4:8]) / 2000)
             if 0x0A22 - number_of_registers < addr <= 0x0A22:
                 start_inx = (0x0A22 - addr) * 2 + 4
-                self._linear_motor_status['status'] = convert.bytes_to_u16(data[start_inx:start_inx+2])
+                self._linear_motor_status['status'] = BytesData.to_u16(data[start_inx:start_inx+2])
             if 0x0A23 - number_of_registers < addr <= 0x0A23:
                 start_inx = (0x0A23 - addr) * 2 + 4
-                self._linear_motor_status['error'] = convert.bytes_to_u16(data[start_inx:start_inx+2])
+                self._linear_motor_status['error'] = BytesData.to_u16(data[start_inx:start_inx+2])
             if 0x0A24 - number_of_registers < addr <= 0x0A24:
                 start_inx = (0x0A24 - addr) * 2 + 4
-                self._linear_motor_status['is_enabled'] = convert.bytes_to_u16(data[start_inx:start_inx+2]) & 0x01
+                self._linear_motor_status['is_enabled'] = BytesData.to_u16(data[start_inx:start_inx+2]) & 0x01
                 self.linear_motor_is_enabled = self._linear_motor_status['is_enabled'] == 1
             if 0x0A25 - number_of_registers < addr <= 0x0A25:
                 start_inx = (0x0A25 - addr) * 2 + 4
-                self._linear_motor_status['on_zero'] = convert.bytes_to_u16(data[start_inx:start_inx+2]) & 0x01
+                self._linear_motor_status['on_zero'] = BytesData.to_u16(data[start_inx:start_inx+2]) & 0x01
             if 0x0A26 - number_of_registers < addr <= 0x0A26:
                 start_inx = (0x0A26 - addr) * 2 + 4
-                self._linear_motor_status['sci'] = convert.bytes_to_u16(data[start_inx:start_inx+2]) >> 1 & 0x01
+                self._linear_motor_status['sci'] = BytesData.to_u16(data[start_inx:start_inx+2]) >> 1 & 0x01
             if 0x0A27 - number_of_registers < addr <= 0x0A27:
                 start_inx = (0x0A27 - addr) * 2 + 4
-                sco = convert.bytes_to_u16(data[start_inx:start_inx+2])
+                sco = BytesData.to_u16(data[start_inx:start_inx+2])
                 self._linear_motor_status['sco'][0] = sco & 0x01
                 self._linear_motor_status['sco'][1] = sco >> 1 & 0x01
         return code, self._linear_motor_status
@@ -113,7 +113,7 @@ class LinearMotor(GPIO):
         code = self.checkset_modbus_baud(self._default_linear_motor_baud, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         if code != 0:
             return code
-        value = convert.u16_to_bytes(int(enable))
+        value = BytesData.from_u16(int(enable))
         ret = self.arm_cmd.linear_motor_modbus_w16s(XCONF.ServoConf.CON_EN, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         # get_status: error, is_enable, on_zero
@@ -163,7 +163,7 @@ class LinearMotor(GPIO):
             self.set_linear_motor_enable(auto_enable)
         if speed is not None and self.linear_motor_speed != speed:
             self.set_linear_motor_speed(speed)
-        value = convert.int32_to_bytes(int(pos * 2000), is_big_endian=True)
+        value = BytesData.from_s32(int(pos * 2000), is_big_endian=True)
         ret = self.arm_cmd.linear_motor_modbus_w16s(XCONF.ServoConf.TAGET_POS, value, 2)
         self.get_linear_motor_registers(addr=0x0A23, number_of_registers=3)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
@@ -180,7 +180,7 @@ class LinearMotor(GPIO):
         code = self.checkset_modbus_baud(self._default_linear_motor_baud, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         if code != 0:
             return code
-        value = convert.u16_to_bytes(int(speed*6.667))
+        value = BytesData.from_u16(int(speed*6.667))
         ret = self.arm_cmd.linear_motor_modbus_w16s(XCONF.ServoConf.POS_SPD, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         if ret[0] == 0:
@@ -194,7 +194,7 @@ class LinearMotor(GPIO):
         code = self.checkset_modbus_baud(self._default_linear_motor_baud, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         if code != 0:
             return code
-        value = convert.u16_to_bytes(int(1))
+        value = BytesData.from_u16(int(1))
         ret = self.arm_cmd.linear_motor_modbus_w16s(XCONF.ServoConf.STOP_LINEAR_MOTOR, value, 1)
         ret[0] = self._check_modbus_code(ret, length=8, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         # get_status: error, is_enable, on_zero
@@ -209,7 +209,7 @@ class LinearMotor(GPIO):
         code = self.checkset_modbus_baud(self._default_linear_motor_baud, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
         if code != 0:
             return code
-        value = convert.u16_to_bytes(int(1))
+        value = BytesData.from_u16(int(1))
         self.linear_motor_error_code = 0
         ret = self.arm_cmd.linear_motor_modbus_w16s(XCONF.ServoConf.RESET_ERR, value, 1)
         _, err = self.get_linear_motor_error()
@@ -277,17 +277,17 @@ class LinearMotor(GPIO):
         code = 0
 
         if ret1[0] == 0:
-            versions[0] = convert.bytes_to_u16(ret1[5:7])
+            versions[0] = BytesData.to_u16(ret1[5:7])
         else:
             code = ret1[0]
 
         if ret2[0] == 0:
-            versions[1] = convert.bytes_to_u16(ret2[5:7])
+            versions[1] = BytesData.to_u16(ret2[5:7])
         else:
             code = ret2[0]
 
         if ret3[0] == 0:
-            versions[2] = convert.bytes_to_u16(ret3[5:7])
+            versions[2] = BytesData.to_u16(ret3[5:7])
         else:
             code = ret3[0]
 
@@ -321,7 +321,7 @@ class LinearMotor(GPIO):
         code = 0
         if len(sn) == 14:
             for i in range(0, 14):
-                value = convert.u16_to_bytes(ord(sn[i]))
+                value = BytesData.from_u16(ord(sn[i]))
                 ret = self.arm_cmd.linear_motor_modbus_w16s(0x1B10 + i, value, 1)
                 code = self._check_modbus_code(ret, length=8, host_id=XCONF.CONTROL_BOX_RS485_HOST_ID)
                 if code != 0:
@@ -338,78 +338,78 @@ class LinearMotor(GPIO):
     @xarm_is_not_simulation_mode(ret=(0, []))
     def set_linear_motor_default_parmas(self):
         code_li = []
-        motro_type = convert.u16_to_bytes(610)      # 电机类型
+        motro_type = BytesData.from_u16(610)      # 电机类型
         ret = self._set_linear_motor_registers(0x1804, motro_type, 1)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        power_level = convert.u16_to_bytes(1)       # 功率等级
+        power_level = BytesData.from_u16(1)       # 功率等级
         ret = self._set_linear_motor_registers(0x1901, power_level, 1)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        speed = convert.u16_to_bytes(5000)          # 滑轨运行速度
+        speed = BytesData.from_u16(5000)          # 滑轨运行速度
         ret = self._set_linear_motor_registers(0x0303, speed, 1)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        toq_ref_flt = convert.u16_to_bytes(0)
+        toq_ref_flt = BytesData.from_u16(0)
         ret = self._set_linear_motor_registers(0x0501, toq_ref_flt, 1)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        position_gain = convert.u16_to_bytes(250)   # 位置环增益
+        position_gain = BytesData.from_u16(250)   # 位置环增益
         ret = self._set_linear_motor_registers(0x1200, position_gain, 1)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        filter_times = convert.u16_to_bytes(5)      # 位置环前滤波时间
-        speedz_kp = convert.u16_to_bytes(200)       # 速度环增益
-        speed_ki = convert.u16_to_bytes(150)        # 速度环积分
+        filter_times = BytesData.from_u16(5)      # 位置环前滤波时间
+        speedz_kp = BytesData.from_u16(200)       # 速度环增益
+        speed_ki = BytesData.from_u16(150)        # 速度环积分
         value = filter_times + speedz_kp + speed_ki
         ret = self._set_linear_motor_registers(0x1202, value, 3)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        acc_time = convert.u16_to_bytes(300)        # 位置加速时间
-        dec_time = convert.u16_to_bytes(300)        # 位置加速时间
-        smooth_time = convert.u16_to_bytes(10)      # 位置平滑时间
+        acc_time = BytesData.from_u16(300)        # 位置加速时间
+        dec_time = BytesData.from_u16(300)        # 位置加速时间
+        smooth_time = BytesData.from_u16(10)      # 位置平滑时间
         value = acc_time + dec_time + smooth_time
         ret = self._set_linear_motor_registers(0x1300, value, 3)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        spd_ref_flt = convert.u16_to_bytes(160)
-        spd_fb_flt = convert.u16_to_bytes(160)
-        spd_limit = convert.u16_to_bytes(10000)     # 运行速度限制
-        home_speed = convert.u16_to_bytes(1533)     # 回零速度
+        spd_ref_flt = BytesData.from_u16(160)
+        spd_fb_flt = BytesData.from_u16(160)
+        spd_limit = BytesData.from_u16(10000)     # 运行速度限制
+        home_speed = BytesData.from_u16(1533)     # 回零速度
         value = spd_ref_flt + spd_fb_flt + spd_limit + home_speed
         ret = self._set_linear_motor_registers(0x1401, value, 4)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        current_kp = convert.u16_to_bytes(6000)     # 电流增益
-        current_ki = convert.u16_to_bytes(1000)     # 电流积分
+        current_kp = BytesData.from_u16(6000)     # 电流增益
+        current_ki = BytesData.from_u16(1000)     # 电流积分
         value = current_kp + current_ki
         ret = self._set_linear_motor_registers(0x190C, value, 2)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        on_zero = convert.u16_to_bytes(0)           # 是否回零默认值  0 --- 否     1 --- 是
-        tar_end = convert.u16_to_bytes(1000)        # 定位完成范围
+        on_zero = BytesData.from_u16(0)           # 是否回零默认值  0 --- 否     1 --- 是
+        tar_end = BytesData.from_u16(1000)        # 定位完成范围
         value = on_zero + tar_end
         ret = self._set_linear_motor_registers(0x1A0A, value, 2)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        angle_range = convert.u16_to_bytes(1800)    # 上电校零两角度比较允许范围
-        is_stop = convert.u16_to_bytes(0)           # 急停默认值  0 --- 没有急停   1 --- 急停
+        angle_range = BytesData.from_u16(1800)    # 上电校零两角度比较允许范围
+        is_stop = BytesData.from_u16(0)           # 急停默认值  0 --- 没有急停   1 --- 急停
         value = angle_range + is_stop
         ret = self._set_linear_motor_registers(0x1A0D, value, 2)
         code_li.append(ret[0])
         time.sleep(0.05)
 
-        is_on_zero = convert.u16_to_bytes(0)        # 回零完成状态默认值  0 --- 没有回零完成   1 --- 回零完成
+        is_on_zero = BytesData.from_u16(0)        # 回零完成状态默认值  0 --- 没有回零完成   1 --- 回零完成
         ret = self._set_linear_motor_registers(0x1A25, is_on_zero, 1)
         code_li.append(ret[0])
         time.sleep(0.05)

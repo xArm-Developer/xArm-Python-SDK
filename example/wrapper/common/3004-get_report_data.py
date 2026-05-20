@@ -19,7 +19,7 @@ import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from xarm.core.comm import SocketPort
-from xarm.core.utils import convert
+from xarm.core.utils.bytes_data import BytesData
 
 
 #######################################################
@@ -49,9 +49,9 @@ while sock.connected:
     if data == -1:
         time.sleep(0.1)
         continue
-    total = convert.bytes_to_u32(data[0:4])
-    angles = convert.bytes_to_fp32s(data[7:35], 7)
-    poses = convert.bytes_to_fp32s(data[35:59], 6)
+    total = BytesData.to_u32(data[0:4])
+    angles = BytesData.to_fp32_list(data[7:35], 7)
+    poses = BytesData.to_fp32_list(data[35:59], 6)
     print('total={}, now={}'.format(total, datetime.datetime.now()))
     print('angles: {}'.format(angles))
     print('poses: {}'.format(poses))

@@ -19,7 +19,7 @@ import datetime
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
 
 from xarm.wrapper import XArmAPI
-from xarm.core.utils import convert
+from xarm.core.utils.bytes_data import BytesData
 
 
 #######################################################
@@ -51,12 +51,12 @@ arm.set_state(0)
 # arm.set_cgpio_digital(0, 0)
 
 def feedback_callback(data):
-    cmd_id = convert.bytes_to_u16(data[0:2])
+    cmd_id = BytesData.to_u16(data[0:2])
     feedback_type = data[8]
     feedback_funcode = data[9]
-    feedback_taskid = convert.bytes_to_u16(data[10:12])
+    feedback_taskid = BytesData.to_u16(data[10:12])
     feedback_code = data[12]
-    feedback_us = convert.bytes_to_u64(data[13:21])
+    feedback_us = BytesData.to_u64(data[13:21])
     if feedback_type == 1:
         # motion start
         print('[FB] motion task {} starts executing, funcode={}, cmd_id={}, us={}, {}'.format(feedback_taskid, feedback_funcode, cmd_id, feedback_us, datetime.datetime.now()))

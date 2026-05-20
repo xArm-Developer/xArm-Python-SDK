@@ -8,7 +8,6 @@
 import time
 from collections.abc import Iterable
 from ..core.utils.log import logger
-from ..core.utils import convert
 from .base import Base
 from .code import APIState
 from .decorator import xarm_is_connected

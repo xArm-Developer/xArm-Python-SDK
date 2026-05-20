@@ -12,7 +12,7 @@ import socket
 import select
 import threading
 from ..utils.log import logger
-from ..utils import convert
+from ..utils.bytes_data import BytesData
 
 
 class RxParse(object):
@@ -182,7 +182,7 @@ class Port(threading.Thread):
                     if size == 0:
                         if data_num != 4:
                             continue
-                        size = convert.bytes_to_u32(buffer[0:4])
+                        size = BytesData.to_u32(buffer[0:4])
                         if size == 233:
                             size_is_not_confirm = True
                             size = 245
@@ -192,17 +192,17 @@ class Port(threading.Thread):
                             continue
                         if size_is_not_confirm:
                             size_is_not_confirm = True
-                            if convert.bytes_to_u32(buffer[233:237]) == 233:
+                            if BytesData.to_u32(buffer[233:237]) == 233:
                                 size = 233
                                 buffer = buffer[233:]
                                 continue
 
-                        if convert.bytes_to_u32(buffer[0:4]) != size and not (size_is_not_confirm and size == 245 and convert.bytes_to_u32(buffer[0:4]) == 233):
-                            logger.error('report data error, close, length={}, size={}'.format(convert.bytes_to_u32(buffer[0:4]), size))
+                        if BytesData.to_u32(buffer[0:4]) != size and not (size_is_not_confirm and size == 245 and BytesData.to_u32(buffer[0:4]) == 233):
+                            logger.error('report data error, close, length={}, size={}'.format(BytesData.to_u32(buffer[0:4]), size))
                             break
 
                         # # buffer[494:502]
-                        # data_curr_us = convert.bytes_to_u64(buffer[-8:])
+                        # data_curr_us = BytesData.to_u64(buffer[-8:])
                         # recv_curr_us = time.monotonic() * 1000000
                         #
                         # if data_prev_us != 0 and recv_prev_us != 0:
@@ -276,7 +276,7 @@ class Port(threading.Thread):
                     while True:
                         if len(buffer) < 6:
                             break
-                        length = convert.bytes_to_u16(buffer[4:6]) + 6
+                        length = BytesData.to_u16(buffer[4:6]) + 6
                         if len(buffer) < length:
                             break
                         rx_data = buffer[:length]

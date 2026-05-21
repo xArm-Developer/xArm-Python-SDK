@@ -788,7 +788,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, LinearMotor, FtSensor, Mo
 
     @xarm_is_connected(_type='set')
     def set_fence_mode(self, on_off):
-        ret = self.arm_cmd.set_fense_on(int(on_off))
+        ret = self.arm_cmd.set_fence_on(int(on_off))
         self.log_api_info('API -> set_fence_mode -> code={}, on={}'.format(ret[0], on_off), code=ret[0])
         return ret
     
@@ -1655,7 +1655,7 @@ class XArm(Gripper, Servo, Record, RobotIQ, BaseBoard, LinearMotor, FtSensor, Mo
                     self.set_reduced_joint_range(states[4])
             if len(states) > 5 and len(old_states) > 5:
                 if states[5] != old_states[5]:
-                    self.set_fense_mode(states[5])
+                    self.set_fence_mode(states[5])
             if len(states) > 6 and len(old_states) > 6:
                 if states[4] != old_states[6]:
                     self.set_collision_rebound(states[6])

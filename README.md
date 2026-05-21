@@ -196,7 +196,7 @@ xArm Python SDK
 
 - ##### [6001-set_reduced_mode](example/wrapper/common/6001-set_reduced_mode.py)
 
-- ##### [6002-set_fense_mode](example/wrapper/common/6002-set_fense_mode.py)
+- ##### [6002-set_fence_mode](example/wrapper/common/6002-set_fence_mode.py)
 
 - ##### [7001-servo_j](example/wrapper/common/7001-servo_j.py)
 

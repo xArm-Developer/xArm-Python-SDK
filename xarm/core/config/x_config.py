@@ -329,7 +329,7 @@ class XCONF(object):
         GET_SAFE_LEVEL = 57
 
         SET_REDUCED_JRANGE = 58
-        SET_FENSE_ON = 59
+        SET_FENCE_ON = 59
         SET_COLLIS_REB = 60
 
         SET_TRAJ_RECORD = 61

@@ -342,9 +342,9 @@ class UxbusCmd(object):
     def set_reduced_jrange(self, jrange_rad):
         return self.set_nfp32(XCONF.UxbusReg.SET_REDUCED_JRANGE, jrange_rad, 14)
 
-    def set_fense_on(self, on_off):
+    def set_fence_on(self, on_off):
         txdata = [on_off]
-        return self.set_nu8(XCONF.UxbusReg.SET_FENSE_ON, txdata, 1)
+        return self.set_nu8(XCONF.UxbusReg.SET_FENCE_ON, txdata, 1)
 
     def set_collis_reb(self, on_off):
         txdata = [on_off]

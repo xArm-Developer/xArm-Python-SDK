@@ -14,14 +14,14 @@
 
 ## API Code
 - -12: run blockly app exception
-- -11: convert blockly app to pythen exception
+- -11: convert blockly app to python exception
 - -9: emergency stop
 - -8: out of range
 - -7: joint angle limit
 - -6: cartesian pos limit
-- -5: revesed, no use
+- -5: reserved, no use
 - -4: command is not exist
-- -3: revesed, no use
+- -3: reserved, no use
 - -2: xArm is not ready, may be the motion is not enable or not set state
 - -1: xArm is disconnect or not connect
 - 0: success
@@ -54,11 +54,11 @@
 - 102: end effector has error
 - 103: end effector is not enabled
 - 129: (standard modbus tcp)illegal/unsupported function code
-- 120: (standard modbus tcp)illegal target address
-- 131: (standard modbus tcp)exection of requested data
+- 130: (standard modbus tcp)illegal target address
+- 131: (standard modbus tcp)execution of requested data
 
 ## Controller Warn Code
-- 11: uxbux que is full
+- 11: uxbus queue is full
 - 12: parameter error
 - 13: the instruction does not exist
 - 14: command has no solution
@@ -166,10 +166,10 @@
 - 26: Linear Motor Feedback Position Software Limit
 - 33: Linear Motor Drive Overloaded
 - 34: Linear Motor Motor Overload
-- 35: Linear Motor type error
+- 35: Linear Motor Type Error
 - 36: Linear Motor Driver Type Error
 - 39: Linear Motor over voltage
-- 40: Linear Moter undervoltage
+- 40: Linear Motor Undervoltage
 - 49: Linear Motor EEPROM Read and Write Error
   
 ## Six-axis Force Torque Sensor Error Code
@@ -178,7 +178,7 @@
 - 65: The Data Collected by the Six-axis Force Torque Sensor is Abnormal
 - 66: Six-axis Force Torque Sensor X-direction Torque Exceeds Limit
 - 67: Six-axis Force Torque Sensor Y-direction Torque Exceeds Limit
-- 68: Six-axis Force Torque Sensor Z-direction Torque Exceeds Limitrection
+- 68: Six-axis Force Torque Sensor Z-direction Torque Exceeds Limit
 - 69: Six-axis Force Torque Sensor Tx Torque Exceeds Limit
 - 70: Six-axis Force Torque Sensor Ty direction Torque Exceeds Limit
 - 71: Six-axis Force Torque Sensor Tz direction Torque Exceeds Limit

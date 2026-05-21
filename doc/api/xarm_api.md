@@ -1,9 +1,876 @@
-xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrapper.xarm_api
+xArm-Python-SDK API Documentation (V1.18.4): class XArmAPI in module xarm.wrapper.xarm_api
+
+## Table of Contents
+
+### Methods (269)
+- [calibrate_tcp_coordinate_offset](#def-__calibrate_tcp_coordinate_offset__self-four_points-is_radiannone)
+- [calibrate_tcp_orientation_offset](#def-__calibrate_tcp_orientation_offset__self-rpy_be-rpy_bt-input_is_radiannone-return_is_radiannone)
+- [calibrate_user_coordinate_offset](#def-__calibrate_user_coordinate_offset__self-rpy_ub-pos_b_uorg-is_radiannone)
+- [calibrate_user_orientation_offset](#def-__calibrate_user_orientation_offset__self-three_points-mode0-trust_ind0-input_is_radiannone-return_is_radiannone)
+- [check_verification](#def-__check_verification__self)
+- [clean_bio_gripper_error](#def-__clean_bio_gripper_error__self)
+- [clean_conf](#def-__clean_conf__self)
+- [clean_error](#def-__clean_error__self)
+- [clean_gripper_error](#def-__clean_gripper_error__self-kwargs)
+- [clean_linear_motor_error](#def-__clean_linear_motor_error__self)
+- [clean_warn](#def-__clean_warn__self)
+- [close_bio_gripper](#def-__close_bio_gripper__self-speed0-waittrue-timeout5-kwargs)
+- [close_lite6_gripper](#def-__close_lite6_gripper__self-synctrue)
+- [config_cgpio_reset_when_stop](#def-__config_cgpio_reset_when_stop__self-on_off)
+- [config_tgpio_reset_when_stop](#def-__config_tgpio_reset_when_stop__self-on_off)
+- [connect](#def-__connect__self-portnone-baudratenone-timeoutnone-axisnone-kwargs)
+- [delete_blockly_app](#def-__delete_blockly_app__self-name)
+- [delete_trajectory](#def-__delete_trajectory__self-name)
+- [disconnect](#def-__disconnect__self)
+- [emergency_stop](#def-__emergency_stop__self)
+- [get_allow_approx_motion](#def-__get_allow_approx_motion__self)
+- [get_base_board_version](#def-__get_base_board_version__self-board_id10)
+- [get_bio_gripper_error](#def-__get_bio_gripper_error__self)
+- [get_bio_gripper_g2_position](#def-__get_bio_gripper_g2_position__self-kwargs)
+- [get_bio_gripper_status](#def-__get_bio_gripper_status__self)
+- [get_c23_error_info](#def-__get_c23_error_info__self-is_radiannone)
+- [get_c24_error_info](#def-__get_c24_error_info__self-is_radiannone)
+- [get_c31_error_info](#def-__get_c31_error_info__self)
+- [get_c37_error_info](#def-__get_c37_error_info__self-is_radiannone)
+- [get_c38_error_info](#def-__get_c38_error_info__self-is_radiannone)
+- [get_c54_error_info](#def-__get_c54_error_info__self)
+- [get_c60_error_info](#def-__get_c60_error_info__self)
+- [get_cgpio_analog](#def-__get_cgpio_analog__self-ionumnone)
+- [get_cgpio_digital](#def-__get_cgpio_digital__self-ionumnone)
+- [get_cgpio_state](#def-__get_cgpio_state__self)
+- [get_checkset_default_baud](#def-__get_checkset_default_baud__self-type_)
+- [get_cmd_mat_history_num](#def-__get_cmd_mat_history_num__self)
+- [get_cmdnum](#def-__get_cmdnum__self)
+- [get_dh_params](#def-__get_dh_params__self)
+- [get_err_warn_code](#def-__get_err_warn_code__self-showfalse-langen)
+- [get_external_device_monitor_params](#def-__get_external_device_monitor_params__self)
+- [get_fdb_mat_history_num](#def-__get_fdb_mat_history_num__self)
+- [get_forward_kinematics](#def-__get_forward_kinematics__self-angles-input_is_radiannone-return_is_radiannone)
+- [get_ft_admittance_ctrl_threshold](#def-__get_ft_admittance_ctrl_threshold__self)
+- [get_ft_collision_detection](#def-__get_ft_collision_detection__self)
+- [get_ft_collision_reb_distance](#def-__get_ft_collision_reb_distance__self-is_radiannone)
+- [get_ft_collision_rebound](#def-__get_ft_collision_rebound__self)
+- [get_ft_collision_threshold](#def-__get_ft_collision_threshold__self)
+- [get_ft_sensor_config](#def-__get_ft_sensor_config__self)
+- [get_ft_sensor_data](#def-__get_ft_sensor_data__self-is_rawfalse)
+- [get_ft_sensor_error](#def-__get_ft_sensor_error__self)
+- [get_ft_sensor_mode](#def-__get_ft_sensor_mode__self)
+- [get_gripper_err_code](#def-__get_gripper_err_code__self-kwargs)
+- [get_gripper_g2_position](#def-__get_gripper_g2_position__self-kwargs)
+- [get_gripper_position](#def-__get_gripper_position__self-kwargs)
+- [get_gripper_status](#def-__get_gripper_status__self)
+- [get_gripper_version](#def-__get_gripper_version__self)
+- [get_harmonic_type](#def-__get_harmonic_type__self-servo_id1)
+- [get_hd_types](#def-__get_hd_types__self)
+- [get_iden_status](#def-__get_iden_status__self)
+- [get_initial_point](#def-__get_initial_point__self)
+- [get_inverse_kinematics](#def-__get_inverse_kinematics__self-pose-input_is_radiannone-return_is_radiannone-limitedtrue-ref_anglesnone)
+- [get_is_moving](#def-__get_is_moving__self)
+- [get_joint_states](#def-__get_joint_states__self-is_radiannone-num3)
+- [get_joints_torque](#def-__get_joints_torque__self)
+- [get_linear_motor_error](#def-__get_linear_motor_error__self)
+- [get_linear_motor_is_enabled](#def-__get_linear_motor_is_enabled__self)
+- [get_linear_motor_on_zero](#def-__get_linear_motor_on_zero__self)
+- [get_linear_motor_pos](#def-__get_linear_motor_pos__self)
+- [get_linear_motor_registers](#def-__get_linear_motor_registers__self-kwargs)
+- [get_linear_motor_sci](#def-__get_linear_motor_sci__self)
+- [get_linear_motor_sco](#def-__get_linear_motor_sco__self)
+- [get_linear_motor_status](#def-__get_linear_motor_status__self)
+- [get_linear_spd_limit_factor](#def-__get_linear_spd_limit_factor__self)
+- [get_modbusrtu_params](#def-__get_modbusrtu_params__self)
+- [get_mount_direction](#def-__get_mount_direction__self)
+- [get_poe_status](#def-__get_poe_status__self)
+- [get_pose_offset](#def-__get_pose_offset__self-pose1-pose2-orient_type_in0-orient_type_out0-is_radiannone)
+- [get_position](#def-__get_position__self-is_radiannone)
+- [get_position_aa](#def-__get_position_aa__self-is_radiannone)
+- [get_record_seconds](#def-__get_record_seconds__self)
+- [get_reduced_mode](#def-__get_reduced_mode__self)
+- [get_reduced_states](#def-__get_reduced_states__self-is_radiannone)
+- [get_report_tau_or_i](#def-__get_report_tau_or_i__self)
+- [get_robot_sn](#def-__get_robot_sn__self)
+- [get_rs485_baudrate](#def-__get_rs485_baudrate__self-targetrobot-kwargs)
+- [get_rs485_timeout](#def-__get_rs485_timeout__self-targetrobot-protocolmodbus_rtu-kwargs)
+- [get_servo_angle](#def-__get_servo_angle__self-servo_idnone-is_radiannone-is_realfalse)
+- [get_servo_debug_msg](#def-__get_servo_debug_msg__self-showfalse-langen)
+- [get_servo_version](#def-__get_servo_version__self-servo_id1)
+- [get_state](#def-__get_state__self)
+- [get_tgpio_analog](#def-__get_tgpio_analog__self-ionumnone)
+- [get_tgpio_digital](#def-__get_tgpio_digital__self-ionumnone)
+- [get_tgpio_modbus_baudrate](#def-__get_tgpio_modbus_baudrate__self)
+- [get_tgpio_modbus_timeout](#def-__get_tgpio_modbus_timeout__self-is_transparent_transmissionfalse-kwargs)
+- [get_tgpio_monitor_params](#def-__get_tgpio_monitor_params__self)
+- [get_tgpio_output_digital](#def-__get_tgpio_output_digital__self-ionumnone)
+- [get_tgpio_version](#def-__get_tgpio_version__self)
+- [get_tool_digital_input](#def-__get_tool_digital_input__self-ionumnone)
+- [get_traj_speeding](#def-__get_traj_speeding__self-rate)
+- [get_trajectories](#def-__get_trajectories__self)
+- [get_trajectory_rw_status](#def-__get_trajectory_rw_status__self)
+- [get_vacuum_gripper](#def-__get_vacuum_gripper__self-hardware_version1)
+- [get_version](#def-__get_version__self)
+- [get_xarm7_ik_redundancy](#def-__get_xarm7_ik_redundancy__self)
+- [getset_tgpio_modbus_data](#def-__getset_tgpio_modbus_data__self-datas-min_res_len0-host_id9-is_transparent_transmissionfalse-use_503_portfalse-kwargs)
+- [iden_ft_sensor_load_offset](#def-__iden_ft_sensor_load_offset__self)
+- [iden_joint_friction](#def-__iden_joint_friction__self-snnone)
+- [iden_tcp_load](#def-__iden_tcp_load__self-estimated_mass0)
+- [is_joint_limit](#def-__is_joint_limit__self-joint-is_radiannone)
+- [is_tcp_limit](#def-__is_tcp_limit__self-pose-is_radiannone)
+- [load_trajectory](#def-__load_trajectory__self-filename-waittrue-timeoutnone-kwargs)
+- [mask_write_holding_register](#def-__mask_write_holding_register__self-addr-and_mask-or_mask)
+- [motion_enable](#def-__motion_enable__self-enabletrue-servo_idnone)
+- [move_arc_lines](#def-__move_arc_lines__self-paths-is_radiannone-times1-first_pause_time01-repeat_pause_time0-automatic_calibrationtrue-speednone-mvaccnone-mvtimenone-waitfalse)
+- [move_circle](#def-__move_circle__self-pose1-pose2-percent-speednone-mvaccnone-mvtimenone-is_radiannone-waitfalse-timeoutnone-is_tool_coordfalse-is_axis_anglefalse-kwargs)
+- [move_gohome](#def-__move_gohome__self-speednone-mvaccnone-mvtimenone-is_radiannone-waitfalse-timeoutnone-kwargs)
+- [open_bio_gripper](#def-__open_bio_gripper__self-speed0-waittrue-timeout5-kwargs)
+- [open_lite6_gripper](#def-__open_lite6_gripper__self-synctrue)
+- [playback_trajectory](#def-__playback_trajectory__self-times1-filenamenone-waittrue-double_speed1-kwargs)
+- [read_coil_bits](#def-__read_coil_bits__self-addr-quantity)
+- [read_holding_registers](#def-__read_holding_registers__self-addr-quantity-is_signedfalse)
+- [read_input_bits](#def-__read_input_bits__self-addr-quantity)
+- [read_input_registers](#def-__read_input_registers__self-addr-quantity-is_signedfalse)
+- [register_cmdnum_changed_callback](#def-__register_cmdnum_changed_callback__self-callbacknone)
+- [register_connect_changed_callback](#def-__register_connect_changed_callback__self-callbacknone)
+- [register_count_changed_callback](#def-__register_count_changed_callback__self-callbacknone)
+- [register_error_warn_changed_callback](#def-__register_error_warn_changed_callback__self-callbacknone)
+- [register_feedback_callback](#def-__register_feedback_callback__self-callbacknone)
+- [register_iden_progress_changed_callback](#def-__register_iden_progress_changed_callback__self-callbacknone)
+- [register_mode_changed_callback](#def-__register_mode_changed_callback__self-callbacknone)
+- [register_mtable_mtbrake_changed_callback](#def-__register_mtable_mtbrake_changed_callback__self-callbacknone)
+- [register_report_callback](#def-__register_report_callback__self-callbacknone-report_cartesiantrue-report_jointstrue-report_statetrue-report_error_codetrue-report_warn_codetrue-report_mtabletrue-report_mtbraketrue-report_cmd_numtrue)
+- [register_report_location_callback](#def-__register_report_location_callback__self-callbacknone-report_cartesiantrue-report_jointstrue)
+- [register_state_changed_callback](#def-__register_state_changed_callback__self-callbacknone)
+- [register_temperature_changed_callback](#def-__register_temperature_changed_callback__self-callbacknone)
+- [release_cmdnum_changed_callback](#def-__release_cmdnum_changed_callback__self-callbacknone)
+- [release_connect_changed_callback](#def-__release_connect_changed_callback__self-callbacknone)
+- [release_count_changed_callback](#def-__release_count_changed_callback__self-callbacknone)
+- [release_error_warn_changed_callback](#def-__release_error_warn_changed_callback__self-callbacknone)
+- [release_feedback_callback](#def-__release_feedback_callback__self-callbacknone)
+- [release_iden_progress_changed_callback](#def-__release_iden_progress_changed_callback__self-callbacknone)
+- [release_mode_changed_callback](#def-__release_mode_changed_callback__self-callbacknone)
+- [release_mtable_mtbrake_changed_callback](#def-__release_mtable_mtbrake_changed_callback__self-callbacknone)
+- [release_report_callback](#def-__release_report_callback__self-callbacknone)
+- [release_report_location_callback](#def-__release_report_location_callback__self-callbacknone)
+- [release_state_changed_callback](#def-__release_state_changed_callback__self-callbacknone)
+- [release_temperature_changed_callback](#def-__release_temperature_changed_callback__self-callbacknone)
+- [reset](#def-__reset__self-speednone-mvaccnone-mvtimenone-is_radiannone-waitfalse-timeoutnone)
+- [robotiq_close](#def-__robotiq_close__self-speed255-force255-waittrue-timeout5-kwargs)
+- [robotiq_get_status](#def-__robotiq_get_status__self-number_of_registers3-kwargs)
+- [robotiq_open](#def-__robotiq_open__self-speed255-force255-waittrue-timeout5-kwargs)
+- [robotiq_reset](#def-__robotiq_reset__self-kwargs)
+- [robotiq_set_activate](#def-__robotiq_set_activate__self-waittrue-timeout3-kwargs)
+- [robotiq_set_position](#def-__robotiq_set_position__self-pos-speed255-force255-waittrue-timeout5-kwargs)
+- [run_blockly_app](#def-__run_blockly_app__self-path-kwargs)
+- [run_gcode_app](#def-__run_gcode_app__self-path-kwargs)
+- [run_gcode_file](#def-__run_gcode_file__self-path-kwargs)
+- [save_conf](#def-__save_conf__self)
+- [save_record_trajectory](#def-__save_record_trajectory__self-filename-waittrue-timeout5-kwargs)
+- [send_cmd_sync](#def-__send_cmd_sync__self-commandnone)
+- [send_hex_cmd](#def-__send_hex_cmd__self-datas-kwargs)
+- [set_allow_approx_motion](#def-__set_allow_approx_motion__self-on_off)
+- [set_baud_checkset_enable](#def-__set_baud_checkset_enable__self-enable)
+- [set_bio_gripper_control_mode](#def-__set_bio_gripper_control_mode__self-mode-kwargs)
+- [set_bio_gripper_enable](#def-__set_bio_gripper_enable__self-enabletrue-waittrue-timeout3-kwargs)
+- [set_bio_gripper_force](#def-__set_bio_gripper_force__self-force-kwargs)
+- [set_bio_gripper_g2_position](#def-__set_bio_gripper_g2_position__self-pos-speed2000-force100-waittrue-timeout5-kwargs)
+- [set_bio_gripper_speed](#def-__set_bio_gripper_speed__self-speed-kwargs)
+- [set_cartesian_velo_continuous](#def-__set_cartesian_velo_continuous__self-on_off)
+- [set_cgpio_analog](#def-__set_cgpio_analog__self-ionum-value-synctrue)
+- [set_cgpio_analog_with_xyz](#def-__set_cgpio_analog_with_xyz__self-ionum-value-xyz-fault_tolerance_radius)
+- [set_cgpio_digital](#def-__set_cgpio_digital__self-ionum-value-delay_secnone-synctrue)
+- [set_cgpio_digital_input_function](#def-__set_cgpio_digital_input_function__self-ionum-fun)
+- [set_cgpio_digital_output_function](#def-__set_cgpio_digital_output_function__self-ionum-fun)
+- [set_cgpio_digital_with_xyz](#def-__set_cgpio_digital_with_xyz__self-ionum-value-xyz-fault_tolerance_radius)
+- [set_checkset_default_baud](#def-__set_checkset_default_baud__self-type_-baud)
+- [set_cmd_mat_history_num](#def-__set_cmd_mat_history_num__self-num)
+- [set_collision_rebound](#def-__set_collision_rebound__self-on)
+- [set_collision_sensitivity](#def-__set_collision_sensitivity__self-value-waittrue)
+- [set_collision_tool_model](#def-__set_collision_tool_model__self-tool_type-args-kwargs)
+- [set_counter_increase](#def-__set_counter_increase__self-val1)
+- [set_counter_reset](#def-__set_counter_reset__self)
+- [set_dh_params](#def-__set_dh_params__self-dh_params-flag0)
+- [set_dhpgc_gripper_activate](#def-__set_dhpgc_gripper_activate__self-waittrue-timeout3-kwargs)
+- [set_dhpgc_gripper_position](#def-__set_dhpgc_gripper_position__self-pos-speed50-force50-waittrue-timeout5-kwargs)
+- [set_external_device_monitor_params](#def-__set_external_device_monitor_params__self-dev_type-frequency)
+- [set_fdb_mat_history_num](#def-__set_fdb_mat_history_num__self-num)
+- [set_feedback_type](#def-__set_feedback_type__self-feedback_type)
+- [set_fence_mode](#def-__set_fence_mode__self-on)
+- [set_ft_admittance_ctrl_threshold](#def-__set_ft_admittance_ctrl_threshold__self-thresholds)
+- [set_ft_collision_detection](#def-__set_ft_collision_detection__self-on_off)
+- [set_ft_collision_reb_distance](#def-__set_ft_collision_reb_distance__self-distances-is_radiannone)
+- [set_ft_collision_rebound](#def-__set_ft_collision_rebound__self-on_off)
+- [set_ft_collision_threshold](#def-__set_ft_collision_threshold__self-thresholds)
+- [set_ft_sensor_admittance_parameters](#def-__set_ft_sensor_admittance_parameters__self-coordnone-c_axisnone-mnone-knone-bnone-kwargs)
+- [set_ft_sensor_enable](#def-__set_ft_sensor_enable__self-on_off)
+- [set_ft_sensor_force_parameters](#def-__set_ft_sensor_force_parameters__self-coordnone-c_axisnone-f_refnone-limitsnone-kpnone-kinone-kdnone-xe_limitnone-kwargs)
+- [set_ft_sensor_load_offset](#def-__set_ft_sensor_load_offset__self-iden_result_list-association_setting_tcp_loadfalse-kwargs)
+- [set_ft_sensor_mode](#def-__set_ft_sensor_mode__self-mode-kwargs)
+- [set_ft_sensor_zero](#def-__set_ft_sensor_zero__self)
+- [set_gravity_direction](#def-__set_gravity_direction__self-direction-waittrue)
+- [set_gripper_enable](#def-__set_gripper_enable__self-enable-kwargs)
+- [set_gripper_g2_position](#def-__set_gripper_g2_position__self-pos-speed100-force50-waitfalse-timeoutnone-kwargs)
+- [set_gripper_mode](#def-__set_gripper_mode__self-mode-kwargs)
+- [set_gripper_position](#def-__set_gripper_position__self-pos-waitfalse-speednone-auto_enablefalse-timeoutnone-kwargs)
+- [set_gripper_speed](#def-__set_gripper_speed__self-speed-kwargs)
+- [set_initial_point](#def-__set_initial_point__self-point)
+- [set_joint_jerk](#def-__set_joint_jerk__self-jerk-is_radiannone)
+- [set_joint_maxacc](#def-__set_joint_maxacc__self-acc-is_radiannone)
+- [set_linear_motor_back_origin](#def-__set_linear_motor_back_origin__self-waittrue-kwargs)
+- [set_linear_motor_enable](#def-__set_linear_motor_enable__self-enable)
+- [set_linear_motor_pos](#def-__set_linear_motor_pos__self-pos-speednone-waittrue-timeout100-kwargs)
+- [set_linear_motor_speed](#def-__set_linear_motor_speed__self-speed)
+- [set_linear_motor_stop](#def-__set_linear_motor_stop__self)
+- [set_linear_spd_limit_factor](#def-__set_linear_spd_limit_factor__self-factor)
+- [set_modbusrtu_params](#def-__set_modbusrtu_params__self-slave_id-baudrate-stopbits1-parity0)
+- [set_mode](#def-__set_mode__self-mode0-detection_param0)
+- [set_mount_direction](#def-__set_mount_direction__self-base_tilt_deg-rotation_deg-is_radiannone)
+- [set_only_check_type](#def-__set_only_check_type__self-only_check_type0)
+- [set_pause_time](#def-__set_pause_time__self-sltime-waitfalse)
+- [set_position](#def-__set_position__self-xnone-ynone-znone-rollnone-pitchnone-yawnone-radiusnone-speednone-mvaccnone-mvtimenone-relativefalse-is_radiannone-waitfalse-timeoutnone-kwargs)
+- [set_position_aa](#def-__set_position_aa__self-axis_angle_pose-speednone-mvaccnone-mvtimenone-is_radiannone-is_tool_coordfalse-relativefalse-waitfalse-timeoutnone-radiusnone-kwargs)
+- [set_reduced_joint_range](#def-__set_reduced_joint_range__self-joint_range-is_radiannone)
+- [set_reduced_max_joint_speed](#def-__set_reduced_max_joint_speed__self-speed-is_radiannone)
+- [set_reduced_max_tcp_speed](#def-__set_reduced_max_tcp_speed__self-speed)
+- [set_reduced_mode](#def-__set_reduced_mode__self-on)
+- [set_reduced_tcp_boundary](#def-__set_reduced_tcp_boundary__self-boundary)
+- [set_report_tau_or_i](#def-__set_report_tau_or_i__self-tau_or_i0)
+- [set_rh56_finger_position](#def-__set_rh56_finger_position__self-finger_id-pos-speed500-force500-waitfalse-timeoutnone-kwargs)
+- [set_rs485_baudrate](#def-__set_rs485_baudrate__self-baud-targetrobot-kwargs)
+- [set_rs485_data](#def-__set_rs485_data__self-datas-min_res_len0-targetrobot-protocolmodbus_rtu-use_503_portfalse-kwargs)
+- [set_rs485_timeout](#def-__set_rs485_timeout__self-timeout-targetrobot-protocolmodbus_rtu-kwargs)
+- [set_rs485_use_503_port](#def-__set_rs485_use_503_port__self-use_503_porttrue)
+- [set_self_collision_detection](#def-__set_self_collision_detection__self-on_off)
+- [set_servo_angle](#def-__set_servo_angle__self-servo_idnone-anglenone-speednone-mvaccnone-mvtimenone-relativefalse-is_radiannone-waitfalse-timeoutnone-radiusnone-kwargs)
+- [set_servo_angle_j](#def-__set_servo_angle_j__self-angles-speednone-mvaccnone-mvtimenone-is_radiannone-kwargs)
+- [set_servo_attach](#def-__set_servo_attach__self-servo_idnone)
+- [set_servo_cartesian](#def-__set_servo_cartesian__self-mvpose-speednone-mvaccnone-mvtime0-is_radiannone-is_tool_coordfalse-kwargs)
+- [set_servo_cartesian_aa](#def-__set_servo_cartesian_aa__self-axis_angle_pose-speednone-mvaccnone-is_radiannone-is_tool_coordfalse-relativefalse-kwargs)
+- [set_servo_detach](#def-__set_servo_detach__self-servo_idnone)
+- [set_simulation_robot](#def-__set_simulation_robot__self-on_off)
+- [set_state](#def-__set_state__self-state0)
+- [set_tcp_jerk](#def-__set_tcp_jerk__self-jerk)
+- [set_tcp_load](#def-__set_tcp_load__self-weight-center_of_gravity-waitfalse-kwargs)
+- [set_tcp_maxacc](#def-__set_tcp_maxacc__self-acc)
+- [set_tcp_offset](#def-__set_tcp_offset__self-offset-is_radiannone-waittrue-kwargs)
+- [set_teach_sensitivity](#def-__set_teach_sensitivity__self-value-waittrue)
+- [set_tgpio_digital](#def-__set_tgpio_digital__self-ionum-value-delay_secnone-synctrue)
+- [set_tgpio_digital_with_xyz](#def-__set_tgpio_digital_with_xyz__self-ionum-value-xyz-fault_tolerance_radius)
+- [set_tgpio_modbus_baudrate](#def-__set_tgpio_modbus_baudrate__self-baud)
+- [set_tgpio_modbus_timeout](#def-__set_tgpio_modbus_timeout__self-timeout-is_transparent_transmissionfalse-kwargs)
+- [set_tgpio_monitor_params](#def-__set_tgpio_monitor_params__self-io_type-frequency)
+- [set_timeout](#def-__set_timeout__self-timeout)
+- [set_tool_position](#def-__set_tool_position__self-x0-y0-z0-roll0-pitch0-yaw0-speednone-mvaccnone-mvtimenone-is_radiannone-waitfalse-timeoutnone-radiusnone-kwargs)
+- [set_vacuum_gripper](#def-__set_vacuum_gripper__self-on-waitfalse-timeout3-delay_secnone-synctrue-hardware_version1)
+- [set_world_offset](#def-__set_world_offset__self-offset-is_radiannone-waittrue)
+- [set_xarm7_ik_redundancy](#def-__set_xarm7_ik_redundancy__self-jnt_ref-punish_coeff)
+- [start_record_trajectory](#def-__start_record_trajectory__self)
+- [stop_lite6_gripper](#def-__stop_lite6_gripper__self-synctrue)
+- [stop_record_trajectory](#def-__stop_record_trajectory__self-filenamenone-kwargs)
+- [system_control](#def-__system_control__self-value1)
+- [vc_set_cartesian_velocity](#def-__vc_set_cartesian_velocity__self-speeds-is_radiannone-is_tool_coordfalse-duration-1-kwargs)
+- [vc_set_joint_velocity](#def-__vc_set_joint_velocity__self-speeds-is_radiannone-is_synctrue-duration-1-kwargs)
+- [write_and_read_holding_registers](#def-__write_and_read_holding_registers__self-r_addr-r_quantity-w_addr-w_regs-is_signedfalse)
+- [write_multiple_coil_bits](#def-__write_multiple_coil_bits__self-addr-bits)
+- [write_multiple_holding_registers](#def-__write_multiple_holding_registers__self-addr-regs)
+- [write_single_coil_bit](#def-__write_single_coil_bit__self-addr-bit_val)
+- [write_single_holding_register](#def-__write_single_holding_register__self-addr-reg_val)
+
+### Properties (69)
+- [angles](#angles)
+- [arm](#arm)
+- [axis](#axis)
+- [cgpio_states](#cgpio_states)
+- [cmd_num](#cmd_num)
+- [collision_sensitivity](#collision_sensitivity)
+- [connected](#connected)
+- [control_box_sn](#control_box_sn)
+- [core](#core)
+- [count](#count)
+- [currents](#currents)
+- [device_type](#device_type)
+- [error_code](#error_code)
+- [ft_ext_force](#ft_ext_force)
+- [ft_raw_force](#ft_raw_force)
+- [gpio_reset_config](#gpio_reset_config)
+- [gravity_direction](#gravity_direction)
+- [has_err_warn](#has_err_warn)
+- [has_error](#has_error)
+- [has_warn](#has_warn)
+- [is_approx_motion](#is_approx_motion)
+- [is_cart_continuous](#is_cart_continuous)
+- [is_collision_rebound](#is_collision_rebound)
+- [is_fence_mode](#is_fence_mode)
+- [is_reduced_mode](#is_reduced_mode)
+- [is_report_current](#is_report_current)
+- [is_simulation_robot](#is_simulation_robot)
+- [joint_acc_limit](#joint_acc_limit)
+- [joint_jerk](#joint_jerk)
+- [joint_speed_limit](#joint_speed_limit)
+- [joints_torque](#joints_torque)
+- [last_used_angles](#last_used_angles)
+- [last_used_joint_acc](#last_used_joint_acc)
+- [last_used_joint_speed](#last_used_joint_speed)
+- [last_used_position](#last_used_position)
+- [last_used_tcp_acc](#last_used_tcp_acc)
+- [last_used_tcp_speed](#last_used_tcp_speed)
+- [master_id](#master_id)
+- [mode](#mode)
+- [motor_brake_states](#motor_brake_states)
+- [motor_enable_states](#motor_enable_states)
+- [only_check_result](#only_check_result)
+- [position](#position)
+- [position_aa](#position_aa)
+- [realtime_joint_speeds](#realtime_joint_speeds)
+- [realtime_tcp_speed](#realtime_tcp_speed)
+- [reduced_joint_limits](#reduced_joint_limits)
+- [reduced_max_joint_speed](#reduced_max_joint_speed)
+- [reduced_max_tcp_speed](#reduced_max_tcp_speed)
+- [reduced_tcp_boundary](#reduced_tcp_boundary)
+- [report_data](#report_data)
+- [robotiq_status](#robotiq_status)
+- [self_collision_params](#self_collision_params)
+- [servo_codes](#servo_codes)
+- [slave_id](#slave_id)
+- [sn](#sn)
+- [state](#state)
+- [tcp_acc_limit](#tcp_acc_limit)
+- [tcp_jerk](#tcp_jerk)
+- [tcp_load](#tcp_load)
+- [tcp_offset](#tcp_offset)
+- [tcp_speed_limit](#tcp_speed_limit)
+- [teach_sensitivity](#teach_sensitivity)
+- [temperatures](#temperatures)
+- [version](#version)
+- [version_number](#version_number)
+- [voltages](#voltages)
+- [warn_code](#warn_code)
+- [world_offset](#world_offset)
+
+---
 
 ## class __XArmAPI__
 ****************************************
 
 >   
+
+### __Attributes__
+****************************************
+#### angles
+
+> Servo angles  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+>   
+> :return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]  
+
+
+#### arm
+
+> XArm interface implementation class instance, do not use (compatibility is not guaranteed)  
+
+
+#### axis
+
+> Axis number, only available in socket way and enable_report is True and report_type is 'rich'  
+
+
+#### cgpio_states
+
+> Controller gpio state  
+>   
+> :return: states  
+> &ensp;&ensp;&ensp;&ensp;states[0]: controller gpio module state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 0: normal  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 1: wrong  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[0] == 6: communication failure  
+> &ensp;&ensp;&ensp;&ensp;states[1]: controller gpio module error code  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] == 0: normal  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;states[1] != 0: error code  
+> &ensp;&ensp;&ensp;&ensp;states[2]: digital input functional gpio state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input functional gpio state = states[2] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;states[3]: digital input configuring gpio state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-input configuring gpio state = states[3] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;states[4]: digital output functional gpio state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output functional gpio state = states[4] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;states[5]: digital output configuring gpio state  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;Note: digital-i-output configuring gpio state = states[5] >> i & 0x01  
+> &ensp;&ensp;&ensp;&ensp;states[6]: analog-0 input value  
+> &ensp;&ensp;&ensp;&ensp;states[7]: analog-1 input value  
+> &ensp;&ensp;&ensp;&ensp;states[8]: analog-0 output value  
+> &ensp;&ensp;&ensp;&ensp;states[9]: analog-1 output value  
+> &ensp;&ensp;&ensp;&ensp;states[10]: digital input functional info, [digital-0-input-functional-mode, ... digital-7-input-functional-mode]  
+> &ensp;&ensp;&ensp;&ensp;states[11]: digital output functional info, [digital-0-output-functional-mode, ... digital-7-output-functional-mode]  
+
+
+#### cmd_num
+
+> Number of command caches in the controller  
+
+
+#### collision_sensitivity
+
+> The sensitivity value of collision, only available in socket way and  enable_report is True and report_type is 'rich'  
+>   
+> :return: 0~5  
+
+
+#### connected
+
+> Connection status  
+
+
+#### control_box_sn
+
+> Control box sn  
+
+
+#### core
+
+> Core layer API, set only for advanced developers, please do not use  
+> Ex:  
+> &ensp;&ensp;&ensp;&ensp;self.core.move_line(...)  
+> &ensp;&ensp;&ensp;&ensp;self.core.move_lineb(...)  
+> &ensp;&ensp;&ensp;&ensp;self.core.move_joint(...)  
+> &ensp;&ensp;&ensp;&ensp;...  
+
+
+#### count
+
+> Counter val  
+
+
+#### currents
+
+> Servos electric current  
+>   
+> :return: [servo-1-current, ..., servo-7-current]  
+
+
+#### default_is_radian
+
+> The default unit is radians or not  
+
+
+#### device_type
+
+> Device type, only available in socket way and  enable_report is True and report_type is 'rich'  
+
+
+#### error_code
+
+> Controller error code. See the [Controller Error Code Documentation](./xarm_api_code.md#controller-error-code) for details.  
+
+
+#### ft_ext_force
+
+> The external force detection value of the Six-axis Force Torque Sensor after filtering, load and offset compensation  
+
+
+#### ft_raw_force
+
+> The direct reading of the Six-axis Force Torque Sensor at the end, without any processing  
+
+
+#### gpio_reset_config
+
+> The gpio reset enable config  
+> :return: [cgpio_reset_enable, tgpio_reset_enable]  
+
+
+#### gravity_direction
+
+> gravity direction, only available in socket way and enable_report is True and report_type is 'rich'  
+> :return:  
+
+
+#### has_err_warn
+
+> Controller have an error or warning or not  
+>   
+> :return: True/False  
+
+
+#### has_error
+
+> Controller have an error or not  
+
+
+#### has_warn
+
+> Controller have an warning or not  
+
+
+#### is_approx_motion
+
+> Approx motion or not  
+
+
+#### is_cart_continuous
+
+> Cartesion motion continuous or not  
+
+
+#### is_collision_rebound
+
+> Collision rebound or not  
+
+
+#### is_fence_mode
+
+> Fence mode is on or not  
+
+
+#### is_reduced_mode
+
+> Reduced mode is on or not  
+
+
+#### is_report_current
+
+> Reported electric current or not  
+
+
+#### is_simulation_robot
+
+> Is simulation robot or not  
+
+
+#### joint_acc_limit
+
+> Joint acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+>   
+> :return: [min_joint_acc(°/s^2 or rad/s^2), max_joint_acc(°/s^2 or rad/s^2)]  
+
+
+#### joint_jerk
+
+> Joint jerk  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+>   
+> :return: jerk (°/s^3 or rad/s^3)  
+
+
+#### joint_speed_limit
+
+> Joint speed limit,  only available in socket way and enable_report is True and report_type is 'rich'  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+>   
+> :return: [min_joint_speed(°/s or rad/s), max_joint_speed(°/s or rad/s)]  
+
+
+#### joints_torque
+
+> Joints torque, only available in socket way and  enable_report is True and report_type is 'rich'  
+>   
+> :return: [joint-1, ....]  
+
+
+#### last_used_angles
+
+> The last used servo angles, default value of parameter angle of interface set_servo_angle  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+> &ensp;&ensp;&ensp;&ensp;2. self.set_servo_angle(servo_id=1, angle=75) < == > self.set_servo_angle(angle=[75] + self.last_used_angles[1:])  
+> &ensp;&ensp;&ensp;&ensp;3. self.set_servo_angle(servo_id=5, angle=30) < == > self.set_servo_angle(angle=self.last_used_angles[:4] + [30] + self.last_used_angles[5:])  
+>   
+> :return: [angle1(° or rad), angle2(° or rad), ..., angle7(° or rad)]  
+
+
+#### last_used_joint_acc
+
+> The last used joint acceleration, default value of parameter mvacc of interface set_servo_angle  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+>   
+> :return: acceleration (°/s^2 or rad/s^2)  
+
+
+#### last_used_joint_speed
+
+> The last used joint speed, default value of parameter speed of interface set_servo_angle  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value is in radians  
+>   
+> :return: speed (°/s or rad/s)  
+
+
+#### last_used_position
+
+> The last used cartesian position, default value of parameter x/y/z/roll/pitch/yaw of interface set_position  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians  
+> &ensp;&ensp;&ensp;&ensp;2. self.set_position(x=300) < == > self.set_position(x=300, *last_used_position[1:])  
+> &ensp;&ensp;&ensp;&ensp;2. self.set_position(roll=-180) < == > self.set_position(x=self.last_used_position[:3], roll=-180, *self.last_used_position[4:])  
+>   
+> :return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]  
+
+
+#### last_used_tcp_acc
+
+> The last used cartesian acceleration, default value of parameter mvacc of interface set_position/move_circle  
+>   
+> :return: acceleration (mm/s^2)  
+
+
+#### last_used_tcp_speed
+
+> The last used cartesian speed, default value of parameter speed of interface set_position/move_circle  
+>   
+> :return: speed (mm/s)  
+
+
+#### master_id
+
+> Master id, only available in socket way and enable_report is True and report_type is 'rich'  
+
+
+#### mode
+
+> xArm mode, only available in socket way and  enable_report is True  
+>   
+> :return:  
+> &ensp;&ensp;&ensp;&ensp;0: position control mode  
+> &ensp;&ensp;&ensp;&ensp;1: servo motion mode  
+> &ensp;&ensp;&ensp;&ensp;2: joint teaching mode  
+> &ensp;&ensp;&ensp;&ensp;3: cartesian teaching mode (invalid)  
+> &ensp;&ensp;&ensp;&ensp;4: joint velocity control mode  
+> &ensp;&ensp;&ensp;&ensp;5: cartesian velocity control mode  
+> &ensp;&ensp;&ensp;&ensp;6: joint online trajectory planning mode   
+> &ensp;&ensp;&ensp;&ensp;7: cartesian online trajectory planning mode  
+
+
+#### motor_brake_states
+
+> Motor brake state list, only available in socket way and  enable_report is True and report_type is 'rich'  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.  
+>   
+> :return: [motor-1-brake-state, ..., motor-7-brake-state, reserved]  
+> &ensp;&ensp;&ensp;&ensp;motor-{i}-brake-state:  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: enable  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: disable  
+
+
+#### motor_enable_states
+
+> Motor enable state list, only available in socket way and  enable_report is True and report_type is 'rich'  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;For a robot with a number of axes n, only the first n states are valid, and the latter are reserved.  
+>   
+> :return: [motor-1-enable-state, ..., motor-7-enable-state, reserved]  
+> &ensp;&ensp;&ensp;&ensp;motor-{i}-enable-state:  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;0: disable  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;1: enable  
+
+
+#### only_check_result
+
+#### position
+
+> Cartesian position  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians  
+>   
+> return: [x(mm), y(mm), z(mm), roll(° or rad), pitch(° or rad), yaw(° or rad)]  
+
+
+#### position_aa
+
+> The pose represented by the axis angle pose  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value (only roll/pitch/yaw) is in radians  
+>   
+> :return: [x(mm), y(mm), z(mm), rx(° or rad), ry(° or rad), rz(° or rad)]  
+
+
+#### realtime_joint_speeds
+
+> The real time speed of joint motion, only available if version > 1.2.11  
+>   
+> :return: [joint-1-speed(°/s or rad/s), ...., joint-7-speed(°/s or rad/s)]  
+
+
+#### realtime_tcp_speed
+
+> The real time speed of tcp motion, only available if version > 1.2.11  
+>   
+> :return: real time speed (mm/s)  
+
+
+#### reduced_joint_limits
+
+> Joint limits in reduced mode, [[J1_min, J1_max], ..., [J7_min, J7_max]]  
+
+
+#### reduced_max_joint_speed
+
+> Max joint speed in reduced mode  
+
+
+#### reduced_max_tcp_speed
+
+> Max tcp speed in reduced mode (mm/s)  
+
+
+#### reduced_tcp_boundary
+
+> Tcp boundary in reduced mode, [x_max, x_min, y_max, y_min, z_max, z_min]  
+
+
+#### report_data
+
+#### robotiq_status
+
+> The last state value obtained  
+>   
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. Successfully call the robotiq related interface with wait parameter (when the parameter wait = True is set) will update this value  
+> &ensp;&ensp;&ensp;&ensp;2. Successfully calling interface robotiq_get_status will partially or completely update this value  
+>   
+> :return status dict  
+> &ensp;&ensp;&ensp;&ensp;{  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gOBJ': 0,  # Object detection status, is a built-in feature that provides information on possible object pick-up  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gSTA': 0,  # Gripper status, returns the current status & motion of the Gripper fingers  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gGTO': 0,  # Action status, echo of the rGTO bit(go to bit)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gACT': 0,  # Activation status, echo of the rACT bit(activation bit)  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'kFLT': 0,  # Echo of the requested position for the Gripper  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gFLT': 0,  # Fault status  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gPR': 0,  # Echo of the requested position for the Gripper  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gPO': 0,  # Actual position of the Gripper obtained via the encoders  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;'gCU': 0,  # The current is read instantaneously from the motor drive  
+> &ensp;&ensp;&ensp;&ensp;}  
+> &ensp;&ensp;&ensp;&ensp;Note: -1 means never updated  
+
+
+#### self_collision_params
+
+> Self collision params  
+>   
+> :return: params  
+> &ensp;&ensp;&ensp;&ensp;params[0]: self collision detection or not  
+> &ensp;&ensp;&ensp;&ensp;params[1]: self collision tool type  
+> &ensp;&ensp;&ensp;&ensp;params[2]: self collision model params  
+
+
+#### servo_codes
+
+> Servos status and error_code  
+> :return: [  
+> &ensp;&ensp;&ensp;&ensp;[servo-1-status, servo-1-code],  
+> &ensp;&ensp;&ensp;&ensp;...,  
+> &ensp;&ensp;&ensp;&ensp;[servo-7-status, servo-7-code],   
+> &ensp;&ensp;&ensp;&ensp;[tool-gpio-status, tool-gpio-code]  
+> ]  
+
+
+#### slave_id
+
+> Slave id, only available in socket way and enable_report is True and report_type is 'rich'  
+
+
+#### sn
+
+> xArm sn  
+
+
+#### state
+
+> xArm state  
+>   
+> :return:  
+> &ensp;&ensp;&ensp;&ensp;1: in motion  
+> &ensp;&ensp;&ensp;&ensp;2: sleeping  
+> &ensp;&ensp;&ensp;&ensp;3: suspended  
+> &ensp;&ensp;&ensp;&ensp;4: stopping  
+
+
+#### tcp_acc_limit
+
+> Tcp acceleration limit, only available in socket way and enable_report is True and report_type is 'rich'   
+>   
+> :return: [min_tcp_acc(mm/s^2), max_tcp_acc(mm/s^2)]  
+
+
+#### tcp_jerk
+
+> Tcp jerk  
+>   
+> :return: jerk (mm/s^3)  
+
+
+#### tcp_load
+
+> xArm tcp load, only available in socket way and  enable_report is True and report_type is 'rich'  
+>   
+> :return: [weight, center of gravity]  
+> &ensp;&ensp;&ensp;&ensp;such as: [weight(kg), [x(mm), y(mm), z(mm)]]  
+
+
+#### tcp_offset
+
+> Cartesian position offset, only available in socket way and enable_report is True  
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians  
+>   
+> :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]  
+
+
+#### tcp_speed_limit
+
+> Tcp speed limit, only available in socket way and enable_report is True and report_type is 'rich'  
+>   
+> :return: [min_tcp_speed(mm/s), max_tcp_speed(mm/s)]  
+
+
+#### teach_sensitivity
+
+> The sensitivity value of drag and teach, only available in socket way and  enable_report is True and report_type is 'rich'  
+>   
+> :return: 1~5  
+
+
+#### temperatures
+
+> Motor temperature, only available if version > 1.2.11  
+>   
+> :return: [motor-1-temperature, ..., motor-7-temperature]  
+
+
+#### version
+
+> xArm version  
+
+
+#### version_number
+
+> Firmware version number  
+>   
+> :return: (major_version_number, minor_version_number, revision_version_number)  
+
+
+#### voltages
+
+> Servos voltage  
+>   
+> :return: [servo-1-voltage, ..., servo-7-voltage]  
+
+
+#### warn_code
+
+> Controller warn code. See the [Controller Warn Code Documentation](./xarm_api_code.md#controller-warn-code) for details.  
+
+
+#### world_offset
+
+> Base coordinate offset, only available if version > 1.2.11  
+>   
+> Note:  
+> &ensp;&ensp;&ensp;&ensp;1. If self.default_is_radian is True, the returned value(roll_offset/pitch_offset/yaw_offset) is in radians  
+>   
+> :return: [x_offset(mm), y_offset(mm), z_offset(mm), roll_offset(° or rad), pitch_offset(° or rad), yaw_offset(° or rad)]  
+
 
 ****************************************
 ### __Methods__
@@ -135,6 +1002,8 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;If the y+ direction is not completely perpendicular to x+, it will be corrected in the calculation process.  
 >   
 > :param three_points: a list of teaching TCP coordinate positions [x, y, z, roll, pitch, yaw]  
+> :param mode: calculation mode, default is 0  
+> :param trust_ind: trust index, default is 0  
 > :param input_is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian  
 > :param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian  
 > :return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.  
@@ -372,7 +1241,7 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 >   
 > :return: tuple((code, err_info)), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
-> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, theoratival tau, actual tau]
+> &ensp;&ensp;&ensp;&ensp;err_info: [servo_id, theoretical tau, actual tau]
 
 
 #### def __get_c37_error_info__(self, is_radian=None):
@@ -518,7 +1387,7 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 > Get the controller error and warn code  
 >   
 > :param show: show the detail info if True  
-> :param lang: show language, en/cn, degault is en, only available if show is True  
+> :param lang: show language, en/cn, default is en, only available if show is True  
 > :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;error_code: See the [Controller Error Code Documentation](./xarm_api_code.md#controller-error-code) for details.  
@@ -857,7 +1726,7 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 
 #### def __get_linear_motor_on_zero__(self):
 
-> Get the linear motor is on zero positon or not  
+> Get the linear motor is on zero position or not  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.0  
 >   
@@ -1325,7 +2194,7 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 
 #### def __iden_ft_sensor_load_offset__(self):
 
-> Identification the tcp load and offset with the the Six-axis Force Torque Sensor  
+> Identification the tcp load and offset with the Six-axis Force Torque Sensor  
 > Note:  
 > &ensp;&ensp;&ensp;&ensp;1. only available if firmware_version >= 1.8.3  
 > &ensp;&ensp;&ensp;&ensp;2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)  
@@ -1681,7 +2550,7 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 > &ensp;&ensp;&ensp;&ensp;callback data:  
 > &ensp;&ensp;&ensp;&ensp;{  
 > &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;"mtable": [motor-1-motion-enable, motor-2-motion-enable, ...],  
-> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;"mtbrake": [motor-1-brake-enable, motor-1-brake-enable,...],  
+> &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;"mtbrake": [motor-1-brake-enable, motor-2-brake-enable,...],  
 > &ensp;&ensp;&ensp;&ensp;}  
 > :return: True/False
 
@@ -3360,7 +4229,7 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 >   
 > :param weight: load weight (unit: kg)  
 > :param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]  
-> :param wait: whether to wait for the command to be executed or the the robotic arm to stop  
+> :param wait: whether to wait for the command to be executed or the robotic arm to stop  
 > :return: code  
 > &ensp;&ensp;&ensp;&ensp;code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
 
@@ -3700,6 +4569,6 @@ xArm-Python-SDK API Documentation (V1.18.3): class XArmAPI in module xarm.wrappe
 > ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write Single Holding Register (0x06)  
 >   
 > :param addr: register address  
-> :param bit_val: the value to write  
+> :param reg_val: the value to write  
 > :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.  
 > &ensp;&ensp;&ensp;&ensp;Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)

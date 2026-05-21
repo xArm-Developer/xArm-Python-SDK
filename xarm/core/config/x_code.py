@@ -55,13 +55,13 @@ ServoCodeMap = {
         },
         'cn': {
             'title': '关节过热',
-            'desc': '如果机械臂长时间运行温度过高，请停并机冷却后重启机械臂。如多次重启无效，请联系技术支持。',
+            'desc': '如果机械臂长时间运行温度过高，请停机并冷却后重启机械臂。如多次重启无效，请联系技术支持。',
         }
     },
     16: {
         'en': {
             'title': 'Encoder Initialization Error',
-            'desc': 'Please ensure that there is no external force to push the robotic arm when the  it\'s energized. Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
+            'desc': 'Please ensure that there is no external force to push the robotic arm when it\'s energized. Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
         'cn': {
             'title': '编码器初始化异常',
@@ -111,7 +111,7 @@ ServoCodeMap = {
     21: {
         'en': {
             'title': 'Driver IC Initialization Error',
-            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support. If multiple reboots are invalid, please contact technical support.',
+            'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
         'cn': {
             'title': '驱动IC初始化异常',
@@ -230,7 +230,7 @@ ServoCodeMap = {
     },
     49: {
         'en': {
-            'title': 'EEPROM Read and Write Error.',
+            'title': 'EEPROM Read and Write Error',
             'desc': 'Please restart the xArm with the Emergency Stop Button on the xArm Controller. If multiple reboots are not working, please contact technical support.',
         },
         'cn': {
@@ -1180,7 +1180,7 @@ LinearMotorErrorCodeMap = {
     },
     35: {
         'en': {
-            'title': 'Linear Motor type error',
+            'title': 'Linear Motor Type Error',
             'desc': 'Please contact technical support.',
         },
         'cn': {
@@ -1200,8 +1200,8 @@ LinearMotorErrorCodeMap = {
     },
     39: {
         'en': {
-            'title': 'Linear Motor over voltage',
-            'desc': 'please contact technical support.',
+            'title': 'Linear Motor Over Voltage',
+            'desc': 'Please contact technical support.',
         },
         'cn': {
             'title': '直线滑轨过压',
@@ -1210,8 +1210,8 @@ LinearMotorErrorCodeMap = {
     },
     40: {
         'en': {
-            'title': 'Linear Motor undervoltage',
-            'desc': 'please contact technical support.',
+            'title': 'Linear Motor Undervoltage',
+            'desc': 'Please contact technical support.',
         },
         'cn': {
             'title': '直线滑轨欠压',

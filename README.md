@@ -11,7 +11,7 @@ xArm Python SDK
 - Protect the arm before unlocking the joint.
 
 ## Installation
-&ensp;&ensp;you can run examples without installation.Only Python3 is supported.
+&ensp;&ensp;you can run examples without installation. Only Python 3 is supported.
 - Install from source code
   - download
     ```bash
@@ -42,11 +42,11 @@ xArm Python SDK
 - #### [UFACTORY ModbusTCP Manual](doc/UF_ModbusTCP_Manual.md)
 
 ## Update Summary
-- > ### 1.18.3
+- > ### 1.18.3/1.18.4
   - Added BytesData for data conversion
   - Added data structure for report data
   - Update the reported data for port 30002
-  - Increase execution speed by adding paramster to reduce the number of checks performed by the gripper apis
+  - Increase execution speed by adding parameter to reduce the number of checks performed by the gripper APIs
 
 - > ### 1.17.0/1.17.1
   - Change some API names
@@ -321,7 +321,7 @@ xArm Python SDK
   ```python
   arm.set_bio_gripper_enable(...)
   arm.set_bio_gripper_speed(...)
-  arm.open_bio_grippe(...)
+  arm.open_bio_gripper(...)
   arm.close_bio_gripper(...)
   arm.get_bio_gripper_status()
   arm.get_bio_gripper_error()
@@ -403,7 +403,7 @@ xArm Python SDK
   arm.set_ft_sensor_admittance_parameters(...)
   arm.set_ft_sensor_force_parameters(...)
   arm.get_ft_sensor_data(...)
-  arm.get_ft_senfor_config(...)
+  arm.get_ft_sensor_config(...)
   arm.get_ft_sensor_error(...)
   ```
 

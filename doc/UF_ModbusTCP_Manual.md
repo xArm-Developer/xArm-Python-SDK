@@ -18,7 +18,7 @@
         // Exception: XX is the exception code
         00 01 00 00 00 03 01 81 XX
         ```
-    - __0x05__: Write single coil, according to Modbus protocol, specified data can only be 0xFF00 or 0x0000，for wriring 1 or 0 to the register.
+    - __0x05__: Write single coil, according to Modbus protocol, specified data can only be 0xFF00 or 0x0000，for writing 1 or 0 to the register.
         ```C++
         // sample request and response / exception
         // Request: Write 1 to register address 0x0002 (0xFF00 for writing 1, 0x0000 for writing 0)
@@ -44,7 +44,7 @@
         // sample request and response / exception
         // Request: Read 16 consecutive registers from address 0x0000
         00 01 00 00 00 06 01 02 00 00 00 10
-        // Response:: every bit in the Received data (0xFF 0x00 here as an example) represents the corresponding register value in order
+        // Response: every bit in the Received data (0xFF 0x00 here as an example) represents the corresponding register value in order
         00 01 00 00 00 05 01 02 02 FF 00
         // Exception: XX is the exception code
         00 01 00 00 00 03 01 82 XX
@@ -55,7 +55,7 @@
         // sample request and response / exception
         // Request: read 2 consecutive holding registers starting from address 0x0003
         00 01 00 00 00 06 01 03 00 03 00 02
-        // Response:: Received values of the two registers are (00 05) and (00 06) as an example here
+        // Response: Received values of the two registers are (00 05) and (00 06) as an example here
         00 01 00 00 00 07 01 03 04 00 05 00 06
         // Exception: XX is the exception code
         00 01 00 00 00 03 01 83 XX
@@ -86,7 +86,7 @@
         // sample request and response / exception
         // Request: write to register address of 0x0000 with mask.
         // "AND" operation mask is (00 0F)，"OR" operation mask is (0F 00)
-        // If the value before this operation is "val", then after the mask opeation it becomes: (val & 0x000F) | (0x0F00 & ~0x000F)
+        // If the value before this operation is "val", then after the mask operation it becomes: (val & 0x000F) | (0x0F00 & ~0x000F)
         00 04 00 00 00 08 01 16 00 00 00 0F 0F 00
         // Response:
         00 04 00 00 00 08 01 16 00 00 00 0F 0F 00
@@ -108,7 +108,7 @@
     - 0x04: Read multiple input registers
         ```C++
         // sample request and response / exception
-        // Request: read 2 consecutive holding registers from address 0x0003
+        // Request: read 2 consecutive input registers from address 0x0003
         00 01 00 00 00 06 01 04 00 03 00 02
         // Response: Received 2 values are (00 0E) and (00 13) as an example
         00 01 00 00 00 07 01 04 04 00 0E 00 13
@@ -117,7 +117,7 @@
         ```
 
 # Exception code explanation
-- __0x01__: Illegal/Unsuppported function code
+- __0x01__: Illegal/Unsupported function code
 - __0x02__: Illegal target address
 - __0x03__: Exception of requested data
 
@@ -171,13 +171,13 @@
     | 32 | 0x20 | Robot Error code |
     | 33 | 0x21 | Robot Warning code |
     | 34 ~ 35 | 0x22 ~ 0x23 | Counter value (0x22 stores the higher 16-bit, 0x23 stores the lower 16-bit) |
-    | 36 ~ 63 | 0x23 ~ 0x3F | Reserved |
+    | 36 ~ 63 | 0x24 ~ 0x3F | Reserved |
     | 64 ~ 72 | 0x40 ~ 0x48 | Current TCP coordinate of x/y/z/roll/pitch/yaw/rx/ry/rz values, register values are 10 times the real numbers (unit: mm, degree) |
     | 73 ~ 76 | 0x49 ~ 0x4C | TCP payload mass(1000x)/center_x(10x)/center_y(10x)/center_z(10x) (unit: kg, mm) |
     | 77 ~ 82 | 0x4D ~ 0x52 | TCP Offset, register values are 10 times the real numbers(unit: mm, degree) |
     | 83 ~ 88 | 0x53 ~ 0x58 | User/world coordinate offset, register values are 10 times the real numbers(unit: mm, degree) |
     | 89 ~ 95 | 0x59 ~ 0x5F | joint (J1-J7) angles, register values are 10 times the real numbers(unit: degree) |
-    | 86 ~ 102 | 0x60 ~ 0x66 | joint (J1-J7) temperature (unit: degree Celsius) |
+    | 96 ~ 102 | 0x60 ~ 0x66 | joint (J1-J7) temperature (unit: degree Celsius) |
     | 103 ~ 109 | 0x67 ~ 0x6D | joint (J1-J7) speed, register values are 10 times the real numbers(unit: degree/s) |
     | 110 | 0x6E | Robot TCP linear speed, register values are 10 times the real numbers(unit: mm/s) |
     | 111 ~ 127 | 0x6F ~ 0x7F | Reserved |

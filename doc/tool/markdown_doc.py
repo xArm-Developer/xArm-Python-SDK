@@ -83,7 +83,7 @@ class MarkdownDoc(pydoc.TextDoc):
         for attr in attrs:
             if attr[1] == "data" and not attr[0].startswith("_"):
                 data.append(attr)
-            elif attr[1] == "data descriptor" and not attr[0].startswith("_"):
+            elif attr[1] in ("data descriptor", "readonly property") and not attr[0].startswith("_"):
                 descriptors.append(attr)
             elif "method" in attr[1] and not attr[2] is builtins.object:
                 methods.append(attr)
@@ -193,7 +193,7 @@ class MarkdownDoc(pydoc.TextDoc):
 
     def _docdescriptor(self, name, value, mod):
         results = ""
-        if name: results += "#### " + self.bold(name) + "\n"
+        if name: results += "#### " + name + "\n"
         # doc = pydoc.getdoc(value) or ""
         docstring = pydoc.getdoc(value) or ''
         if docstring:

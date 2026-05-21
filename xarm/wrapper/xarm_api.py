@@ -457,7 +457,7 @@ class XArmAPI(object):
     @property
     def is_simulation_robot(self):
         """
-        Is simulation robot not not
+        Is simulation robot or not
         """
         return self._arm.is_simulation_robot
 
@@ -1577,7 +1577,7 @@ class XArmAPI(object):
         Get the controller error and warn code
 
         :param show: show the detail info if True
-        :param lang: show language, en/cn, degault is en, only available if show is True
+        :param lang: show language, en/cn, default is en, only available if show is True
         :return: tuple((code, [error_code, warn_code])), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             error_code: See the [Controller Error Code Documentation](./xarm_api_code.md#controller-error-code) for details.
@@ -1736,7 +1736,7 @@ class XArmAPI(object):
 
         :param weight: load weight (unit: kg)
         :param center_of_gravity: load center of gravity, such as [x(mm), y(mm), z(mm)]
-        :param wait: whether to wait for the command to be executed or the the robotic arm to stop
+        :param wait: whether to wait for the command to be executed or the robotic arm to stop
         :return: code
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
         """
@@ -2323,7 +2323,7 @@ class XArmAPI(object):
             callback data:
             {
                 "mtable": [motor-1-motion-enable, motor-2-motion-enable, ...],
-                "mtbrake": [motor-1-brake-enable, motor-1-brake-enable,...],
+                "mtbrake": [motor-1-brake-enable, motor-2-brake-enable,...],
             }
         :return: True/False
         """
@@ -3367,6 +3367,8 @@ class XArmAPI(object):
             If the y+ direction is not completely perpendicular to x+, it will be corrected in the calculation process.
 
         :param three_points: a list of teaching TCP coordinate positions [x, y, z, roll, pitch, yaw]
+        :param mode: calculation mode, default is 0
+        :param trust_ind: trust index, default is 0
         :param input_is_radian: the roll/pitch/yaw value of the each point in radians or not, default is self.default_is_radian
         :param return_is_radian: the roll/pitch/yaw value of result in radians or not, default is self.default_is_radian
         :return: tuple((code, rpy_offset)), only when code is 0, the returned result is correct.
@@ -3464,7 +3466,7 @@ class XArmAPI(object):
 
     def iden_ft_sensor_load_offset(self):
         """
-        Identification the tcp load and offset with the the Six-axis Force Torque Sensor
+        Identification the tcp load and offset with the Six-axis Force Torque Sensor
         Note:
             1. only available if firmware_version >= 1.8.3
             2. the Six-axis Force Torque Sensor is required (the third party is not currently supported)
@@ -3698,7 +3700,7 @@ class XArmAPI(object):
 
     def get_linear_motor_on_zero(self):
         """
-        Get the linear motor is on zero positon or not
+        Get the linear motor is on zero position or not
         Note:
             1. only available if firmware_version >= 1.8.0
         
@@ -4179,7 +4181,7 @@ class XArmAPI(object):
         ([Standard Modbus TCP](../UF_ModbusTCP_Manual.md)) Write Single Holding Register (0x06)
         
         :param addr: register address
-        :param bit_val: the value to write
+        :param reg_val: the value to write
         :return: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
             Note: code 129~144 means modbus tcp exception, the actual modbus tcp exception code is (code-0x80), refer to [Standard Modbus TCP](../UF_ModbusTCP_Manual.md)
         """
@@ -4351,7 +4353,7 @@ class XArmAPI(object):
 
         :return: tuple((code, err_info)), only when code is 0, the returned result is correct.
             code: See the [API Code Documentation](./xarm_api_code.md#api-code) for details.
-            err_info: [servo_id, theoratival tau, actual tau]
+            err_info: [servo_id, theoretical tau, actual tau]
         """
         return self._arm.get_common_info(101, return_val=False)
 

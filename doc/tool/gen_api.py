@@ -21,54 +21,68 @@ from xarm.version import __version__
 from doc.tool.markdown_doc import MarkdownDoc
 
 
-def _make_anchor(heading_text):
-    """Convert a markdown heading to a GitHub-style anchor fragment."""
-    text = re.sub(r'^#+\s*', '', heading_text)
-    anchor = re.sub(r'[^\w\- ]', '', text).lower().strip().replace(' ', '-')
-    return anchor
-
-
 def _extract_entries(content):
     """Parse generated markdown to extract methods and properties."""
-    methods = []     # (name, anchor)
-    properties = []  # (name, anchor)
+    methods = []     # (name, anchor_id)
+    properties = []  # (name, anchor_id)
 
     for line in content.split('\n'):
         stripped = line.strip()
         # Match: #### def __method_name__(self, ...params...):
-        m = re.match(r'^####\s+def\s+__([a-zA-Z0-9_]+)__\(self,?\s*([^)]*)\)', stripped)
+        m = re.match(r'^####\s+def\s+__([a-zA-Z0-9_]+)__\(self,?\s*[^)]*\)', stripped)
         if m:
             name = m.group(1)
             if name == 'init':
                 continue
-            anchor = _make_anchor(stripped)
-            methods.append((name, anchor))
+            methods.append((name, name))
             continue
 
-        # Match properties: #### property_name (not starting with "def")
+        # Match properties: #### property_name
         m = re.match(r'^####\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*$', stripped)
         if m and not stripped.startswith('#### def'):
             name = m.group(1)
-            anchor = _make_anchor(stripped)
-            properties.append((name, anchor))
+            properties.append((name, name))
 
     return methods, properties
 
 
+def _inject_anchors(content, methods, properties):
+    """Insert <a id="..."> tags before method/property headings."""
+    all_names = set(m[0] for m in methods) | set(p[0] for p in properties)
+    lines = content.split('\n')
+    result = []
+
+    for line in lines:
+        # Match method heading
+        m = re.match(r'^(####\s+def\s+__)([a-zA-Z0-9_]+)(__\(self.*)$', line)
+        if m:
+            name = m.group(2)
+            if name != 'init' and name in all_names:
+                result.append('<a id="{}"></a>'.format(name))
+        # Match property heading
+        else:
+            m = re.match(r'^(####\s+)([a-zA-Z_][a-zA-Z0-9_]*)(\s*)$', line)
+            if m and m.group(2) in all_names:
+                result.append('<a id="{}"></a>'.format(m.group(2)))
+        result.append(line)
+
+    return '\n'.join(result)
+
+
 def _build_toc(methods, properties):
-    """Build a TOC markdown block."""
+    """Build a TOC markdown block using clean anchor IDs."""
     lines = ['## Table of Contents', '']
 
     if methods:
         lines.append('### Methods ({})'.format(len(methods)))
-        for name, anchor in methods:
-            lines.append('- [{}](#{})'.format(name, anchor))
+        for name, anchor_id in methods:
+            lines.append('- [{}](#{})'.format(name, anchor_id))
         lines.append('')
 
     if properties:
         lines.append('### Properties ({})'.format(len(properties)))
-        for name, anchor in properties:
-            lines.append('- [{}](#{})'.format(name, anchor))
+        for name, anchor_id in properties:
+            lines.append('- [{}](#{})'.format(name, anchor_id))
         lines.append('')
 
     return '\n'.join(lines)
@@ -100,11 +114,14 @@ methods, properties = _extract_entries(doc_content)
 methods.sort(key=lambda x: x[0])
 properties.sort(key=lambda x: x[0])
 
-# 3. Build and inject TOC
+# 3. Inject <a id="..."> anchors into the markdown
+doc_content = _inject_anchors(doc_content, methods, properties)
+
+# 4. Build and inject TOC
 toc = _build_toc(methods, properties)
 doc_content = _inject_toc(doc_content, toc)
 
-# 4. Write output
+# 5. Write output
 doc_filepath = os.path.join(curr_file_dir, '../api/xarm_api.md')
 open(doc_filepath, 'w', encoding='utf-8').write(doc_content)
 

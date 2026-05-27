@@ -354,12 +354,15 @@ class Servo(Base):
                 ret1 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0801)
                 ret2 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0802)
                 ret3 = self.arm_cmd.servo_error_addr_r32(id_num, 0x0803)
-                if len(ret1) > 1 and abs(ret1[1]) < 1000:
+                if len(ret1) > 1 and abs(ret1[1]) != 1003:
                     ret1[1] = ret1[1] >> 16
-                if len(ret2) > 1 and abs(ret2[1]) < 1000:
+                    ret1[0] = 0 if ret1[0] == XCONF.UxbusState.INVALID else ret1[0]
+                if len(ret2) > 1 and abs(ret2[1]) != 1003:
                     ret2[1] = ret2[1] >> 16
-                if len(ret3) > 1 and abs(ret3[1]) < 1000:
+                    ret2[0] = 0 if ret2[0] == XCONF.UxbusState.INVALID else ret2[0]
+                if len(ret3) > 1 and abs(ret3[1]) != 1003:
                     ret3[1] = ret3[1] >> 16
+                    ret3[0] = 0 if ret3[0] == XCONF.UxbusState.INVALID else ret3[0]
             else:
                 ret2 = self.get_servo_addr_16(id_num, 0x0802)
                 ret3 = self.get_servo_addr_16(id_num, 0x0803)

@@ -7,6 +7,7 @@
 # Author: Vinman <vinman.wen@ufactory.cc> <vinman.cub@gmail.com>
 import time
 from collections.abc import Iterable
+from xarm.core.config.x_config import XCONF
 from ..core.utils.log import logger
 from .base import Base
 from .code import APIState
@@ -485,12 +486,15 @@ class FtSensor(Base):
             ret1 = self.arm_cmd.servo_error_addr_r32(8, 0x0801)
             ret2 = self.arm_cmd.servo_error_addr_r32(8, 0x0802)
             ret3 = self.arm_cmd.servo_error_addr_r32(8, 0x0803)
-            if len(ret1) > 1:
+            if len(ret1) > 1 and abs(ret1[1]) != 1003:
                 ret1[1] = ret1[1] >> 16
-            if len(ret2) > 1:
+                ret1[0] = 0 if ret1[0] == XCONF.UxbusState.INVALID else ret1[0]
+            if len(ret2) > 1 and abs(ret2[1]) != 1003:
                 ret2[1] = ret2[1] >> 16
-            if len(ret3) > 1:
+                ret2[0] = 0 if ret2[0] == XCONF.UxbusState.INVALID else ret2[0]
+            if len(ret3) > 1 and abs(ret3[1]) != 1003:
                 ret3[1] = ret3[1] >> 16
+                ret3[0] = 0 if ret3[0] == XCONF.UxbusState.INVALID else ret3[0]
         else:
             ret2 = self.arm_cmd.servo_addr_r16(8, 0x0802)
             ret3 = self.arm_cmd.servo_addr_r16(8, 0x0803)

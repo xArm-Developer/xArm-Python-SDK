@@ -266,6 +266,17 @@ class _BlocklyBase(_BlocklyNode):
             fields = self._get_nodes('field', root=block)
             timeout = float(fields[0].text)
             return '0 == self._arm.arm.check_catch_gripper_status(timeout={})'.format(timeout)
+        elif block.attrib['type'] == 'get_gripper_pos':
+            fields = self._get_nodes('field', root=block)
+            gripper_type = fields[0].text
+            if gripper_type == 'Gripper':
+                return 'self._arm.get_gripper_position()[1]'
+            elif gripper_type == 'Gripper G2':
+                return 'self._arm.get_gripper_g2_position()[1]'
+            elif gripper_type == 'BIO Gripper G2':
+                return 'self._arm.get_bio_gripper_g2_position()[1]'
+            elif gripper_type == 'Robotiq':
+                return '[self._arm.robotiq_get_status(), self._arm.robotiq_get_status()[1][7]][1]'
 
 
     def __get_logic_compare(self, block, arg_map=None):

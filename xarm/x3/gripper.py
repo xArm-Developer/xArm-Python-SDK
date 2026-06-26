@@ -651,6 +651,7 @@ class Gripper(GPIO):
         code = APIState.WAIT_FINISH_TIMEOUT
         check_detected = kwargs.get('check_detected', False)
         check_baud = kwargs.get('check_baud', True)
+        time.sleep(0.5)
         while time.monotonic() < expired:
             _, status = self.get_bio_gripper_status(check_baud=check_baud)
             failed_cnt = 0 if _ == 0 else failed_cnt + 1
@@ -968,7 +969,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='set')
     def set_gripper_g2_position(self, pos, speed=100, force=50, wait=False, timeout=5, **kwargs):
         no_check = kwargs.get('no_check', False)
-        if not no_check and kwargs.get('wait_motion', True):
+        if not no_check and kwargs.get('wait_motion', False):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move(is_stop=is_stop)
@@ -994,6 +995,8 @@ class Gripper(GPIO):
         data_frame.extend(list(struct.pack('>i', pos)))
         ret = self.set_rs485_data(data_frame, min_res_len=6, ignore_log=True)
         self.log_api_info('API -> set_g2_gripper_position(pos={}, speed={}, force={}) -> code={}'.format(pos, speed, force, ret[0]), code=ret[0])
+        if ret[0] == 0:
+           self.gripper_speed = speed
         if not no_check and kwargs.get('check_err', True):
             _, err = self._get_modbus_gripper_err_code()
             if self._gripper_error_code != 0:
@@ -1009,7 +1012,7 @@ class Gripper(GPIO):
     @xarm_is_connected(_type='set')
     def set_bio_gripper_g2_position(self, pos, speed=2000, force=100, wait=True, timeout=5, **kwargs):
         no_check = kwargs.get('no_check', False)
-        if not no_check and kwargs.pop('wait_motion', True):
+        if not no_check and kwargs.pop('wait_motion', False):
             has_error = self.error_code != 0
             is_stop = self.is_stop
             code = self.wait_move(is_stop=is_stop)

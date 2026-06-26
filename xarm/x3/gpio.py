@@ -69,6 +69,9 @@ class GPIO(Base):
             versions[2] = ret3[1] if abs(ret3[1]) < 1000 else '*'
         else:
             code = ret3[0]
+            
+        if versions == [0, 0, 0]:
+            versions = ['*', '*', '*']
         # if code != 0:
         #     _, err_warn = self.get_err_warn_code()
         #     if _ in [0, 1, 2]:
@@ -139,7 +142,7 @@ class GPIO(Base):
         if delay_sec is not None and delay_sec > 0:
             if not sync:
                 logger.warning('The sync parameter is ignored when delay_sec is non-zero')
-            ret = self.arm_cmd.tgpio_delay_set_digital(ionum if ionum < 2 else ionum-1, value, delay_sec)
+            ret = self.arm_cmd.tgpio_delay_set_digital(ionum, value, delay_sec)
             self.log_api_info('API -> set_tgpio_digital(ionum={}, value={}, delay_sec={}) -> code={}'.format(ionum, value, delay_sec, ret[0]), code=ret[0])
         else:
             if not sync and not self.version_is_ge(2, 4, 101):

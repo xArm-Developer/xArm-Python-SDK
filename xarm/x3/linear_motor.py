@@ -141,6 +141,7 @@ class LinearMotor(GPIO):
         self.log_api_info(
             'API -> set_linear_motor_back_origin() -> code1={}, code2={}, err={}, enabled={}, zero={}'.format(
                 ret[0], code2, status['error'], status['is_enabled'], status['on_zero']), code=ret[0])
+        self.linear_motor_speed = 0
         if ret[0] == 0 and wait:
             ret[0] = self.__wait_linear_motor_back_origin(timeout)
         if auto_enable:

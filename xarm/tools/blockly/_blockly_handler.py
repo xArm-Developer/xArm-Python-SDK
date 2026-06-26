@@ -96,16 +96,32 @@ class _BlocklyHandler(_BlocklyBase):
     
     def _handle_set_speed(self, block, indent=0, arg_map=None):
         self._append_main_code('self._tcp_speed = {}'.format(self._get_field_value(block)), indent + 2)
-
+    
+    def _handle_set_speed_variable(self, block, indent=0, arg_map=None):
+        values = self._get_nodes('value', root=block)
+        self._append_main_code('self._tcp_speed = {}'.format(self._get_block_val(values[0], arg_map)), indent + 2)
+    
     def _handle_set_acceleration(self, block, indent=0, arg_map=None):
         self._append_main_code('self._tcp_acc = {}'.format(self._get_field_value(block)), indent + 2)
-
+    
+    def _handle_set_acceleration_variable(self, block, indent=0, arg_map=None):
+        values = self._get_nodes('value', root=block)
+        self._append_main_code('self._tcp_acc = {}'.format(self._get_block_val(values[0], arg_map)), indent + 2)
+    
     def _handle_set_angle_speed(self, block, indent=0, arg_map=None):
         self._append_main_code('self._angle_speed = {}'.format(self._get_field_value(block)), indent + 2)
-
+    
+    def _handle_set_angle_speed_variable(self, block, indent=0, arg_map=None):
+        values = self._get_nodes('value', root=block)
+        self._append_main_code('self._angle_speed = {}'.format(self._get_block_val(values[0], arg_map)), indent + 2)
+    
     def _handle_set_angle_acceleration(self, block, indent=0, arg_map=None):
         self._append_main_code('self._angle_acc = {}'.format(self._get_field_value(block)), indent + 2)
-
+    
+    def _handle_set_angle_acceleration_variable(self, block, indent=0, arg_map=None):
+        values = self._get_nodes('value', root=block)
+        self._append_main_code('self._angle_acc = {}'.format(self._get_block_val(values[0], arg_map)), indent + 2)
+    
     def _handle_set_counter_increase(self, block, indent=0, arg_map=None):
         self._listen_counter = True
         self._append_main_code('code = self._arm.set_counter_increase()', indent + 2)
@@ -815,7 +831,21 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code = self._arm.set_bio_gripper_g2_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_bio_gripper_g2_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
-
+    
+    def _handle_set_bio_gripper_pos_force_variable(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        wait = fields[0].text == 'TRUE'
+        values = self._get_nodes('value', root=block)
+        pos = self._get_block_val(values[0], arg_map)
+        speed = self._get_block_val(values[1], arg_map)
+        force = self._get_block_val(values[2], arg_map)
+        self._append_main_code(
+            'code = self._arm.set_bio_gripper_g2_position(pos={}, speed={}, force={}, wait={})'.format(pos, speed,
+                                                                                                       force, wait),
+            indent + 2)
+        self._append_main_code('if not self._check_code(code, \'set_bio_gripper_g2_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+    
     def _handle_set_dhpgc_gripper_init(self, block, indent=0, arg_map=None):
         self._append_main_code('code = self._arm.set_dhpgc_gripper_activate(wait=True)', indent + 2)
         self._append_main_code('if not self._check_code(code, \'set_dhpgc_gripper_activate\'):', indent + 2)
@@ -897,7 +927,20 @@ class _BlocklyHandler(_BlocklyBase):
         self._append_main_code('code, ret = self._arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(pos, speed, force, wait), indent + 2)
         self._append_main_code('if not self._check_code(code, \'robotiq_set_position\'):', indent + 2)
         self._append_main_code('    return', indent + 2)
-
+    
+    def _handle_set_robotiq_gripper_variable(self, block, indent=0, arg_map=None):
+        fields = self._get_nodes('field', root=block)
+        wait = fields[0].text == 'TRUE'
+        values = self._get_nodes('value', root=block)
+        pos = self._get_block_val(values[0], arg_map)
+        speed = self._get_block_val(values[1], arg_map)
+        force = self._get_block_val(values[2], arg_map)
+        self._append_main_code(
+            'code, ret = self._arm.robotiq_set_position({}, speed={}, force={}, wait={})'.format(pos, speed, force,
+                                                                                                 wait), indent + 2)
+        self._append_main_code('if not self._check_code(code, \'robotiq_set_position\'):', indent + 2)
+        self._append_main_code('    return', indent + 2)
+    
     def __handle_gpio_event(self, gpio_type, block, indent=0, arg_map=None):
         if gpio_type.startswith('listen'):
             if gpio_type == 'listen_tgpio_digital':

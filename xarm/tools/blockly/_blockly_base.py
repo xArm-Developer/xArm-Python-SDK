@@ -238,8 +238,13 @@ class _BlocklyBase(_BlocklyNode):
         elif block.attrib['type'] == 'get_single_holding_register':
             fields = self._get_nodes('field', root=block)
             addr = int(fields[0].text.replace(' ', '').replace('0x', '').replace(',', '').replace('\xa0', ''), 16)
-            return "list(map(lambda x: hex(x).split('0x')[1].upper().zfill(4)[:2] + ' ' + hex(x).split('0x')[1]." \
-                   "upper().zfill(4)[2:], self._arm.read_holding_registers({}, 1)[1]))[0]".format(str(addr))
+            if fields[1].text == 'HEX':
+                return "list(map(lambda x: hex(x).split('0x')[1].upper().zfill(4)[:2] + ' ' + hex(x).split('0x')[1]." \
+                       "upper().zfill(4)[2:], self._arm.read_holding_registers({}, 1)[1]))[0]".format(str(addr))
+            elif fields[1].text == 'INT 16':
+                return "self._arm.read_holding_registers({}, 1, is_signed=True)[1]".format(str(addr))
+            else:
+                return "self._arm.read_holding_registers({}, 1)[1]".format(str(addr))
         elif block.attrib['type'] == 'get_position':
             direction_li = ['X', 'Y', 'Z', 'R', 'P', 'Y']
             fields = self._get_nodes('field', root=block)

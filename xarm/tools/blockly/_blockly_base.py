@@ -242,9 +242,9 @@ class _BlocklyBase(_BlocklyNode):
                 return "list(map(lambda x: hex(x).split('0x')[1].upper().zfill(4)[:2] + ' ' + hex(x).split('0x')[1]." \
                        "upper().zfill(4)[2:], self._arm.read_holding_registers({}, 1)[1]))[0]".format(str(addr))
             elif fields[1].text == 'INT 16':
-                return "self._arm.read_holding_registers({}, 1, is_signed=True)[1]".format(str(addr))
+                return "self._arm.read_holding_registers({}, 1, is_signed=True)[1][0]".format(str(addr))
             else:
-                return "self._arm.read_holding_registers({}, 1)[1]".format(str(addr))
+                return "self._arm.read_holding_registers({}, 1)[1][0]".format(str(addr))
         elif block.attrib['type'] == 'get_position':
             direction_li = ['X', 'Y', 'Z', 'R', 'P', 'Y']
             fields = self._get_nodes('field', root=block)

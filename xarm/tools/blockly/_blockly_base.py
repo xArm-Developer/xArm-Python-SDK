@@ -196,12 +196,12 @@ class _BlocklyBase(_BlocklyNode):
             host_id = fields[0].text
             cmd = fields[1].text
             cmd_li = re.sub(',', ' ', cmd)
-            is_run_cmd = ''.join(cmd_li.split()).isalnum()
-            if not is_run_cmd:
-                self._append_main_code('-1', indent + 2)
             cmd_li = re.sub(' +', ' ', cmd_li)
             cmd_li = re.sub('\xa0', ' ', cmd_li)
             cmd_li = re.sub('\s+', ' ', cmd_li)
+            is_run_cmd = ''.join(cmd_li.split()).isalnum()
+            if not is_run_cmd:
+                return 'None'
             cmd_li = cmd_li.strip().split(' ')
             int_li = [int(da, 16) for da in cmd_li]
             return '[" ".join([hex(da).split("0x")[1].upper().zfill(2) for da in data]) if isinstance(data, list' \
@@ -211,12 +211,12 @@ class _BlocklyBase(_BlocklyNode):
             host_id = fields[0].text
             cmd = fields[1].text
             cmd_li = re.sub(',', ' ', cmd)
-            is_run_cmd = ''.join(cmd_li.split()).isalnum()
-            if not is_run_cmd:
-                self._append_main_code('-1', indent + 2)
             cmd_li = re.sub(' +', ' ', cmd_li)
             cmd_li = re.sub('\xa0', ' ', cmd_li)
             cmd_li = re.sub('\s+', ' ', cmd_li)
+            is_run_cmd = ''.join(cmd_li.split()).isalnum()
+            if not is_run_cmd:
+                return 'None'
             cmd_li = cmd_li.strip().split(' ')
             int_li = [int(da, 16) for da in cmd_li]
             return '[" ".join([hex(da).split("0x")[1].upper().zfill(2) for da in data]) if isinstance(data, list' \

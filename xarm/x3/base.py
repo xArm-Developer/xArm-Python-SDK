@@ -2167,7 +2167,7 @@ class Base(BaseObject, Events):
             if code in [0, XCONF.UxbusState.WAR_CODE]:
                 if self.arm_cmd.state_is_ready:
                     if mode >= 0 and mode != self.mode:
-                        logger.warn('The mode may be incorrect, just as a reminder, mode: {} ({})'.format(mode, self.mode))
+                        logger.warning('The mode may be incorrect, just as a reminder, mode: {} ({})'.format(mode, self.mode))
                     return 0
                     # return 0 if mode < 0 or mode == self.mode else APIState.MODE_IS_NOT_CORRECT
                 else:
@@ -2483,6 +2483,7 @@ class Base(BaseObject, Events):
                     if not ignore_log:
                         self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
                     return APIState.EMERGENCY_STOP, -1
+                continue
             else:
                 state5_cnt = 0
             if trans_id in self._fb_transid_result_map:
@@ -2495,7 +2496,7 @@ class Base(BaseObject, Events):
                 continue
             if state == 0 or state == 1:
                 cnt = 0
-                max_cnt = 2
+                max_cnt = 5
                 time.sleep(0.05)
                 continue
             else:

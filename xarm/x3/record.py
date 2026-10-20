@@ -164,9 +164,9 @@ class Record(Base):
                 time.sleep(0.1)
             code = 0 if self.state != 4 else APIState.STATE_NOT_READY
 
-        if self.state not in [4]:
-            self.set_mode(0)
-            self.set_state(0)
+        # if self.state not in [4]:
+        #     self.set_mode(0)
+        #     self.set_state(0)
         self._sync()
         return code
 

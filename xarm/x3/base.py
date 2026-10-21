@@ -2461,6 +2461,8 @@ class Base(BaseObject, Events):
         max_cnt = 10
         state5_cnt = 0
         while timeout is None or time.monotonic() < expired:
+            if trans_id in self._fb_transid_result_map:
+                return 0, self._fb_transid_result_map.pop(trans_id, -1)
             if not self.connected:
                 self._fb_transid_result_map.clear()
                 if not ignore_log:
@@ -2483,26 +2485,22 @@ class Base(BaseObject, Events):
                     if not ignore_log:
                         self.log_api_info('wait_feedback, xarm is stop, state={}'.format(state), code=APIState.EMERGENCY_STOP)
                     return APIState.EMERGENCY_STOP, -1
-                continue
             else:
                 state5_cnt = 0
-            if trans_id in self._fb_transid_result_map:
-                return 0, self._fb_transid_result_map.pop(trans_id, -1)
-
-            if time.monotonic() < self._sleep_finish_time or state == 3:
-                cnt = 0
-                max_cnt = 2 if state == 3 else max_cnt
-                time.sleep(0.05)
-                continue
-            if state == 0 or state == 1:
-                cnt = 0
-                max_cnt = 5
-                time.sleep(0.05)
-                continue
-            else:
-                cnt += 1
-                if cnt >= max_cnt:
-                    return 0, -1
+                if time.monotonic() < self._sleep_finish_time or state == 3:
+                    cnt = 0
+                    max_cnt = 2 if state == 3 else max_cnt
+                    time.sleep(0.05)
+                    continue
+                if state == 0 or state == 1:
+                    cnt = 0
+                    max_cnt = 5
+                    time.sleep(0.05)
+                    continue
+                else:
+                    cnt += 1
+                    if cnt >= max_cnt:
+                        return 0, -1
             time.sleep(0.05)
         return APIState.WAIT_FINISH_TIMEOUT, -1
     

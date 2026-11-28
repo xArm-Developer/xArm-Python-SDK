@@ -27,22 +27,27 @@ class _BaseValue(object):
 
 class _BUInt16(_BaseValue, BigEndianStructure):
     _pack_ = 1
+    _layout_ = "ms"
     _fields_ = [('_value', C_UINT16)]
 
 class _BInt16(_BaseValue, BigEndianStructure):
     _pack_ = 1
+    _layout_ = "ms"
     _fields_ = [('_value', C_INT16)]
 
 class _BUInt32(_BaseValue, BigEndianStructure):
     _pack_ = 1
+    _layout_ = "ms"
     _fields_ = [('_value', C_UINT32)]
 
 class _BUInt64(_BaseValue, BigEndianStructure):
     _pack_ = 1
+    _layout_ = "ms"
     _fields_ = [('_value', C_UINT64)]
 
 class _Fp32(_BaseValue, LittleEndianStructure):
     _pack_ = 1
+    _layout_ = "ms"
     _fields_ = [('_value', C_FLOAT)]
 
 class _JointFp32(_Fp32):
@@ -97,6 +102,7 @@ class _BUInt16Array7(_BUInt16Array): _length_ = 7
 
 class ReportDataStructure(ctypes.Structure):
     _pack_ = 1
+    _layout_ = "ms"
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self._is_radian = kw.get('is_radian', True)
